@@ -1,18 +1,4 @@
-export interface Property {
-  id: string;
-  name: string;
-  price: number;
-  sizeSqft: number;
-  neighborhood: string;
-  rentRange: [number, number];
-  arvRange: [number, number];
-  conditionTag: 'Excellent' | 'Good' | 'Fair' | 'Fixer-Upper';
-  photoUrl: string;
-  baseRehabRange: [number, number];
-  baseTimelineRange: [number, number];
-  offMarketRate: number;
-  viabilityProfile: 'viable' | 'rent-mirage' | 'rehab-sinkhole' | 'time-bomb' | 'leverage-trap';
-}
+import type { Property } from '@shared/schema';
 
 export interface ProFormaInputs {
   strategy: 'rent' | 'flip';
@@ -42,16 +28,6 @@ export interface ProFormaOutputs {
   totalCashInvested: number;
 }
 
-export interface GameState {
-  cash: number;
-  weeksRemaining: number;
-  profitableDeals: number;
-  goalDeals: number;
-  currentProperty: Property | null;
-  proForma: ProFormaInputs;
-  isProFormaComplete: boolean;
-}
-
 export const defaultProForma: ProFormaInputs = {
   strategy: 'rent',
   expectedRent: 1600,
@@ -67,22 +43,6 @@ export const defaultProForma: ProFormaInputs = {
   financingType: 'bank',
   interestRate: 5,
   downPaymentPct: 25,
-};
-
-export const sampleProperty: Property = {
-  id: 'prop-3',
-  name: 'Maplewood Fixer-Upper',
-  price: 185000,
-  sizeSqft: 1450,
-  neighborhood: 'Maplewood',
-  rentRange: [1400, 1800],
-  arvRange: [220000, 260000],
-  conditionTag: 'Fixer-Upper',
-  photoUrl: '',
-  baseRehabRange: [30000, 55000],
-  baseTimelineRange: [6, 12],
-  offMarketRate: 0.15,
-  viabilityProfile: 'viable',
 };
 
 export const calculateProForma = (
@@ -136,4 +96,14 @@ export const formatCurrency = (value: number): string => {
 
 export const formatPercent = (value: number): string => {
   return `${value.toFixed(1)}%`;
+};
+
+export const convertPropertyToGameProperty = (prop: Property) => {
+  return {
+    ...prop,
+    rentRange: [prop.rentMin, prop.rentMax] as [number, number],
+    arvRange: [prop.arvMin, prop.arvMax] as [number, number],
+    baseRehabRange: [prop.rehabMin, prop.rehabMax] as [number, number],
+    baseTimelineRange: [prop.timelineMin, prop.timelineMax] as [number, number],
+  };
 };

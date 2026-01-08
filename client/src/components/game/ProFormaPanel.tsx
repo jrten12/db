@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { StrategyTabs } from './StrategyTabs';
-import { ProFormaInputs, Property, formatCurrency } from '@/lib/gameData';
+import { ProFormaInputs, formatCurrency } from '@/lib/gameData';
+
+interface Property {
+  id: number;
+  name: string;
+  price: number;
+  rentRange: [number, number];
+}
 
 interface ProFormaPanelProps {
   property: Property;
@@ -15,6 +22,14 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
   useEffect(() => {
     setLocalInputs(inputs);
   }, [inputs]);
+
+  useEffect(() => {
+    // Set expected rent to mid-range when property changes
+    const midRent = Math.floor((property.rentRange[0] + property.rentRange[1]) / 2);
+    const newInputs = { ...inputs, expectedRent: midRent };
+    setLocalInputs(newInputs);
+    onInputsChange(newInputs);
+  }, [property.id]);
 
   const handleChange = <K extends keyof ProFormaInputs>(key: K, value: ProFormaInputs[K]) => {
     const newInputs = { ...localInputs, [key]: value };
@@ -34,7 +49,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <h2 className="font-display text-stone-800 text-lg md:text-xl font-semibold tracking-wide">PRO FORMA</h2>
           <div className="text-stone-700 font-serif text-base md:text-lg">
-            Property 3: <span className="font-semibold">{property.name}</span>
+            <span className="font-semibold">{property.name}</span>
           </div>
         </div>
 
@@ -189,7 +204,6 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
                   className="game-input w-28 text-right"
                   data-testid="input-rehab-budget"
                 />
-                <span className="text-stone-500 text-xs invisible sm:visible">/total</span>
               </div>
             </div>
 
@@ -219,11 +233,6 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
                 />
                 <span className="text-stone-500 text-xs">%</span>
               </div>
-            </div>
-
-            <div className="flex items-center justify-between gap-4">
-              <label className="text-stone-700 text-sm">Contingency</label>
-              <span className="text-stone-600 font-mono text-sm">{localInputs.contingencyPct}%</span>
             </div>
           </div>
         </div>

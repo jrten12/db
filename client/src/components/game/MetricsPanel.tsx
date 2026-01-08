@@ -1,12 +1,13 @@
-import { Lock, AlertTriangle, Star, Building2, Clock } from 'lucide-react';
+import { Lock, AlertTriangle, Star, DollarSign } from 'lucide-react';
 import { ProFormaOutputs, formatCurrency, formatPercent } from '@/lib/gameData';
 
 interface MetricsPanelProps {
   outputs: ProFormaOutputs | null;
   isUnlocked: boolean;
+  onCommitDeal?: () => void;
 }
 
-export function MetricsPanel({ outputs, isUnlocked }: MetricsPanelProps) {
+export function MetricsPanel({ outputs, isUnlocked, onCommitDeal }: MetricsPanelProps) {
   const cashFlowNegative = outputs && outputs.cashFlowMonthly < 0;
   const cashOnCashNegative = outputs && outputs.cashOnCash < 0;
 
@@ -39,48 +40,61 @@ export function MetricsPanel({ outputs, isUnlocked }: MetricsPanelProps) {
       </div>
 
       {isUnlocked && outputs && (
-        <div className="metric-card" data-testid="card-real-time-metrics">
-          <h3 className="font-display text-foreground text-base font-semibold mb-4">
-            Real-Time Metrics
-          </h3>
-          
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">Monthly Cash Flow</span>
-              <span className={`font-mono font-bold ${cashFlowNegative ? 'text-danger' : 'text-success'}`}>
-                {formatCurrency(outputs.cashFlowMonthly)}/mo
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {cashOnCashNegative && <AlertTriangle className="w-4 h-4 text-warning" />}
-                <span className="text-muted-foreground text-sm">Cash-on-Cash Return</span>
+        <>
+          <div className="metric-card" data-testid="card-real-time-metrics">
+            <h3 className="font-display text-foreground text-base font-semibold mb-4">
+              Real-Time Metrics
+            </h3>
+            
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-sm">Monthly Cash Flow</span>
+                <span className={`font-mono font-bold ${cashFlowNegative ? 'text-danger' : 'text-success'}`}>
+                  {formatCurrency(outputs.cashFlowMonthly)}/mo
+                </span>
               </div>
-              <span className={`font-mono font-bold ${cashOnCashNegative ? 'text-danger' : 'text-success'}`}>
-                {formatPercent(outputs.cashOnCash)}
-              </span>
-            </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">Cap Rate</span>
-              <span className="font-mono text-foreground">
-                {formatPercent(outputs.capRate)}
-              </span>
-            </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {cashOnCashNegative && <AlertTriangle className="w-4 h-4 text-warning" />}
+                  <span className="text-muted-foreground text-sm">Cash-on-Cash Return</span>
+                </div>
+                <span className={`font-mono font-bold ${cashOnCashNegative ? 'text-danger' : 'text-success'}`}>
+                  {formatPercent(outputs.cashOnCash)}
+                </span>
+              </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">Total Cash Invested</span>
-              <span className="font-mono text-foreground">
-                {formatCurrency(outputs.totalCashInvested)}
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-sm">Cap Rate</span>
+                <span className="font-mono text-foreground">
+                  {formatPercent(outputs.capRate)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-sm">Total Cash Invested</span>
+                <span className="font-mono text-foreground">
+                  {formatCurrency(outputs.totalCashInvested)}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+
+          {onCommitDeal && (
+            <button 
+              onClick={onCommitDeal}
+              className="game-button w-full flex items-center justify-center gap-2"
+              data-testid="button-commit-deal"
+            >
+              <DollarSign className="w-5 h-5" />
+              Commit to Deal
+            </button>
+          )}
+        </>
       )}
 
       <div className="metric-card" data-testid="card-badges">
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center">
             <Star className="w-5 h-5 text-gold" fill="hsl(43 85% 55%)" />
           </div>
@@ -89,28 +103,6 @@ export function MetricsPanel({ outputs, isUnlocked }: MetricsPanelProps) {
             <div className="text-muted-foreground text-xs">Desfortiones Pogers</div>
           </div>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        <button 
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-card border border-border hover:bg-muted transition-colors"
-          data-testid="button-add-property"
-        >
-          <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
-            <Building2 className="w-4 h-4 text-muted-foreground" />
-          </div>
-          <span className="text-foreground text-sm font-medium">Add Property</span>
-        </button>
-
-        <button 
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-card border border-border hover:bg-muted transition-colors"
-          data-testid="button-wait-reset"
-        >
-          <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
-            <Clock className="w-4 h-4 text-muted-foreground" />
-          </div>
-          <span className="text-foreground text-sm font-medium">Wait to Reset</span>
-        </button>
       </div>
     </div>
   );

@@ -1,0 +1,215 @@
+Why this page feels wrong (core diagnosis)
+1. It’s quietly giving away answers
+
+The moment you show rent ranges prominently on the market grid, you’ve already shifted the player’s brain into:
+
+“Which one has the best-looking numbers?”
+
+That short-circuits the lesson.
+
+Right now this page is functioning like:
+
+Zillow browsing
+
+Deal teaser feed
+
+“Pick the green one”
+
+But your game is not about spotting green numbers.
+It’s about building outcomes from incomplete inputs.
+
+2. The “Good / Fair / Excellent” tags are doing too much thinking
+
+Those labels feel comforting — and that’s the problem.
+
+They imply:
+
+someone else already evaluated this
+
+the player is choosing between quality tiers
+
+“Excellent” ≈ safe
+
+In reality (and in your game design):
+
+“Excellent” deals can still be lethal
+
+“Fixer-Upper” can sometimes be the only viable one
+
+Surface labels are often lies
+
+So the UI is contradicting the philosophy.
+
+3. This page feels like a selection screen, not a risk screen
+
+Emotionally, this page says:
+
+“Choose the best option”
+
+But it should say:
+
+“Choose where you’re willing to be wrong”
+
+That’s a very different psychological posture.
+
+The fix: change what the page teaches, not the whole layout
+
+You do not need to redesign everything.
+You need to change what information is foregrounded vs backgrounded.
+
+What to REMOVE or de-emphasize
+❌ Remove rent ranges from the card face
+
+Rent ranges are inputs, but they’re high-leverage inputs.
+
+If you show them here, players anchor on them.
+
+Instead:
+
+Move rent range to the property detail page only
+
+Or hide it behind a hover / “Market Info” toggle
+
+This forces players to:
+
+click in
+
+slow down
+
+engage deliberately
+
+That’s good friction.
+
+❌ Kill “Excellent / Good / Fair” labels
+
+These are poison for what you’re teaching.
+
+Replace them with neutral uncertainty language.
+
+What to ADD (this is the important part)
+1. Replace quality labels with uncertainty indicators
+
+Instead of:
+
+Excellent
+
+Good
+
+Fair
+
+Fixer-Upper
+
+Use things like:
+
+Information Level: Low / Medium / High
+
+Condition Certainty: Unknown / Partial / Clear
+
+Hidden Risk Likelihood: Low / Medium / High
+
+These do not tell the player what’s good.
+They tell the player how much they don’t know.
+
+That aligns perfectly with pro forma thinking.
+
+2. Replace rent ranges with questions
+
+This is subtle but powerful.
+
+Instead of showing:
+
+$1,300–$1,600
+
+Show something like:
+
+“Market rent uncertain”
+
+“Wide rent variance”
+
+“Tight rent band”
+
+Or even:
+
+“Rent sensitivity: Medium”
+
+You’re teaching sensitivity, not numbers.
+
+3. Add a small line of instructional framing at the top
+
+Right now the header says:
+
+“Select a property to analyze”
+
+That’s neutral — and boring.
+
+Change it to something like:
+
+“Which of these would you bet your assumptions on?”
+
+or
+
+“Most of these will fail. Choose carefully.”
+
+That single sentence reframes the entire screen.
+
+What this page SHOULD teach (explicitly)
+
+This page’s lesson is:
+
+“Before you build a pro forma, all deals look plausible.”
+
+So the UI should:
+
+make multiple options look tempting
+
+hide decisive numbers
+
+foreground uncertainty
+
+invite investigation, not selection
+
+A concrete revised card structure (example)
+
+Card shows:
+
+Photo
+
+Price
+
+Sq ft
+
+Neighborhood descriptor
+
+Uncertainty badges:
+
+“Rent variability: High”
+
+“Condition clarity: Low”
+
+“Timeline risk: Unknown”
+
+Card does NOT show:
+
+Rent $
+
+Cash flow $
+
+Profit $
+
+Quality verdicts
+
+Clicking the card is how you earn more info.
+
+Why this will feel better immediately
+
+Players slow down
+
+They stop shopping for numbers
+
+They start asking questions
+
+Pro forma becomes the hero again
+
+Passing on deals feels smart, not like “missing out”
+
+That’s exactly the behavior you want to train.

@@ -2,7 +2,7 @@ import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
 import { Menu, Home, X } from 'lucide-react';
 import { useState } from 'react';
-import logo from '@assets/image_1767847210293.png';
+import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 
 interface StatusBarProps {
   cash: number;
@@ -26,13 +26,13 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals }: 
                 <img 
                   src={logo} 
                   alt="Dealbreak: Real Estate Simulator" 
-                  className="h-20 w-20 rounded-xl shadow-2xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-gold/30"
+                  className="h-24 w-24 rounded-2xl shadow-2xl transition-all duration-300 group-hover:scale-105"
                   style={{
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 2px rgba(212,175,55,0.2)',
+                    boxShadow: '0 8px 40px rgba(0,0,0,0.5), 0 0 0 3px rgba(212,175,55,0.4), 0 0 20px rgba(212,175,55,0.2)',
                   }}
                   data-testid="game-logo"
                 />
-                <div className="absolute inset-0 rounded-xl bg-gold/0 group-hover:bg-gold/10 transition-colors" />
+                <div className="absolute inset-0 rounded-2xl bg-gold/0 group-hover:bg-gold/10 transition-colors" />
               </div>
             </Link>
             
@@ -88,9 +88,9 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals }: 
                 <img 
                   src={logo} 
                   alt="Dealbreak: Real Estate Simulator" 
-                  className="h-14 w-14 rounded-xl shadow-2xl"
+                  className="h-16 w-16 rounded-xl shadow-2xl"
                   style={{
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 2px rgba(212,175,55,0.2)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 0 2px rgba(212,175,55,0.4), 0 0 15px rgba(212,175,55,0.2)',
                   }}
                   data-testid="game-logo-mobile"
                 />
@@ -139,7 +139,10 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals }: 
             <img 
               src={logo} 
               alt="Dealbreak" 
-              className="w-32 h-32 rounded-2xl shadow-2xl mb-8"
+              className="w-40 h-40 rounded-3xl shadow-2xl mb-8"
+              style={{
+                boxShadow: '0 12px 60px rgba(0,0,0,0.6), 0 0 0 4px rgba(212,175,55,0.5), 0 0 40px rgba(212,175,55,0.3)',
+              }}
             />
 
             {/* Menu Items */}

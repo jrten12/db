@@ -84,13 +84,14 @@ export default function Game() {
     setCurrentScreen('market');
   }, []);
 
-  const handleOpenProForma = useCallback((strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money') => {
+  const handleOpenProForma = useCallback((strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money', contractor: 'cheap' | 'fast') => {
     setProFormaInputs(prev => ({
       ...prev,
       strategy,
       financingType: financing,
       interestRate: financing === 'bank' ? 5 : 12,
       downPaymentPct: financing === 'bank' ? 25 : 10,
+      contractorType: contractor,
     }));
     setIsProFormaComplete(false);
     setProFormaOutputs(null);

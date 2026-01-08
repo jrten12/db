@@ -15,6 +15,7 @@ export interface ProFormaInputs {
   financingType: 'bank' | 'hard-money';
   interestRate: number;
   downPaymentPct: number;
+  contractorType: 'cheap' | 'fast';
 }
 
 export interface ProFormaOutputs {
@@ -43,6 +44,7 @@ export const defaultProForma: ProFormaInputs = {
   financingType: 'bank',
   interestRate: 5,
   downPaymentPct: 25,
+  contractorType: 'cheap',
 };
 
 export const calculateProForma = (

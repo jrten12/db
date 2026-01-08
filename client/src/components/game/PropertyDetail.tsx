@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Check, Home, DollarSign, Building2 } from 'lucide-react';
+import { X, Check, Home, Wrench, Clock, DollarSign, Zap } from 'lucide-react';
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
 import type { Property } from '@shared/schema';
@@ -7,14 +7,16 @@ import type { Property } from '@shared/schema';
 interface PropertyDetailProps {
   property: Property;
   onClose: () => void;
-  onOpenProForma: (strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money') => void;
+  onOpenProForma: (strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money', contractor: 'cheap' | 'fast') => void;
   onPass: () => void;
 }
 
 export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: PropertyDetailProps) {
   const [strategy, setStrategy] = useState<'rent' | 'flip'>('rent');
   const [financing, setFinancing] = useState<'bank' | 'hard-money'>('bank');
-  const [showWalkthrough, setShowWalkthrough] = useState(false);
+  const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
+  const [walkthroughDone, setWalkthroughDone] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const propertyImage = getPropertyImage(property.name);
 
@@ -42,218 +44,285 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" data-testid="property-detail-modal">
-      <div className="w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-wood-dark rounded-lg shadow-2xl">
-        {/* Close Button */}
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors"
-          data-testid="button-close-detail"
-        >
-          <X className="w-5 h-5" />
-        </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm" data-testid="property-detail-modal">
+      <div className="w-full max-w-5xl max-h-[95vh] overflow-y-auto rounded-2xl shadow-2xl" style={{
+        background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 100%)',
+      }}>
+        {/* Header with close */}
+        <div className="sticky top-0 z-20 flex items-center justify-between px-4 md:px-6 py-4 bg-gradient-to-b from-black/50 to-transparent">
+          <h2 className="font-display text-white text-xl md:text-2xl font-bold tracking-wide">
+            {property.name}
+          </h2>
+          <button 
+            onClick={onClose}
+            className="p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all hover:rotate-90 duration-300"
+            data-testid="button-close-detail"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-        <div className="p-4 md:p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-            {/* Left Column - Property Info */}
-            <div className="lg:col-span-2">
-              <div className="bg-paper paper-texture rounded-lg card-frame p-4 md:p-6">
-                {/* Property Title */}
-                <h2 className="font-display text-stone-800 text-xl md:text-2xl font-bold mb-4">
-                  {property.name}
-                </h2>
+        <div className="px-4 md:px-6 pb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
+            {/* Left Column - Property Info (3 cols) */}
+            <div className="lg:col-span-3 space-y-4">
+              {/* Main Image */}
+              <div className="relative rounded-xl overflow-hidden aspect-video shadow-lg">
+                <img 
+                  src={propertyImage} 
+                  alt={property.name}
+                  className="w-full h-full object-cover"
+                  data-testid="property-main-image"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-4">
+                  <span className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
+                    {formatCurrency(property.price)}
+                  </span>
+                </div>
+              </div>
 
-                {/* Property Info & Images */}
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
-                  <div className="flex-1 space-y-2 text-stone-700">
-                    <p><span className="font-semibold">Price:</span> {formatCurrency(property.price)}</p>
-                    <p><span className="font-semibold">Size:</span> {property.sizeSqft.toLocaleString()} sq ft</p>
-                    <p><span className="font-semibold">Neighborhood:</span> {getNeighborhoodTraits(property.neighborhood)}</p>
-                    <p><span className="font-semibold">Rent Potential:</span> {formatCurrency(property.rentMin)} - {formatCurrency(property.rentMax)}/mo</p>
-                    <p><span className="font-semibold">Condition:</span> {getConditionDescription(property.conditionTag)}</p>
-                  </div>
-                  
-                  {/* Property Image */}
-                  <div className="w-full md:w-48 h-32 md:h-36 rounded-lg overflow-hidden shadow-lg">
+              {/* Thumbnail Gallery */}
+              <div className="grid grid-cols-3 gap-2">
+                {[0, 1, 2].map((i) => (
+                  <button 
+                    key={i}
+                    onClick={() => setSelectedImageIndex(i)}
+                    className={`relative h-16 md:h-20 rounded-lg overflow-hidden transition-all ${
+                      selectedImageIndex === i ? 'ring-2 ring-emerald-400 scale-[1.02]' : 'opacity-70 hover:opacity-100'
+                    }`}
+                  >
                     <img 
                       src={propertyImage} 
-                      alt={property.name}
-                      className="w-full h-full object-cover"
-                      data-testid="property-main-image"
+                      alt={`View ${i + 1}`} 
+                      className={`w-full h-full object-cover ${i === 1 ? 'grayscale-[30%]' : ''} ${i === 2 ? 'sepia-[20%]' : ''}`}
                     />
-                  </div>
-                </div>
-
-                {/* Additional Property Images */}
-                <div className="grid grid-cols-3 gap-2 mb-6">
-                  <div className="h-20 rounded overflow-hidden bg-stone-300">
-                    <img src={propertyImage} alt="Interior 1" className="w-full h-full object-cover opacity-80" />
-                  </div>
-                  <div className="h-20 rounded overflow-hidden bg-stone-300">
-                    <img src={propertyImage} alt="Interior 2" className="w-full h-full object-cover opacity-70 grayscale-[30%]" />
-                  </div>
-                  <div className="h-20 rounded overflow-hidden bg-stone-300">
-                    <img src={propertyImage} alt="Interior 3" className="w-full h-full object-cover opacity-75 sepia-[20%]" />
-                  </div>
-                </div>
-
-                {/* Walkthrough Options */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button 
-                    onClick={() => setShowWalkthrough(true)}
-                    className="flex-1 px-4 py-3 bg-[#4a7c59] hover:bg-[#3d6a4a] text-white rounded font-semibold text-sm transition-colors shadow-md"
-                    data-testid="button-contractor-walkthrough"
-                  >
-                    <div className="font-bold">Contractor Walkthrough</div>
-                    <div className="text-xs opacity-80">Cost: $1,200, 1 Week</div>
                   </button>
-                  <button 
-                    className="flex-1 px-4 py-3 bg-stone-500 hover:bg-stone-600 text-white rounded font-semibold text-sm transition-colors shadow-md"
-                    data-testid="button-skip-walkthrough"
-                  >
-                    Skip Walkthrough
-                  </button>
+                ))}
+              </div>
+
+              {/* Property Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-white/5 backdrop-blur rounded-xl p-3 border border-white/10">
+                  <div className="text-emerald-400 text-lg md:text-xl font-bold">{property.sizeSqft.toLocaleString()}</div>
+                  <div className="text-gray-400 text-xs">Square Feet</div>
                 </div>
+                <div className="bg-white/5 backdrop-blur rounded-xl p-3 border border-white/10">
+                  <div className="text-amber-400 text-lg md:text-xl font-bold">{formatCurrency(property.rentMin)}-{formatCurrency(property.rentMax)}</div>
+                  <div className="text-gray-400 text-xs">Rent Potential</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur rounded-xl p-3 border border-white/10">
+                  <div className="text-blue-400 text-sm md:text-base font-bold">{getNeighborhoodTraits(property.neighborhood)}</div>
+                  <div className="text-gray-400 text-xs">Neighborhood</div>
+                </div>
+                <div className="bg-white/5 backdrop-blur rounded-xl p-3 border border-white/10">
+                  <div className={`text-sm md:text-base font-bold ${
+                    property.conditionTag === 'Excellent' ? 'text-emerald-400' :
+                    property.conditionTag === 'Good' ? 'text-blue-400' :
+                    property.conditionTag === 'Fair' ? 'text-amber-400' : 'text-red-400'
+                  }`}>{getConditionDescription(property.conditionTag)}</div>
+                  <div className="text-gray-400 text-xs">Condition</div>
+                </div>
+              </div>
+
+              {/* Walkthrough Options */}
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setWalkthroughDone(true)}
+                  className={`flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all border ${
+                    walkthroughDone 
+                      ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                      : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                  }`}
+                  data-testid="button-contractor-walkthrough"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Wrench className="w-4 h-4" />
+                    <span>Contractor Walkthrough</span>
+                  </div>
+                  <div className="text-xs opacity-70 mt-1">$1,200 + 1 Week</div>
+                </button>
+                <button 
+                  onClick={() => setWalkthroughDone(false)}
+                  className={`flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all border ${
+                    !walkthroughDone 
+                      ? 'bg-gray-500/20 border-gray-500/50 text-gray-300'
+                      : 'bg-gray-500/10 border-gray-500/30 text-gray-400 hover:bg-gray-500/20'
+                  }`}
+                  data-testid="button-skip-walkthrough"
+                >
+                  Skip Walkthrough
+                </button>
               </div>
             </div>
 
-            {/* Right Column - Strategy & Financing */}
-            <div className="space-y-4">
+            {/* Right Column - Strategy, Financing, Contractor (2 cols) */}
+            <div className="lg:col-span-2 space-y-4">
               {/* Choose Strategy */}
-              <div className="bg-card rounded-lg card-frame p-4">
-                <h3 className="font-display text-foreground text-lg font-semibold mb-4">
+              <div className="bg-white/5 backdrop-blur rounded-xl p-4 border border-white/10">
+                <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">
                   Choose Your Strategy
                 </h3>
-                
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <button
                     onClick={() => setStrategy('rent')}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                       strategy === 'rent' 
-                        ? 'border-success bg-success/10' 
-                        : 'border-border bg-muted hover:border-success/50'
+                        ? 'bg-emerald-500/20 border-2 border-emerald-500' 
+                        : 'bg-white/5 border-2 border-transparent hover:border-emerald-500/30'
                     }`}
                     data-testid="button-strategy-rent"
                   >
-                    <div className={`w-6 h-6 rounded flex items-center justify-center ${
-                      strategy === 'rent' ? 'bg-success' : 'bg-muted-foreground/30'
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
+                      strategy === 'rent' ? 'bg-emerald-500' : 'bg-white/10'
                     }`}>
                       {strategy === 'rent' && <Check className="w-4 h-4 text-white" />}
                     </div>
-                    <div className="text-left">
-                      <div className="font-semibold text-foreground">Rental</div>
-                      <div className="text-xs text-muted-foreground">Calculate your cash flow</div>
+                    <div className="text-left flex-1">
+                      <div className="font-semibold text-white">Rental</div>
+                      <div className="text-xs text-gray-400">Calculate your cash flow</div>
                     </div>
+                    <Home className={`w-5 h-5 ${strategy === 'rent' ? 'text-emerald-400' : 'text-gray-500'}`} />
                   </button>
 
                   <button
                     onClick={() => setStrategy('flip')}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                       strategy === 'flip' 
-                        ? 'border-success bg-success/10' 
-                        : 'border-border bg-muted hover:border-success/50'
+                        ? 'bg-emerald-500/20 border-2 border-emerald-500' 
+                        : 'bg-white/5 border-2 border-transparent hover:border-emerald-500/30'
                     }`}
                     data-testid="button-strategy-flip"
                   >
-                    <div className={`w-6 h-6 rounded flex items-center justify-center ${
-                      strategy === 'flip' ? 'bg-success' : 'bg-muted-foreground/30'
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
+                      strategy === 'flip' ? 'bg-emerald-500' : 'bg-white/10'
                     }`}>
                       {strategy === 'flip' && <Check className="w-4 h-4 text-white" />}
                     </div>
-                    <div className="text-left">
-                      <div className="font-semibold text-foreground">Flip</div>
-                      <div className="text-xs text-muted-foreground">Calculate your profit</div>
+                    <div className="text-left flex-1">
+                      <div className="font-semibold text-white">Flip</div>
+                      <div className="text-xs text-gray-400">Calculate your profit</div>
                     </div>
+                    <DollarSign className={`w-5 h-5 ${strategy === 'flip' ? 'text-emerald-400' : 'text-gray-500'}`} />
                   </button>
                 </div>
               </div>
 
               {/* Financing Options */}
-              <div className="bg-card rounded-lg card-frame p-4">
-                <h3 className="font-display text-foreground text-lg font-semibold mb-4">
+              <div className="bg-white/5 backdrop-blur rounded-xl p-4 border border-white/10">
+                <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">
                   Financing Options
                 </h3>
-                
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <button
                     onClick={() => setFinancing('hard-money')}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                       financing === 'hard-money' 
-                        ? 'border-danger bg-danger/10' 
-                        : 'border-border bg-muted hover:border-danger/50'
+                        ? 'bg-amber-500/20 border-2 border-amber-500' 
+                        : 'bg-white/5 border-2 border-transparent hover:border-amber-500/30'
                     }`}
                     data-testid="button-financing-hard-money"
                   >
-                    <div className={`w-6 h-6 rounded flex items-center justify-center ${
-                      financing === 'hard-money' ? 'bg-danger' : 'bg-muted-foreground/30'
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
+                      financing === 'hard-money' ? 'bg-amber-500' : 'bg-white/10'
                     }`}>
-                      {financing === 'hard-money' ? <X className="w-4 h-4 text-white" /> : null}
+                      {financing === 'hard-money' && <Check className="w-4 h-4 text-white" />}
                     </div>
-                    <div className="text-left">
-                      <div className="font-semibold text-foreground">Hard Money Loan</div>
-                      <div className="text-xs text-muted-foreground">10% Down, 12% Interest</div>
+                    <div className="text-left flex-1">
+                      <div className="font-semibold text-white">Hard Money Loan</div>
+                      <div className="text-xs text-gray-400">10% Down, 12% Interest</div>
                     </div>
+                    <Zap className={`w-5 h-5 ${financing === 'hard-money' ? 'text-amber-400' : 'text-gray-500'}`} />
                   </button>
 
                   <button
                     onClick={() => setFinancing('bank')}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                       financing === 'bank' 
-                        ? 'border-success bg-success/10' 
-                        : 'border-border bg-muted hover:border-success/50'
+                        ? 'bg-emerald-500/20 border-2 border-emerald-500' 
+                        : 'bg-white/5 border-2 border-transparent hover:border-emerald-500/30'
                     }`}
                     data-testid="button-financing-bank"
                   >
-                    <div className={`w-6 h-6 rounded flex items-center justify-center ${
-                      financing === 'bank' ? 'bg-success' : 'bg-muted-foreground/30'
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
+                      financing === 'bank' ? 'bg-emerald-500' : 'bg-white/10'
                     }`}>
                       {financing === 'bank' && <Check className="w-4 h-4 text-white" />}
                     </div>
-                    <div className="text-left">
-                      <div className="font-semibold text-foreground">Bank Loan</div>
-                      <div className="text-xs text-muted-foreground">25% Down, 5% Interest</div>
+                    <div className="text-left flex-1">
+                      <div className="font-semibold text-white">Bank Loan</div>
+                      <div className="text-xs text-gray-400">25% Down, 5% Interest</div>
                     </div>
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Bottom Action Bar */}
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            {/* Info Cards */}
-            <div className="flex gap-3 flex-wrap flex-1">
-              <div className="bg-paper/80 rounded px-3 py-2 border border-stone-400">
-                <div className="text-xs text-stone-600 font-semibold">Contractor Choice</div>
-                <div className="text-sm text-stone-800">
-                  <span className="text-amber-600">Cheap & Slow</span> / <span className="text-blue-600">Fast & Expensive</span>
+              {/* Contractor Choice */}
+              <div className="bg-white/5 backdrop-blur rounded-xl p-4 border border-white/10">
+                <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">
+                  Contractor Choice
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setContractor('cheap')}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                      contractor === 'cheap' 
+                        ? 'bg-amber-500/20 border-2 border-amber-500' 
+                        : 'bg-white/5 border-2 border-transparent hover:border-amber-500/30'
+                    }`}
+                    data-testid="button-contractor-cheap"
+                  >
+                    <Clock className={`w-6 h-6 ${contractor === 'cheap' ? 'text-amber-400' : 'text-gray-500'}`} />
+                    <div className="text-center">
+                      <div className="font-semibold text-white text-sm">Cheap & Slow</div>
+                      <div className="text-xs text-amber-400">Save $$, More Time</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setContractor('fast')}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                      contractor === 'fast' 
+                        ? 'bg-blue-500/20 border-2 border-blue-500' 
+                        : 'bg-white/5 border-2 border-transparent hover:border-blue-500/30'
+                    }`}
+                    data-testid="button-contractor-fast"
+                  >
+                    <Zap className={`w-6 h-6 ${contractor === 'fast' ? 'text-blue-400' : 'text-gray-500'}`} />
+                    <div className="text-center">
+                      <div className="font-semibold text-white text-sm">Fast & Expensive</div>
+                      <div className="text-xs text-blue-400">Quick Turnaround</div>
+                    </div>
+                  </button>
                 </div>
               </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <button 
-                onClick={() => onOpenProForma(strategy, financing)}
-                className="px-6 py-3 bg-success hover:bg-success/90 text-white rounded-lg font-bold text-sm transition-colors shadow-lg"
-                data-testid="button-make-offer"
-              >
-                Make Offer
-              </button>
-              <button 
-                onClick={onPass}
-                className="px-6 py-3 bg-danger hover:bg-danger/90 text-white rounded-lg font-bold text-sm transition-colors shadow-lg"
-                data-testid="button-pass"
-              >
-                Pass on Property
-              </button>
-              <button 
-                onClick={() => onOpenProForma(strategy, financing)}
-                className="px-4 py-3 bg-stone-600 hover:bg-stone-700 text-white rounded-lg font-bold text-sm transition-colors shadow-lg"
-                data-testid="button-pro-forma"
-              >
-                Pro Forma
-              </button>
+              {/* Action Buttons */}
+              <div className="space-y-2">
+                <button 
+                  onClick={() => onOpenProForma(strategy, financing, contractor)}
+                  className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-xl font-bold text-base transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50"
+                  data-testid="button-make-offer"
+                >
+                  Make Offer
+                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button 
+                    onClick={onPass}
+                    className="px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-xl font-semibold text-sm transition-all"
+                    data-testid="button-pass"
+                  >
+                    Pass on Property
+                  </button>
+                  <button 
+                    onClick={() => onOpenProForma(strategy, financing, contractor)}
+                    className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl font-semibold text-sm transition-all"
+                    data-testid="button-pro-forma"
+                  >
+                    View Pro Forma
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

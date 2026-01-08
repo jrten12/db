@@ -1,0 +1,81 @@
+DEALBREAK: FINANCING SCENARIOS REFERENCE
+=========================================
+
+ASSUMPTIONS
+-----------
+Hard money: 3% loan fee, 3% closing costs
+Bank loan: 1% loan fee, 3% closing costs
+Rehab financed
+Holding 6 months
+ARV for 25% flip ROI
+40% rent expenses, 7% refi interest
+Total cash needed includes down payment + loan fees + closing + holding costs
+
+
+HARD MONEY PATH (15% Down, 85% LTC)
+-----------------------------------
+Max Purchase Price: ~$135,000
+Rehab (Financed): $25,000
+Total Project Cost: ~$160,000
+
+Holding Time: 6 months
+Interest During Rehab: 12% (interest-only)
+Loan Fee (3% of loan): ~$4,080
+Closing Costs (3% of purchase): ~$4,050
+
+Total Cash Needed (Down + Fees + Closing + Holding): ~$47,630
+Initial Cash to Close: ~$35,000
+
+ARV (supports 25% ROI): $225,000
+
+Refi Loan: 75% LTV @ 7% (30-yr)
+Refi Loan Amount: ~$168,750
+Hard Money Payoff: ~$136,000
+
+Cash Out at Refi: ~$32,750
+Cash Left in Deal After Refi: ~$21,500
+
+Rent Expense Ratio: 40%
+Minimum Rent for 10% Annual ROI: ~$1,950/month
+Implied Rent-to-ARV: ~0.87%
+
+Gameplay Note:
+High leverage path. Shorter hold improves ROI, but ARV and rent must hit.
+
+
+BANK LOAN PATH (25% Down, 75% LTC)
+----------------------------------
+Max Purchase Price: ~$118,000
+Rehab (Financed): $25,000
+Total Project Cost: ~$143,000
+
+Holding Time: 6 months
+Interest During Rehab: 7%
+Loan Fee (1% of loan): ~$1,430
+Closing Costs (3% of purchase): ~$3,540
+
+Total Cash Needed (Down + Fees + Closing + Holding): ~$40,500
+Initial Cash to Close: ~$35,000
+
+ARV (supports 25% ROI): $182,000
+
+Refi Loan: 75% LTV @ 7% (30-yr)
+Refi Loan Amount: ~$136,500
+Loan Payoff: ~$107,250
+
+Cash Out at Refi: ~$29,250
+Cash Left in Deal After Refi: ~$16,000
+
+Rent Expense Ratio: 40%
+Minimum Rent for 10% Annual ROI: ~$1,575/month
+Implied Rent-to-ARV: ~0.87%
+
+
+GAME IMPLICATIONS
+-----------------
+1. Starting cash should be $50,000-60,000 (enough for 1 deal + buffer)
+2. Properties should be priced in the $100K-$150K range
+3. Hard money = higher risk, higher leverage, needs higher ARV
+4. Bank loan = lower risk, more cash tied up, lower ARV needed
+5. Cash needed is NOT just down payment - loan fees, closing, holding add up
+6. BRRRR model: Cash out at refi can fund next deal if executed well

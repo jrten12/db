@@ -140,7 +140,7 @@ export class DBStorage implements IStorage {
 
     const starterProperties: InsertProperty[] = [
       {
-        name: "Oakwood Rental",
+        name: "Oakwood Cottage",
         price: 145000,
         sizeSqft: 1200,
         neighborhood: "Oakwood",
@@ -159,7 +159,7 @@ export class DBStorage implements IStorage {
         isActive: true,
       },
       {
-        name: "Riverside Flip",
+        name: "Riverside Ranch",
         price: 195000,
         sizeSqft: 1600,
         neighborhood: "Riverside",
@@ -178,7 +178,7 @@ export class DBStorage implements IStorage {
         isActive: true,
       },
       {
-        name: "Maplewood Fixer-Upper",
+        name: "Maplewood Colonial",
         price: 185000,
         sizeSqft: 1450,
         neighborhood: "Maplewood",
@@ -197,7 +197,7 @@ export class DBStorage implements IStorage {
         isActive: true,
       },
       {
-        name: "Downtown Mirage",
+        name: "Downtown Loft",
         price: 220000,
         sizeSqft: 1800,
         neighborhood: "Downtown",
@@ -216,7 +216,7 @@ export class DBStorage implements IStorage {
         isActive: true,
       },
       {
-        name: "Elmwood Sinkhole",
+        name: "Elmwood Bungalow",
         price: 125000,
         sizeSqft: 1350,
         neighborhood: "Elmwood",
@@ -235,7 +235,7 @@ export class DBStorage implements IStorage {
         isActive: true,
       },
       {
-        name: "Hillside Time Bomb",
+        name: "Hillside Retreat",
         price: 165000,
         sizeSqft: 1500,
         neighborhood: "Hillside",
@@ -254,7 +254,7 @@ export class DBStorage implements IStorage {
         isActive: true,
       },
       {
-        name: "Westside Leverage Trap",
+        name: "Westside Manor",
         price: 275000,
         sizeSqft: 2000,
         neighborhood: "Westside",

@@ -5,6 +5,7 @@ import { ProFormaPanel } from '@/components/game/ProFormaPanel';
 import { MetricsPanel } from '@/components/game/MetricsPanel';
 import { PropertySelector } from '@/components/game/PropertySelector';
 import { PropertyDetail } from '@/components/game/PropertyDetail';
+import { ResultsPanel } from '@/components/game/ResultsPanel';
 import { BannerAd, SidebarAd, FooterAd } from '@/components/game/AdSlot';
 import { 
   ProFormaInputs, 
@@ -19,7 +20,7 @@ import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.png
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-type GameScreen = 'market' | 'detail' | 'proforma';
+type GameScreen = 'market' | 'detail' | 'proforma' | 'results';
 
 interface DiligenceState {
   [propertyId: number]: string[];
@@ -38,6 +39,7 @@ export default function Game() {
   const [isProFormaComplete, setIsProFormaComplete] = useState(false);
   const [completedDiligence, setCompletedDiligence] = useState<DiligenceState>({});
   const [proFormaCompletions, setProFormaCompletions] = useState<ProFormaCompletionState>({});
+  const [flipMetrics, setFlipMetrics] = useState({ profit: 0, roi: 0, holdWeeks: 0 });
 
   const { data: gameRun, isLoading: isLoadingGame, error: gameError } = useQuery({
     queryKey: ['activeGameRun'],
@@ -233,15 +235,30 @@ export default function Game() {
         updates: { cash: newCash },
       });
 
-      setCurrentScreen('market');
-      setIsProFormaComplete(false);
-      setProFormaOutputs(null);
-      setProFormaInputs(defaultProForma);
-      setSelectedPropertyId(null);
+      if (proFormaInputs.strategy === 'flip') {
+        const closingCosts = Math.round(selectedProperty.price * 0.03);
+        const allInBasis = selectedProperty.price + closingCosts + proFormaInputs.rehabBudget * (1 + proFormaInputs.contingencyPct / 100);
+        const holdingCostPerWeek = Math.round((selectedProperty.price * (proFormaInputs.interestRate / 100) / 52) + 
+          (proFormaInputs.taxesAnnual / 52) + (proFormaInputs.insuranceAnnual / 52));
+        const arvMid = (selectedProperty.arvMin + selectedProperty.arvMax) / 2;
+        const profit = arvMid - allInBasis - (holdingCostPerWeek * proFormaInputs.rehabWeeks);
+        const roi = proFormaOutputs.totalCashInvested > 0 ? (profit / proFormaOutputs.totalCashInvested) * 100 : 0;
+        setFlipMetrics({ profit, roi, holdWeeks: proFormaInputs.rehabWeeks });
+      }
+
+      setCurrentScreen('results');
     } catch (error) {
       toast.error('Failed to save deal');
     }
   }, [gameRun, selectedProperty, proFormaOutputs, proFormaInputs, createDealMutation, updateGameMutation]);
+
+  const handleContinueFromResults = useCallback(() => {
+    setCurrentScreen('market');
+    setIsProFormaComplete(false);
+    setProFormaOutputs(null);
+    setProFormaInputs(defaultProForma);
+    setSelectedPropertyId(null);
+  }, []);
 
   if (isLoadingGame || isLoadingProps) {
     return (
@@ -331,6 +348,19 @@ export default function Game() {
                 <SidebarAd className="hidden xl:block xl:col-span-1" />
               </div>
             </>
+          )}
+
+          {currentScreen === 'results' && proFormaOutputs && (
+            <div className="max-w-4xl mx-auto">
+              <ResultsPanel
+                strategy={proFormaInputs.strategy}
+                outputs={proFormaOutputs}
+                flipProfit={flipMetrics.profit}
+                flipROI={flipMetrics.roi}
+                holdWeeks={flipMetrics.holdWeeks}
+                onContinue={handleContinueFromResults}
+              />
+            </div>
           )}
         </main>
 

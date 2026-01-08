@@ -323,16 +323,12 @@ export default function Game() {
                     onCommitDeal={handleCommitDeal}
                   />
                   
-                  {/* Sidebar Ad - Below Metrics on smaller screens */}
-                  <div className="mt-6 xl:hidden">
-                    <SidebarAd />
-                  </div>
+                  {/* Sidebar Ad - Below Metrics on smaller screens (hidden on XL) */}
+                  <SidebarAd className="mt-6 block xl:hidden" />
                 </div>
 
-                {/* Sidebar Ad - Right Rail on XL screens */}
-                <div className="hidden xl:block xl:col-span-1">
-                  <SidebarAd />
-                </div>
+                {/* Sidebar Ad - Right Rail on XL screens only */}
+                <SidebarAd className="hidden xl:block xl:col-span-1" />
               </div>
             </>
           )}

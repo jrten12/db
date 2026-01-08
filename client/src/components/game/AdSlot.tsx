@@ -16,10 +16,15 @@ const AD_SIZES: Record<AdSize, { desktop: [number, number]; mobile: [number, num
   'mobile-banner': { desktop: [468, 60], mobile: [320, 100] },
 };
 
+const getInitialMobile = () => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(max-width: 767px)').matches;
+};
+
 export function AdSlot({ size, className = '', id }: AdSlotProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(getInitialMobile);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -83,7 +88,7 @@ export function BannerAd({ className = '' }: { className?: string }) {
 
 export function SidebarAd({ className = '' }: { className?: string }) {
   return (
-    <div className={`hidden xl:block ${className}`}>
+    <div className={className}>
       <AdSlot size="rectangle" id="sidebar-ad" />
     </div>
   );

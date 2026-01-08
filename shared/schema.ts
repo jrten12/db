@@ -49,6 +49,18 @@ export const properties = pgTable("properties", {
   offMarketRate: real("off_market_rate").notNull(),
   viabilityProfile: text("viability_profile").notNull(),
   isActive: boolean("is_active").notNull().default(true),
+  issuesProfile: jsonb("issues_profile"),
+});
+
+export const propertyInvestigations = pgTable("property_investigations", {
+  id: serial("id").primaryKey(),
+  gameRunId: integer("game_run_id").notNull().references(() => gameRuns.id),
+  propertyId: integer("property_id").notNull().references(() => properties.id),
+  investigationType: text("investigation_type").notNull(),
+  revealedData: jsonb("revealed_data"),
+  cost: integer("cost").notNull(),
+  weeksUsed: integer("weeks_used").notNull(),
+  completedAt: timestamp("completed_at").defaultNow().notNull(),
 });
 
 export const deals = pgTable("deals", {

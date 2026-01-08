@@ -1,0 +1,246 @@
+The core mistake on the current screen (clear diagnosis)
+
+Right now the screen implicitly says:
+
+“Start with rent, then see if the deal works.”
+
+That’s backwards and dangerous.
+
+In real underwriting, the flow is:
+
+Acquisition price & capital structure
+
+Total basis
+
+Operating assumptions
+
+Cash flow & returns
+
+Sensitivity & fragility
+
+Starting with “Expected Rent” trains optimism first.
+You want to train discipline first.
+
+The governing rule for the Pro Forma screen
+
+The pro forma must feel like assembling a machine, not typing guesses.
+
+That means:
+
+The player starts with facts
+
+Then adds assumptions
+
+Then watches consequences emerge visually
+
+What the Pro Forma screen SHOULD be (conceptually)
+
+Think of the screen as three stacked layers, not one long form.
+
+🔧 PRO FORMA SCREEN — CORRECT ARCHITECTURE
+LAYER 1: DEAL FOUNDATION (non-negotiable, top section)
+
+This is where the screen should start.
+
+Section title:
+
+Deal Foundation
+
+Fixed / prefilled (from market):
+
+Purchase Price (locked)
+
+Closing Costs (est.) (editable within range)
+
+Initial Rehab Estimate (range midpoint) (editable later)
+
+All-in Basis (live calculated) ← big number, emphasized
+
+📌 This immediately teaches basis, which most beginners never internalize.
+
+Visual treatment:
+
+Large number tiles
+
+Subtle animation when basis changes
+
+No judgment yet
+
+LAYER 2: CAPITAL STACK (financing before rent)
+Section title:
+
+Capital Stack
+
+Instead of “Financing: Bank Loan (5%)”, do this:
+
+Financing Path
+
+Conventional
+
+DSCR
+
+Hard Money
+
+Cash / Partner (later)
+
+Once chosen, show sliders or bounded inputs:
+
+Loan % (LTV)
+
+Interest Rate (range)
+
+Points
+
+Amortization / IO toggle
+
+Time to close (affects timeline risk)
+
+Live outputs (graphical):
+
+Monthly debt service
+
+Cash invested at close
+
+Leverage meter (low → high)
+
+📌 This teaches that financing is a design choice, not a dropdown.
+
+LAYER 3: OPERATIONS & ASSUMPTIONS (rent belongs here)
+
+Now — and only now — does rent appear.
+
+Section title:
+
+Operating Assumptions
+
+Inputs:
+
+Market Rent (player chooses within comp range)
+
+Vacancy slider
+
+Taxes
+
+Insurance
+
+Maintenance %
+
+Management toggle
+
+But here’s the key improvement:
+
+Show a Net Operating Income (NOI) bar forming live
+
+Rent comes in from the left
+
+Vacancy subtracts
+
+Expenses peel off visually
+
+NOI emerges as a bar at the end
+
+📌 This teaches flow, not math.
+
+LAYER 4: TIMELINE & RISK (often ignored, critical)
+Section title:
+
+Time & Risk
+
+Inputs:
+
+Rehab duration
+
+Contingency %
+
+Holding period
+
+Visual:
+
+Timeline bar (weeks)
+
+Holding cost burn meter
+
+“Delay sensitivity” indicator
+
+📌 This is where your game becomes different from spreadsheets.
+
+LAYER 5: OUTCOMES (graphical, instant, earned)
+
+Only after the above are assembled do outcomes appear.
+
+Outcomes panel (right side, animated):
+
+Monthly Cash Flow (big)
+
+Cash-on-Cash Return
+
+Cap Rate
+
+Fragility warning:
+
+“One delay breaks this deal”
+
+“Rent miss of $100 flips outcome”
+
+These update live as sliders move.
+
+No “Calculate Cash Flow” button needed — that button is a relic.
+The dopamine is in watching causality.
+
+Why this fixes everything
+Educationally
+
+Teaches basis before yield
+
+Teaches leverage as a choice
+
+Teaches NOI as a process
+
+Teaches fragility, not just returns
+
+Psychologically
+
+Player feels like they are building something
+
+Numbers feel earned
+
+Mistakes feel understandable
+
+Passing on a deal feels intelligent
+
+Game-wise
+
+Sliders = dopamine
+
+Bars filling / shrinking = feedback
+
+Warnings = tension
+
+No spoilers = integrity
+
+Direct answers to your specific callouts
+
+“expected rent? huh”
+
+Correct — rent should not be the entry point.
+It should be one of several levers, and not the first one the eye sees.
+
+“it needs starting purchase price etc etc”
+
+Yes. Purchase price + basis should be visually dominant.
+
+“highly educational but fun and graphical”
+
+That means:
+
+Fewer text fields
+
+More visual flows
+
+More cause → effect animations
+
+Fewer buttons, more live response
+
+One sentence you should tape to your monitor
+
+If a player can’t explain why the number changed, the UI failed.

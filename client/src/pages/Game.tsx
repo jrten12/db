@@ -246,6 +246,7 @@ export default function Game() {
             onClose={handleCloseDetail}
             onOpenProForma={handleOpenProForma}
             onPass={handlePassProperty}
+            isProFormaComplete={isProFormaComplete}
           />
         )}
 

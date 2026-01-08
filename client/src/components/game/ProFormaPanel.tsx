@@ -122,38 +122,92 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
           
           {expandedSections.foundation && (
             <div className="px-4 pb-4 space-y-4">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-gray-400 text-xs mb-1">Purchase Price</div>
-                  <div className="text-white text-lg font-bold font-mono">{formatCurrency(property.price)}</div>
-                  <div className="text-gray-500 text-xs">Fixed</div>
-                </div>
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-gray-400 text-xs mb-1">Closing Costs</div>
-                  <div className="text-white text-lg font-bold font-mono">{formatCurrency(closingCosts)}</div>
-                  <div className="text-gray-500 text-xs">~3% estimate</div>
-                </div>
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-gray-400 text-xs mb-1">Rehab + Contingency</div>
-                  <div className="text-white text-lg font-bold font-mono">
-                    {formatCurrency(inputs.rehabBudget * (1 + inputs.contingencyPct / 100))}
+              {inputs.strategy === 'rent' ? (
+                <>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                      <div className="text-gray-400 text-xs mb-1">Purchase Price</div>
+                      <div className="text-white text-lg font-bold font-mono">{formatCurrency(property.price)}</div>
+                      <div className="text-gray-500 text-xs">Fixed</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                      <div className="text-gray-400 text-xs mb-1">Closing Costs</div>
+                      <div className="text-white text-lg font-bold font-mono">{formatCurrency(closingCosts)}</div>
+                      <div className="text-gray-500 text-xs">~3% estimate</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                      <div className="text-gray-400 text-xs mb-1">Rehab + Contingency</div>
+                      <div className="text-white text-lg font-bold font-mono">
+                        {formatCurrency(inputs.rehabBudget * (1 + inputs.contingencyPct / 100))}
+                      </div>
+                      <div className="text-gray-500 text-xs">Your estimate</div>
+                    </div>
                   </div>
-                  <div className="text-gray-500 text-xs">Your estimate</div>
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-r from-blue-500/20 to-emerald-500/20 rounded-xl p-4 border border-blue-500/30">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider">All-In Basis</div>
-                    <div className="text-white text-2xl font-bold font-mono mt-1">{formatCurrency(allInBasis)}</div>
+                  
+                  <div className="bg-gradient-to-r from-blue-500/20 to-emerald-500/20 rounded-xl p-4 border border-blue-500/30">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider">All-In Basis</div>
+                        <div className="text-white text-2xl font-bold font-mono mt-1">{formatCurrency(allInBasis)}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-gray-400 text-xs">Price per sqft</div>
+                        <div className="text-gray-300 font-mono">{formatCurrency(Math.round(allInBasis / property.sizeSqft))}/sqft</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-gray-400 text-xs">Price per sqft</div>
-                    <div className="text-gray-300 font-mono">{formatCurrency(Math.round(allInBasis / property.sizeSqft))}/sqft</div>
+                </>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                      <div className="text-gray-400 text-xs mb-1">Purchase Price</div>
+                      <div className="text-white text-lg font-bold font-mono">{formatCurrency(property.price)}</div>
+                      <div className="text-gray-500 text-xs">Your acquisition cost</div>
+                    </div>
+                    <div className="bg-amber-500/10 rounded-xl p-3 border border-amber-500/30">
+                      <div className="text-amber-400 text-xs mb-1">ARV (After Repair Value)</div>
+                      <div className="text-amber-300 text-lg font-bold font-mono">
+                        {formatCurrency(property.arvMin)} - {formatCurrency(property.arvMax)}
+                      </div>
+                      <div className="text-amber-500/70 text-xs">Expected sale price</div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                  
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                      <div className="text-gray-400 text-xs mb-1">Closing Costs</div>
+                      <div className="text-white font-bold font-mono">{formatCurrency(closingCosts)}</div>
+                      <div className="text-gray-500 text-xs">~3% estimate</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                      <div className="text-gray-400 text-xs mb-1">Rehab Budget</div>
+                      <div className="text-white font-bold font-mono">{formatCurrency(inputs.rehabBudget)}</div>
+                      <div className="text-gray-500 text-xs">Your estimate</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                      <div className="text-gray-400 text-xs mb-1">Contingency ({inputs.contingencyPct}%)</div>
+                      <div className="text-white font-bold font-mono">{formatCurrency(Math.round(inputs.rehabBudget * inputs.contingencyPct / 100))}</div>
+                      <div className="text-gray-500 text-xs">Buffer for surprises</div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-gradient-to-r from-blue-500/20 to-slate-800/50 rounded-xl p-4 border border-blue-500/30">
+                      <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider">All-In Basis</div>
+                      <div className="text-white text-xl font-bold font-mono mt-1">{formatCurrency(allInBasis)}</div>
+                      <div className="text-gray-500 text-xs mt-1">Total cost to acquire & fix</div>
+                    </div>
+                    <div className={`bg-gradient-to-r rounded-xl p-4 border ${flipProfit > 0 ? 'from-emerald-500/20 to-slate-800/50 border-emerald-500/30' : 'from-red-500/20 to-slate-800/50 border-red-500/30'}`}>
+                      <div className={`text-xs font-semibold uppercase tracking-wider ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>Projected Profit</div>
+                      <div className={`text-xl font-bold font-mono mt-1 ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {flipProfit > 0 ? '' : '-'}{formatCurrency(Math.abs(flipProfit))}
+                      </div>
+                      <div className="text-gray-500 text-xs mt-1">ARV mid - All-in - Holding</div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

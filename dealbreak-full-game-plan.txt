@@ -1,0 +1,175 @@
+DEALBREAK: REAL ESTATE SIMULATOR
+COMPLETE GAME FLOW PLAN
+================================
+
+
+OVERVIEW
+--------
+Dealbreak is an educational game that teaches real estate investing through realistic pro forma analysis. Players analyze properties with uncertainty, complete due diligence to reveal hidden issues, build comprehensive financial models, and receive educational feedback on their decisions.
+
+The game teaches that:
+- Deals require thorough analysis
+- Hidden costs are the norm
+- Understanding causality is critical
+- Good pro forma work leads to better outcomes
+
+
+PHASE 1: SETUP
+--------------
+Player starts with:
+- $30,000 cash
+- 7 weeks of time
+- Goal: Complete 3 profitable deals
+
+Difficulty affects starting resources and deal complexity.
+
+
+PHASE 2: MARKET BROWSE
+----------------------
+See 4-6 available properties with:
+- List price
+- Location/neighborhood
+- RANGES for key unknowns (rent: $1,600-$2,000, ARV: $180K-$220K)
+- Property type and condition hints
+
+Key point: You see estimates, not exact numbers - just like real life.
+
+
+PHASE 3: PROPERTY DETAIL
+------------------------
+When you select a property, you see:
+- Narrative description (seller motivation, neighborhood context)
+- Baseline facts you know for free
+- Optional due diligence you can purchase
+
+OPTIONAL DUE DILIGENCE PURCHASES:
+
+| Investigation          | Cost  | Time     | What It Reveals                        |
+|------------------------|-------|----------|----------------------------------------|
+| Inspection             | $500  | 1 week   | Physical issues (roof, HVAC, mold)     |
+| Contractor Walkthrough | $300  | 0.5 weeks| True rehab scope, hidden work          |
+| Title Search           | $200  | 0.5 weeks| Liens, easements, legal issues         |
+
+Important:
+- Revelations are property-specific (not every property has issues)
+- Each reveal includes a cost/time impact estimate
+- Skipping diligence saves money now but risks surprises later
+
+
+PHASE 4: PRO FORMA ANALYSIS
+---------------------------
+Player builds financial model in layers, starting with FACTS not guesses:
+
+LAYER 1: DEAL FOUNDATION (Facts)
+- Purchase price
+- Closing costs (calculated automatically)
+- Rehab budget (adjusted by diligence findings)
+
+LAYER 2: CAPITAL STACK (Financing Choice)
+- Bank loan vs Hard money
+- Down payment amount
+- Interest rate and term
+
+LAYER 3: OPERATING ASSUMPTIONS (Estimates within ranges)
+- Rent estimate (you pick from the range)
+- Vacancy rate
+- Annual expenses (taxes, insurance, maintenance)
+
+LAYER 4: TIMELINE & RISK
+- Contingency % (should be higher if diligence was skipped)
+- Rehab timeline in weeks
+
+LAYER 5: STRATEGY CHOICE
+- RENT: Hold for cash flow
+  Metrics: Cash-on-Cash Return, Cap Rate, Monthly Cash Flow
+  
+- FLIP: Sell after rehab
+  Metrics: ROI, Profit, Hold Time
+
+KEY MECHANIC: Diligence findings should prompt adjustments to inputs.
+Example: "Mold found -> Suggested +$8,000 to rehab budget. Accept?"
+
+
+PHASE 5: COMMIT DECISION
+------------------------
+- "Lock In Pro Forma" button only available if deal meets viability threshold
+- Committing deducts down payment from your cash
+- Starts the execution phase
+
+
+PHASE 6: EXECUTION (Time Passes)
+--------------------------------
+After committing, weeks tick by and events occur based on:
+
+1. UNDISCOVERED ISSUES (if you skipped diligence)
+   - Problems you didn't pay to find come back as surprise costs
+   
+2. RANDOM VARIANCE (happens regardless)
+   - Contractor delays
+   - Market shifts
+   - Permit issues
+   
+3. KNOWN ISSUES YOU IGNORED
+   - If diligence revealed something and you didn't adjust, it materializes
+
+EXAMPLE EVENTS:
+- "Contractor found mold behind walls. +$8,000, +2 weeks" (if inspection skipped)
+- "Market softened. ARV came in 5% below estimate" (random)
+- "Tenant found quickly at top of range" (good outcome)
+
+
+PHASE 7: OUTCOME RESOLUTION
+---------------------------
+Compare your assumptions vs what actually happened:
+
+| Factor      | Your Assumption | Actual   | Impact              |
+|-------------|-----------------|----------|---------------------|
+| Rehab Cost  | $15,000         | $23,000  | -$8,000             |
+| Rent        | $1,800/mo       | $1,650/mo| -$150/mo cash flow  |
+| Timeline    | 8 weeks         | 12 weeks | +4 weeks holding    |
+
+Then:
+- Calculate actual profit or loss
+- Update player's cash accordingly
+- Goal progress: +1 if profitable, 0 if loss
+
+
+PHASE 8: EDUCATIONAL POSTMORTEM
+-------------------------------
+Color-coded explanations of what went right or wrong:
+
+- RED (Error): "You skipped inspection -> mold wasn't caught -> +$8K surprise"
+- YELLOW (Warning): "Your rent assumption was optimistic and didn't materialize"
+- GREEN (Success): "Your 10% contingency absorbed the permit delay"
+- BLUE (Info): "Conservative rent estimate protected your cash flow"
+
+Links every outcome back to a specific decision you made.
+
+
+VICTORY & DEFEAT CONDITIONS
+---------------------------
+WIN: Complete 3 profitable deals before running out of time/cash
+LOSE: Run out of weeks or cash before hitting your goal
+PARTIAL: Some deals profitable, some not - educational either way
+
+
+KEY EDUCATIONAL TAKEAWAYS
+-------------------------
+1. Due diligence costs money upfront but reduces surprises
+2. Conservative assumptions are safer than optimistic ones
+3. Contingency buffers exist for a reason
+4. Every number in a pro forma has downstream effects
+5. Hidden costs are normal - the pros plan for them
+
+
+THE CORE LESSON
+---------------
+In real life:
+1. You find an opportunity with uncertain factors (rent range, rehab costs, ARV)
+2. You can pay for investigations to narrow uncertainty
+3. You build a pro forma with assumptions based on what you know
+4. You commit based on your analysis
+5. Reality unfolds - things either match your assumptions or don't
+6. Your profit/loss is the gap between assumptions and reality
+
+Better diligence + conservative assumptions = better outcomes

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Check, Home, Wrench, Clock, DollarSign, Zap } from 'lucide-react';
+import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, TrendingUp, Shield } from 'lucide-react';
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
 import type { Property } from '@shared/schema';
@@ -43,13 +43,30 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
     return traits[neighborhood] || 'Residential';
   };
 
+  const getRiskSignals = () => {
+    const signals = [];
+    if (property.conditionTag === 'Fixer-Upper' || property.conditionTag === 'Fair') {
+      signals.push({ label: 'Timeline Risk', level: 'Elevated', color: 'text-amber-400' });
+    }
+    if (financing === 'hard-money') {
+      signals.push({ label: 'Leverage Sensitivity', level: 'High', color: 'text-red-400' });
+    }
+    if (property.rentMax - property.rentMin > 400) {
+      signals.push({ label: 'Rent Sensitivity', level: 'Medium', color: 'text-amber-400' });
+    }
+    if (signals.length === 0) {
+      signals.push({ label: 'Risk Profile', level: 'Standard', color: 'text-gray-400' });
+    }
+    return signals;
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm" data-testid="property-detail-modal">
       <div className="w-full max-w-5xl max-h-[95vh] overflow-y-auto rounded-2xl shadow-2xl" style={{
-        background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 100%)',
+        background: 'linear-gradient(145deg, #0f172a 0%, #1e293b 100%)',
       }}>
         {/* Header with close */}
-        <div className="sticky top-0 z-20 flex items-center justify-between px-4 md:px-6 py-4 bg-gradient-to-b from-black/50 to-transparent">
+        <div className="sticky top-0 z-20 flex items-center justify-between px-4 md:px-6 py-4 bg-gradient-to-b from-slate-900/95 to-transparent backdrop-blur-sm">
           <h2 className="font-display text-white text-xl md:text-2xl font-bold tracking-wide">
             {property.name}
           </h2>
@@ -101,21 +118,21 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                 ))}
               </div>
 
-              {/* Property Stats */}
+              {/* Property Stats - Inputs Only (no outcomes) */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-white/5 backdrop-blur rounded-xl p-3 border border-white/10">
+                <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700">
                   <div className="text-emerald-400 text-lg md:text-xl font-bold">{property.sizeSqft.toLocaleString()}</div>
                   <div className="text-gray-400 text-xs">Square Feet</div>
                 </div>
-                <div className="bg-white/5 backdrop-blur rounded-xl p-3 border border-white/10">
-                  <div className="text-amber-400 text-lg md:text-xl font-bold">{formatCurrency(property.rentMin)}-{formatCurrency(property.rentMax)}</div>
+                <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700">
+                  <div className="text-amber-400 text-base md:text-lg font-bold">{formatCurrency(property.rentMin)}-{formatCurrency(property.rentMax)}</div>
                   <div className="text-gray-400 text-xs">Rent Potential</div>
                 </div>
-                <div className="bg-white/5 backdrop-blur rounded-xl p-3 border border-white/10">
+                <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700">
                   <div className="text-blue-400 text-sm md:text-base font-bold">{getNeighborhoodTraits(property.neighborhood)}</div>
                   <div className="text-gray-400 text-xs">Neighborhood</div>
                 </div>
-                <div className="bg-white/5 backdrop-blur rounded-xl p-3 border border-white/10">
+                <div className="bg-slate-800/50 backdrop-blur rounded-xl p-3 border border-slate-700">
                   <div className={`text-sm md:text-base font-bold ${
                     property.conditionTag === 'Excellent' ? 'text-emerald-400' :
                     property.conditionTag === 'Good' ? 'text-blue-400' :
@@ -132,7 +149,7 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                   className={`flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all border ${
                     walkthroughDone 
                       ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
-                      : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                      : 'bg-slate-800/50 border-slate-700 text-gray-300 hover:bg-slate-700/50'
                   }`}
                   data-testid="button-contractor-walkthrough"
                 >
@@ -146,8 +163,8 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                   onClick={() => setWalkthroughDone(false)}
                   className={`flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all border ${
                     !walkthroughDone 
-                      ? 'bg-gray-500/20 border-gray-500/50 text-gray-300'
-                      : 'bg-gray-500/10 border-gray-500/30 text-gray-400 hover:bg-gray-500/20'
+                      ? 'bg-slate-700/50 border-slate-600 text-gray-300'
+                      : 'bg-slate-800/50 border-slate-700 text-gray-400 hover:bg-slate-700/50'
                   }`}
                   data-testid="button-skip-walkthrough"
                 >
@@ -156,10 +173,10 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
               </div>
             </div>
 
-            {/* Right Column - Strategy, Financing, Contractor (2 cols) */}
+            {/* Right Column - Strategy, Financing, Outcome Unknown (2 cols) */}
             <div className="lg:col-span-2 space-y-4">
               {/* Choose Strategy */}
-              <div className="bg-white/5 backdrop-blur rounded-xl p-4 border border-white/10">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
                 <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">
                   Choose Your Strategy
                 </h3>
@@ -169,12 +186,12 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                     className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                       strategy === 'rent' 
                         ? 'bg-emerald-500/20 border-2 border-emerald-500' 
-                        : 'bg-white/5 border-2 border-transparent hover:border-emerald-500/30'
+                        : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'
                     }`}
                     data-testid="button-strategy-rent"
                   >
                     <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
-                      strategy === 'rent' ? 'bg-emerald-500' : 'bg-white/10'
+                      strategy === 'rent' ? 'bg-emerald-500' : 'bg-slate-600'
                     }`}>
                       {strategy === 'rent' && <Check className="w-4 h-4 text-white" />}
                     </div>
@@ -190,12 +207,12 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                     className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                       strategy === 'flip' 
                         ? 'bg-emerald-500/20 border-2 border-emerald-500' 
-                        : 'bg-white/5 border-2 border-transparent hover:border-emerald-500/30'
+                        : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'
                     }`}
                     data-testid="button-strategy-flip"
                   >
                     <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
-                      strategy === 'flip' ? 'bg-emerald-500' : 'bg-white/10'
+                      strategy === 'flip' ? 'bg-emerald-500' : 'bg-slate-600'
                     }`}>
                       {strategy === 'flip' && <Check className="w-4 h-4 text-white" />}
                     </div>
@@ -209,7 +226,7 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
               </div>
 
               {/* Financing Options */}
-              <div className="bg-white/5 backdrop-blur rounded-xl p-4 border border-white/10">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
                 <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">
                   Financing Options
                 </h3>
@@ -219,12 +236,12 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                     className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                       financing === 'hard-money' 
                         ? 'bg-amber-500/20 border-2 border-amber-500' 
-                        : 'bg-white/5 border-2 border-transparent hover:border-amber-500/30'
+                        : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'
                     }`}
                     data-testid="button-financing-hard-money"
                   >
                     <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
-                      financing === 'hard-money' ? 'bg-amber-500' : 'bg-white/10'
+                      financing === 'hard-money' ? 'bg-amber-500' : 'bg-slate-600'
                     }`}>
                       {financing === 'hard-money' && <Check className="w-4 h-4 text-white" />}
                     </div>
@@ -240,12 +257,12 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                     className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
                       financing === 'bank' 
                         ? 'bg-emerald-500/20 border-2 border-emerald-500' 
-                        : 'bg-white/5 border-2 border-transparent hover:border-emerald-500/30'
+                        : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'
                     }`}
                     data-testid="button-financing-bank"
                   >
                     <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
-                      financing === 'bank' ? 'bg-emerald-500' : 'bg-white/10'
+                      financing === 'bank' ? 'bg-emerald-500' : 'bg-slate-600'
                     }`}>
                       {financing === 'bank' && <Check className="w-4 h-4 text-white" />}
                     </div>
@@ -253,12 +270,13 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                       <div className="font-semibold text-white">Bank Loan</div>
                       <div className="text-xs text-gray-400">25% Down, 5% Interest</div>
                     </div>
+                    <Shield className={`w-5 h-5 ${financing === 'bank' ? 'text-emerald-400' : 'text-gray-500'}`} />
                   </button>
                 </div>
               </div>
 
               {/* Contractor Choice */}
-              <div className="bg-white/5 backdrop-blur rounded-xl p-4 border border-white/10">
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
                 <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">
                   Contractor Choice
                 </h3>
@@ -268,7 +286,7 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                     className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
                       contractor === 'cheap' 
                         ? 'bg-amber-500/20 border-2 border-amber-500' 
-                        : 'bg-white/5 border-2 border-transparent hover:border-amber-500/30'
+                        : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'
                     }`}
                     data-testid="button-contractor-cheap"
                   >
@@ -284,7 +302,7 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                     className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
                       contractor === 'fast' 
                         ? 'bg-blue-500/20 border-2 border-blue-500' 
-                        : 'bg-white/5 border-2 border-transparent hover:border-blue-500/30'
+                        : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'
                     }`}
                     data-testid="button-contractor-fast"
                   >
@@ -297,15 +315,44 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Deal Outcome Unknown - The Key Teaching Element */}
+              <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur rounded-xl p-4 border border-slate-600">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">Deal Outcome Unknown</h3>
+                    <p className="text-gray-400 text-xs">Build a pro forma to determine viability</p>
+                  </div>
+                </div>
+                
+                {/* Risk Signals */}
+                <div className="space-y-2 mt-3 pt-3 border-t border-slate-700">
+                  {getRiskSignals().map((signal, i) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className={`w-3.5 h-3.5 ${signal.color}`} />
+                        <span className="text-gray-300">{signal.label}</span>
+                      </div>
+                      <span className={`font-medium ${signal.color}`}>{signal.level}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons - Pro Forma is PRIMARY */}
               <div className="space-y-2">
+                {/* PRIMARY: View Pro Forma */}
                 <button 
                   onClick={() => onOpenProForma(strategy, financing, contractor)}
                   className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-xl font-bold text-base transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50"
-                  data-testid="button-make-offer"
+                  data-testid="button-pro-forma"
                 >
-                  Make Offer
+                  View Pro Forma
                 </button>
+                
+                {/* Secondary Actions */}
                 <div className="grid grid-cols-2 gap-2">
                   <button 
                     onClick={onPass}
@@ -316,10 +363,10 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass }: Pr
                   </button>
                   <button 
                     onClick={() => onOpenProForma(strategy, financing, contractor)}
-                    className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl font-semibold text-sm transition-all"
-                    data-testid="button-pro-forma"
+                    className="px-4 py-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 rounded-xl font-semibold text-sm transition-all"
+                    data-testid="button-make-offer"
                   >
-                    View Pro Forma
+                    Make Offer
                   </button>
                 </div>
               </div>

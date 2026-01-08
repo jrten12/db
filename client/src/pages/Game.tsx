@@ -5,6 +5,7 @@ import { ProFormaPanel } from '@/components/game/ProFormaPanel';
 import { MetricsPanel } from '@/components/game/MetricsPanel';
 import { PropertySelector } from '@/components/game/PropertySelector';
 import { PropertyDetail } from '@/components/game/PropertyDetail';
+import { BannerAd, SidebarAd, FooterAd } from '@/components/game/AdSlot';
 import { 
   ProFormaInputs, 
   ProFormaOutputs,
@@ -283,6 +284,9 @@ export default function Game() {
           goalDeals={gameRun.goalDeals}
         />
 
+        {/* Top Banner Ad - Below Status Bar */}
+        <BannerAd className="px-4 pt-2" />
+
         <main className="max-w-7xl mx-auto px-4 py-6 md:py-8">
           {currentScreen === 'market' && (
             <PropertySelector
@@ -302,7 +306,7 @@ export default function Game() {
                 Back to Market
               </button>
               
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <div className="lg:col-span-2">
                   <ProFormaPanel
                     property={convertPropertyToGameProperty(selectedProperty)}
@@ -318,6 +322,16 @@ export default function Game() {
                     isUnlocked={isProFormaComplete}
                     onCommitDeal={handleCommitDeal}
                   />
+                  
+                  {/* Sidebar Ad - Below Metrics on smaller screens */}
+                  <div className="mt-6 xl:hidden">
+                    <SidebarAd />
+                  </div>
+                </div>
+
+                {/* Sidebar Ad - Right Rail on XL screens */}
+                <div className="hidden xl:block xl:col-span-1">
+                  <SidebarAd />
                 </div>
               </div>
             </>
@@ -337,6 +351,11 @@ export default function Game() {
             cash={gameRun?.cash || 0}
           />
         )}
+
+        {/* Footer Ad - Mobile Only */}
+        <div className="md:hidden">
+          <FooterAd />
+        </div>
 
         <footer className="safe-area-bottom" />
       </div>

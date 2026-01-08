@@ -1,0 +1,136 @@
+What SHOULD stay on this screen (this is important)
+
+This screen is about inputs, constraints, and uncertainty — not outcomes.
+
+✅ Keep these
+
+Purchase price
+
+Square footage
+
+Neighborhood descriptors (“Suburban, Good Schools”)
+
+Rent range (not net income)
+
+Condition (“Minor Updates Needed”)
+
+Financing terms (rates, down payment)
+
+Contractor options (cost vs time)
+
+Cost of diligence (walkthrough)
+
+These are ingredients, not conclusions.
+
+What should be explicitly hidden (even subtly)
+❌ Remove or never show here
+
+“Estimated Monthly Cash Flow”
+
+“Potential Profit”
+
+“Likely ROI”
+
+“Expected Net Income”
+
+Any green/red deal signal
+
+Even blurred or “locked” versions on this screen are risky.
+This screen should feel pre-analytical, not analytical.
+
+What to show instead (this is the teaching move)
+
+You replace outcome ranges with uncertainty + responsibility cues.
+
+Replace outcome previews with:
+1. Outcome Locked Panel
+
+On the right side, where the eye naturally goes:
+
+🔒 Deal Outcome Unknown
+Build a pro forma to determine cash flow and risk.
+
+This reinforces:
+
+You are responsible
+
+The game will not save you from bad assumptions
+
+2. Risk Signals (non-numeric)
+
+You can teach without numbers here:
+
+Examples:
+
+“Rent sensitivity: Medium”
+
+“Timeline risk: Elevated”
+
+“Leverage sensitivity: High with Hard Money”
+
+These hint where mistakes happen without giving answers.
+
+3. Explicit Call to Action
+
+Your “View Pro Forma” button should be visually emphasized more than “Make Offer”.
+
+This is critical.
+
+Primary CTA: View Pro Forma
+Secondary CTA: Make Offer (dangerous, impulsive)
+
+That subtly teaches discipline.
+
+Why this matters for learning (this is the heart of it)
+
+If players ever succeed without building a pro forma, the game has failed its mission.
+
+By withholding outcome ranges:
+
+Players must think in components
+
+They learn how sensitive outcomes are
+
+They experience the pain of bad assumptions after committing
+
+The postmortem becomes meaningful
+
+This mirrors real life painfully well.
+
+One nuance (important)
+Rent range is OK
+Net income range is NOT
+
+Why?
+
+Rent is:
+
+A market input
+
+Observational
+
+External
+
+Net income is:
+
+Constructed
+
+Dependent on assumptions
+
+The lesson itself
+
+That distinction is the philosophical backbone of your game.
+
+Final verdict (clear and firm)
+
+Yes. This screen should NOT give any range of potential net income, cash flow, or profit.
+
+It should:
+
+Show ingredients
+
+Show tradeoffs
+
+Show uncertainty
+
+Force the pro forma as the only path to truth

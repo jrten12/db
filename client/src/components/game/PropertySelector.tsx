@@ -97,11 +97,11 @@ export function PropertySelector({ properties, selectedId, onSelect }: PropertyS
                   </div>
                 </div>
                 
-                {/* Size Badge */}
+                {/* Size Badge - Clear sqft label */}
                 <div className="absolute top-3 right-3">
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-black/60 backdrop-blur-md rounded-lg border border-white/10">
-                    <Ruler className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-sm text-gray-200">{property.sizeSqft.toLocaleString()}</span>
+                  <div className="flex items-center gap-1 px-2.5 py-1 bg-black/60 backdrop-blur-md rounded-lg border border-white/10">
+                    <span className="text-sm font-bold text-white">{property.sizeSqft.toLocaleString()}</span>
+                    <span className="text-xs text-gray-400">sqft</span>
                   </div>
                 </div>
 

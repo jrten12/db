@@ -1,7 +1,54 @@
 import { useState, useMemo } from 'react';
 import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma } from '@/lib/gameData';
-import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Property } from '@shared/schema';
+
+const TERM_DEFINITIONS: Record<string, string> = {
+  purchasePrice: "The price you're paying to buy the property. This is your starting point for all calculations.",
+  closingCosts: "Fees paid when the sale is finalized - includes title insurance, attorney fees, recording fees, etc. Typically 2-4% of purchase price.",
+  rehabBudget: "The money you plan to spend fixing up the property - repairs, renovations, upgrades.",
+  contingency: "Extra buffer for unexpected costs. Things always cost more than expected! 10-20% is common.",
+  allInBasis: "Your total investment in the property: purchase price + closing costs + rehab + contingency. This is what you need to beat to make money.",
+  arv: "After Repair Value - what the property will be worth after you fix it up. Critical for flip deals.",
+  downPayment: "Cash you put in upfront. The rest comes from your lender. Higher down payment = lower monthly payments but more cash tied up.",
+  interestRate: "The yearly cost of borrowing money, expressed as a percentage. Hard money is higher (10-14%), banks are lower (6-8%).",
+  loanTerm: "How long you have to pay back the loan. Longer terms = lower monthly payments but more interest paid overall.",
+  financingType: "Hard money: faster approval, higher rates, good for flips. Bank loan: slower, cheaper, better for rentals.",
+  expectedRent: "What you think tenants will pay monthly. Be conservative - it's better to be pleasantly surprised.",
+  vacancyRate: "Percentage of time the property sits empty between tenants. 5-10% is typical - that's about 2-5 weeks per year.",
+  taxesAnnual: "Yearly property taxes. Check the county assessor's website for exact amounts.",
+  insuranceAnnual: "Yearly insurance premium. Landlord policies cost more than regular homeowner's insurance.",
+  maintenancePct: "Ongoing repair costs as a percentage of rent. Budget 5-10% for maintenance reserves.",
+  propertyManagement: "Hiring someone to handle tenants, repairs, and day-to-day operations. Typically 8-10% of rent.",
+  rehabWeeks: "How long the renovation will take. Add buffer time - contractors are almost never early.",
+  holdingCosts: "Costs you pay while owning the property: loan payments, taxes, insurance, utilities. These add up fast during rehab!",
+  cashOnCash: "Your annual cash flow divided by cash invested. A 10% cash-on-cash means you earn 10 cents per year for every dollar invested.",
+  capRate: "Net Operating Income divided by property value. Helps compare deals regardless of financing. Higher = better return.",
+  cashFlow: "Money left over after all expenses and mortgage are paid. Positive = you're making money each month.",
+  roi: "Return on Investment - your profit divided by cash invested. For flips, aim for 20%+ to account for risk.",
+  flipProfit: "ARV minus all your costs (purchase + closing + rehab + holding). What's left is your profit.",
+};
+
+function InfoTooltip({ term }: { term: keyof typeof TERM_DEFINITIONS }) {
+  const definition = TERM_DEFINITIONS[term];
+  if (!definition) return null;
+  
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button className="ml-1 text-gray-500 hover:text-gray-300 transition-colors" type="button">
+            <HelpCircle className="w-3.5 h-3.5" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3">
+          <p>{definition}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 interface ProFormaPanelProps {
   property: Property & { rentRange: [number, number] };
@@ -126,17 +173,17 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
                 <>
                   <div className="grid grid-cols-3 gap-3">
                     <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1">Purchase Price</div>
+                      <div className="text-gray-400 text-xs mb-1 flex items-center">Purchase Price<InfoTooltip term="purchasePrice" /></div>
                       <div className="text-white text-lg font-bold font-mono">{formatCurrency(property.price)}</div>
                       <div className="text-gray-500 text-xs">Fixed</div>
                     </div>
                     <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1">Closing Costs</div>
+                      <div className="text-gray-400 text-xs mb-1 flex items-center">Closing Costs<InfoTooltip term="closingCosts" /></div>
                       <div className="text-white text-lg font-bold font-mono">{formatCurrency(closingCosts)}</div>
                       <div className="text-gray-500 text-xs">~3% estimate</div>
                     </div>
                     <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1">Rehab + Contingency</div>
+                      <div className="text-gray-400 text-xs mb-1 flex items-center">Rehab + Contingency<InfoTooltip term="contingency" /></div>
                       <div className="text-white text-lg font-bold font-mono">
                         {formatCurrency(inputs.rehabBudget * (1 + inputs.contingencyPct / 100))}
                       </div>
@@ -147,7 +194,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
                   <div className="bg-gradient-to-r from-blue-500/20 to-emerald-500/20 rounded-xl p-4 border border-blue-500/30">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider">All-In Basis</div>
+                        <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider flex items-center">All-In Basis<InfoTooltip term="allInBasis" /></div>
                         <div className="text-white text-2xl font-bold font-mono mt-1">{formatCurrency(allInBasis)}</div>
                       </div>
                       <div className="text-right">
@@ -161,12 +208,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
                 <>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1">Purchase Price</div>
+                      <div className="text-gray-400 text-xs mb-1 flex items-center">Purchase Price<InfoTooltip term="purchasePrice" /></div>
                       <div className="text-white text-lg font-bold font-mono">{formatCurrency(property.price)}</div>
                       <div className="text-gray-500 text-xs">Your acquisition cost</div>
                     </div>
                     <div className="bg-amber-500/10 rounded-xl p-3 border border-amber-500/30">
-                      <div className="text-amber-400 text-xs mb-1">ARV (After Repair Value)</div>
+                      <div className="text-amber-400 text-xs mb-1 flex items-center">ARV (After Repair Value)<InfoTooltip term="arv" /></div>
                       <div className="text-amber-300 text-lg font-bold font-mono">
                         {formatCurrency(property.arvMin)} - {formatCurrency(property.arvMax)}
                       </div>
@@ -176,17 +223,17 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
                   
                   <div className="grid grid-cols-3 gap-3">
                     <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1">Closing Costs</div>
+                      <div className="text-gray-400 text-xs mb-1 flex items-center">Closing Costs<InfoTooltip term="closingCosts" /></div>
                       <div className="text-white font-bold font-mono">{formatCurrency(closingCosts)}</div>
                       <div className="text-gray-500 text-xs">~3% estimate</div>
                     </div>
                     <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1">Rehab Budget</div>
+                      <div className="text-gray-400 text-xs mb-1 flex items-center">Rehab Budget<InfoTooltip term="rehabBudget" /></div>
                       <div className="text-white font-bold font-mono">{formatCurrency(inputs.rehabBudget)}</div>
                       <div className="text-gray-500 text-xs">Your estimate</div>
                     </div>
                     <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1">Contingency ({inputs.contingencyPct}%)</div>
+                      <div className="text-gray-400 text-xs mb-1 flex items-center">Contingency ({inputs.contingencyPct}%)<InfoTooltip term="contingency" /></div>
                       <div className="text-white font-bold font-mono">{formatCurrency(Math.round(inputs.rehabBudget * inputs.contingencyPct / 100))}</div>
                       <div className="text-gray-500 text-xs">Buffer for surprises</div>
                     </div>
@@ -270,7 +317,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-xs">Loan-to-Value (LTV)</span>
+                    <span className="text-gray-400 text-xs flex items-center">Loan-to-Value (LTV)<InfoTooltip term="downPayment" /></span>
                     <span className="text-white font-mono text-sm">{100 - inputs.downPaymentPct}%</span>
                   </div>
                   <input
@@ -288,7 +335,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Interest Rate</span>
+                  <span className="text-gray-400 flex items-center">Interest Rate<InfoTooltip term="interestRate" /></span>
                   <span className="text-white font-mono">{inputs.interestRate}%</span>
                 </div>
               </div>
@@ -346,7 +393,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
             <div className="px-4 pb-4 space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-xs">Market Rent</span>
+                  <span className="text-gray-400 text-xs flex items-center">Market Rent<InfoTooltip term="expectedRent" /></span>
                   <span className="text-white font-mono text-sm">{formatCurrency(inputs.expectedRent)}/mo</span>
                 </div>
                 <input
@@ -369,7 +416,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-xs">Vacancy Rate</span>
+                  <span className="text-gray-400 text-xs flex items-center">Vacancy Rate<InfoTooltip term="vacancyRate" /></span>
                   <span className="text-white font-mono text-sm">{inputs.vacancyRate}%</span>
                 </div>
                 <input
@@ -426,7 +473,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-gray-400 text-xs">Taxes (annual)</label>
+                  <label className="text-gray-400 text-xs flex items-center">Taxes (annual)<InfoTooltip term="taxesAnnual" /></label>
                   <input
                     type="number"
                     value={inputs.taxesAnnual}
@@ -436,7 +483,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
                   />
                 </div>
                 <div>
-                  <label className="text-gray-400 text-xs">Insurance (annual)</label>
+                  <label className="text-gray-400 text-xs flex items-center">Insurance (annual)<InfoTooltip term="insuranceAnnual" /></label>
                   <input
                     type="number"
                     value={inputs.insuranceAnnual}
@@ -446,7 +493,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
                   />
                 </div>
                 <div>
-                  <label className="text-gray-400 text-xs">Maintenance (%)</label>
+                  <label className="text-gray-400 text-xs flex items-center">Maintenance (%)<InfoTooltip term="maintenancePct" /></label>
                   <input
                     type="number"
                     value={inputs.maintenancePct}
@@ -456,7 +503,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
                   />
                 </div>
                 <div>
-                  <label className="text-gray-400 text-xs">Property Mgmt</label>
+                  <label className="text-gray-400 text-xs flex items-center">Property Mgmt<InfoTooltip term="propertyManagement" /></label>
                   <button
                     onClick={() => handleChange('propertyManagement', !inputs.propertyManagement)}
                     className={`w-full mt-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${

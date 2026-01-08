@@ -43,10 +43,10 @@
   --color-wood: hsl(var(--wood));
   --color-wood-dark: hsl(var(--wood-dark));
 
-  --font-display: 'Cinzel', serif;
-  --font-serif: 'Crimson Pro', serif;
-  --font-sans: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Sora', sans-serif;
+  --font-serif: 'Fraunces', serif;
+  --font-sans: 'Space Grotesk', sans-serif;
+  --font-mono: 'Space Mono', monospace;
 }
 
 :root {
@@ -93,9 +93,9 @@
   --wood: 25 35% 25%;
   --wood-dark: 25 40% 15%;
 
-  --font-sans: 'Inter', sans-serif;
-  --font-serif: 'Crimson Pro', serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Space Grotesk', sans-serif;
+  --font-serif: 'Fraunces', serif;
+  --font-mono: 'Space Mono', monospace;
   --radius: .5rem;
   --shadow-2xs: 0 1px 2px rgba(0,0,0,.3);
   --shadow-xs: 0 2px 4px rgba(0,0,0,.3);
@@ -172,7 +172,33 @@
   }
 
   .font-display {
-    font-family: 'Cinzel', serif;
+    font-family: var(--font-display);
+  }
+
+  .scoreboard-value {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  .scoreboard-flip {
+    animation: scoreboard-flip 0.45s cubic-bezier(0.2, 0.75, 0.35, 1);
+  }
+
+  @keyframes scoreboard-flip {
+    0% {
+      transform: translateY(-18%) scale(0.98);
+      opacity: 0.1;
+      filter: blur(1px);
+    }
+    55% {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      filter: blur(0);
+    }
+    100% {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
   }
 
   .paper-texture {

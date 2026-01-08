@@ -1,0 +1,385 @@
+from docx import Document
+from docx.shared import Pt, Inches
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.shared import OxmlElement, qn
+
+doc = Document()
+
+# Title
+title = doc.add_paragraph()
+run = title.add_run("Dealbreak (Working Title)\nStoryboard & Game Architecture Spec")
+run.bold = True
+run.font.size = Pt(20)
+title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+subtitle = doc.add_paragraph()
+run = subtitle.add_run("Edutainment real-estate underwriting simulator — pro forma–driven loop\n(Prepared for Replit AI implementation)")
+run.italic = True
+run.font.size = Pt(11)
+subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+doc.add_paragraph("")
+
+# Helper to add headings
+def h1(text):
+    p = doc.add_paragraph(text)
+    p.style = doc.styles['Heading 1']
+    return p
+
+def h2(text):
+    p = doc.add_paragraph(text)
+    p.style = doc.styles['Heading 2']
+    return p
+
+def bullet(items, level=0):
+    for it in items:
+        p = doc.add_paragraph(it, style='List Bullet')
+        if level:
+            p.paragraph_format.left_indent = Inches(0.25*level)
+
+h1("1) Product Summary")
+doc.add_paragraph(
+    "A turn-based, state-driven real estate deal simulator where the core skill is completing a realistic pro forma under uncertainty. "
+    "Players start with limited cash and time, evaluate a small set of properties, optionally buy diligence, build a pro forma (rent or flip), "
+    "commit to a deal, experience execution events (delays/surprises), then receive an outcome plus an educational postmortem. "
+    "Success compounds into larger opportunities; failure ends the run."
+)
+
+h2("Design pillars")
+bullet([
+    "Dopamine comes from understanding causality (assumptions → metrics → outcomes), not just winning.",
+    "Derived values (cash flow / profit) are locked until player completes the pro forma.",
+    "Bad deals must appear plausibly viable but fail for different structural reasons (varied failure archetypes).",
+    "Risk is earned: skipping diligence widens variance; disciplined assumptions narrow it.",
+    "UI style: grounded, game-like panels (as shown in provided mock screens)."
+])
+
+h1("2) Core Loop")
+doc.add_paragraph("The loop repeats until the player hits the goal (e.g., 3 profitable projects) or goes bust/time expires.")
+bullet([
+    "Market Board → choose property",
+    "Property Detail → choose strategy + financing; optional diligence",
+    "Pro Forma → enter assumptions; real-time metrics",
+    "Metrics Breakdown → explain metrics tied to inputs",
+    "Commit → make offer (property may go off-market if time spent)",
+    "Execution → timeline + events; player decisions",
+    "Outcome → results screen",
+    "Postmortem → what went right/wrong; badges; bankroll updates",
+    "Return to Market Board with updated cash/time and new inventory unlocks"
+])
+
+h1("3) Screen-by-Screen Storyboard (Full Pipeline)")
+doc.add_paragraph("All screens listed in order. Each screen includes key UI elements and actions.")
+
+h2("0. Splash / Load")
+bullet([
+    "Logo + subtle animation; loading bar",
+    "Tip text rotator (e.g., “Most deals fail in the pro forma.”)"
+])
+
+h2("1. Auth Gate")
+bullet([
+    "Welcome: Sign up / Log in / (Optional) Play as Guest",
+    "Sign up: email + password + confirm",
+    "Log in: email + password + forgot password"
+])
+
+h2("2. Username + Profile Setup")
+bullet([
+    "Investor Name (username)",
+    "Avatar select (12 archetypes)",
+    "Difficulty: Apprentice / Operator / Shark",
+    "Start Run"
+])
+
+h2("3. Quick Disclaimer / Terms")
+bullet([
+    "Single-page disclaimer: simplified learning simulator",
+    "Checkbox + Continue"
+])
+
+h2("4. Intro Premise")
+bullet([
+    "You have $30,000 and 7 weeks (configurable)",
+    "Goal: 3 profitable deals (or $X net worth mode)",
+    "Core constraints: money, time, info costs",
+    "Enter Market"
+])
+
+h2("5. Tutorial (Skippable)")
+bullet([
+    "6-panel loop diagram: choose → diligence → pro forma → commit → execute → outcome",
+    "Skip / Got it"
+])
+
+h2("6. Market Board (Inventory = 7 properties)")
+bullet([
+    "7 property cards: photo, price, size, neighborhood traits, rent/ARV range, condition tag",
+    "Filters (optional): rentals/flips/multi-unit",
+    "Top bar persistent: Cash / Time / Goal progress",
+    "Tap property → Property Detail"
+])
+
+h2("7. Property Detail (Deal Overview)")
+bullet([
+    "Left: facts + photos (zoom); subtle visual clues",
+    "Right: choose Strategy (Rent/Flip) + Financing (Hard Money/Bank)",
+    "Actions: Contractor Walkthrough (costs $ + time), Skip Walkthrough, Open Pro Forma, Make Offer, Pass",
+    "Rule: Do NOT show profitability numbers here (locked until pro forma)."
+])
+
+h2("8. Diligence Options (if chosen)")
+bullet([
+    "Basic walkthrough: cheaper, +1 week, narrows ranges modestly",
+    "Full inspection: pricier, +2 weeks, narrows ranges more",
+    "Optional add-ons later (roof/foundation)"
+])
+
+h2("9. Diligence Results")
+bullet([
+    "Rehab cost range narrows; timeline range narrows; confidence meter increases",
+    "Possible defect tags revealed (some still uncertain)",
+    "Proceed to Pro Forma / Back"
+])
+
+h2("10. Pro Forma Entry (Core Screen)")
+bullet([
+    "Tabs: Rent | Flip",
+    "Guided inputs (not spreadsheet): rent within range, vacancy slider, taxes/insurance prefill, maintenance %, mgmt toggle, rehab budget, rehab duration, contingency",
+    "Financing panel mostly locked based on choice: interest rate, down payment, debt service calc",
+    "Primary CTA: Calculate / Lock Assumptions (or live updates)"
+])
+
+h2("11. Real-Time Metrics Panel (while editing)")
+bullet([
+    "Monthly cash flow (live), Cash-on-cash (live), Cap rate (live), Break-even occupancy (optional), Risk meter (Low/Med/High), Fragility indicator",
+    "Visual feedback: roll-up numbers, red/yellow/green states, subtle pulse when a metric crosses thresholds",
+])
+
+h2("12. Metrics Breakdown / Explain Screen")
+bullet([
+    "Shows each metric and how it ties back to specific pro forma fields",
+    "Highlights inputs used in the equation (rent, vacancy, opEx, debt service, rehab/holding costs)",
+    "Back to Pro Forma / Proceed"
+])
+
+h2("13. Final Review / Commit Offer")
+bullet([
+    "Summary of assumptions; biggest risk flags; confidence meter",
+    "Make Offer / Adjust Pro Forma / Pass",
+    "Make Offer triggers off-market probability based on time spent"
+])
+
+h2("14. Offer Result")
+bullet([
+    "Accepted ✅ → Project starts",
+    "Off-market ❌ → lose time spent; return to Market Board with a lesson note"
+])
+
+h2("15. Project Dashboard (Execution Timeline)")
+bullet([
+    "Timeline progress: Demo → Rough → Finish → Listed/Rented",
+    "Holding cost burn: interest/week, taxes/insurance/week",
+    "Actions: choose contractor, pay to accelerate, wait, change scope, list/sell, rent/tenant screen"
+])
+
+h2("16. Contractor Choice")
+bullet([
+    "Cheap & slow (higher delay variance), Balanced, Fast & expensive (lower variance)",
+    "Each shows time range, cost range, quality risk"
+])
+
+h2("17. Event Popups (Risk & Decision Moments)")
+bullet([
+    "Triggered based on diligence, contractor choice, contingency %, hidden defects",
+    "Examples: mold behind drywall, permit delay, material shortage, appraisal low, tenant issue, roof leak",
+    "Player chooses: pay now vs later; accelerate vs delay; cut scope vs full fix"
+])
+
+h2("18. Outcome Screen")
+bullet([
+    "Flip: sale price, DOM, price cuts, total cost, profit",
+    "Rental: stabilized rent, vacancy, repairs, monthly cash flow actual, equity snapshot",
+    "Options: Take profits & continue, Refi & keep (rental), View postmortem"
+])
+
+h2("19. Postmortem Screen (Educational)")
+bullet([
+    "Assumed vs Actual deltas; top 3 drivers; what would have changed outcome",
+    "Badges tied to underwriting behavior (not only profit)",
+    "Return to Market Board"
+])
+
+h2("20. Run Hub / Next Cycle")
+bullet([
+    "Cash/time/goal updated; new inventory unlocked if successful",
+    "Progress 1/3 → 2/3 → 3/3"
+])
+
+h2("21. Win Screen")
+bullet([
+    "Run summary stats; share; start new run (harder)",
+    "Optional: export “Nancy Report” (what improved, mistakes corrected)"
+])
+
+h2("22. Bust Screen")
+bullet([
+    "Run recap; collapse point; one actionable fix; optional cooldown; restart/practice mode"
+])
+
+h1("4) Game Rules & Balancing")
+h2("Resources")
+bullet([
+    "Cash: used for down payments, inspections, rehab, carrying costs, surprises.",
+    "Time (weeks): used by diligence, rehab duration, delays; market inventory can disappear."
+])
+
+h2("Truth & Uncertainty")
+bullet([
+    "Before diligence: rehab/timeline ranges are wide; hidden defects exist.",
+    "After diligence: ranges tighten; some defect tags are revealed; variance shrinks.",
+    "Skipping diligence increases variance and likelihood of surprise expenses."
+])
+
+h2("Off-market mechanic")
+bullet([
+    "Each week spent before offering increases probability property goes off-market.",
+    "More desirable neighborhoods have higher off-market rate.",
+    "Apprentice mode can reduce off-market probability."
+])
+
+h2("Progression / Parlay")
+bullet([
+    "Winning unlocks bigger deal types (duplex/multi) and/or slightly improved financing options.",
+    "Player can choose: bank profits (safer) or lever up (riskier) for higher upside.",
+    "Failure ends run; player receives strong postmortem to learn."
+])
+
+h1("5) Content Plan: 7-Property Starter Set")
+doc.add_paragraph("Starter inventory includes 3 viable deals and 4 non-viable deals. All non-viable deals must fail for different reasons.")
+h2("Non-viable archetypes (varied)")
+bullet([
+    "Rent Mirage: rent looks strong, but operating expenses/vacancy kill cash flow.",
+    "Rehab Sinkhole: price attractive, but rehab uncertainty/defects make it structurally bad.",
+    "Time Bomb: numbers work only under optimistic timeline; delays/holding costs break it.",
+    "Leverage Trap: hard-money fragility; any slip pushes deal negative."
+])
+h2("Viable archetypes")
+bullet([
+    "Steady Rental: modest returns, low variance, rewards conservative inputs.",
+    "Good Flip: solid margin with diligence; teaches timeline + exit costs.",
+    "Value-Add Rental: requires rehab but pays off if properly underwritten."
+])
+
+h1("6) Data Model (Recommended)")
+doc.add_paragraph("Use a single source of truth state object. Keep deterministic math separate from random event sampling (seeded).")
+
+h2("GameState (high level)")
+bullet([
+    "player: { id, username, avatar, difficulty }",
+    "run: { cash, week, goal, profitableDealsCount, rngSeed }",
+    "inventory: Property[]",
+    "activeProject: Project | null",
+    "history: DealResult[]",
+    "badges: Badge[]"
+])
+
+h2("Property")
+bullet([
+    "id, name, price, sizeSqft, neighborhoodTraits[], rentRange, arvRange, conditionTag",
+    "photoIds[] (with hidden clue tags)",
+    "baseRehabRange, baseTimelineRange",
+    "hiddenDefects[] (each defect has costImpactRange, timeImpactRange, revealRules)",
+    "offMarketRate, viabilityProfile (archetype)"
+])
+
+h2("ProFormaInputs (Rental)")
+bullet([
+    "expectedRent, vacancyRate, taxesAnnual, insuranceAnnual, maintenancePct, mgmtPctOrToggle",
+    "rehabBudget, rehabWeeks, contingencyPct",
+    "financingType, interestRate, downPaymentPct, loanAmount, debtServiceMonthly"
+])
+
+h2("ProFormaOutputs (derived)")
+bullet([
+    "noiMonthly, cashFlowMonthly, capRate, cashOnCash, breakEvenOccupancy, riskScore, fragilityScore"
+])
+
+h2("Project / Execution")
+bullet([
+    "propertyId, strategy (rent/flip), financing, contractorChoice",
+    "startWeek, plannedWeeks, actualWeeks, costsPlanned, costsActual, events[]"
+])
+
+h2("DealResult")
+bullet([
+    "strategy, realizedProfit, realizedCashFlowMonthly, timeSpentWeeks",
+    "assumptionsSnapshot, deltas (assumed vs actual), lessons[]"
+])
+
+h1("7) Mechanics: Calculations (Simplified)")
+h2("Rental core equations")
+bullet([
+    "Effective Rent = Expected Rent × (1 − VacancyRate)",
+    "Monthly OpEx = (Taxes + Insurance)/12 + Maintenance + Management (+ utilities if used)",
+    "NOI = Effective Rent − Monthly OpEx",
+    "Cash Flow = NOI − Debt Service − (Holding Cost during rehab allocated monthly, optional)",
+    "Cap Rate = (NOI × 12) / Purchase Price",
+    "Cash-on-Cash = (Cash Flow × 12) / Cash Invested"
+])
+
+h2("Flip core equations")
+bullet([
+    "Total Cost = Purchase + Rehab + Holding + Financing costs + Selling costs",
+    "Profit = Sale Price − Total Cost",
+    "Sensitivity: ARV optimism increases downside variance; diligence reduces variance."
+])
+
+h1("8) UX Rules (Must-Haves)")
+bullet([
+    "Lock derived outcomes until pro forma completed (no ‘estimated profit’ on property detail).",
+    "Real-time metrics update as inputs change (micro-dopamine).",
+    "Postmortem always ties outcome back to assumptions and variance drivers (learning moment).",
+    "Reward ‘pass’ decisions when they avoid structural traps (badge + small dopamine ping).",
+    "Difficulty changes: hints, range widths, off-market rates, event variance."
+])
+
+h1("9) MVP Scope (Ship Fast)")
+bullet([
+    "Auth + username",
+    "Market board with 7 properties",
+    "Property detail + optional basic walkthrough",
+    "Rental pro forma only (flip can be phase 2)",
+    "Real-time metrics panel + breakdown screen",
+    "Execution with 3 event types",
+    "Outcome + postmortem",
+    "Loop back to market; win at 3 profitable deals; bust screen"
+])
+
+h1("10) Tech Notes for Replit Implementation")
+bullet([
+    "Frontend: React (or Next.js) with componentized panels matching the mock style.",
+    "Backend: lightweight API (Express) or Next API routes for persistence.",
+    "DB: SQLite/Postgres via Prisma; store runs, properties, outcomes, badges.",
+    "RNG: seed per run; deterministic event resolution given seed + choices.",
+    "Content: store property definitions as JSON; photos as static assets; defect tags in JSON."
+])
+
+h1("11) Implementation Checklist (Replit AI Prompting)")
+bullet([
+    "Create routes/pages for each screen; wire navigation flow.",
+    "Implement GameState store (client or server) and serialization.",
+    "Implement Pro Forma calculator functions + live metrics panel.",
+    "Implement property inventory JSON + 7 starter properties.",
+    "Implement diligence narrowing logic and off-market mechanic.",
+    "Implement execution timeline + event sampling + decision responses.",
+    "Implement outcome + postmortem generation.",
+    "Add badges tied to behavior (not only profit)."
+])
+
+doc.add_paragraph("")
+doc.add_paragraph("End of spec.")
+
+out_path = "/mnt/data/Dealbreak_Storyboard_and_Architecture_Spec.docx"
+doc.save(out_path)
+out_path

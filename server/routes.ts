@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGameRunSchema, insertDealSchema } from "@shared/schema";
+import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(
@@ -112,6 +112,34 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching deals:", error);
       res.status(500).json({ error: "Failed to fetch deals" });
+    }
+  });
+
+  // Create property investigation
+  app.post("/api/investigations", async (req, res) => {
+    try {
+      const validated = insertPropertyInvestigationSchema.parse(req.body);
+      const investigation = await storage.createPropertyInvestigation(validated);
+      res.json(investigation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: error.errors });
+      } else {
+        console.error("Error creating investigation:", error);
+        res.status(500).json({ error: "Failed to create investigation" });
+      }
+    }
+  });
+
+  // Get investigations for game run
+  app.get("/api/game-runs/:id/investigations", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const investigations = await storage.getPropertyInvestigations(gameRunId);
+      res.json(investigations);
+    } catch (error) {
+      console.error("Error fetching investigations:", error);
+      res.status(500).json({ error: "Failed to fetch investigations" });
     }
   });
 

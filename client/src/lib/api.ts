@@ -1,4 +1,4 @@
-import type { GameRun, Property, Deal, InsertGameRun, InsertDeal } from '@shared/schema';
+import type { GameRun, Property, Deal, InsertGameRun, InsertDeal, PropertyInvestigation, InsertPropertyInvestigation } from '@shared/schema';
 
 const API_BASE = '/api';
 
@@ -57,6 +57,23 @@ export const api = {
   async getDeals(gameRunId: number): Promise<Deal[]> {
     const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/deals`);
     if (!res.ok) throw new Error('Failed to fetch deals');
+    return res.json();
+  },
+
+  // Investigations
+  async createInvestigation(data: InsertPropertyInvestigation): Promise<PropertyInvestigation> {
+    const res = await fetch(`${API_BASE}/investigations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to create investigation');
+    return res.json();
+  },
+
+  async getInvestigations(gameRunId: number): Promise<PropertyInvestigation[]> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/investigations`);
+    if (!res.ok) throw new Error('Failed to fetch investigations');
     return res.json();
   },
 };

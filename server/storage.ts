@@ -11,7 +11,9 @@ import type {
   Property,
   InsertProperty,
   Deal,
-  InsertDeal
+  InsertDeal,
+  PropertyInvestigation,
+  InsertPropertyInvestigation
 } from "@shared/schema";
 
 const pool = new Pool({
@@ -42,6 +44,10 @@ export interface IStorage {
   createDeal(deal: InsertDeal): Promise<Deal>;
   getDealsByGameRun(gameRunId: number): Promise<Deal[]>;
   updateDeal(id: number, updates: Partial<InsertDeal>): Promise<Deal | undefined>;
+
+  // Property Investigation methods
+  createPropertyInvestigation(investigation: InsertPropertyInvestigation): Promise<PropertyInvestigation>;
+  getPropertyInvestigations(gameRunId: number): Promise<PropertyInvestigation[]>;
 }
 
 export class DBStorage implements IStorage {
@@ -300,6 +306,22 @@ export class DBStorage implements IStorage {
       .where(eq(schema.deals.id, id))
       .returning();
     return deal;
+  }
+
+  // Property Investigation methods
+  async createPropertyInvestigation(investigation: InsertPropertyInvestigation): Promise<PropertyInvestigation> {
+    const [inv] = await db
+      .insert(schema.propertyInvestigations)
+      .values(investigation)
+      .returning();
+    return inv;
+  }
+
+  async getPropertyInvestigations(gameRunId: number): Promise<PropertyInvestigation[]> {
+    return await db
+      .select()
+      .from(schema.propertyInvestigations)
+      .where(eq(schema.propertyInvestigations.gameRunId, gameRunId));
   }
 }
 

@@ -11,13 +11,24 @@ interface PropertyDetailProps {
   onOpenProForma: (strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money', contractor: 'cheap' | 'fast') => void;
   onPass: () => void;
   isProFormaComplete?: boolean;
+  completedDiligence?: string[];
+  onDiligencePurchase?: (propertyId: number, diligenceType: string, cost: number, weeks: number) => void;
+  cash?: number;
 }
 
-export function PropertyDetail({ property, onClose, onOpenProForma, onPass, isProFormaComplete = false }: PropertyDetailProps) {
+export function PropertyDetail({ 
+  property, 
+  onClose, 
+  onOpenProForma, 
+  onPass, 
+  isProFormaComplete = false,
+  completedDiligence = [],
+  onDiligencePurchase,
+  cash = 30000,
+}: PropertyDetailProps) {
   const [strategy, setStrategy] = useState<'rent' | 'flip'>('rent');
   const [financing, setFinancing] = useState<'bank' | 'hard-money'>('bank');
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
-  const [completedDiligence, setCompletedDiligence] = useState<string[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const propertyImage = getPropertyImage(property.name);
@@ -26,8 +37,8 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass, isPr
   const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
 
   const handleDiligence = (option: DiligenceOption) => {
-    if (!completedDiligence.includes(option.id)) {
-      setCompletedDiligence([...completedDiligence, option.id]);
+    if (!completedDiligence.includes(option.id) && onDiligencePurchase) {
+      onDiligencePurchase(property.id, option.id, option.cost, option.timeWeeks);
     }
   };
 
@@ -153,14 +164,18 @@ export function PropertyDetail({ property, onClose, onOpenProForma, onPass, isPr
                 <div className="space-y-2">
                   {DILIGENCE_OPTIONS.map((option) => {
                     const isCompleted = completedDiligence.includes(option.id);
+                    const canAfford = cash >= option.cost;
+                    const isDisabled = isCompleted || !canAfford;
                     return (
                       <button
                         key={option.id}
                         onClick={() => handleDiligence(option)}
-                        disabled={isCompleted}
+                        disabled={isDisabled}
                         className={`w-full text-left p-3 rounded-xl transition-all border ${
                           isCompleted
                             ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                            : !canAfford
+                            ? 'bg-slate-700/20 border-slate-700 text-gray-500 cursor-not-allowed'
                             : 'bg-slate-700/30 border-slate-600 hover:border-emerald-500/50 text-gray-300'
                         }`}
                         data-testid={`button-diligence-${option.id}`}

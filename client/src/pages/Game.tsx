@@ -20,6 +20,14 @@ import { toast } from 'sonner';
 
 type GameScreen = 'market' | 'detail' | 'proforma';
 
+interface DiligenceState {
+  [propertyId: number]: string[];
+}
+
+interface ProFormaCompletionState {
+  [propertyId: number]: boolean;
+}
+
 export default function Game() {
   const queryClient = useQueryClient();
   const [currentScreen, setCurrentScreen] = useState<GameScreen>('market');
@@ -27,6 +35,8 @@ export default function Game() {
   const [proFormaInputs, setProFormaInputs] = useState<ProFormaInputs>(defaultProForma);
   const [proFormaOutputs, setProFormaOutputs] = useState<ProFormaOutputs | null>(null);
   const [isProFormaComplete, setIsProFormaComplete] = useState(false);
+  const [completedDiligence, setCompletedDiligence] = useState<DiligenceState>({});
+  const [proFormaCompletions, setProFormaCompletions] = useState<ProFormaCompletionState>({});
 
   const { data: gameRun, isLoading: isLoadingGame, error: gameError } = useQuery({
     queryKey: ['activeGameRun'],
@@ -73,6 +83,32 @@ export default function Game() {
     },
   });
 
+  const createInvestigationMutation = useMutation({
+    mutationFn: api.createInvestigation,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investigations'] });
+    },
+  });
+
+  const { data: investigations = [] } = useQuery({
+    queryKey: ['investigations', gameRun?.id],
+    queryFn: () => api.getInvestigations(gameRun!.id),
+    enabled: !!gameRun?.id,
+  });
+
+  useEffect(() => {
+    const diligenceMap: DiligenceState = {};
+    for (const inv of investigations) {
+      if (!diligenceMap[inv.propertyId]) {
+        diligenceMap[inv.propertyId] = [];
+      }
+      if (!diligenceMap[inv.propertyId].includes(inv.investigationType)) {
+        diligenceMap[inv.propertyId].push(inv.investigationType);
+      }
+    }
+    setCompletedDiligence(diligenceMap);
+  }, [investigations]);
+
   const selectedProperty = properties.find(p => p.id === selectedPropertyId);
 
   const handlePropertyClick = useCallback((id: number) => {
@@ -104,6 +140,51 @@ export default function Game() {
     toast.info('Passed on property');
   }, []);
 
+  const handleDiligencePurchase = useCallback(async (propertyId: number, diligenceType: string, cost: number, weeks: number) => {
+    if (!gameRun) return;
+    
+    const existingDiligence = completedDiligence[propertyId] || [];
+    if (existingDiligence.includes(diligenceType)) {
+      toast.error('Investigation already completed');
+      return;
+    }
+    
+    if (gameRun.cash < cost) {
+      toast.error('Not enough cash for this investigation');
+      return;
+    }
+    
+    const newCash = gameRun.cash - cost;
+    const weeksToDeduct = Math.ceil(weeks);
+    const newWeeks = Math.max(0, gameRun.weeksRemaining - weeksToDeduct);
+    
+    try {
+      await Promise.all([
+        updateGameMutation.mutateAsync({
+          id: gameRun.id,
+          updates: { cash: newCash, weeksRemaining: newWeeks },
+        }),
+        createInvestigationMutation.mutateAsync({
+          gameRunId: gameRun.id,
+          propertyId,
+          investigationType: diligenceType,
+          cost,
+          weeksUsed: weeksToDeduct,
+        }),
+      ]);
+      
+      setCompletedDiligence(prev => ({
+        ...prev,
+        [propertyId]: [...(prev[propertyId] || []), diligenceType],
+      }));
+      
+      const timeDisplay = weeks < 1 ? `${Math.round(weeks * 7)} days` : `${weeksToDeduct} week${weeksToDeduct !== 1 ? 's' : ''}`;
+      toast.success(`Investigation complete! -$${cost.toLocaleString()}, -${timeDisplay}`);
+    } catch (error) {
+      toast.error('Failed to complete investigation');
+    }
+  }, [gameRun, updateGameMutation, createInvestigationMutation, completedDiligence]);
+
   const handleBackToMarket = useCallback(() => {
     setCurrentScreen('market');
     setIsProFormaComplete(false);
@@ -122,6 +203,10 @@ export default function Game() {
       const outputs = calculateProForma(proFormaInputs, selectedProperty);
       setProFormaOutputs(outputs);
       setIsProFormaComplete(true);
+      setProFormaCompletions(prev => ({
+        ...prev,
+        [selectedProperty.id]: true,
+      }));
       toast.success('Pro forma calculated!');
     }
   }, [proFormaInputs, selectedProperty]);
@@ -246,7 +331,10 @@ export default function Game() {
             onClose={handleCloseDetail}
             onOpenProForma={handleOpenProForma}
             onPass={handlePassProperty}
-            isProFormaComplete={isProFormaComplete}
+            isProFormaComplete={proFormaCompletions[selectedProperty.id] || false}
+            completedDiligence={completedDiligence[selectedProperty.id] || []}
+            onDiligencePurchase={handleDiligencePurchase}
+            cash={gameRun?.cash || 0}
           />
         )}
 

@@ -93,6 +93,11 @@ export const insertDealSchema = createInsertSchema(deals).omit({
   completedAt: true,
 });
 
+export const insertPropertyInvestigationSchema = createInsertSchema(propertyInvestigations).omit({
+  id: true,
+  completedAt: true,
+});
+
 export type GameRun = typeof gameRuns.$inferSelect;
 export type InsertGameRun = z.infer<typeof insertGameRunSchema>;
 
@@ -101,3 +106,6 @@ export type InsertProperty = z.infer<typeof insertPropertySchema>;
 
 export type Deal = typeof deals.$inferSelect;
 export type InsertDeal = z.infer<typeof insertDealSchema>;
+
+export type PropertyInvestigation = typeof propertyInvestigations.$inferSelect;
+export type InsertPropertyInvestigation = z.infer<typeof insertPropertyInvestigationSchema>;

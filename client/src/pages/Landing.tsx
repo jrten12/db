@@ -1,6 +1,6 @@
 import { Link } from 'wouter';
 import { Play } from 'lucide-react';
-import heroImage from '@assets/dealbreak_sim_1767845973603.png';
+import heroImage from '@assets/image_1767847036185.png';
 
 export default function Landing() {
   return (

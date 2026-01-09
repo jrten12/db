@@ -77,8 +77,8 @@ export default function Game() {
   const updateGameMutation = useMutation({
     mutationFn: ({ id, updates }: { id: number; updates: Partial<GameRun> }) =>
       api.updateGameRun(id, updates),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['activeGameRun'] });
+    onSuccess: (updatedGameRun) => {
+      queryClient.setQueryData(['activeGameRun'], updatedGameRun);
     },
   });
 
@@ -115,9 +115,13 @@ export default function Game() {
       entries: Array<{ direction: string; category: string; amount: number; description: string; propertyId?: number; dealId?: number }>;
       currentCash: number;
     }) => api.createLedgerEntries(gameRunId, entries, currentCash),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
-      queryClient.invalidateQueries({ queryKey: ['activeGameRun'] });
+      if (data?.newCash !== undefined) {
+        queryClient.setQueryData(['activeGameRun'], (old: GameRun | undefined) => 
+          old ? { ...old, cash: data.newCash } : old
+        );
+      }
     },
   });
 

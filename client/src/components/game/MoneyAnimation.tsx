@@ -10,7 +10,8 @@ interface MoneyAnimationProps {
 
 interface Bill {
   id: number;
-  x: number;
+  startX: number;
+  endX: number;
   delay: number;
   rotation: number;
   scale: number;
@@ -23,16 +24,17 @@ export function MoneyAnimation({ trigger, amount, onComplete }: MoneyAnimationPr
   useEffect(() => {
     if (trigger && !isAnimating) {
       setIsAnimating(true);
-      const billCount = Math.min(Math.max(5, Math.floor((amount || 100) / 50)), 12);
+      const billCount = Math.min(Math.max(6, Math.floor((amount || 100) / 30)), 15);
       const newBills: Bill[] = [];
       
       for (let i = 0; i < billCount; i++) {
         newBills.push({
           id: Date.now() + i,
-          x: Math.random() * 200 - 100,
-          delay: i * 0.05,
-          rotation: Math.random() * 60 - 30,
-          scale: 0.7 + Math.random() * 0.5,
+          startX: Math.random() * 120 - 60,
+          endX: Math.random() * 200 - 100,
+          delay: i * 0.12,
+          rotation: Math.random() * 40 - 20,
+          scale: 1 + Math.random() * 0.4,
         });
       }
       
@@ -42,7 +44,7 @@ export function MoneyAnimation({ trigger, amount, onComplete }: MoneyAnimationPr
         setBills([]);
         setIsAnimating(false);
         onComplete?.();
-      }, 1500);
+      }, 2500);
     }
   }, [trigger, amount, onComplete, isAnimating]);
 
@@ -51,38 +53,46 @@ export function MoneyAnimation({ trigger, amount, onComplete }: MoneyAnimationPr
       {bills.map((bill) => (
         <motion.div
           key={bill.id}
-          className="fixed pointer-events-none z-[200]"
+          className="fixed pointer-events-none z-[9999]"
           initial={{ 
             opacity: 0,
             y: 0,
-            x: bill.x,
-            scale: 0,
-            rotate: bill.rotation,
+            x: bill.startX,
+            scale: 0.3,
+            rotate: 0,
           }}
           animate={{ 
-            opacity: [0, 1, 1, 0],
-            y: -200,
-            x: bill.x + (Math.random() * 40 - 20),
+            opacity: [0, 1, 1, 1, 0],
+            y: -300,
+            x: bill.endX,
             scale: bill.scale,
-            rotate: bill.rotation + (Math.random() * 20 - 10),
+            rotate: bill.rotation,
           }}
           exit={{ opacity: 0 }}
           transition={{
-            duration: 1.2,
+            duration: 1.8,
             delay: bill.delay,
-            ease: [0.25, 0.46, 0.45, 0.94],
-            opacity: { times: [0, 0.1, 0.7, 1] },
+            ease: "easeOut",
+            opacity: { times: [0, 0.1, 0.4, 0.8, 1], duration: 1.8 },
           }}
           style={{
-            top: '50%',
+            top: '45%',
             left: '50%',
+            marginLeft: '-32px',
           }}
         >
-          <div className="relative">
-            <div className="w-12 h-8 bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 rounded-sm shadow-lg flex items-center justify-center border border-emerald-300/50">
-              <DollarSign className="w-5 h-5 text-emerald-100" strokeWidth={2.5} />
+          <div className="relative drop-shadow-2xl">
+            <div 
+              className="w-16 h-10 rounded-md flex items-center justify-center border-2 border-emerald-300"
+              style={{
+                background: 'linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%)',
+                boxShadow: '0 4px 20px rgba(16, 185, 129, 0.6), 0 0 40px rgba(16, 185, 129, 0.3)',
+              }}
+            >
+              <DollarSign className="w-7 h-7 text-white drop-shadow-md" strokeWidth={3} />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/20 rounded-sm" />
+            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/30 rounded-md" />
+            <div className="absolute -inset-1 bg-emerald-400/20 rounded-lg blur-md -z-10" />
           </div>
         </motion.div>
       ))}

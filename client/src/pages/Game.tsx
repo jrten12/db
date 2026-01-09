@@ -19,6 +19,7 @@ import { getEffectiveRanges } from '@/lib/propertyIssues';
 import { api } from '@/lib/api';
 import type { GameRun, Property, LedgerEntry } from '@shared/schema';
 import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.png';
+import infarillLogo from '../assets/infarill-logo.png';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -476,7 +477,21 @@ export default function Game() {
           <FooterAd />
         </div>
 
-        <footer className="safe-area-bottom" />
+        {/* Copyright Footer */}
+        <footer className="mt-auto py-6 px-4 border-t border-slate-800/50 bg-slate-900/50">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-3 text-center">
+            <img 
+              src={infarillLogo} 
+              alt="Infarill" 
+              className="h-8 w-auto"
+            />
+            <span className="text-gray-400 text-sm">
+              &copy; {new Date().getFullYear()} Infarill LLC. All Rights Reserved.
+            </span>
+          </div>
+        </footer>
+
+        <div className="safe-area-bottom" />
 
         {/* Ledger Panel Modal */}
         {showLedger && (

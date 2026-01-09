@@ -20,9 +20,12 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-2xl font-semibold text-white mb-3">1. Introduction</h2>
               <p>
-                Infarill LLC ("Company", "we", "our", or "us") respects your privacy and is committed to protecting your
-                personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your
-                information when you use our website and services.
+                Infarill LLC, together with its affiliates, subsidiaries, officers, directors, employees, agents, partners,
+                licensors, and service providers (collectively, the "Infarill Parties" or "Company", "we", "our", or "us")
+                respects your privacy and is committed to protecting your personal information. This Privacy Policy explains
+                how we collect, use, disclose, and safeguard your information when you use our website and services. By using
+                our service, you acknowledge that you have read, understood, and agree to be bound by this Privacy Policy.
+                IF YOU DO NOT AGREE WITH THE TERMS OF THIS PRIVACY POLICY, PLEASE DO NOT ACCESS OR USE THE SERVICE.
               </p>
             </section>
 
@@ -109,9 +112,14 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-2xl font-semibold text-white mb-3">6. Data Security</h2>
               <p>
-                We implement appropriate technical and organizational security measures to protect your personal information
-                against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over
-                the Internet or electronic storage is 100% secure, and we cannot guarantee absolute security.
+                While we implement commercially reasonable technical and organizational security measures designed to protect
+                your personal information against unauthorized access, alteration, disclosure, or destruction, YOU ACKNOWLEDGE
+                AND AGREE THAT NO SECURITY MEASURES ARE PERFECT OR IMPENETRABLE. NO METHOD OF TRANSMISSION OVER THE INTERNET
+                OR ELECTRONIC STORAGE IS 100% SECURE, AND THE INFARILL PARTIES CANNOT AND DO NOT GUARANTEE OR WARRANT THE
+                SECURITY OF ANY INFORMATION YOU TRANSMIT TO OR FROM THE SERVICE. YOU TRANSMIT ALL INFORMATION AT YOUR OWN RISK.
+                THE INFARILL PARTIES DISCLAIM ALL LIABILITY FOR ANY UNAUTHORIZED ACCESS TO, USE OF, OR DISCLOSURE OF YOUR
+                PERSONAL INFORMATION, DATA BREACHES, HACKING, IDENTITY THEFT, OR ANY OTHER SECURITY-RELATED INCIDENTS. YOU ARE
+                SOLELY RESPONSIBLE FOR PROTECTING YOUR ACCOUNT CREDENTIALS AND FOR ALL ACTIVITIES THAT OCCUR UNDER YOUR ACCOUNT.
               </p>
             </section>
 
@@ -186,7 +194,43 @@ export default function PrivacyPolicy() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-white mb-3">14. Contact Us</h2>
+              <h2 className="text-2xl font-semibold text-white mb-3">14. Limitation of Liability</h2>
+              <p>
+                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE INFARILL PARTIES SHALL NOT BE LIABLE FOR ANY DAMAGES
+                WHATSOEVER, INCLUDING BUT NOT LIMITED TO DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR
+                PUNITIVE DAMAGES, ARISING OUT OF OR RELATING TO THIS PRIVACY POLICY, YOUR PERSONAL INFORMATION, OR OUR PRIVACY
+                PRACTICES, INCLUDING BUT NOT LIMITED TO ANY UNAUTHORIZED ACCESS TO, USE OF, OR DISCLOSURE OF YOUR PERSONAL
+                INFORMATION, DATA BREACHES, IDENTITY THEFT, OR ANY OTHER PRIVACY-RELATED HARM. YOU ACKNOWLEDGE AND AGREE THAT
+                YOUR SOLE AND EXCLUSIVE REMEDY FOR ANY DISPUTE WITH THE INFARILL PARTIES REGARDING PRIVACY MATTERS IS TO STOP
+                USING THE SERVICE. IN NO EVENT SHALL THE AGGREGATE LIABILITY OF THE INFARILL PARTIES EXCEED ONE HUNDRED DOLLARS
+                ($100). SOME JURISDICTIONS DO NOT ALLOW THE LIMITATION OR EXCLUSION OF LIABILITY FOR INCIDENTAL OR CONSEQUENTIAL
+                DAMAGES, SO THE ABOVE LIMITATION OR EXCLUSION MAY NOT APPLY TO YOU.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-white mb-3">15. Indemnification</h2>
+              <p>
+                You agree to defend, indemnify, and hold harmless the Infarill Parties from and against any and all claims,
+                damages, obligations, losses, liabilities, costs, debt, and expenses (including but not limited to attorney's
+                fees) arising from: (a) your use of and access to the service; (b) your violation of any term of this Privacy
+                Policy; (c) your violation of any third party right, including without limitation any privacy right; or (d) any
+                claim that your use of the service caused damage to a third party. This indemnification obligation will survive
+                termination of this Privacy Policy and your use of the service.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-white mb-3">16. Severability</h2>
+              <p>
+                If any provision of this Privacy Policy is held to be invalid, illegal, or unenforceable, the remaining
+                provisions shall continue in full force and effect. The invalidity of any provision shall not affect the
+                validity or enforceability of any other provision.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-semibold text-white mb-3">17. Contact Us</h2>
               <p>
                 If you have any questions about this Privacy Policy or our privacy practices, please contact:
               </p>

@@ -7,7 +7,6 @@ import { PropertySelector } from '@/components/game/PropertySelector';
 import { PropertyDetail } from '@/components/game/PropertyDetail';
 import { ResultsPanel } from '@/components/game/ResultsPanel';
 import { LedgerPanel } from '@/components/game/LedgerPanel';
-import { BannerAd, SidebarAd, FooterAd } from '@/components/game/AdSlot';
 import { 
   ProFormaInputs, 
   ProFormaOutputs,
@@ -391,8 +390,6 @@ export default function Game() {
           onOpenLedger={() => setShowLedger(true)}
         />
 
-        {/* Top Banner Ad - Below Status Bar */}
-        <BannerAd className="px-4 pt-2" />
 
         <main className="max-w-7xl mx-auto px-4 py-6 md:py-8">
           {currentScreen === 'market' && (
@@ -434,12 +431,8 @@ export default function Game() {
                     flipProfit={flipMetrics.profit}
                   />
                   
-                  {/* Sidebar Ad - Below Metrics on smaller screens (hidden on XL) */}
-                  <SidebarAd className="mt-6 block xl:hidden" />
                 </div>
 
-                {/* Sidebar Ad - Right Rail on XL screens only */}
-                <SidebarAd className="hidden xl:block xl:col-span-1" />
               </div>
             </>
           )}
@@ -472,10 +465,6 @@ export default function Game() {
           />
         )}
 
-        {/* Footer Ad - Mobile Only */}
-        <div className="md:hidden">
-          <FooterAd />
-        </div>
 
         {/* Copyright Footer */}
         <Footer />

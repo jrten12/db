@@ -16,16 +16,12 @@ export default function Footer() {
           </span>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-          <Link href="/terms">
-            <a className="text-purple-400 hover:text-purple-300 transition-colors">
-              Terms of Service
-            </a>
+          <Link href="/terms" className="text-purple-400 hover:text-purple-300 transition-colors">
+            Terms of Service
           </Link>
           <span className="text-gray-600">•</span>
-          <Link href="/privacy">
-            <a className="text-purple-400 hover:text-purple-300 transition-colors">
-              Privacy Policy
-            </a>
+          <Link href="/privacy" className="text-purple-400 hover:text-purple-300 transition-colors">
+            Privacy Policy
           </Link>
         </div>
       </div>

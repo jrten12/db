@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/gameData';
-import { getPropertyImageSet } from '@/lib/propertyImages';
+import { getPropertyImageSet, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Property } from '@shared/schema';
@@ -78,10 +78,15 @@ export function PropertyDetail({
   const [strategy, setStrategy] = useState<'rent' | 'flip'>('rent');
   const [financing, setFinancing] = useState<'bank' | 'hard-money'>('bank');
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedImageKey, setSelectedImageKey] = useState<'front' | 'side' | 'back'>('front');
 
   const imageSet = getPropertyImageSet(property.name);
-  const propertyImage = imageSet.gallery[selectedImageIndex] || imageSet.main;
+  const galleryImages = [
+    { key: 'front' as const, label: 'Front View', src: imageSet.gallery.front },
+    { key: 'side' as const, label: 'Side View', src: imageSet.gallery.side },
+    { key: 'back' as const, label: 'Back View', src: imageSet.gallery.back },
+  ];
+  const propertyImage = imageSet.gallery[selectedImageKey] || imageSet.main;
   const allIssues = getPropertyIssues(property.name);
   const revealedIssues = getRevealedIssues(property.name, completedDiligence);
   const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
@@ -184,10 +189,10 @@ export function PropertyDetail({
 
               {/* Thumbnails */}
               <div className="grid grid-cols-3 gap-2">
-                {imageSet.gallery.map((img, i) => (
-                  <button key={i} onClick={() => setSelectedImageIndex(i)}
-                    className={`h-14 rounded-lg overflow-hidden transition-all ${selectedImageIndex === i ? 'ring-2 ring-emerald-400' : 'opacity-70 hover:opacity-100'}`}>
-                    <img src={img} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
+                {galleryImages.map((img) => (
+                  <button key={img.key} onClick={() => setSelectedImageKey(img.key)}
+                    className={`h-14 rounded-lg overflow-hidden transition-all ${selectedImageKey === img.key ? 'ring-2 ring-emerald-400' : 'opacity-70 hover:opacity-100'}`}>
+                    <img src={img.src} alt={img.label} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -334,28 +339,40 @@ export function PropertyDetail({
                   <h3 className="text-red-400 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4" /> Issues Discovered
                   </h3>
-                  <div className="space-y-2">
-                    {revealedIssues.map((issue) => (
-                      <div key={issue.id} className="bg-slate-900/50 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className={`font-semibold text-sm ${issue.severity === 'severe' ? 'text-red-400' : issue.severity === 'moderate' ? 'text-amber-400' : 'text-yellow-400'}`}>
-                            {issue.name}
-                          </span>
-                          <span className={`text-xs px-2 py-0.5 rounded ${issue.severity === 'severe' ? 'bg-red-500/20 text-red-400' : issue.severity === 'moderate' ? 'bg-amber-500/20 text-amber-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                            {issue.severity}
-                          </span>
+                  <div className="space-y-3">
+                    {revealedIssues.map((issue) => {
+                      const issueImg = getIssueImage(issue.id);
+                      return (
+                        <div key={issue.id} className="bg-slate-900/50 rounded-lg p-3">
+                          <div className="flex gap-3">
+                            {issueImg && (
+                              <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-red-500/30">
+                                <img src={issueImg} alt={issue.name} className="w-full h-full object-cover" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className={`font-semibold text-sm ${issue.severity === 'severe' ? 'text-red-400' : issue.severity === 'moderate' ? 'text-amber-400' : 'text-yellow-400'}`}>
+                                  {issue.name}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded ${issue.severity === 'severe' ? 'bg-red-500/20 text-red-400' : issue.severity === 'moderate' ? 'bg-amber-500/20 text-amber-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                  {issue.severity}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-400 mb-2">{issue.description}</p>
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-gray-500">Estimated repair:</span>
+                                <span className="text-red-400 font-mono">{formatCurrency(issue.costRangeMin)} - {formatCurrency(issue.costRangeMax)}</span>
+                              </div>
+                              <div className="flex items-center justify-between text-xs mt-1">
+                                <span className="text-gray-500">Timeline impact:</span>
+                                <span className="text-amber-400">+{issue.timelineImpactWeeks} weeks</span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-400 mb-2">{issue.description}</p>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-500">Estimated repair:</span>
-                          <span className="text-red-400 font-mono">{formatCurrency(issue.costRangeMin)} - {formatCurrency(issue.costRangeMax)}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs mt-1">
-                          <span className="text-gray-500">Timeline impact:</span>
-                          <span className="text-amber-400">+{issue.timelineImpactWeeks} weeks</span>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   {hasUnrevealedIssues && (
                     <p className="text-xs text-gray-500 mt-3 italic">

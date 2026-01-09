@@ -217,7 +217,23 @@ export function PropertyDetail({
               {/* Unknown Financials Section */}
               <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-600/50">
                 <h4 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4" /> Financial Estimates
+                  <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="cursor-help">
+                          <HelpCircle className="w-4 h-4 text-amber-400 hover:text-amber-300 transition-colors" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
+                        <div className="space-y-2">
+                          <p className="font-semibold text-amber-400">Why These Are Estimates</p>
+                          <p className="text-gray-300">These financial numbers are uncertain until you do your homework. In real estate, guessing wrong on rent, repair costs, or timeline can turn a "great deal" into a money pit.</p>
+                          <p className="text-emerald-400 text-xs mt-2">→ Complete due diligence investigations below to narrow down these ranges and reduce your risk.</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  Financial Estimates
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
                   <UnknownValueBadge type="rent" isKnown={effectiveRanges.rent.known}>

@@ -5,10 +5,8 @@ export default function TermsOfService() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="mb-8">
-          <Link href="/">
-            <a className="text-purple-400 hover:text-purple-300 transition-colors">
-              ← Back to Home
-            </a>
+          <Link href="/" className="text-purple-400 hover:text-purple-300 transition-colors">
+            ← Back to Home
           </Link>
         </div>
 

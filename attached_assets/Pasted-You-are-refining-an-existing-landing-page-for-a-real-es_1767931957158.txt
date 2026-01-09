@@ -1,0 +1,53 @@
+You are refining an existing landing page for a real estate decision-making simulator called “Dealbreak.”
+
+IMPORTANT CONSTRAINTS:
+- Do NOT invent features, demos, videos, or claims that do not exist.
+- There is NO video demo and NO 60-second walkthrough.
+- Keep language plain, professional, and restrained.
+- Avoid marketing fluff, hype, buzzwords, or generic AI phrasing.
+- Do NOT use phrases like “institutional,” “enterprise-grade,” “powered by,” or “built with real underwriting logic.”
+- This should read as something a serious operator would tolerate, not a startup pitch deck.
+
+PRIMARY GOAL:
+Sharpen clarity, specificity, and confidence of the landing page copy while preserving its calm, professional tone.
+
+TARGET AUDIENCE:
+People interested in real estate decision-making and underwriting:
+- New investors learning the process
+- Experienced operators who value fast reps and clear tradeoffs
+
+WHAT TO IMPROVE:
+1. Headline  
+   - Make it slightly more concrete and less abstract.
+   - Preserve the current tone and authority.
+   - Do not make it hypey or playful.
+
+2. Subheadline  
+   - Clearly describe what the user does in the product.
+   - Emphasize decision-making, tradeoffs, and outcomes.
+
+3. Audience Clarifier  
+   - Add one short line that helps users self-identify.
+   - Keep it subtle and matter-of-fact.
+
+4. Calls to Action  
+   - Primary CTA should be action-oriented and honest (e.g., “Play the Simulator” or “Play a Deal”).
+   - Secondary CTA should explain the experience (e.g., “How it works”).
+   - Do NOT reference demos or videos.
+
+5. Trust / Grounding Line  
+   - Add a short, plainspoken line that signals seriousness.
+   - No buzzwords. No claims of authority. No testimonials.
+
+OUTPUT REQUIREMENTS:
+- Return a single refined version of the landing page hero copy.
+- Keep length roughly similar to the current layout.
+- Do NOT redesign the page.
+- Do NOT add new sections or features.
+- Focus on precision, tone, and credibility.
+
+STYLE REFERENCE:
+Calm. Adult. Confident. Minimal.  
+Feels like a professional tool, not a game pitch.
+
+Deliver only the final copy, ready to drop into the page.

@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import { Play, Sparkles, ShieldCheck, Calculator, FileText, BarChart3, Search, TrendingUp } from 'lucide-react';
 import heroImage from '@assets/image_1767847036185.png';
+import Footer from '@/components/Footer';
 
 export default function Landing() {
   return (
@@ -126,7 +127,8 @@ export default function Landing() {
           </div>
         </main>
 
-        <footer className="safe-area-bottom pb-6" />
+        <Footer />
+        <div className="safe-area-bottom" />
       </div>
     </div>
   );

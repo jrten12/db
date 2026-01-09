@@ -1,0 +1,70 @@
+You are refining the landing page for a product called “Dealbreak,” a real estate decision simulator.
+
+CURRENT PROBLEM:
+The page reads like a dry SaaS or educational tool.
+It feels responsible, correct, and professional — but not engaging.
+It does not create curiosity, tension, or a sense of stakes.
+
+PRIMARY GOAL:
+Rewrite the landing page hero section so it feels like entering a scenario, not starting software.
+
+This should feel like:
+- making a call
+- testing your judgment
+- seeing consequences
+- controlled risk
+
+NOT like:
+- an educational pitch
+- a compliance-safe SaaS product
+- a tutorial or course
+- a fintech dashboard
+
+CRITICAL CONSTRAINTS:
+- Do NOT invent features, demos, videos, or functionality.
+- There is NO demo video.
+- Do NOT add hype, buzzwords, or startup marketing language.
+- Avoid words like “optimize,” “leverage,” “institutional,” “powered by,” “AI,” or “enterprise.”
+- Keep language adult, direct, and restrained.
+- No jokes, no memes, no gamification language.
+
+WHAT TO CHANGE:
+
+1. Headline
+- Short, declarative, and slightly confrontational.
+- Introduce stakes or uncertainty.
+- Make the reader want to find out what happens.
+
+2. Subheadline
+- Describe the experience, not the lesson.
+- Emphasize tradeoffs, assumptions, and outcomes.
+- Make it clear that choices matter.
+
+3. Call to Action
+- Primary CTA should feel like entering a deal or scenario.
+- Secondary CTA (if present) should explain, not sell.
+- Do NOT reference demos or videos.
+
+4. Supporting Microcopy
+- Use tension-driven phrasing (cause → effect).
+- Avoid instructional or academic language.
+- Replace nouns with verbs where possible.
+
+5. Features / Chips
+- Rephrase features to sound like actions or consequences.
+- Do NOT list them like a SaaS spec sheet.
+
+OUTPUT REQUIREMENTS:
+- Return ONE refined hero section (headline, subheadline, CTAs, short supporting lines).
+- Keep length appropriate for a landing page hero.
+- Do NOT redesign layout or add sections.
+- Do NOT include explanations or analysis.
+
+TONE REFERENCE:
+Serious, charged, confident.
+Feels like a flight simulator, a courtroom, or a trading desk — not a classroom.
+
+The user should feel:
+“I want to see if I’m right.”
+
+Deliver only the final copy.

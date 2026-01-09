@@ -5,6 +5,7 @@ import { getPropertyImageSet, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { MoneyAnimation, useMoneyAnimation } from './MoneyAnimation';
 import type { Property } from '@shared/schema';
 
 const UNKNOWN_VALUE_TOOLTIPS: Record<string, { title: string; explanation: string; action: string }> = {
@@ -79,6 +80,7 @@ export function PropertyDetail({
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
   const [selectedImageKey, setSelectedImageKey] = useState<'front' | 'side' | 'back'>('front');
   const [pendingDiligence, setPendingDiligence] = useState<DiligenceOption | null>(null);
+  const { shouldAnimate, animationAmount, triggerAnimation, resetAnimation } = useMoneyAnimation();
 
   const imageSet = getPropertyImageSet(property.name);
   const galleryImages = [
@@ -99,6 +101,9 @@ export function PropertyDetail({
 
   const handleConfirmDiligence = () => {
     if (pendingDiligence && onDiligencePurchase) {
+      if (pendingDiligence.cost > 0) {
+        triggerAnimation(pendingDiligence.cost);
+      }
       onDiligencePurchase(property.id, pendingDiligence.id, pendingDiligence.cost, pendingDiligence.timeWeeks);
     }
     setPendingDiligence(null);
@@ -578,32 +583,30 @@ export function PropertyDetail({
             <AlertDialogTitle className="text-white text-lg">
               Confirm Investigation
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-400">
-              {pendingDiligence && (
-                <div className="space-y-4 mt-2">
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-                    <div className="font-semibold text-gray-200 mb-2">{pendingDiligence.name}</div>
-                    <p className="text-sm text-gray-400 mb-3">{pendingDiligence.reveals}</p>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-400">Cost:</span>
-                      <span className="text-red-400 font-mono font-bold">-{formatCurrency(pendingDiligence.cost)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm mt-1">
-                      <span className="text-gray-400">Time:</span>
-                      <span className="text-amber-400 font-mono">
-                        -{pendingDiligence.timeWeeks < 1 
-                          ? `${Math.round(pendingDiligence.timeWeeks * 7)} days` 
-                          : `${pendingDiligence.timeWeeks} week${pendingDiligence.timeWeeks !== 1 ? 's' : ''}`}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-amber-400/80 italic">
-                    This will be deducted from your cash and time immediately.
-                  </p>
-                </div>
-              )}
-            </AlertDialogDescription>
           </AlertDialogHeader>
+          {pendingDiligence && (
+            <div className="space-y-4 mt-2">
+              <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                <div className="font-semibold text-gray-200 mb-2">{pendingDiligence.name}</div>
+                <p className="text-sm text-gray-400 mb-3">{pendingDiligence.reveals}</p>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400">Cost:</span>
+                  <span className="text-red-400 font-mono font-bold">-{formatCurrency(pendingDiligence.cost)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm mt-1">
+                  <span className="text-gray-400">Time:</span>
+                  <span className="text-amber-400 font-mono">
+                    -{pendingDiligence.timeWeeks < 1 
+                      ? `${Math.round(pendingDiligence.timeWeeks * 7)} days` 
+                      : `${pendingDiligence.timeWeeks} week${pendingDiligence.timeWeeks !== 1 ? 's' : ''}`}
+                  </span>
+                </div>
+              </div>
+              <p className="text-sm text-amber-400/80 italic">
+                This will be deducted from your cash and time immediately.
+              </p>
+            </div>
+          )}
           <AlertDialogFooter className="gap-3">
             <AlertDialogCancel 
               onClick={handleCancelDiligence}
@@ -620,6 +623,13 @@ export function PropertyDetail({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Money Animation */}
+      <MoneyAnimation 
+        trigger={shouldAnimate} 
+        amount={animationAmount} 
+        onComplete={resetAnimation}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/gameData';
-import { getPropertyImage } from '@/lib/propertyImages';
+import { getPropertyImageSet } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Property } from '@shared/schema';
@@ -80,7 +80,8 @@ export function PropertyDetail({
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  const propertyImage = getPropertyImage(property.name);
+  const imageSet = getPropertyImageSet(property.name);
+  const propertyImage = imageSet.gallery[selectedImageIndex] || imageSet.main;
   const allIssues = getPropertyIssues(property.name);
   const revealedIssues = getRevealedIssues(property.name, completedDiligence);
   const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
@@ -183,10 +184,10 @@ export function PropertyDetail({
 
               {/* Thumbnails */}
               <div className="grid grid-cols-3 gap-2">
-                {[0, 1, 2].map((i) => (
+                {imageSet.gallery.map((img, i) => (
                   <button key={i} onClick={() => setSelectedImageIndex(i)}
                     className={`h-14 rounded-lg overflow-hidden transition-all ${selectedImageIndex === i ? 'ring-2 ring-emerald-400' : 'opacity-70 hover:opacity-100'}`}>
-                    <img src={propertyImage} alt={`View ${i + 1}`} className={`w-full h-full object-cover ${i === 1 ? 'grayscale-[30%]' : ''} ${i === 2 ? 'sepia-[20%]' : ''}`} />
+                    <img src={img} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

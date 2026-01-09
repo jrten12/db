@@ -1,21 +1,54 @@
-import oakwoodCottage from '@assets/generated_images/oakwood_cottage_house.png';
-import riversideRanch from '@assets/generated_images/riverside_ranch_house.png';
-import maplewoodColonial from '@assets/generated_images/maplewood_fixer-upper_house.png';
-import downtownLoft from '@assets/generated_images/downtown_loft_building.png';
-import elmwoodBungalow from '@assets/generated_images/elmwood_bungalow_house.png';
-import hillsideRetreat from '@assets/generated_images/hillside_retreat_house.png';
-import westsideManor from '@assets/generated_images/westside_manor_house.png';
+import suburbanCottage from '@assets/generated_images/suburban_cottage_home_exterior.png';
+import rusticRanch from '@assets/generated_images/rustic_ranch_home_exterior.png';
+import colonialHome from '@assets/generated_images/colonial_home_front_view.png';
+import downtownLoftNew from '@assets/generated_images/downtown_loft_building_exterior.png';
+import craftsmanBungalow from '@assets/generated_images/craftsman_bungalow_home_exterior.png';
+import hillsideRetreatNew from '@assets/generated_images/hillside_retreat_home_exterior.png';
+import tudorManor from '@assets/generated_images/tudor_manor_home_exterior.png';
 
-export const propertyImages: Record<string, string> = {
-  'Oakwood Cottage': oakwoodCottage,
-  'Riverside Ranch': riversideRanch,
-  'Maplewood Colonial': maplewoodColonial,
-  'Downtown Loft': downtownLoft,
-  'Elmwood Bungalow': elmwoodBungalow,
-  'Hillside Retreat': hillsideRetreat,
-  'Westside Manor': westsideManor,
+export interface PropertyImageSet {
+  main: string;
+  gallery: string[];
+}
+
+const propertyImageSets: Record<string, PropertyImageSet> = {
+  'Oakwood Cottage': {
+    main: suburbanCottage,
+    gallery: [suburbanCottage, craftsmanBungalow, rusticRanch],
+  },
+  'Riverside Ranch': {
+    main: rusticRanch,
+    gallery: [rusticRanch, suburbanCottage, hillsideRetreatNew],
+  },
+  'Maplewood Colonial': {
+    main: colonialHome,
+    gallery: [colonialHome, tudorManor, rusticRanch],
+  },
+  'Downtown Loft': {
+    main: downtownLoftNew,
+    gallery: [downtownLoftNew, colonialHome, craftsmanBungalow],
+  },
+  'Elmwood Bungalow': {
+    main: craftsmanBungalow,
+    gallery: [craftsmanBungalow, suburbanCottage, rusticRanch],
+  },
+  'Hillside Retreat': {
+    main: hillsideRetreatNew,
+    gallery: [hillsideRetreatNew, tudorManor, colonialHome],
+  },
+  'Westside Manor': {
+    main: tudorManor,
+    gallery: [tudorManor, colonialHome, hillsideRetreatNew],
+  },
 };
 
 export const getPropertyImage = (propertyName: string): string => {
-  return propertyImages[propertyName] || oakwoodCottage;
+  return propertyImageSets[propertyName]?.main || suburbanCottage;
+};
+
+export const getPropertyImageSet = (propertyName: string): PropertyImageSet => {
+  return propertyImageSets[propertyName] || { 
+    main: suburbanCottage, 
+    gallery: [suburbanCottage, craftsmanBungalow, rusticRanch] 
+  };
 };

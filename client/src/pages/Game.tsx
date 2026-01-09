@@ -48,9 +48,6 @@ export default function Game() {
   const { data: gameRun, isLoading: isLoadingGame, error: gameError } = useQuery({
     queryKey: ['activeGameRun'],
     queryFn: async () => {
-      const active = await api.getActiveGameRun();
-      if (active) return active;
-      
       const newRun = await api.createGameRun({
         playerName: 'Player',
         difficulty: 'apprentice',
@@ -67,6 +64,9 @@ export default function Game() {
       
       return newRun;
     },
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const { data: properties = [], isLoading: isLoadingProps } = useQuery({

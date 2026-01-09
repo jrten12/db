@@ -188,12 +188,10 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-2xl font-semibold text-white mb-3">14. Contact Us</h2>
               <p>
-                If you have any questions about this Privacy Policy or our privacy practices, please contact us at:
+                If you have any questions about this Privacy Policy or our privacy practices, please contact:
               </p>
               <div className="mt-2 ml-4">
                 <p className="font-semibold text-white">Infarill LLC</p>
-                <p>Email: privacy@infarill.com</p>
-                <p>Email: legal@infarill.com</p>
               </div>
             </section>
           </div>

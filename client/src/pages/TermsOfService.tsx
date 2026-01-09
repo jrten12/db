@@ -143,11 +143,10 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-2xl font-semibold text-white mb-3">13. Contact Information</h2>
               <p>
-                If you have any questions about these Terms of Service, please contact us at:
+                If you have any questions about these Terms of Service, please contact:
               </p>
               <div className="mt-2 ml-4">
                 <p className="font-semibold text-white">Infarill LLC</p>
-                <p>Email: legal@infarill.com</p>
               </div>
             </section>
           </div>

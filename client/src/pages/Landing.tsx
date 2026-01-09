@@ -24,11 +24,11 @@ export default function Landing() {
           <div className="w-full max-w-5xl grid gap-12 lg:grid-cols-2 items-center">
             <div className="text-center lg:text-left">
               <h1 className="text-4xl md:text-5xl lg:text-[3.25rem] font-bold text-white leading-[1.1] tracking-tight">
-                You have $50,000 and 52 weeks.
+                $50,000. 52 weeks. Three profitable deals or you're out.
               </h1>
               
               <p className="text-gray-400 text-lg md:text-xl mt-6 leading-relaxed">
-                Every deal has unknowns. Your job is to decide what you're willing to bet on — and what you're not. Run the numbers, weigh the risk, and commit.
+                The numbers don't lie, but they don't tell you everything. You decide what's missing, what's a risk, and when to walk away.
               </p>
 
               <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
@@ -48,10 +48,10 @@ export default function Landing() {
               </div>
 
               <div className="mt-10 pt-8 border-t border-white/5">
-                <div className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-2 text-sm text-gray-500">
-                  <span>Miss the rehab estimate → lose months.</span>
-                  <span>Overpay → kill the return.</span>
-                  <span>Get it right → close profitable.</span>
+                <div className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-3 text-sm text-gray-500">
+                  <span>Overpay and the return dies.</span>
+                  <span>Miss a defect and it costs you months.</span>
+                  <span>Run out of time and you lose.</span>
                 </div>
               </div>
             </div>

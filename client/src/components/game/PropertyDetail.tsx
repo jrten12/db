@@ -5,7 +5,6 @@ import { getPropertyImageSet, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { MoneyAnimation, useMoneyAnimation } from './MoneyAnimation';
 import type { Property } from '@shared/schema';
 
 const UNKNOWN_VALUE_TOOLTIPS: Record<string, { title: string; explanation: string; action: string }> = {
@@ -80,7 +79,6 @@ export function PropertyDetail({
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
   const [selectedImageKey, setSelectedImageKey] = useState<'front' | 'side' | 'back'>('front');
   const [pendingDiligence, setPendingDiligence] = useState<DiligenceOption | null>(null);
-  const { animationKey, triggerAnimation, resetAnimation } = useMoneyAnimation();
 
   const imageSet = getPropertyImageSet(property.name);
   const galleryImages = [
@@ -101,9 +99,6 @@ export function PropertyDetail({
 
   const handleConfirmDiligence = () => {
     if (pendingDiligence && onDiligencePurchase) {
-      if (pendingDiligence.cost > 0) {
-        triggerAnimation(pendingDiligence.cost);
-      }
       onDiligencePurchase(property.id, pendingDiligence.id, pendingDiligence.cost, pendingDiligence.timeWeeks);
     }
     setPendingDiligence(null);
@@ -623,12 +618,6 @@ export function PropertyDetail({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Money Animation */}
-      <MoneyAnimation 
-        trigger={animationKey} 
-        onComplete={resetAnimation}
-      />
     </div>
   );
 }

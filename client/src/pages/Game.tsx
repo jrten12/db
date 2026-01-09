@@ -7,6 +7,7 @@ import { PropertySelector, type LocationFilter } from '@/components/game/Propert
 import { PropertyDetail } from '@/components/game/PropertyDetail';
 import { ResultsPanel } from '@/components/game/ResultsPanel';
 import { LedgerPanel } from '@/components/game/LedgerPanel';
+import { MoneyAnimation } from '@/components/game/MoneyAnimation';
 import { 
   ProFormaInputs, 
   ProFormaOutputs,
@@ -44,6 +45,7 @@ export default function Game() {
   const [flipMetrics, setFlipMetrics] = useState({ profit: 0, roi: 0, holdWeeks: 0 });
   const [showLedger, setShowLedger] = useState(false);
   const [locationFilter, setLocationFilter] = useState<LocationFilter>('all');
+  const [moneyAnimationTrigger, setMoneyAnimationTrigger] = useState(0);
   const STARTING_CASH = 50000;
 
   const { data: gameRun, isLoading: isLoadingGame, error: gameError } = useQuery({
@@ -251,6 +253,11 @@ export default function Game() {
       }));
       
       const timeDisplay = weeks < 1 ? `${Math.round(weeks * 7)} days` : `${weeksToDeduct} week${weeksToDeduct !== 1 ? 's' : ''}`;
+      
+      if (cost > 0) {
+        setMoneyAnimationTrigger(Date.now());
+      }
+      
       toast.success(`Investigation complete! -$${cost.toLocaleString()}, -${timeDisplay}`);
     } catch (error) {
       toast.error('Failed to complete investigation');
@@ -477,6 +484,12 @@ export default function Game() {
         <Footer />
 
         <div className="safe-area-bottom" />
+
+        {/* Money Animation - triggered on purchases */}
+        <MoneyAnimation 
+          trigger={moneyAnimationTrigger} 
+          onComplete={() => setMoneyAnimationTrigger(0)}
+        />
 
         {/* Ledger Panel Modal */}
         {showLedger && (

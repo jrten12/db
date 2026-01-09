@@ -1,5 +1,38 @@
-import { Lock, AlertTriangle, Star, DollarSign, Target, TrendingUp, TrendingDown } from 'lucide-react';
+import { Lock, AlertTriangle, Star, DollarSign, Target, TrendingUp, TrendingDown, HelpCircle } from 'lucide-react';
 import { ProFormaOutputs, formatCurrency, formatPercent } from '@/lib/gameData';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+const METRIC_DEFINITIONS: Record<string, string> = {
+  cashFlow: "Money left over each month after paying ALL expenses including mortgage. Positive = profit. Negative = you're losing money every month!",
+  cashOnCash: "Cash-on-Cash Return (CoC) - Your yearly cash profit divided by total cash invested. Example: $5,000 yearly profit on $50,000 invested = 10% CoC. Target: 8%+ for rentals.",
+  capRate: "Cap Rate - Net Operating Income divided by property price. Ignores financing. Lets you compare deals fairly. 6-10% is typical for rentals.",
+  totalCashInvested: "All the cash you put in: down payment + closing costs + rehab budget + contingency. This is the money at risk.",
+  roi: "Return on Investment - Your profit divided by cash invested. For flips, you need 20%+ to have enough cushion for surprises.",
+  minProfit: "Minimum acceptable profit on a flip. $15,000+ gives you buffer for unexpected costs and makes the work worthwhile.",
+  thresholdCoC: "Why 8%? This beats most savings accounts and bonds. Below 8%, your money might earn more elsewhere with less work.",
+  thresholdROI: "Why 20%? Flips are risky - surprises happen. 20% margin means even if costs are 10-15% higher, you still profit.",
+};
+
+function MetricTooltip({ term, children }: { term: keyof typeof METRIC_DEFINITIONS; children: React.ReactNode }) {
+  const definition = METRIC_DEFINITIONS[term];
+  if (!definition) return <>{children}</>;
+  
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="cursor-help inline-flex items-center gap-1">
+            {children}
+            <HelpCircle className="w-3 h-3 text-muted-foreground/50 hover:text-muted-foreground" />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3">
+          <p>{definition}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 export const STRATEGY_THRESHOLDS = {
   rent: {
@@ -67,7 +100,9 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
             
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground text-sm">Monthly Cash Flow</span>
+                <MetricTooltip term="cashFlow">
+                  <span className="text-muted-foreground text-sm">Monthly Cash Flow</span>
+                </MetricTooltip>
                 <span className={`font-mono font-bold ${cashFlowNegative ? 'text-danger' : 'text-success'}`}>
                   {formatCurrency(outputs.cashFlowMonthly)}/mo
                 </span>
@@ -76,7 +111,9 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {cashOnCashNegative && <AlertTriangle className="w-4 h-4 text-warning" />}
-                  <span className="text-muted-foreground text-sm">Cash-on-Cash Return</span>
+                  <MetricTooltip term="cashOnCash">
+                    <span className="text-muted-foreground text-sm">Cash-on-Cash (CoC)</span>
+                  </MetricTooltip>
                 </div>
                 <span className={`font-mono font-bold ${cashOnCashNegative ? 'text-danger' : 'text-success'}`}>
                   {formatPercent(outputs.cashOnCash)}
@@ -84,14 +121,18 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground text-sm">Cap Rate</span>
+                <MetricTooltip term="capRate">
+                  <span className="text-muted-foreground text-sm">Cap Rate</span>
+                </MetricTooltip>
                 <span className="font-mono text-foreground">
                   {formatPercent(outputs.capRate)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground text-sm">Total Cash Invested</span>
+                <MetricTooltip term="totalCashInvested">
+                  <span className="text-muted-foreground text-sm">Total Cash Invested</span>
+                </MetricTooltip>
                 <span className="font-mono text-foreground">
                   {formatCurrency(outputs.totalCashInvested)}
                 </span>
@@ -122,7 +163,9 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
         {strategy === 'rent' ? (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Cash-on-Cash</span>
+              <MetricTooltip term="thresholdCoC">
+                <span className="text-muted-foreground">Cash-on-Cash</span>
+              </MetricTooltip>
               <div className="flex items-center gap-2">
                 <span className="text-gold font-bold">{STRATEGY_THRESHOLDS.rent.cashOnCash}%+</span>
                 {isUnlocked && outputs && (
@@ -133,7 +176,9 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
               </div>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Monthly Cash Flow</span>
+              <MetricTooltip term="cashFlow">
+                <span className="text-muted-foreground">Monthly Cash Flow</span>
+              </MetricTooltip>
               <div className="flex items-center gap-2">
                 <span className="text-gold font-bold">Positive</span>
                 {isUnlocked && outputs && (
@@ -147,7 +192,9 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">ROI</span>
+              <MetricTooltip term="thresholdROI">
+                <span className="text-muted-foreground">ROI</span>
+              </MetricTooltip>
               <div className="flex items-center gap-2">
                 <span className="text-gold font-bold">{STRATEGY_THRESHOLDS.flip.roi}%+</span>
                 {isUnlocked && (
@@ -158,7 +205,9 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
               </div>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Min Profit</span>
+              <MetricTooltip term="minProfit">
+                <span className="text-muted-foreground">Min Profit</span>
+              </MetricTooltip>
               <div className="flex items-center gap-2">
                 <span className="text-gold font-bold">{formatCurrency(STRATEGY_THRESHOLDS.flip.profitMin)}+</span>
                 {isUnlocked && (

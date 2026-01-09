@@ -8,27 +8,35 @@ import type { Property } from '@shared/schema';
 const TERM_DEFINITIONS: Record<string, string> = {
   purchasePrice: "The price you're paying to buy the property. This is your starting point for all calculations.",
   closingCosts: "Fees paid when the sale is finalized - includes title insurance, attorney fees, recording fees, etc. Typically 2-4% of purchase price.",
-  rehabBudget: "The money you plan to spend fixing up the property - repairs, renovations, upgrades.",
-  contingency: "Extra buffer for unexpected costs. Things always cost more than expected! 10-20% is common.",
-  allInBasis: "Your total investment in the property: purchase price + closing costs + rehab + contingency. This is what you need to beat to make money.",
-  arv: "After Repair Value - what the property will be worth after you fix it up. Critical for flip deals.",
+  rehabBudget: "The money you plan to spend fixing up the property - repairs, renovations, upgrades. Unknown until you do a Contractor Walkthrough.",
+  contingency: "Extra buffer for unexpected costs. Things always cost more than expected! 10-20% is common for experienced investors.",
+  allInBasis: "Your total investment in the property: purchase price + closing costs + rehab + contingency. This is your break-even point - you need to beat this to profit.",
+  arv: "After Repair Value (ARV) - what the property will be worth after you fix it up. Critical for flip deals. Unknown until you do a Comp Analysis.",
   downPayment: "Cash you put in upfront. The rest comes from your lender. Higher down payment = lower monthly payments but more cash tied up.",
-  interestRate: "The yearly cost of borrowing money, expressed as a percentage. Hard money is higher (10-14%), banks are lower (6-8%).",
-  loanTerm: "How long you have to pay back the loan. Longer terms = lower monthly payments but more interest paid overall.",
-  financingType: "Hard money: faster approval, higher rates, good for flips. Bank loan: slower, cheaper, better for rentals.",
-  expectedRent: "What you think tenants will pay monthly. Be conservative - it's better to be pleasantly surprised.",
-  vacancyRate: "Percentage of time the property sits empty between tenants. 5-10% is typical - that's about 2-5 weeks per year.",
-  taxesAnnual: "Yearly property taxes. Check the county assessor's website for exact amounts.",
-  insuranceAnnual: "Yearly insurance premium. Landlord policies cost more than regular homeowner's insurance.",
-  maintenancePct: "Ongoing repair costs as a percentage of rent. Budget 5-10% for maintenance reserves.",
-  propertyManagement: "Hiring someone to handle tenants, repairs, and day-to-day operations. Typically 8-10% of rent.",
-  rehabWeeks: "How long the renovation will take. Add buffer time - contractors are almost never early.",
-  holdingCosts: "Costs you pay while owning the property: loan payments, taxes, insurance, utilities. These add up fast during rehab!",
-  cashOnCash: "Your annual cash flow divided by cash invested. A 10% cash-on-cash means you earn 10 cents per year for every dollar invested.",
-  capRate: "Net Operating Income divided by property value. Helps compare deals regardless of financing. Higher = better return.",
-  cashFlow: "Money left over after all expenses and mortgage are paid. Positive = you're making money each month.",
-  roi: "Return on Investment - your profit divided by cash invested. For flips, aim for 20%+ to account for risk.",
-  flipProfit: "ARV minus all your costs (purchase + closing + rehab + holding). What's left is your profit.",
+  interestRate: "The yearly cost of borrowing money, expressed as a percentage. Hard money lenders charge more (10-14%) but approve faster. Banks are cheaper (5-8%) but slower.",
+  loanTerm: "How long you have to pay back the loan. Longer terms = lower monthly payments but more total interest paid over time.",
+  financingType: "Hard money: Private lenders who approve fast but charge high rates. Good for flips. Bank loan: Traditional mortgage, slower approval, lower rates. Better for long-term rentals.",
+  expectedRent: "What tenants will pay monthly. Be conservative - overestimating rent is the #1 mistake new investors make. Unknown until you do a Market Rent Study.",
+  vacancyRate: "Percentage of time the property sits empty between tenants. 5-10% is typical in most markets - that's about 2-5 weeks per year with no income.",
+  taxesAnnual: "Yearly property taxes paid to the county. Usually 1-3% of property value depending on location. Check the county assessor's website.",
+  insuranceAnnual: "Yearly insurance premium. Landlord/investor policies cost more than regular homeowner's insurance because of liability coverage.",
+  maintenancePct: "Ongoing repair costs as a percentage of rent. Budget 5-10% for maintenance reserves. Older properties need more.",
+  propertyManagement: "Hiring a company to handle tenant screening, rent collection, repairs, and day-to-day operations. Typically 8-10% of collected rent.",
+  rehabWeeks: "How long the renovation will take. Add buffer time - contractors are almost never early! Unknown until you do a Contractor Walkthrough.",
+  holdingCosts: "Costs you pay while owning the property: loan payments, taxes, insurance, utilities. These add up fast during rehab - every week costs money!",
+  cashOnCash: "Cash-on-Cash Return (CoC) - Your annual cash profit divided by cash you invested. If you put in $50,000 and earn $5,000/year, that's 10% CoC. Target: 8%+ for rentals.",
+  capRate: "Capitalization Rate - Net Operating Income (NOI) divided by property value. Measures the property's return ignoring financing. 6-10% is typical. Higher = better return.",
+  cashFlow: "Money left over after ALL expenses and mortgage are paid each month. Positive = you're making money. Negative = you're losing money. Always aim for positive!",
+  roi: "Return on Investment - Your total profit divided by cash invested. For flips, aim for 20%+ to account for risk and surprises.",
+  flipProfit: "Your profit on a flip: Sale Price (ARV) minus all costs (purchase + closing + rehab + holding costs). What's left is what you pocket.",
+  noi: "Net Operating Income (NOI) - Annual rental income minus operating expenses (taxes, insurance, maintenance, management). Does NOT include mortgage payments.",
+  debtService: "Monthly mortgage payment including principal and interest. This comes out of your NOI to determine cash flow.",
+  leverage: "Using borrowed money to buy property. More leverage = less cash upfront but higher risk. Banks typically require 20-25% down.",
+  unknownRent: "Rent is unknown until you complete a Market Rent Study. Without it, you're just guessing what tenants will pay!",
+  unknownRehab: "Rehab costs and timeline are unknown until you complete a Contractor Walkthrough. Guessing renovation costs is dangerous!",
+  unknownArv: "After Repair Value is unknown until you complete a Comp Analysis. You need to know what similar fixed-up homes sold for.",
+  thresholdCoC: "8% Cash-on-Cash is the minimum for a good rental deal. Below this, your money might work harder in other investments.",
+  thresholdROI: "20% ROI is the minimum for a good flip. You need this margin to absorb surprises and still profit.",
 };
 
 function InfoTooltip({ term }: { term: keyof typeof TERM_DEFINITIONS }) {
@@ -45,6 +53,50 @@ function InfoTooltip({ term }: { term: keyof typeof TERM_DEFINITIONS }) {
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3">
           <p>{definition}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function UnknownValueTooltip({ type, children }: { type: 'rent' | 'rehab' | 'arv' | 'timeline'; children: React.ReactNode }) {
+  const tooltips = {
+    rent: {
+      title: "Rent Unknown",
+      explanation: "You don't know what tenants will pay yet. Without a Market Rent Study, any number you pick is just a guess.",
+      action: "Complete a Market Rent Study to unlock accurate rent estimates based on comparable properties in the area.",
+    },
+    rehab: {
+      title: "Rehab Cost Unknown", 
+      explanation: "You don't know what repairs will cost. Without a Contractor Walkthrough, you could be off by tens of thousands.",
+      action: "Complete a Contractor Walkthrough to get accurate repair estimates from a licensed professional.",
+    },
+    arv: {
+      title: "After Repair Value Unknown",
+      explanation: "You don't know what the property will be worth after fixing it up. This is critical for flip deals!",
+      action: "Complete a Comp Analysis to see what similar renovated homes sold for recently.",
+    },
+    timeline: {
+      title: "Timeline Unknown",
+      explanation: "You don't know how long repairs will take. Every extra week costs money in holding costs!",
+      action: "Complete a Contractor Walkthrough to get a realistic timeline from a professional.",
+    },
+  };
+  
+  const tooltip = tooltips[type];
+  
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="cursor-help">{children}</span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
+          <div className="space-y-2">
+            <p className="font-semibold text-amber-400">{tooltip.title}</p>
+            <p className="text-gray-300">{tooltip.explanation}</p>
+            <p className="text-emerald-400 text-xs mt-2">→ {tooltip.action}</p>
+          </div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -487,9 +539,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   {effectiveRanges.rent.known ? (
                     <span className="text-white font-mono text-sm">{formatCurrency(inputs.expectedRent)}/mo</span>
                   ) : (
-                    <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
-                      <Lock className="w-3 h-3" /> ???
-                    </span>
+                    <UnknownValueTooltip type="rent">
+                      <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> ???
+                      </span>
+                    </UnknownValueTooltip>
                   )}
                 </div>
                 {effectiveRanges.rent.known ? (
@@ -651,9 +705,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   {effectiveRanges.rehab.known ? (
                     <span className="text-white font-mono text-sm">{formatCurrency(inputs.rehabBudget)}</span>
                   ) : (
-                    <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
-                      <Lock className="w-3 h-3" /> ???
-                    </span>
+                    <UnknownValueTooltip type="rehab">
+                      <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> ???
+                      </span>
+                    </UnknownValueTooltip>
                   )}
                 </div>
                 {effectiveRanges.rehab.known ? (
@@ -688,9 +744,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   {effectiveRanges.timeline.known ? (
                     <span className="text-white font-mono text-sm">{inputs.rehabWeeks} weeks</span>
                   ) : (
-                    <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
-                      <Lock className="w-3 h-3" /> ???
-                    </span>
+                    <UnknownValueTooltip type="timeline">
+                      <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> ???
+                      </span>
+                    </UnknownValueTooltip>
                   )}
                 </div>
                 {effectiveRanges.timeline.known ? (

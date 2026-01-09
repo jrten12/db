@@ -3,7 +3,56 @@ import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Sh
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Property } from '@shared/schema';
+
+const UNKNOWN_VALUE_TOOLTIPS: Record<string, { title: string; explanation: string; action: string }> = {
+  rent: {
+    title: "Rent Unknown",
+    explanation: "You don't know what tenants will pay. Without research, any rent number is just a guess - and guessing wrong can ruin your deal.",
+    action: "Complete a Market Rent Study to unlock rent estimates based on what similar properties are renting for.",
+  },
+  arv: {
+    title: "After Repair Value Unknown", 
+    explanation: "ARV = what the property will be worth after you fix it up. This is critical for flips - you need to know your exit price!",
+    action: "Complete a Comp Analysis to see recent sales of similar renovated homes in the area.",
+  },
+  rehab: {
+    title: "Rehab Cost Unknown",
+    explanation: "Renovation costs can vary wildly. Without a professional estimate, you could be off by $10,000-$50,000 or more.",
+    action: "Complete a Contractor Walkthrough to get accurate repair estimates from a licensed professional.",
+  },
+  timeline: {
+    title: "Timeline Unknown",
+    explanation: "Every week you hold a property costs money (loan interest, taxes, insurance). Underestimating timeline destroys profits.",
+    action: "Complete a Contractor Walkthrough to get a realistic renovation timeline.",
+  },
+};
+
+function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNKNOWN_VALUE_TOOLTIPS; isKnown: boolean; children: React.ReactNode }) {
+  const tooltip = UNKNOWN_VALUE_TOOLTIPS[type];
+  
+  if (isKnown) {
+    return <>{children}</>;
+  }
+  
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="cursor-help">{children}</div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
+          <div className="space-y-2">
+            <p className="font-semibold text-amber-400">{tooltip.title}</p>
+            <p className="text-gray-300">{tooltip.explanation}</p>
+            <p className="text-emerald-400 text-xs mt-2">→ {tooltip.action}</p>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 interface PropertyDetailProps {
   property: Property;
@@ -170,38 +219,46 @@ export function PropertyDetail({
                   <HelpCircle className="w-4 h-4" /> Financial Estimates
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className={`rounded-lg p-3 border ${effectiveRanges.rent.known ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
-                    <div className={`text-base font-bold font-mono ${effectiveRanges.rent.known ? 'text-emerald-400' : 'text-gray-400'}`}>
-                      {formatUnknownCurrency(effectiveRanges.rent)}<span className="text-xs font-normal">/mo</span>
+                  <UnknownValueBadge type="rent" isKnown={effectiveRanges.rent.known}>
+                    <div className={`rounded-lg p-3 border ${effectiveRanges.rent.known ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
+                      <div className={`text-base font-bold font-mono ${effectiveRanges.rent.known ? 'text-emerald-400' : 'text-gray-400'}`}>
+                        {effectiveRanges.rent.known ? formatUnknownCurrency(effectiveRanges.rent) : '???'}<span className="text-xs font-normal">/mo</span>
+                      </div>
+                      <div className="text-gray-400 text-xs flex items-center gap-1">
+                        Rent {!effectiveRanges.rent.known && <Lock className="w-3 h-3" />}
+                      </div>
                     </div>
-                    <div className="text-gray-400 text-xs flex items-center gap-1">
-                      Rent {!effectiveRanges.rent.known && <Lock className="w-3 h-3" />}
+                  </UnknownValueBadge>
+                  <UnknownValueBadge type="arv" isKnown={effectiveRanges.arv.known}>
+                    <div className={`rounded-lg p-3 border ${effectiveRanges.arv.known ? 'bg-blue-500/10 border-blue-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
+                      <div className={`text-base font-bold font-mono ${effectiveRanges.arv.known ? 'text-blue-400' : 'text-gray-400'}`}>
+                        {effectiveRanges.arv.known ? formatUnknownCurrency(effectiveRanges.arv) : '???'}
+                      </div>
+                      <div className="text-gray-400 text-xs flex items-center gap-1">
+                        ARV {!effectiveRanges.arv.known && <Lock className="w-3 h-3" />}
+                      </div>
                     </div>
-                  </div>
-                  <div className={`rounded-lg p-3 border ${effectiveRanges.arv.known ? 'bg-blue-500/10 border-blue-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
-                    <div className={`text-base font-bold font-mono ${effectiveRanges.arv.known ? 'text-blue-400' : 'text-gray-400'}`}>
-                      {formatUnknownCurrency(effectiveRanges.arv)}
+                  </UnknownValueBadge>
+                  <UnknownValueBadge type="rehab" isKnown={effectiveRanges.rehab.known}>
+                    <div className={`rounded-lg p-3 border ${effectiveRanges.rehab.known ? 'bg-amber-500/10 border-amber-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
+                      <div className={`text-base font-bold font-mono ${effectiveRanges.rehab.known ? 'text-amber-400' : 'text-gray-400'}`}>
+                        {effectiveRanges.rehab.known ? formatUnknownCurrency(effectiveRanges.rehab) : '???'}
+                      </div>
+                      <div className="text-gray-400 text-xs flex items-center gap-1">
+                        Rehab Cost {!effectiveRanges.rehab.known && <Lock className="w-3 h-3" />}
+                      </div>
                     </div>
-                    <div className="text-gray-400 text-xs flex items-center gap-1">
-                      ARV {!effectiveRanges.arv.known && <Lock className="w-3 h-3" />}
+                  </UnknownValueBadge>
+                  <UnknownValueBadge type="timeline" isKnown={effectiveRanges.timeline.known}>
+                    <div className={`rounded-lg p-3 border ${effectiveRanges.timeline.known ? 'bg-purple-500/10 border-purple-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
+                      <div className={`text-base font-bold font-mono ${effectiveRanges.timeline.known ? 'text-purple-400' : 'text-gray-400'}`}>
+                        {effectiveRanges.timeline.known ? `${effectiveRanges.timeline.min}-${effectiveRanges.timeline.max} wks` : '???'}
+                      </div>
+                      <div className="text-gray-400 text-xs flex items-center gap-1">
+                        Timeline {!effectiveRanges.timeline.known && <Lock className="w-3 h-3" />}
+                      </div>
                     </div>
-                  </div>
-                  <div className={`rounded-lg p-3 border ${effectiveRanges.rehab.known ? 'bg-amber-500/10 border-amber-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
-                    <div className={`text-base font-bold font-mono ${effectiveRanges.rehab.known ? 'text-amber-400' : 'text-gray-400'}`}>
-                      {formatUnknownCurrency(effectiveRanges.rehab)}
-                    </div>
-                    <div className="text-gray-400 text-xs flex items-center gap-1">
-                      Rehab Cost {!effectiveRanges.rehab.known && <Lock className="w-3 h-3" />}
-                    </div>
-                  </div>
-                  <div className={`rounded-lg p-3 border ${effectiveRanges.timeline.known ? 'bg-purple-500/10 border-purple-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
-                    <div className={`text-base font-bold font-mono ${effectiveRanges.timeline.known ? 'text-purple-400' : 'text-gray-400'}`}>
-                      {effectiveRanges.timeline.known ? `${effectiveRanges.timeline.min}-${effectiveRanges.timeline.max} wks` : '???'}
-                    </div>
-                    <div className="text-gray-400 text-xs flex items-center gap-1">
-                      Timeline {!effectiveRanges.timeline.known && <Lock className="w-3 h-3" />}
-                    </div>
-                  </div>
+                  </UnknownValueBadge>
                 </div>
                 {(!effectiveRanges.rent.known || !effectiveRanges.arv.known || !effectiveRanges.rehab.known) && (
                   <p className="mt-3 text-xs text-amber-400/80 italic">

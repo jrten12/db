@@ -1,6 +1,6 @@
 import { ProFormaOutputs, formatCurrency } from '@/lib/gameData';
 import { TrendingDown, TrendingUp, AlertTriangle, HelpCircle, Lightbulb, X, Check } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import mortgageIcon from '@assets/generated_images/mortgage_document_game_icon.png';
 import coinsIcon from '@assets/generated_images/gold_coins_stack_icon.png';
 
@@ -202,22 +202,20 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                     {isGoodCapRate ? (
                       <Check className="w-6 h-6 text-emerald-400" />
                     ) : (
-                      <TooltipProvider delayDuration={100}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button className="cursor-help">
-                              <HelpCircle className="w-6 h-6 text-blue-400 hover:text-blue-300 transition-colors" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4">
-                            <div className="space-y-2">
-                              <p className="font-semibold text-blue-400">What is Cap Rate?</p>
-                              <p className="text-gray-300">Cap Rate (Capitalization Rate) measures your property's return if you paid all cash - no mortgage. It's calculated as Net Operating Income ÷ Property Value.</p>
-                              <p className="text-emerald-400 text-xs mt-2">→ Most investors look for 6-10% cap rates. Below 6% means you're paying a premium for the property.</p>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button type="button" className="cursor-help touch-manipulation">
+                            <HelpCircle className="w-6 h-6 text-blue-400 hover:text-blue-300 transition-colors" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4">
+                          <div className="space-y-2">
+                            <p className="font-semibold text-blue-400">What is Cap Rate?</p>
+                            <p className="text-gray-300">Cap Rate (Capitalization Rate) measures your property's return if you paid all cash - no mortgage. It's calculated as Net Operating Income ÷ Property Value.</p>
+                            <p className="text-emerald-400 text-xs mt-2">→ Most investors look for 6-10% cap rates. Below 6% means you're paying a premium for the property.</p>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                     )}
                     <div>
                       <div className="text-gray-400 text-sm">Cap Rate</div>
@@ -258,22 +256,20 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <TooltipProvider delayDuration={100}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button className="cursor-help">
-                            <HelpCircle className="w-6 h-6 text-blue-400 hover:text-blue-300 transition-colors" />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4">
-                          <div className="space-y-2">
-                            <p className="font-semibold text-blue-400">What is Hold Time?</p>
-                            <p className="text-gray-300">Hold Time is how long you own the property before selling. Every week costs money - loan interest, taxes, insurance, utilities. The longer you hold, the more these "carrying costs" eat into your profit.</p>
-                            <p className="text-emerald-400 text-xs mt-2">→ For flips, aim for 12-16 weeks max. Longer holds mean more risk and lower returns.</p>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button type="button" className="cursor-help touch-manipulation">
+                          <HelpCircle className="w-6 h-6 text-blue-400 hover:text-blue-300 transition-colors" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4">
+                        <div className="space-y-2">
+                          <p className="font-semibold text-blue-400">What is Hold Time?</p>
+                          <p className="text-gray-300">Hold Time is how long you own the property before selling. Every week costs money - loan interest, taxes, insurance, utilities. The longer you hold, the more these "carrying costs" eat into your profit.</p>
+                          <p className="text-emerald-400 text-xs mt-2">→ For flips, aim for 12-16 weeks max. Longer holds mean more risk and lower returns.</p>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     <div>
                       <div className="text-gray-400 text-sm">Hold Time</div>
                       <div className="text-2xl font-bold font-mono text-white">

@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma } from '@/lib/gameData';
 import { getEffectiveRanges, EffectiveRanges } from '@/lib/propertyIssues';
-import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { Property } from '@shared/schema';
 
 const TERM_DEFINITIONS: Record<string, string> = {
@@ -44,18 +44,16 @@ function InfoTooltip({ term }: { term: keyof typeof TERM_DEFINITIONS }) {
   if (!definition) return null;
   
   return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button className="ml-1 text-gray-500 hover:text-gray-300 transition-colors" type="button">
-            <HelpCircle className="w-3.5 h-3.5" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3">
-          <p>{definition}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="ml-1 text-gray-500 hover:text-gray-300 transition-colors touch-manipulation" type="button">
+          <HelpCircle className="w-3.5 h-3.5" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3">
+        <p>{definition}</p>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -86,20 +84,18 @@ function UnknownValueTooltip({ type, children }: { type: 'rent' | 'rehab' | 'arv
   const tooltip = tooltips[type];
   
   return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="cursor-help">{children}</span>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
-          <div className="space-y-2">
-            <p className="font-semibold text-amber-400">{tooltip.title}</p>
-            <p className="text-gray-300">{tooltip.explanation}</p>
-            <p className="text-emerald-400 text-xs mt-2">→ {tooltip.action}</p>
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" className="cursor-help touch-manipulation">{children}</button>
+      </PopoverTrigger>
+      <PopoverContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
+        <div className="space-y-2">
+          <p className="font-semibold text-amber-400">{tooltip.title}</p>
+          <p className="text-gray-300">{tooltip.explanation}</p>
+          <p className="text-emerald-400 text-xs mt-2">→ {tooltip.action}</p>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

@@ -1,6 +1,6 @@
 import { Lock, AlertTriangle, Star, DollarSign, Target, TrendingUp, TrendingDown, HelpCircle } from 'lucide-react';
 import { ProFormaOutputs, formatCurrency, formatPercent } from '@/lib/gameData';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const METRIC_DEFINITIONS: Record<string, string> = {
   cashFlow: "Money left over each month after paying ALL expenses including mortgage. Positive = profit. Negative = you're losing money every month!",
@@ -18,19 +18,17 @@ function MetricTooltip({ term, children }: { term: keyof typeof METRIC_DEFINITIO
   if (!definition) return <>{children}</>;
   
   return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="cursor-help inline-flex items-center gap-1">
-            {children}
-            <HelpCircle className="w-3 h-3 text-muted-foreground/50 hover:text-muted-foreground" />
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3">
-          <p>{definition}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" className="cursor-help inline-flex items-center gap-1 touch-manipulation">
+          {children}
+          <HelpCircle className="w-3 h-3 text-muted-foreground/50 hover:text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3">
+        <p>{definition}</p>
+      </PopoverContent>
+    </Popover>
   );
 }
 

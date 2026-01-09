@@ -3,7 +3,7 @@ import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Sh
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImageSet, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { Property } from '@shared/schema';
 
 const UNKNOWN_VALUE_TOOLTIPS: Record<string, { title: string; explanation: string; action: string }> = {
@@ -37,20 +37,18 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
   }
   
   return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="cursor-help">{children}</div>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
-          <div className="space-y-2">
-            <p className="font-semibold text-amber-400">{tooltip.title}</p>
-            <p className="text-gray-300">{tooltip.explanation}</p>
-            <p className="text-emerald-400 text-xs mt-2">→ {tooltip.action}</p>
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" className="cursor-help touch-manipulation">{children}</button>
+      </PopoverTrigger>
+      <PopoverContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
+        <div className="space-y-2">
+          <p className="font-semibold text-amber-400">{tooltip.title}</p>
+          <p className="text-gray-300">{tooltip.explanation}</p>
+          <p className="text-emerald-400 text-xs mt-2">→ {tooltip.action}</p>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -227,22 +225,20 @@ export function PropertyDetail({
               {/* Unknown Financials Section */}
               <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-600/50">
                 <h4 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button className="cursor-help">
-                          <HelpCircle className="w-4 h-4 text-amber-400 hover:text-amber-300 transition-colors" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
-                        <div className="space-y-2">
-                          <p className="font-semibold text-amber-400">Why These Are Estimates</p>
-                          <p className="text-gray-300">These financial numbers are uncertain until you do your homework. In real estate, guessing wrong on rent, repair costs, or timeline can turn a "great deal" into a money pit.</p>
-                          <p className="text-emerald-400 text-xs mt-2">→ Complete due diligence investigations below to narrow down these ranges and reduce your risk.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button type="button" className="cursor-help touch-manipulation">
+                        <HelpCircle className="w-4 h-4 text-amber-400 hover:text-amber-300 transition-colors" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent side="right" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
+                      <div className="space-y-2">
+                        <p className="font-semibold text-amber-400">Why These Are Estimates</p>
+                        <p className="text-gray-300">These financial numbers are uncertain until you do your homework. In real estate, guessing wrong on rent, repair costs, or timeline can turn a "great deal" into a money pit.</p>
+                        <p className="text-emerald-400 text-xs mt-2">→ Complete due diligence investigations below to narrow down these ranges and reduce your risk.</p>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   Financial Estimates
                 </h4>
                 <div className="grid grid-cols-2 gap-3">

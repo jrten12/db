@@ -20,12 +20,12 @@ function MetricTooltip({ term, children }: { term: keyof typeof METRIC_DEFINITIO
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" className="cursor-help inline-flex items-center gap-1 touch-manipulation">
+        <button type="button" className="cursor-help inline-flex items-center gap-1 touch-manipulation active:opacity-70 p-1 -m-1">
           {children}
           <HelpCircle className="w-3 h-3 text-muted-foreground/50 hover:text-muted-foreground" />
         </button>
       </PopoverTrigger>
-      <PopoverContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3">
+      <PopoverContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3 z-[100]">
         <p>{definition}</p>
       </PopoverContent>
     </Popover>

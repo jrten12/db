@@ -46,11 +46,11 @@ function InfoTooltip({ term }: { term: keyof typeof TERM_DEFINITIONS }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="ml-1 text-gray-500 hover:text-gray-300 transition-colors touch-manipulation" type="button">
+        <button className="ml-1 text-gray-500 hover:text-gray-300 transition-colors touch-manipulation p-2 -m-1 active:opacity-70" type="button">
           <HelpCircle className="w-3.5 h-3.5" />
         </button>
       </PopoverTrigger>
-      <PopoverContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3">
+      <PopoverContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3 z-[100]">
         <p>{definition}</p>
       </PopoverContent>
     </Popover>
@@ -86,9 +86,9 @@ function UnknownValueTooltip({ type, children }: { type: 'rent' | 'rehab' | 'arv
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" className="cursor-help touch-manipulation">{children}</button>
+        <button type="button" className="cursor-help touch-manipulation active:opacity-70">{children}</button>
       </PopoverTrigger>
-      <PopoverContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
+      <PopoverContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4 z-[100]">
         <div className="space-y-2">
           <p className="font-semibold text-amber-400">{tooltip.title}</p>
           <p className="text-gray-300">{tooltip.explanation}</p>

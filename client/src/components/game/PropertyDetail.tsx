@@ -40,9 +40,9 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" className="cursor-help touch-manipulation">{children}</button>
+        <button type="button" className="cursor-help touch-manipulation active:opacity-70">{children}</button>
       </PopoverTrigger>
-      <PopoverContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
+      <PopoverContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4 z-[100]">
         <div className="space-y-2">
           <p className="font-semibold text-amber-400">{tooltip.title}</p>
           <p className="text-gray-300">{tooltip.explanation}</p>
@@ -240,7 +240,7 @@ export function PropertyDetail({
                 <h4 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button type="button" className="cursor-help touch-manipulation">
+                      <button type="button" className="cursor-help touch-manipulation p-2 -m-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
                         <HelpCircle className="w-4 h-4 text-amber-400 hover:text-amber-300 transition-colors" />
                       </button>
                     </PopoverTrigger>

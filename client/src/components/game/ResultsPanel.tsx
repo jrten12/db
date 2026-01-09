@@ -204,11 +204,11 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                     ) : (
                       <Popover>
                         <PopoverTrigger asChild>
-                          <button type="button" className="cursor-help touch-manipulation">
+                          <button type="button" className="cursor-help touch-manipulation active:opacity-70 p-2 -m-2">
                             <HelpCircle className="w-6 h-6 text-blue-400 hover:text-blue-300 transition-colors" />
                           </button>
                         </PopoverTrigger>
-                        <PopoverContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4">
+                        <PopoverContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4 z-[100]">
                           <div className="space-y-2">
                             <p className="font-semibold text-blue-400">What is Cap Rate?</p>
                             <p className="text-gray-300">Cap Rate (Capitalization Rate) measures your property's return if you paid all cash - no mortgage. It's calculated as Net Operating Income ÷ Property Value.</p>
@@ -258,11 +258,11 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                   <div className="flex items-center gap-3">
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button type="button" className="cursor-help touch-manipulation">
+                        <button type="button" className="cursor-help touch-manipulation active:opacity-70 p-2 -m-2">
                           <HelpCircle className="w-6 h-6 text-blue-400 hover:text-blue-300 transition-colors" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4">
+                      <PopoverContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4 z-[100]">
                         <div className="space-y-2">
                           <p className="font-semibold text-blue-400">What is Hold Time?</p>
                           <p className="text-gray-300">Hold Time is how long you own the property before selling. Every week costs money - loan interest, taxes, insurance, utilities. The longer you hold, the more these "carrying costs" eat into your profit.</p>

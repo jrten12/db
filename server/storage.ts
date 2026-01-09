@@ -13,7 +13,9 @@ import type {
   Deal,
   InsertDeal,
   PropertyInvestigation,
-  InsertPropertyInvestigation
+  InsertPropertyInvestigation,
+  LedgerEntry,
+  InsertLedgerEntry
 } from "@shared/schema";
 
 const pool = new Pool({
@@ -48,6 +50,11 @@ export interface IStorage {
   // Property Investigation methods
   createPropertyInvestigation(investigation: InsertPropertyInvestigation): Promise<PropertyInvestigation>;
   getPropertyInvestigations(gameRunId: number): Promise<PropertyInvestigation[]>;
+
+  // Ledger methods
+  createLedgerEntry(entry: InsertLedgerEntry): Promise<LedgerEntry>;
+  getLedgerByGameRun(gameRunId: number): Promise<LedgerEntry[]>;
+  createLedgerEntriesWithCashUpdate(gameRunId: number, entries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[], currentCash: number): Promise<{ entries: LedgerEntry[], newCash: number }>;
 }
 
 export class DBStorage implements IStorage {
@@ -322,6 +329,57 @@ export class DBStorage implements IStorage {
       .select()
       .from(schema.propertyInvestigations)
       .where(eq(schema.propertyInvestigations.gameRunId, gameRunId));
+  }
+
+  // Ledger methods
+  async createLedgerEntry(entry: InsertLedgerEntry): Promise<LedgerEntry> {
+    const [ledgerEntry] = await db
+      .insert(schema.ledgerEntries)
+      .values(entry)
+      .returning();
+    return ledgerEntry;
+  }
+
+  async getLedgerByGameRun(gameRunId: number): Promise<LedgerEntry[]> {
+    return await db
+      .select()
+      .from(schema.ledgerEntries)
+      .where(eq(schema.ledgerEntries.gameRunId, gameRunId))
+      .orderBy(desc(schema.ledgerEntries.createdAt));
+  }
+
+  async createLedgerEntriesWithCashUpdate(
+    gameRunId: number, 
+    entries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[], 
+    currentCash: number
+  ): Promise<{ entries: LedgerEntry[], newCash: number }> {
+    let runningBalance = currentCash;
+    const createdEntries: LedgerEntry[] = [];
+
+    for (const entry of entries) {
+      if (entry.direction === 'debit') {
+        runningBalance -= entry.amount;
+      } else {
+        runningBalance += entry.amount;
+      }
+
+      const [ledgerEntry] = await db
+        .insert(schema.ledgerEntries)
+        .values({
+          ...entry,
+          gameRunId,
+          balanceAfter: runningBalance,
+        })
+        .returning();
+      createdEntries.push(ledgerEntry);
+    }
+
+    await db
+      .update(schema.gameRuns)
+      .set({ cash: runningBalance, updatedAt: new Date() })
+      .where(eq(schema.gameRuns.id, gameRunId));
+
+    return { entries: createdEntries, newCash: runningBalance };
   }
 }
 

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema } from "@shared/schema";
+import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(
@@ -140,6 +140,35 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching investigations:", error);
       res.status(500).json({ error: "Failed to fetch investigations" });
+    }
+  });
+
+  // Get ledger for game run
+  app.get("/api/game-runs/:id/ledger", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const ledger = await storage.getLedgerByGameRun(gameRunId);
+      res.json(ledger);
+    } catch (error) {
+      console.error("Error fetching ledger:", error);
+      res.status(500).json({ error: "Failed to fetch ledger" });
+    }
+  });
+
+  // Create ledger entries with cash update
+  app.post("/api/game-runs/:id/ledger", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const { entries, currentCash } = req.body as { 
+        entries: Array<{ direction: string; category: string; amount: number; description: string; propertyId?: number; dealId?: number }>;
+        currentCash: number;
+      };
+      
+      const result = await storage.createLedgerEntriesWithCashUpdate(gameRunId, entries, currentCash);
+      res.json(result);
+    } catch (error) {
+      console.error("Error creating ledger entries:", error);
+      res.status(500).json({ error: "Failed to create ledger entries" });
     }
   });
 

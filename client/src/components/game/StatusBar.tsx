@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
-import { Menu, Home, X } from 'lucide-react';
+import { Menu, Home, X, Wallet } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 
@@ -9,6 +9,7 @@ interface StatusBarProps {
   weeksRemaining: number;
   profitableDeals: number;
   goalDeals: number;
+  onOpenLedger?: () => void;
 }
 
 function ScoreboardValue({
@@ -35,7 +36,7 @@ function ScoreboardValue({
   );
 }
 
-export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals }: StatusBarProps) {
+export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger }: StatusBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -62,14 +63,20 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals }: 
             
             {/* Stats - Glass Cards */}
             <div className="flex items-center gap-4 flex-1">
-              <div className="px-5 py-3 bg-white/5 backdrop-blur-md rounded-xl border border-white/10" data-testid="status-cash">
-                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-0.5">Cash</div>
+              <button 
+                onClick={onOpenLedger}
+                className="px-5 py-3 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-pointer text-left" 
+                data-testid="status-cash"
+              >
+                <div className="flex items-center gap-1 text-gray-400 text-xs font-medium uppercase tracking-wider mb-0.5">
+                  Cash <Wallet className="w-3 h-3" />
+                </div>
                 <div>
                   <ScoreboardValue value={cash} className="text-gold font-bold text-2xl font-mono">
                     {formatCurrency(cash)}
                   </ScoreboardValue>
                 </div>
-              </div>
+              </button>
               
               <div className="px-5 py-3 bg-white/5 backdrop-blur-md rounded-xl border border-white/10" data-testid="status-time">
                 <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-0.5">Time Left</div>
@@ -136,14 +143,18 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals }: 
             
             {/* Bottom Row - Stats in glass cards */}
             <div className="flex items-stretch justify-between gap-2">
-              <div className="flex-1 px-3 py-2 bg-white/5 backdrop-blur-md rounded-lg border border-white/10 text-center" data-testid="status-cash-mobile">
+              <button 
+                onClick={onOpenLedger}
+                className="flex-1 px-3 py-2 bg-white/5 backdrop-blur-md rounded-lg border border-white/10 text-center hover:bg-white/10 transition-colors" 
+                data-testid="status-cash-mobile"
+              >
                 <div>
                   <ScoreboardValue value={cash} className="text-gold font-bold font-mono text-lg">
                     {formatCurrency(cash)}
                   </ScoreboardValue>
                 </div>
-                <div className="text-gray-400 text-xs">Cash</div>
-              </div>
+                <div className="text-gray-400 text-xs flex items-center justify-center gap-1">Cash <Wallet className="w-3 h-3" /></div>
+              </button>
               
               <div className="flex-1 px-3 py-2 bg-white/5 backdrop-blur-md rounded-lg border border-white/10 text-center" data-testid="status-time-mobile">
                 <div>

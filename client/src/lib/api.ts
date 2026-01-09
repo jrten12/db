@@ -1,4 +1,4 @@
-import type { GameRun, Property, Deal, InsertGameRun, InsertDeal, PropertyInvestigation, InsertPropertyInvestigation } from '@shared/schema';
+import type { GameRun, Property, Deal, InsertGameRun, InsertDeal, PropertyInvestigation, InsertPropertyInvestigation, LedgerEntry } from '@shared/schema';
 
 const API_BASE = '/api';
 
@@ -74,6 +74,27 @@ export const api = {
   async getInvestigations(gameRunId: number): Promise<PropertyInvestigation[]> {
     const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/investigations`);
     if (!res.ok) throw new Error('Failed to fetch investigations');
+    return res.json();
+  },
+
+  // Ledger
+  async getLedger(gameRunId: number): Promise<LedgerEntry[]> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/ledger`);
+    if (!res.ok) throw new Error('Failed to fetch ledger');
+    return res.json();
+  },
+
+  async createLedgerEntries(
+    gameRunId: number, 
+    entries: Array<{ direction: string; category: string; amount: number; description: string; propertyId?: number; dealId?: number }>,
+    currentCash: number
+  ): Promise<{ entries: LedgerEntry[], newCash: number }> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/ledger`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries, currentCash }),
+    });
+    if (!res.ok) throw new Error('Failed to create ledger entries');
     return res.json();
   },
 };

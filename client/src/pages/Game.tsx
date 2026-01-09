@@ -6,6 +6,7 @@ import { MetricsPanel } from '@/components/game/MetricsPanel';
 import { PropertySelector } from '@/components/game/PropertySelector';
 import { PropertyDetail } from '@/components/game/PropertyDetail';
 import { ResultsPanel } from '@/components/game/ResultsPanel';
+import { LedgerPanel } from '@/components/game/LedgerPanel';
 import { BannerAd, SidebarAd, FooterAd } from '@/components/game/AdSlot';
 import { 
   ProFormaInputs, 
@@ -15,7 +16,7 @@ import {
   convertPropertyToGameProperty
 } from '@/lib/gameData';
 import { api } from '@/lib/api';
-import type { GameRun, Property } from '@shared/schema';
+import type { GameRun, Property, LedgerEntry } from '@shared/schema';
 import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.png';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -40,6 +41,8 @@ export default function Game() {
   const [completedDiligence, setCompletedDiligence] = useState<DiligenceState>({});
   const [proFormaCompletions, setProFormaCompletions] = useState<ProFormaCompletionState>({});
   const [flipMetrics, setFlipMetrics] = useState({ profit: 0, roi: 0, holdWeeks: 0 });
+  const [showLedger, setShowLedger] = useState(false);
+  const STARTING_CASH = 50000;
 
   const { data: gameRun, isLoading: isLoadingGame, error: gameError } = useQuery({
     queryKey: ['activeGameRun'],
@@ -99,6 +102,24 @@ export default function Game() {
     enabled: !!gameRun?.id,
   });
 
+  const { data: ledgerEntries = [] } = useQuery({
+    queryKey: ['ledger', gameRun?.id],
+    queryFn: () => api.getLedger(gameRun!.id),
+    enabled: !!gameRun?.id,
+  });
+
+  const createLedgerMutation = useMutation({
+    mutationFn: ({ gameRunId, entries, currentCash }: { 
+      gameRunId: number; 
+      entries: Array<{ direction: string; category: string; amount: number; description: string; propertyId?: number; dealId?: number }>;
+      currentCash: number;
+    }) => api.createLedgerEntries(gameRunId, entries, currentCash),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+      queryClient.invalidateQueries({ queryKey: ['activeGameRun'] });
+    },
+  });
+
   useEffect(() => {
     const diligenceMap: DiligenceState = {};
     for (const inv of investigations) {
@@ -146,6 +167,7 @@ export default function Game() {
   const handleDiligencePurchase = useCallback(async (propertyId: number, diligenceType: string, cost: number, weeks: number) => {
     if (!gameRun) return;
     
+    const property = properties.find(p => p.id === propertyId);
     const existingDiligence = completedDiligence[propertyId] || [];
     if (existingDiligence.includes(diligenceType)) {
       toast.error('Investigation already completed');
@@ -157,24 +179,34 @@ export default function Game() {
       return;
     }
     
-    const newCash = gameRun.cash - cost;
     const weeksToDeduct = Math.ceil(weeks);
     const newWeeks = Math.max(0, gameRun.weeksRemaining - weeksToDeduct);
     
     try {
-      await Promise.all([
-        updateGameMutation.mutateAsync({
-          id: gameRun.id,
-          updates: { cash: newCash, weeksRemaining: newWeeks },
-        }),
-        createInvestigationMutation.mutateAsync({
-          gameRunId: gameRun.id,
+      await createLedgerMutation.mutateAsync({
+        gameRunId: gameRun.id,
+        entries: [{
+          direction: 'debit',
+          category: 'due_diligence',
+          amount: cost,
+          description: `${diligenceType} - ${property?.name || 'Property'}`,
           propertyId,
-          investigationType: diligenceType,
-          cost,
-          weeksUsed: weeksToDeduct,
-        }),
-      ]);
+        }],
+        currentCash: gameRun.cash,
+      });
+
+      await updateGameMutation.mutateAsync({
+        id: gameRun.id,
+        updates: { weeksRemaining: newWeeks },
+      });
+
+      await createInvestigationMutation.mutateAsync({
+        gameRunId: gameRun.id,
+        propertyId,
+        investigationType: diligenceType,
+        cost,
+        weeksUsed: weeksToDeduct,
+      });
       
       setCompletedDiligence(prev => ({
         ...prev,
@@ -186,7 +218,7 @@ export default function Game() {
     } catch (error) {
       toast.error('Failed to complete investigation');
     }
-  }, [gameRun, updateGameMutation, createInvestigationMutation, completedDiligence]);
+  }, [gameRun, properties, updateGameMutation, createInvestigationMutation, createLedgerMutation, completedDiligence]);
 
   const handleBackToMarket = useCallback(() => {
     setCurrentScreen('market');
@@ -217,6 +249,9 @@ export default function Game() {
   const handleCommitDeal = useCallback(async () => {
     if (!gameRun || !selectedProperty || !proFormaOutputs) return;
 
+    const closingCosts = Math.round(selectedProperty.price * 0.03);
+    const loanOriginationFee = Math.round((selectedProperty.price - proFormaOutputs.downPaymentAmount) * 0.01);
+
     try {
       await createDealMutation.mutateAsync({
         gameRunId: gameRun.id,
@@ -229,14 +264,35 @@ export default function Game() {
         weeksSpent: null,
       });
 
-      const newCash = gameRun.cash - proFormaOutputs.downPaymentAmount;
-      await updateGameMutation.mutateAsync({
-        id: gameRun.id,
-        updates: { cash: newCash },
+      await createLedgerMutation.mutateAsync({
+        gameRunId: gameRun.id,
+        entries: [
+          {
+            direction: 'debit',
+            category: 'down_payment',
+            amount: proFormaOutputs.downPaymentAmount,
+            description: `Down payment - ${selectedProperty.name}`,
+            propertyId: selectedProperty.id,
+          },
+          {
+            direction: 'debit',
+            category: 'closing_cost',
+            amount: closingCosts,
+            description: `Closing costs (3%) - ${selectedProperty.name}`,
+            propertyId: selectedProperty.id,
+          },
+          {
+            direction: 'debit',
+            category: 'loan_fee',
+            amount: loanOriginationFee,
+            description: `Loan origination fee (1%) - ${selectedProperty.name}`,
+            propertyId: selectedProperty.id,
+          },
+        ],
+        currentCash: gameRun.cash,
       });
 
       if (proFormaInputs.strategy === 'flip') {
-        const closingCosts = Math.round(selectedProperty.price * 0.03);
         const allInBasis = selectedProperty.price + closingCosts + proFormaInputs.rehabBudget * (1 + proFormaInputs.contingencyPct / 100);
         const holdingCostPerWeek = Math.round((selectedProperty.price * (proFormaInputs.interestRate / 100) / 52) + 
           (proFormaInputs.taxesAnnual / 52) + (proFormaInputs.insuranceAnnual / 52));
@@ -250,7 +306,7 @@ export default function Game() {
     } catch (error) {
       toast.error('Failed to save deal');
     }
-  }, [gameRun, selectedProperty, proFormaOutputs, proFormaInputs, createDealMutation, updateGameMutation]);
+  }, [gameRun, selectedProperty, proFormaOutputs, proFormaInputs, createDealMutation, createLedgerMutation]);
 
   const handleContinueFromResults = useCallback(() => {
     setCurrentScreen('market');
@@ -299,6 +355,7 @@ export default function Game() {
           weeksRemaining={gameRun.weeksRemaining}
           profitableDeals={gameRun.profitableDeals}
           goalDeals={gameRun.goalDeals}
+          onOpenLedger={() => setShowLedger(true)}
         />
 
         {/* Top Banner Ad - Below Status Bar */}
@@ -384,6 +441,15 @@ export default function Game() {
         </div>
 
         <footer className="safe-area-bottom" />
+
+        {/* Ledger Panel Modal */}
+        {showLedger && (
+          <LedgerPanel
+            entries={ledgerEntries}
+            startingCash={STARTING_CASH}
+            onClose={() => setShowLedger(false)}
+          />
+        )}
       </div>
     </div>
   );

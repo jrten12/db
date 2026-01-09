@@ -109,3 +109,24 @@ export type InsertDeal = z.infer<typeof insertDealSchema>;
 
 export type PropertyInvestigation = typeof propertyInvestigations.$inferSelect;
 export type InsertPropertyInvestigation = z.infer<typeof insertPropertyInvestigationSchema>;
+
+export const ledgerEntries = pgTable("ledger_entries", {
+  id: serial("id").primaryKey(),
+  gameRunId: integer("game_run_id").notNull().references(() => gameRuns.id),
+  direction: text("direction").notNull(), // 'debit' | 'credit'
+  category: text("category").notNull(), // 'starting_balance' | 'due_diligence' | 'down_payment' | 'closing_cost' | 'loan_fee' | 'holding_cost' | 'income' | 'rehab'
+  amount: integer("amount").notNull(), // in cents for precision, positive value
+  balanceAfter: integer("balance_after").notNull(),
+  description: text("description").notNull(),
+  propertyId: integer("property_id").references(() => properties.id),
+  dealId: integer("deal_id").references(() => deals.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertLedgerEntrySchema = createInsertSchema(ledgerEntries).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type LedgerEntry = typeof ledgerEntries.$inferSelect;
+export type InsertLedgerEntry = z.infer<typeof insertLedgerEntrySchema>;

@@ -7,6 +7,61 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { Property } from '@shared/schema';
 
+const FINANCIAL_TERM_TOOLTIPS: Record<string, { title: string; definition: string; whyItMatters: string; unknownAction?: string }> = {
+  rent: {
+    title: "Monthly Rent",
+    definition: "The amount a tenant pays each month to live in the property. This is your primary income source for rental investments.",
+    whyItMatters: "Higher rent = more cash flow. But set it too high and you'll have vacancies. Set it too low and you leave money on the table.",
+    unknownAction: "Complete a Market Rent Study to see what similar properties rent for.",
+  },
+  arv: {
+    title: "After Repair Value (ARV)", 
+    definition: "What the property will be worth AFTER you finish all renovations. This is your target sale price for flips.",
+    whyItMatters: "ARV determines your profit margin. If you overestimate ARV, you'll lose money when you sell. Critical for the 70% rule.",
+    unknownAction: "Complete a Comp Analysis to see recent sales of similar renovated homes.",
+  },
+  rehab: {
+    title: "Rehab Cost",
+    definition: "The total cost to renovate the property - materials, labor, permits, and unexpected repairs.",
+    whyItMatters: "Renovation costs eat directly into your profit. A $10K underestimate means $10K less profit (or a loss).",
+    unknownAction: "Complete a Contractor Walkthrough for accurate repair estimates.",
+  },
+  timeline: {
+    title: "Renovation Timeline",
+    definition: "How many weeks it takes to complete all renovations before you can rent or sell the property.",
+    whyItMatters: "Every week costs money - loan interest, taxes, insurance, utilities. A 4-week delay could cost $2,000-$4,000+.",
+    unknownAction: "Complete a Contractor Walkthrough for a realistic timeline.",
+  },
+};
+
+function FinancialTermInfo({ type, isKnown }: { type: keyof typeof FINANCIAL_TERM_TOOLTIPS; isKnown: boolean }) {
+  const tooltip = FINANCIAL_TERM_TOOLTIPS[type];
+  
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button 
+          type="button" 
+          className="p-1 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70"
+          aria-label={`Learn about ${tooltip.title}`}
+        >
+          <HelpCircle className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-4 z-[100]">
+        <div className="space-y-2">
+          <p className="font-semibold text-white">{tooltip.title}</p>
+          <p className="text-gray-300 text-xs">{tooltip.definition}</p>
+          <p className="text-amber-400 text-xs"><strong>Why it matters:</strong> {tooltip.whyItMatters}</p>
+          {!isKnown && tooltip.unknownAction && (
+            <p className="text-emerald-400 text-xs mt-2">→ {tooltip.unknownAction}</p>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 const UNKNOWN_VALUE_TOOLTIPS: Record<string, { title: string; explanation: string; action: string }> = {
   rent: {
     title: "Rent Unknown",
@@ -262,6 +317,7 @@ export function PropertyDetail({
                       </div>
                       <div className="text-gray-400 text-xs flex items-center gap-1">
                         Rent {!effectiveRanges.rent.known && <Lock className="w-3 h-3" />}
+                        <FinancialTermInfo type="rent" isKnown={effectiveRanges.rent.known} />
                       </div>
                     </div>
                   </UnknownValueBadge>
@@ -272,6 +328,7 @@ export function PropertyDetail({
                       </div>
                       <div className="text-gray-400 text-xs flex items-center gap-1">
                         ARV {!effectiveRanges.arv.known && <Lock className="w-3 h-3" />}
+                        <FinancialTermInfo type="arv" isKnown={effectiveRanges.arv.known} />
                       </div>
                     </div>
                   </UnknownValueBadge>
@@ -282,6 +339,7 @@ export function PropertyDetail({
                       </div>
                       <div className="text-gray-400 text-xs flex items-center gap-1">
                         Rehab Cost {!effectiveRanges.rehab.known && <Lock className="w-3 h-3" />}
+                        <FinancialTermInfo type="rehab" isKnown={effectiveRanges.rehab.known} />
                       </div>
                     </div>
                   </UnknownValueBadge>
@@ -292,6 +350,7 @@ export function PropertyDetail({
                       </div>
                       <div className="text-gray-400 text-xs flex items-center gap-1">
                         Timeline {!effectiveRanges.timeline.known && <Lock className="w-3 h-3" />}
+                        <FinancialTermInfo type="timeline" isKnown={effectiveRanges.timeline.known} />
                       </div>
                     </div>
                   </UnknownValueBadge>

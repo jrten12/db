@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { MapPin, Ruler, HelpCircle, Eye, AlertTriangle } from 'lucide-react';
+import { MapPin, HelpCircle, Eye, AlertTriangle, Lock } from 'lucide-react';
 import type { Property } from '@shared/schema';
 
 interface PropertySelectorProps {
@@ -9,32 +9,19 @@ interface PropertySelectorProps {
   onSelect: (id: number) => void;
 }
 
-const getUncertaintyBadges = (property: Property) => {
-  const badges = [];
-  
-  const rentSpread = property.rentMax - property.rentMin;
-  if (rentSpread > 400) {
-    badges.push({ label: 'Rent Variability', level: 'High', color: 'text-red-400 bg-red-500/20 border-red-500/30' });
-  } else if (rentSpread > 200) {
-    badges.push({ label: 'Rent Variability', level: 'Medium', color: 'text-amber-400 bg-amber-500/20 border-amber-500/30' });
-  } else {
-    badges.push({ label: 'Rent Variability', level: 'Low', color: 'text-emerald-400 bg-emerald-500/20 border-emerald-500/30' });
+const getConditionBadge = (conditionTag: string) => {
+  switch (conditionTag) {
+    case 'Excellent':
+      return { label: 'Move-In Ready', color: 'text-emerald-400 bg-emerald-500/20 border-emerald-500/30' };
+    case 'Good':
+      return { label: 'Minor Updates', color: 'text-blue-400 bg-blue-500/20 border-blue-500/30' };
+    case 'Fair':
+      return { label: 'Needs Work', color: 'text-amber-400 bg-amber-500/20 border-amber-500/30' };
+    case 'Fixer-Upper':
+      return { label: 'Major Rehab', color: 'text-red-400 bg-red-500/20 border-red-500/30' };
+    default:
+      return { label: conditionTag, color: 'text-gray-400 bg-gray-500/20 border-gray-500/30' };
   }
-  
-  if (property.conditionTag === 'Fixer-Upper') {
-    badges.push({ label: 'Condition Clarity', level: 'Low', color: 'text-red-400 bg-red-500/20 border-red-500/30' });
-  } else if (property.conditionTag === 'Fair') {
-    badges.push({ label: 'Condition Clarity', level: 'Partial', color: 'text-amber-400 bg-amber-500/20 border-amber-500/30' });
-  } else {
-    badges.push({ label: 'Condition Clarity', level: 'Clear', color: 'text-emerald-400 bg-emerald-500/20 border-emerald-500/30' });
-  }
-
-  const timelineRisk = property.timelineMax - property.timelineMin;
-  if (timelineRisk > 6 || property.conditionTag === 'Fixer-Upper') {
-    badges.push({ label: 'Timeline Risk', level: 'Unknown', color: 'text-gray-400 bg-gray-500/20 border-gray-500/30' });
-  }
-
-  return badges;
 };
 
 export function PropertySelector({ properties, selectedId, onSelect }: PropertySelectorProps) {
@@ -60,7 +47,7 @@ export function PropertySelector({ properties, selectedId, onSelect }: PropertyS
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {properties.map((property, index) => {
           const propertyImage = getPropertyImage(property.name);
-          const uncertaintyBadges = getUncertaintyBadges(property);
+          const conditionBadge = getConditionBadge(property.conditionTag);
           const isSelected = selectedId === property.id;
           
           return (
@@ -125,17 +112,15 @@ export function PropertySelector({ properties, selectedId, onSelect }: PropertyS
                   <span className="text-sm">{property.neighborhood}</span>
                 </div>
                 
-                {/* Uncertainty Badges - The teaching element */}
-                <div className="mt-3 space-y-1.5">
-                  {uncertaintyBadges.slice(0, 2).map((badge, i) => (
-                    <div 
-                      key={i}
-                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-medium border mr-1.5 ${badge.color}`}
-                    >
-                      <AlertTriangle className="w-3 h-3" />
-                      <span>{badge.label}: {badge.level}</span>
-                    </div>
-                  ))}
+                {/* Condition Badge + Unknown Financials Warning */}
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${conditionBadge.color}`}>
+                    {conditionBadge.label}
+                  </div>
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border text-gray-400 bg-gray-500/20 border-gray-500/30">
+                    <Lock className="w-3 h-3" />
+                    <span>Financials Unknown</span>
+                  </div>
                 </div>
 
                 {/* Hover Indicator */}

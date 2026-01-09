@@ -1,15 +1,34 @@
-import { Lock, AlertTriangle, Star, DollarSign } from 'lucide-react';
+import { Lock, AlertTriangle, Star, DollarSign, Target, TrendingUp, TrendingDown } from 'lucide-react';
 import { ProFormaOutputs, formatCurrency, formatPercent } from '@/lib/gameData';
+
+export const STRATEGY_THRESHOLDS = {
+  rent: {
+    cashOnCash: 8,
+    capRate: 6,
+    cashFlowMonthly: 0,
+  },
+  flip: {
+    roi: 20,
+    profitMin: 15000,
+  },
+};
 
 interface MetricsPanelProps {
   outputs: ProFormaOutputs | null;
   isUnlocked: boolean;
   onCommitDeal?: () => void;
+  strategy?: 'rent' | 'flip';
+  flipROI?: number;
+  flipProfit?: number;
 }
 
-export function MetricsPanel({ outputs, isUnlocked, onCommitDeal }: MetricsPanelProps) {
+export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 'rent', flipROI = 0, flipProfit = 0 }: MetricsPanelProps) {
   const cashFlowNegative = outputs && outputs.cashFlowMonthly < 0;
   const cashOnCashNegative = outputs && outputs.cashOnCash < 0;
+  
+  const meetsThresholds = strategy === 'rent'
+    ? outputs && outputs.cashOnCash >= STRATEGY_THRESHOLDS.rent.cashOnCash && outputs.cashFlowMonthly >= 0
+    : flipROI >= STRATEGY_THRESHOLDS.flip.roi && flipProfit >= STRATEGY_THRESHOLDS.flip.profitMin;
 
   return (
     <div className="space-y-4" data-testid="metrics-panel">
@@ -93,16 +112,70 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal }: MetricsPanel
         </>
       )}
 
-      <div className="metric-card" data-testid="card-badges">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center">
-            <Star className="w-5 h-5 text-gold" fill="hsl(43 85% 55%)" />
+      {/* Target Thresholds Card */}
+      <div className="metric-card" data-testid="card-thresholds">
+        <h3 className="font-display text-foreground text-base font-semibold mb-3 flex items-center gap-2">
+          <Target className="w-4 h-4 text-gold" />
+          Success Thresholds
+        </h3>
+        
+        {strategy === 'rent' ? (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Cash-on-Cash</span>
+              <div className="flex items-center gap-2">
+                <span className="text-gold font-bold">{STRATEGY_THRESHOLDS.rent.cashOnCash}%+</span>
+                {isUnlocked && outputs && (
+                  outputs.cashOnCash >= STRATEGY_THRESHOLDS.rent.cashOnCash 
+                    ? <TrendingUp className="w-4 h-4 text-success" />
+                    : <TrendingDown className="w-4 h-4 text-danger" />
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Monthly Cash Flow</span>
+              <div className="flex items-center gap-2">
+                <span className="text-gold font-bold">Positive</span>
+                {isUnlocked && outputs && (
+                  outputs.cashFlowMonthly > 0
+                    ? <TrendingUp className="w-4 h-4 text-success" />
+                    : <TrendingDown className="w-4 h-4 text-danger" />
+                )}
+              </div>
+            </div>
           </div>
-          <div>
-            <div className="text-foreground font-semibold text-sm">Complete Rehab</div>
-            <div className="text-muted-foreground text-xs">Desfortiones Pogers</div>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">ROI</span>
+              <div className="flex items-center gap-2">
+                <span className="text-gold font-bold">{STRATEGY_THRESHOLDS.flip.roi}%+</span>
+                {isUnlocked && (
+                  flipROI >= STRATEGY_THRESHOLDS.flip.roi
+                    ? <TrendingUp className="w-4 h-4 text-success" />
+                    : <TrendingDown className="w-4 h-4 text-danger" />
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Min Profit</span>
+              <div className="flex items-center gap-2">
+                <span className="text-gold font-bold">{formatCurrency(STRATEGY_THRESHOLDS.flip.profitMin)}+</span>
+                {isUnlocked && (
+                  flipProfit >= STRATEGY_THRESHOLDS.flip.profitMin
+                    ? <TrendingUp className="w-4 h-4 text-success" />
+                    : <TrendingDown className="w-4 h-4 text-danger" />
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {isUnlocked && (
+          <div className={`mt-3 pt-3 border-t border-border text-center text-sm font-semibold ${meetsThresholds ? 'text-success' : 'text-warning'}`}>
+            {meetsThresholds ? 'Meets Investment Criteria' : 'Below Target Thresholds'}
+          </div>
+        )}
       </div>
     </div>
   );

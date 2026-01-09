@@ -10,22 +10,42 @@ export interface PropertyIssue {
 }
 
 export interface DiligenceOption {
-  id: 'contractor_walkthrough' | 'inspection' | 'title_search';
+  id: 'market_study' | 'appraisal' | 'contractor_walkthrough' | 'inspection' | 'title_search';
   name: string;
   cost: number;
   timeWeeks: number;
   description: string;
   reveals: string;
+  narrowsField: 'rent' | 'arv' | 'rehab' | 'issues' | 'title';
 }
 
 export const DILIGENCE_OPTIONS: DiligenceOption[] = [
+  {
+    id: 'market_study',
+    name: 'Market Rent Study',
+    cost: 400,
+    timeWeeks: 0.5,
+    description: 'Analyze comparable rentals to determine achievable rent',
+    reveals: 'Narrows rent estimate from speculation to market data',
+    narrowsField: 'rent',
+  },
+  {
+    id: 'appraisal',
+    name: 'Comparable Sales Analysis',
+    cost: 600,
+    timeWeeks: 1,
+    description: 'Review recent sales to estimate after-repair value',
+    reveals: 'Narrows ARV estimate based on actual comps',
+    narrowsField: 'arv',
+  },
   {
     id: 'contractor_walkthrough',
     name: 'Contractor Walkthrough',
     cost: 1200,
     timeWeeks: 1,
     description: 'Licensed contractor evaluates structural and repair needs',
-    reveals: 'Reveals repair cost ranges and timeline estimates',
+    reveals: 'Narrows rehab cost and timeline estimates',
+    narrowsField: 'rehab',
   },
   {
     id: 'inspection',
@@ -34,6 +54,7 @@ export const DILIGENCE_OPTIONS: DiligenceOption[] = [
     timeWeeks: 0.5,
     description: 'Professional inspector checks for hidden defects',
     reveals: 'Uncovers potential issues: mold, pests, electrical, plumbing',
+    narrowsField: 'issues',
   },
   {
     id: 'title_search',
@@ -42,8 +63,45 @@ export const DILIGENCE_OPTIONS: DiligenceOption[] = [
     timeWeeks: 0.5,
     description: 'Search for liens, encumbrances, and ownership issues',
     reveals: 'Reveals any legal or financial claims on the property',
+    narrowsField: 'title',
   },
 ];
+
+export interface EffectiveRanges {
+  rent: { min: number; max: number; known: boolean };
+  arv: { min: number; max: number; known: boolean };
+  rehab: { min: number; max: number; known: boolean };
+  timeline: { min: number; max: number; known: boolean };
+}
+
+export function getEffectiveRanges(
+  property: { rentMin: number; rentMax: number; arvMin: number; arvMax: number; rehabMin: number; rehabMax: number; timelineMin: number; timelineMax: number; price: number },
+  completedDiligence: string[]
+): EffectiveRanges {
+  const hasMarketStudy = completedDiligence.includes('market_study');
+  const hasAppraisal = completedDiligence.includes('appraisal');
+  const hasContractorWalkthrough = completedDiligence.includes('contractor_walkthrough');
+
+  const rentMid = (property.rentMin + property.rentMax) / 2;
+  const arvMid = (property.arvMin + property.arvMax) / 2;
+  const rehabMid = (property.rehabMin + property.rehabMax) / 2;
+  const timelineMid = (property.timelineMin + property.timelineMax) / 2;
+
+  return {
+    rent: hasMarketStudy 
+      ? { min: property.rentMin, max: property.rentMax, known: true }
+      : { min: Math.round(rentMid * 0.6), max: Math.round(rentMid * 1.4), known: false },
+    arv: hasAppraisal
+      ? { min: property.arvMin, max: property.arvMax, known: true }
+      : { min: Math.round(arvMid * 0.75), max: Math.round(arvMid * 1.25), known: false },
+    rehab: hasContractorWalkthrough
+      ? { min: property.rehabMin, max: property.rehabMax, known: true }
+      : { min: Math.round(rehabMid * 0.5), max: Math.round(rehabMid * 2), known: false },
+    timeline: hasContractorWalkthrough
+      ? { min: property.timelineMin, max: property.timelineMax, known: true }
+      : { min: Math.max(2, property.timelineMin - 4), max: property.timelineMax + 6, known: false },
+  };
+}
 
 export const PROPERTY_ISSUES: Record<string, PropertyIssue[]> = {
   'Oakwood Cottage': [

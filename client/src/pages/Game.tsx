@@ -15,6 +15,7 @@ import {
   calculateProForma,
   convertPropertyToGameProperty
 } from '@/lib/gameData';
+import { getEffectiveRanges } from '@/lib/propertyIssues';
 import { api } from '@/lib/api';
 import type { GameRun, Property, LedgerEntry } from '@shared/schema';
 import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.png';
@@ -145,6 +146,29 @@ export default function Game() {
   }, []);
 
   const handleOpenProForma = useCallback((strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money', contractor: 'cheap' | 'fast') => {
+    if (!selectedProperty) return;
+    
+    const diligenceForProperty = completedDiligence[selectedProperty.id] || [];
+    const effectiveRanges = getEffectiveRanges(
+      convertPropertyToGameProperty(selectedProperty),
+      diligenceForProperty
+    );
+    
+    const hasMarketStudy = diligenceForProperty.includes('market_study');
+    const hasContractorWalkthrough = diligenceForProperty.includes('contractor_walkthrough');
+    
+    const rentEstimate = hasMarketStudy 
+      ? Math.round((effectiveRanges.rent.min + effectiveRanges.rent.max) / 2)
+      : 0;
+    
+    const rehabEstimate = hasContractorWalkthrough
+      ? Math.round((effectiveRanges.rehab.min + effectiveRanges.rehab.max) / 2)
+      : 0;
+    
+    const timelineEstimate = hasContractorWalkthrough
+      ? Math.round((effectiveRanges.timeline.min + effectiveRanges.timeline.max) / 2)
+      : 8;
+    
     setProFormaInputs(prev => ({
       ...prev,
       strategy,
@@ -152,11 +176,14 @@ export default function Game() {
       interestRate: financing === 'bank' ? 5 : 12,
       downPaymentPct: financing === 'bank' ? 25 : 10,
       contractorType: contractor,
+      expectedRent: rentEstimate,
+      rehabBudget: rehabEstimate,
+      rehabWeeks: timelineEstimate,
     }));
     setIsProFormaComplete(false);
     setProFormaOutputs(null);
     setCurrentScreen('proforma');
-  }, []);
+  }, [selectedProperty, completedDiligence]);
 
   const handlePassProperty = useCallback(() => {
     setCurrentScreen('market');
@@ -387,6 +414,7 @@ export default function Game() {
                     inputs={proFormaInputs}
                     onInputsChange={handleInputsChange}
                     onCalculate={handleCalculate}
+                    completedDiligence={completedDiligence[selectedProperty.id] || []}
                   />
                 </div>
 
@@ -395,6 +423,9 @@ export default function Game() {
                     outputs={proFormaOutputs}
                     isUnlocked={isProFormaComplete}
                     onCommitDeal={handleCommitDeal}
+                    strategy={proFormaInputs.strategy}
+                    flipROI={flipMetrics.roi}
+                    flipProfit={flipMetrics.profit}
                   />
                   
                   {/* Sidebar Ad - Below Metrics on smaller screens (hidden on XL) */}

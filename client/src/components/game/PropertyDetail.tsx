@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat } from 'lucide-react';
+import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
+import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import type { Property } from '@shared/schema';
 
 interface PropertyDetailProps {
@@ -91,6 +91,14 @@ export function PropertyDetail({
 
   const timelineRisk = getTimelineRiskExplanation();
   const revealedCostRange = getTotalIssuesCostRange(revealedIssues);
+  const effectiveRanges = getEffectiveRanges(property, completedDiligence);
+
+  const formatUnknownCurrency = (range: { min: number; max: number; known: boolean }) => {
+    if (!range.known) {
+      return '???';
+    }
+    return `${formatCurrency(range.min)}-${formatCurrency(range.max)}`;
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm" data-testid="property-detail-modal">
@@ -134,15 +142,11 @@ export function PropertyDetail({
                 ))}
               </div>
 
-              {/* Property Stats */}
+              {/* Property Stats - Fixed Facts */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
                   <div className="text-emerald-400 text-lg font-bold">{property.sizeSqft.toLocaleString()} sqft</div>
                   <div className="text-gray-400 text-xs">Square Feet</div>
-                </div>
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-amber-400 text-base font-bold">{formatCurrency(property.rentMin)}-{formatCurrency(property.rentMax)}</div>
-                  <div className="text-gray-400 text-xs">Rent Potential</div>
                 </div>
                 <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
                   <div className="text-blue-400 text-sm font-bold">{getNeighborhoodTraits(property.neighborhood)}</div>
@@ -154,6 +158,56 @@ export function PropertyDetail({
                   </div>
                   <div className="text-gray-400 text-xs">Condition</div>
                 </div>
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                  <div className="text-gray-300 text-sm font-bold">${Math.round(property.price / property.sizeSqft)}/sqft</div>
+                  <div className="text-gray-400 text-xs">Price Per Sqft</div>
+                </div>
+              </div>
+
+              {/* Unknown Financials Section */}
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-600/50">
+                <h4 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4" /> Financial Estimates
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className={`rounded-lg p-3 border ${effectiveRanges.rent.known ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
+                    <div className={`text-base font-bold font-mono ${effectiveRanges.rent.known ? 'text-emerald-400' : 'text-gray-400'}`}>
+                      {formatUnknownCurrency(effectiveRanges.rent)}<span className="text-xs font-normal">/mo</span>
+                    </div>
+                    <div className="text-gray-400 text-xs flex items-center gap-1">
+                      Rent {!effectiveRanges.rent.known && <Lock className="w-3 h-3" />}
+                    </div>
+                  </div>
+                  <div className={`rounded-lg p-3 border ${effectiveRanges.arv.known ? 'bg-blue-500/10 border-blue-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
+                    <div className={`text-base font-bold font-mono ${effectiveRanges.arv.known ? 'text-blue-400' : 'text-gray-400'}`}>
+                      {formatUnknownCurrency(effectiveRanges.arv)}
+                    </div>
+                    <div className="text-gray-400 text-xs flex items-center gap-1">
+                      ARV {!effectiveRanges.arv.known && <Lock className="w-3 h-3" />}
+                    </div>
+                  </div>
+                  <div className={`rounded-lg p-3 border ${effectiveRanges.rehab.known ? 'bg-amber-500/10 border-amber-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
+                    <div className={`text-base font-bold font-mono ${effectiveRanges.rehab.known ? 'text-amber-400' : 'text-gray-400'}`}>
+                      {formatUnknownCurrency(effectiveRanges.rehab)}
+                    </div>
+                    <div className="text-gray-400 text-xs flex items-center gap-1">
+                      Rehab Cost {!effectiveRanges.rehab.known && <Lock className="w-3 h-3" />}
+                    </div>
+                  </div>
+                  <div className={`rounded-lg p-3 border ${effectiveRanges.timeline.known ? 'bg-purple-500/10 border-purple-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
+                    <div className={`text-base font-bold font-mono ${effectiveRanges.timeline.known ? 'text-purple-400' : 'text-gray-400'}`}>
+                      {effectiveRanges.timeline.known ? `${effectiveRanges.timeline.min}-${effectiveRanges.timeline.max} wks` : '???'}
+                    </div>
+                    <div className="text-gray-400 text-xs flex items-center gap-1">
+                      Timeline {!effectiveRanges.timeline.known && <Lock className="w-3 h-3" />}
+                    </div>
+                  </div>
+                </div>
+                {(!effectiveRanges.rent.known || !effectiveRanges.arv.known || !effectiveRanges.rehab.known) && (
+                  <p className="mt-3 text-xs text-amber-400/80 italic">
+                    Complete due diligence to narrow these estimates before building your pro forma.
+                  </p>
+                )}
               </div>
 
               {/* Due Diligence Section */}

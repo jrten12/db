@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma } from '@/lib/gameData';
-import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { getEffectiveRanges, EffectiveRanges } from '@/lib/propertyIssues';
+import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Property } from '@shared/schema';
 
@@ -55,9 +56,25 @@ interface ProFormaPanelProps {
   inputs: ProFormaInputs;
   onInputsChange: (inputs: ProFormaInputs) => void;
   onCalculate: () => void;
+  completedDiligence?: string[];
 }
 
-export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }: ProFormaPanelProps) {
+export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [] }: ProFormaPanelProps) {
+  const effectiveRanges = useMemo(() => getEffectiveRanges(
+    {
+      rentMin: property.rentRange?.[0] ?? property.rentMin ?? 1000,
+      rentMax: property.rentRange?.[1] ?? property.rentMax ?? 2000,
+      arvMin: property.arvMin ?? 150000,
+      arvMax: property.arvMax ?? 200000,
+      rehabMin: property.rehabMin ?? 10000,
+      rehabMax: property.rehabMax ?? 50000,
+      timelineMin: property.timelineMin ?? 4,
+      timelineMax: property.timelineMax ?? 12,
+      price: property.price,
+    },
+    completedDiligence
+  ), [property, completedDiligence]);
+
   const [expandedSections, setExpandedSections] = useState({
     foundation: true,
     capital: true,
@@ -95,12 +112,28 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
     ? liveOutputs.cashFlowMonthly > 0 
     : flipProfit > 0;
   
+  const hasMarketStudy = completedDiligence.includes('market_study');
+  const hasAppraisal = completedDiligence.includes('appraisal');
+  const hasContractorWalkthrough = completedDiligence.includes('contractor_walkthrough');
+  const hasInspection = completedDiligence.includes('inspection');
+  
+  const missingDiligence = {
+    rent: !hasMarketStudy,
+    arv: !hasAppraisal,
+    rehab: !hasContractorWalkthrough,
+    issues: !hasInspection,
+  };
+  
+  const diligenceRiskLevel = Object.values(missingDiligence).filter(Boolean).length;
+  
   const fragility = inputs.strategy === 'rent'
-    ? (inputs.expectedRent - property.rentRange[0] < 150 ? 'low' : 
+    ? (diligenceRiskLevel >= 2 ? 'high' :
+       inputs.expectedRent - effectiveRanges.rent.min < 150 ? 'low' : 
        inputs.vacancyRate < 5 ? 'high' : 
        inputs.contingencyPct < 10 ? 'high' : 'moderate')
-    : (inputs.contingencyPct < 10 ? 'high' : 
-       inputs.rehabWeeks > property.timelineMin * 1.5 ? 'moderate' : 'low');
+    : (diligenceRiskLevel >= 2 ? 'high' :
+       inputs.contingencyPct < 10 ? 'high' : 
+       inputs.rehabWeeks > effectiveRanges.timeline.min * 1.5 ? 'moderate' : 'low');
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -148,6 +181,63 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
             </button>
           </div>
         </div>
+
+        {/* DILIGENCE RISK WARNING */}
+        {diligenceRiskLevel > 0 && (
+          <div className={`rounded-xl border p-4 ${
+            diligenceRiskLevel >= 3 ? 'bg-red-500/10 border-red-500/50' :
+            diligenceRiskLevel >= 2 ? 'bg-amber-500/10 border-amber-500/50' :
+            'bg-yellow-500/10 border-yellow-500/50'
+          }`} data-testid="diligence-warning">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className={`w-5 h-5 mt-0.5 ${
+                diligenceRiskLevel >= 3 ? 'text-red-400' :
+                diligenceRiskLevel >= 2 ? 'text-amber-400' :
+                'text-yellow-400'
+              }`} />
+              <div>
+                <h3 className={`font-semibold text-sm ${
+                  diligenceRiskLevel >= 3 ? 'text-red-400' :
+                  diligenceRiskLevel >= 2 ? 'text-amber-400' :
+                  'text-yellow-400'
+                }`}>
+                  {diligenceRiskLevel >= 3 ? 'High Risk: Limited Data' :
+                   diligenceRiskLevel >= 2 ? 'Elevated Risk: Missing Key Data' :
+                   'Caution: Unverified Assumptions'}
+                </h3>
+                <p className="text-gray-400 text-xs mt-1">
+                  Your pro forma contains unverified assumptions. Consider completing due diligence:
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {missingDiligence.rent && inputs.strategy === 'rent' && (
+                    <li className="text-xs text-gray-300 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      Market Study - rent estimate is speculative
+                    </li>
+                  )}
+                  {missingDiligence.arv && inputs.strategy === 'flip' && (
+                    <li className="text-xs text-gray-300 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      Comp Analysis - ARV is speculative
+                    </li>
+                  )}
+                  {missingDiligence.rehab && (
+                    <li className="text-xs text-gray-300 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      Contractor Walkthrough - rehab cost is a guess
+                    </li>
+                  )}
+                  {missingDiligence.issues && (
+                    <li className="text-xs text-gray-300 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      Inspection - hidden issues may exist
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* LAYER 1: DEAL FOUNDATION */}
         <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 overflow-hidden">
@@ -394,24 +484,38 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-400 text-xs flex items-center">Market Rent<InfoTooltip term="expectedRent" /></span>
-                  <span className="text-white font-mono text-sm">{formatCurrency(inputs.expectedRent)}/mo</span>
+                  {effectiveRanges.rent.known ? (
+                    <span className="text-white font-mono text-sm">{formatCurrency(inputs.expectedRent)}/mo</span>
+                  ) : (
+                    <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> ???
+                    </span>
+                  )}
                 </div>
-                <input
-                  type="range"
-                  min={property.rentRange[0]}
-                  max={property.rentRange[1]}
-                  value={inputs.expectedRent}
-                  onChange={(e) => handleChange('expectedRent', Number(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #10b981 0%, #10b981 ${((inputs.expectedRent - property.rentRange[0]) / (property.rentRange[1] - property.rentRange[0])) * 100}%, #334155 ${((inputs.expectedRent - property.rentRange[0]) / (property.rentRange[1] - property.rentRange[0])) * 100}%, #334155 100%)`
-                  }}
-                  data-testid="input-expected-rent"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>{formatCurrency(property.rentRange[0])}</span>
-                  <span>{formatCurrency(property.rentRange[1])}</span>
-                </div>
+                {effectiveRanges.rent.known ? (
+                  <>
+                    <input
+                      type="range"
+                      min={effectiveRanges.rent.min}
+                      max={effectiveRanges.rent.max}
+                      value={inputs.expectedRent || effectiveRanges.rent.min}
+                      onChange={(e) => handleChange('expectedRent', Number(e.target.value))}
+                      className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #10b981 0%, #10b981 ${((inputs.expectedRent - effectiveRanges.rent.min) / (effectiveRanges.rent.max - effectiveRanges.rent.min)) * 100}%, #334155 ${((inputs.expectedRent - effectiveRanges.rent.min) / (effectiveRanges.rent.max - effectiveRanges.rent.min)) * 100}%, #334155 100%)`
+                      }}
+                      data-testid="input-expected-rent"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>{formatCurrency(effectiveRanges.rent.min)}</span>
+                      <span>{formatCurrency(effectiveRanges.rent.max)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-center">
+                    <p className="text-amber-400 text-xs">Complete a Market Rent Study to unlock rent estimates</p>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -543,48 +647,76 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
             <div className="px-4 pb-4 space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-xs">Rehab Budget</span>
-                  <span className="text-white font-mono text-sm">{formatCurrency(inputs.rehabBudget)}</span>
+                  <span className="text-gray-400 text-xs flex items-center">Rehab Budget<InfoTooltip term="rehabBudget" /></span>
+                  {effectiveRanges.rehab.known ? (
+                    <span className="text-white font-mono text-sm">{formatCurrency(inputs.rehabBudget)}</span>
+                  ) : (
+                    <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> ???
+                    </span>
+                  )}
                 </div>
-                <input
-                  type="range"
-                  min={property.rehabMin}
-                  max={property.rehabMax}
-                  value={inputs.rehabBudget}
-                  onChange={(e) => handleChange('rehabBudget', Number(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #f59e0b 0%, #f59e0b ${((inputs.rehabBudget - property.rehabMin) / (property.rehabMax - property.rehabMin)) * 100}%, #334155 ${((inputs.rehabBudget - property.rehabMin) / (property.rehabMax - property.rehabMin)) * 100}%, #334155 100%)`
-                  }}
-                  data-testid="input-rehab-budget"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>{formatCurrency(property.rehabMin)}</span>
-                  <span>{formatCurrency(property.rehabMax)}</span>
-                </div>
+                {effectiveRanges.rehab.known ? (
+                  <>
+                    <input
+                      type="range"
+                      min={effectiveRanges.rehab.min}
+                      max={effectiveRanges.rehab.max}
+                      value={inputs.rehabBudget || effectiveRanges.rehab.min}
+                      onChange={(e) => handleChange('rehabBudget', Number(e.target.value))}
+                      className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #f59e0b 0%, #f59e0b ${((inputs.rehabBudget - effectiveRanges.rehab.min) / (effectiveRanges.rehab.max - effectiveRanges.rehab.min)) * 100}%, #334155 ${((inputs.rehabBudget - effectiveRanges.rehab.min) / (effectiveRanges.rehab.max - effectiveRanges.rehab.min)) * 100}%, #334155 100%)`
+                      }}
+                      data-testid="input-rehab-budget"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>{formatCurrency(effectiveRanges.rehab.min)}</span>
+                      <span>{formatCurrency(effectiveRanges.rehab.max)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-center">
+                    <p className="text-amber-400 text-xs">Complete a Contractor Walkthrough to unlock rehab estimates</p>
+                  </div>
+                )}
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-xs">Rehab Duration</span>
-                  <span className="text-white font-mono text-sm">{inputs.rehabWeeks} weeks</span>
+                  <span className="text-gray-400 text-xs flex items-center">Rehab Duration<InfoTooltip term="rehabWeeks" /></span>
+                  {effectiveRanges.timeline.known ? (
+                    <span className="text-white font-mono text-sm">{inputs.rehabWeeks} weeks</span>
+                  ) : (
+                    <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> ???
+                    </span>
+                  )}
                 </div>
-                <input
-                  type="range"
-                  min={property.timelineMin}
-                  max={property.timelineMax}
-                  value={inputs.rehabWeeks}
-                  onChange={(e) => handleChange('rehabWeeks', Number(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${((inputs.rehabWeeks - property.timelineMin) / (property.timelineMax - property.timelineMin)) * 100}%, #334155 ${((inputs.rehabWeeks - property.timelineMin) / (property.timelineMax - property.timelineMin)) * 100}%, #334155 100%)`
-                  }}
-                  data-testid="input-rehab-weeks"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>{property.timelineMin}w</span>
-                  <span>{property.timelineMax}w</span>
-                </div>
+                {effectiveRanges.timeline.known ? (
+                  <>
+                    <input
+                      type="range"
+                      min={effectiveRanges.timeline.min}
+                      max={effectiveRanges.timeline.max}
+                      value={inputs.rehabWeeks || effectiveRanges.timeline.min}
+                      onChange={(e) => handleChange('rehabWeeks', Number(e.target.value))}
+                      className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${((inputs.rehabWeeks - effectiveRanges.timeline.min) / (effectiveRanges.timeline.max - effectiveRanges.timeline.min)) * 100}%, #334155 ${((inputs.rehabWeeks - effectiveRanges.timeline.min) / (effectiveRanges.timeline.max - effectiveRanges.timeline.min)) * 100}%, #334155 100%)`
+                      }}
+                      data-testid="input-rehab-weeks"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>{effectiveRanges.timeline.min}w</span>
+                      <span>{effectiveRanges.timeline.max}w</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-center">
+                    <p className="text-amber-400 text-xs">Complete a Contractor Walkthrough to unlock timeline estimates</p>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -618,8 +750,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate }:
                       key={i}
                       className="absolute top-0 h-full bg-red-500/80 border-r border-slate-700"
                       style={{ 
-                        left: `${(i / Math.max(property.timelineMax, inputs.rehabWeeks)) * 100}%`,
-                        width: `${100 / Math.max(property.timelineMax, inputs.rehabWeeks)}%`
+                        left: `${(i / Math.max(effectiveRanges.timeline.max, inputs.rehabWeeks)) * 100}%`,
+                        width: `${100 / Math.max(effectiveRanges.timeline.max, inputs.rehabWeeks)}%`
                       }}
                     />
                   ))}

@@ -23,7 +23,7 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
   const isGoodCashOnCash = outputs.cashOnCash > 8;
   const isGoodCapRate = outputs.capRate > 6;
   const isPositiveProfit = flipProfit > 0;
-  const isGoodROI = flipROI > 15;
+  const isGoodROI = flipROI > 20;
   
   const explanations: ExplanationItem[] = [];
   
@@ -90,23 +90,23 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
       });
     }
     
-    if (flipROI < 10) {
+    if (flipROI < 15) {
       explanations.push({
         type: 'warning',
         title: 'Return on Investment',
-        description: `Your ${flipROI.toFixed(1)}% ROI is below the 15-20% target. The risk may not justify the return.`
+        description: `Your ${flipROI.toFixed(1)}% ROI is below the 20% target. The risk may not justify the return.`
       });
-    } else if (flipROI < 15) {
+    } else if (flipROI < 20) {
       explanations.push({
         type: 'info',
         title: 'Return on Investment',
-        description: `Your ${flipROI.toFixed(1)}% ROI is acceptable but aim for 15-20% to account for market fluctuations.`
+        description: `Your ${flipROI.toFixed(1)}% ROI is close but aim for 20%+ to account for market fluctuations.`
       });
     } else {
       explanations.push({
         type: 'tip',
         title: 'Return on Investment',
-        description: `Excellent! Your ${flipROI.toFixed(1)}% ROI exceeds the 15% benchmark for flip investments.`
+        description: `Excellent! Your ${flipROI.toFixed(1)}% ROI exceeds the 20% benchmark for flip investments.`
       });
     }
     
@@ -124,7 +124,7 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
     title: 'Tip',
     description: strategy === 'rent' 
       ? 'Aiming for a positive Monthly Cash Flow and a Cap Rate above 6-8% is typically a safer bet for a rental property.'
-      : 'For flips, aim for at least 15-20% ROI to account for unexpected costs and market fluctuations.'
+      : 'For flips, aim for at least 20% ROI to account for unexpected costs and market fluctuations.'
   });
 
   const getIcon = (type: ExplanationItem['type']) => {
@@ -273,10 +273,85 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
         </div>
 
         {/* Right Panel - Explanations */}
-        <div className="lg:col-span-2">
-          <div className="bg-slate-900/80 rounded-xl border border-slate-700 p-5 h-full">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Deal Verdict Summary */}
+          <div className={`rounded-xl border p-5 ${
+            strategy === 'rent' 
+              ? (isPositiveCashFlow && isGoodCashOnCash 
+                  ? 'bg-emerald-500/10 border-emerald-500/50' 
+                  : 'bg-red-500/10 border-red-500/50')
+              : (isPositiveProfit && isGoodROI 
+                  ? 'bg-emerald-500/10 border-emerald-500/50' 
+                  : 'bg-red-500/10 border-red-500/50')
+          }`} data-testid="deal-verdict">
+            <div className="flex items-center gap-3 mb-3">
+              {strategy === 'rent' ? (
+                isPositiveCashFlow && isGoodCashOnCash ? (
+                  <Check className="w-8 h-8 text-emerald-400" />
+                ) : (
+                  <X className="w-8 h-8 text-red-400" />
+                )
+              ) : (
+                isPositiveProfit && isGoodROI ? (
+                  <Check className="w-8 h-8 text-emerald-400" />
+                ) : (
+                  <X className="w-8 h-8 text-red-400" />
+                )
+              )}
+              <h3 className={`text-xl font-bold ${
+                strategy === 'rent'
+                  ? (isPositiveCashFlow && isGoodCashOnCash ? 'text-emerald-400' : 'text-red-400')
+                  : (isPositiveProfit && isGoodROI ? 'text-emerald-400' : 'text-red-400')
+              }`}>
+                {strategy === 'rent' 
+                  ? (isPositiveCashFlow && isGoodCashOnCash ? 'Deal Meets Rental Thresholds' : 'Deal Fails Rental Thresholds')
+                  : (isPositiveProfit && isGoodROI ? 'Deal Meets Flip Thresholds' : 'Deal Fails Flip Thresholds')
+                }
+              </h3>
+            </div>
+            
+            <div className="text-gray-300 text-sm space-y-2">
+              {strategy === 'rent' ? (
+                <>
+                  <p>
+                    <strong>Required:</strong> 8% Cash-on-Cash + Positive Cash Flow
+                  </p>
+                  <p>
+                    <strong>Your Deal:</strong> {outputs.cashOnCash.toFixed(1)}% CoC {isGoodCashOnCash ? '✓' : '✗'} | {formatCurrency(outputs.cashFlowMonthly)}/mo {isPositiveCashFlow ? '✓' : '✗'}
+                  </p>
+                  <p className="text-gray-400 mt-2">
+                    {isPositiveCashFlow && isGoodCashOnCash 
+                      ? `This deal works because your rent estimate of ${formatCurrency(inputs.expectedRent)}/mo covers all expenses with margin. Your ${inputs.vacancyRate}% vacancy buffer and ${inputs.contingencyPct}% contingency provide protection.`
+                      : !isPositiveCashFlow 
+                        ? `This deal fails because your rent estimate of ${formatCurrency(inputs.expectedRent)}/mo doesn't cover expenses. Consider: Is rent too optimistic? Are operating costs (${formatCurrency(outputs.operatingExpenses)}/yr) too high? Is the purchase price (${formatCurrency(outputs.totalInvestment)}) too steep?`
+                        : `This deal has positive cash flow but ${outputs.cashOnCash.toFixed(1)}% CoC is below the 8% threshold. Your capital would work harder elsewhere. Consider negotiating a lower price or finding higher rents.`
+                    }
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    <strong>Required:</strong> 20% ROI + $15,000 Minimum Profit
+                  </p>
+                  <p>
+                    <strong>Your Deal:</strong> {flipROI.toFixed(1)}% ROI {isGoodROI ? '✓' : '✗'} | {formatCurrency(flipProfit)} profit {flipProfit >= 15000 ? '✓' : '✗'}
+                  </p>
+                  <p className="text-gray-400 mt-2">
+                    {isPositiveProfit && isGoodROI
+                      ? `This deal works because your ARV estimate of ${formatCurrency(inputs.expectedARV)} minus costs leaves ${formatCurrency(flipProfit)} profit. Your ${inputs.contingencyPct}% contingency helps protect the margin.`
+                      : !isPositiveProfit
+                        ? `This deal loses money. Either your ARV (${formatCurrency(inputs.expectedARV)}) is too optimistic, rehab (${formatCurrency(inputs.rehabCosts)}) is underestimated, or the purchase price is too high. Check your assumptions.`
+                        : `Profit is positive but ${flipROI.toFixed(1)}% ROI is below the 20% threshold. This margin is too thin to absorb surprises. You need more spread between purchase price and ARV.`
+                    }
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-slate-900/80 rounded-xl border border-slate-700 p-5">
             <h3 className="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">
-              Explanation
+              Detailed Analysis
             </h3>
             
             <div className="space-y-4">

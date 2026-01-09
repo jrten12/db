@@ -7,16 +7,18 @@ import { PropertySelector } from '@/components/game/PropertySelector';
 import { PropertyDetail } from '@/components/game/PropertyDetail';
 import { ResultsPanel } from '@/components/game/ResultsPanel';
 import { LedgerPanel } from '@/components/game/LedgerPanel';
-import { 
-  ProFormaInputs, 
+import { TimeProgressionPanel } from '@/components/game/TimeProgressionPanel';
+import { IncomeNotification, useIncomeNotifications } from '@/components/game/IncomeNotification';
+import {
+  ProFormaInputs,
   ProFormaOutputs,
-  defaultProForma, 
+  defaultProForma,
   calculateProForma,
   convertPropertyToGameProperty
 } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
 import { api } from '@/lib/api';
-import type { GameRun, Property, LedgerEntry } from '@shared/schema';
+import type { GameRun, Property, LedgerEntry, Deal } from '@shared/schema';
 import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.png';
 import Footer from '@/components/Footer';
 import { Loader2 } from 'lucide-react';
@@ -44,6 +46,9 @@ export default function Game() {
   const [flipMetrics, setFlipMetrics] = useState({ profit: 0, roi: 0, holdWeeks: 0 });
   const [showLedger, setShowLedger] = useState(false);
   const STARTING_CASH = 50000;
+
+  // Income notifications
+  const { events: incomeEvents, dismissEvent, addRentalPayment, addFlipProceeds, addCurveballBonus } = useIncomeNotifications();
 
   const { data: gameRun, isLoading: isLoadingGame, error: gameError } = useQuery({
     queryKey: ['activeGameRun'],
@@ -106,6 +111,12 @@ export default function Game() {
   const { data: ledgerEntries = [] } = useQuery({
     queryKey: ['ledger', gameRun?.id],
     queryFn: () => api.getLedger(gameRun!.id),
+    enabled: !!gameRun?.id,
+  });
+
+  const { data: deals = [] } = useQuery({
+    queryKey: ['deals', gameRun?.id],
+    queryFn: () => api.getDeals(gameRun!.id),
     enabled: !!gameRun?.id,
   });
 
@@ -289,7 +300,7 @@ export default function Game() {
     const loanOriginationFee = Math.round((selectedProperty.price - proFormaOutputs.downPaymentAmount) * 0.01);
 
     try {
-      await createDealMutation.mutateAsync({
+      const newDeal = await createDealMutation.mutateAsync({
         gameRunId: gameRun.id,
         propertyId: selectedProperty.id,
         strategy: proFormaInputs.strategy,
@@ -330,19 +341,58 @@ export default function Game() {
 
       if (proFormaInputs.strategy === 'flip') {
         const allInBasis = selectedProperty.price + closingCosts + proFormaInputs.rehabBudget * (1 + proFormaInputs.contingencyPct / 100);
-        const holdingCostPerWeek = Math.round((selectedProperty.price * (proFormaInputs.interestRate / 100) / 52) + 
+        const holdingCostPerWeek = Math.round((selectedProperty.price * (proFormaInputs.interestRate / 100) / 52) +
           (proFormaInputs.taxesAnnual / 52) + (proFormaInputs.insuranceAnnual / 52));
         const arvMid = (selectedProperty.arvMin + selectedProperty.arvMax) / 2;
         const profit = arvMid - allInBasis - (holdingCostPerWeek * proFormaInputs.rehabWeeks);
         const roi = proFormaOutputs.totalCashInvested > 0 ? (profit / proFormaOutputs.totalCashInvested) * 100 : 0;
         setFlipMetrics({ profit, roi, holdWeeks: proFormaInputs.rehabWeeks });
+
+        // Start flip rehab period
+        await api.startFlipRehab(newDeal.id, gameRun.id, proFormaInputs.rehabWeeks);
+        toast.success('Flip started! Check Time & Income panel to track progress.');
+      } else {
+        // Activate rental property
+        await api.activateRental(newDeal.id, gameRun.id, proFormaOutputs.cashFlowMonthly);
+        toast.success('Rental activated! You will receive weekly income.');
       }
 
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
       setCurrentScreen('results');
     } catch (error) {
       toast.error('Failed to save deal');
     }
-  }, [gameRun, selectedProperty, proFormaOutputs, proFormaInputs, createDealMutation, createLedgerMutation]);
+  }, [gameRun, selectedProperty, proFormaOutputs, proFormaInputs, createDealMutation, createLedgerMutation, queryClient]);
+
+  const handleAdvanceWeek = useCallback(async () => {
+    if (!gameRun) return;
+
+    try {
+      const result = await api.advanceGameWeek(gameRun.id);
+
+      // Show income notifications for rental payments
+      result.rentalPayments.forEach((payment: any) => {
+        const property = properties.find(p => p.id === deals.find(d => d.id === payment.dealId)?.propertyId);
+        addRentalPayment(payment.weeklyIncome, property?.name);
+      });
+
+      // Show flip completion notifications
+      result.completedFlips.forEach((flip: any) => {
+        const deal = deals.find(d => d.id === flip.dealId);
+        const property = properties.find(p => p.id === deal?.propertyId);
+        addFlipProceeds(flip.salePrice, flip.profit, property?.name);
+      });
+
+      // Refresh all data
+      queryClient.invalidateQueries({ queryKey: ['activeGameRun'] });
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+
+      toast.success(`Week ${result.newWeek} complete!`);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to advance week');
+    }
+  }, [gameRun, queryClient, addRentalPayment, addFlipProceeds, properties, deals]);
 
   const handleContinueFromResults = useCallback(() => {
     setCurrentScreen('market');
@@ -397,11 +447,19 @@ export default function Game() {
 
         <main className="max-w-7xl mx-auto px-4 py-6 md:py-8">
           {currentScreen === 'market' && (
-            <PropertySelector
-              properties={properties}
-              selectedId={selectedPropertyId}
-              onSelect={handlePropertyClick}
-            />
+            <div className="space-y-6">
+              <TimeProgressionPanel
+                gameRun={gameRun}
+                deals={deals}
+                properties={properties}
+                onAdvanceWeek={handleAdvanceWeek}
+              />
+              <PropertySelector
+                properties={properties}
+                selectedId={selectedPropertyId}
+                onSelect={handlePropertyClick}
+              />
+            </div>
           )}
 
           {currentScreen === 'proforma' && selectedProperty && (
@@ -483,6 +541,9 @@ export default function Game() {
             onClose={() => setShowLedger(false)}
           />
         )}
+
+        {/* Income Notifications */}
+        <IncomeNotification events={incomeEvents} onDismiss={dismissEvent} />
       </div>
     </div>
   );

@@ -135,75 +135,18 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   });
 
   // Learning Mode State
-  const [learningMode, setLearningMode] = useState(true);
   const [showFormulas, setShowFormulas] = useState(true);
-  const [playerCalculations, setPlayerCalculations] = useState({
-    effectiveRent: '',
-    monthlyOpEx: '',
-    noiMonthly: '',
-    cashFlowMonthly: '',
-  });
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [highlightField, setHighlightField] = useState<string | null>(null);
 
   const handleChange = <K extends keyof ProFormaInputs>(key: K, value: ProFormaInputs[K]) => {
     onInputsChange({ ...inputs, [key]: value });
-    // Clear player calculations when inputs change
-    if (learningMode) {
-      setPlayerCalculations({
-        effectiveRent: '',
-        monthlyOpEx: '',
-        noiMonthly: '',
-        cashFlowMonthly: '',
-      });
-      setValidationErrors({});
-    }
-  };
-
-  // Validate player calculations
-  const validatePlayerCalculation = (field: string, value: string) => {
-    const numValue = parseFloat(value);
-    if (isNaN(numValue)) {
-      setValidationErrors(prev => ({ ...prev, [field]: 'Please enter a valid number' }));
-      return false;
-    }
-
-    const tolerance = 5; // $5 tolerance for rounding
-    let correctValue = 0;
-    let fieldName = '';
-
-    switch (field) {
-      case 'effectiveRent':
-        correctValue = effectiveRent;
-        fieldName = 'Effective Rent';
-        break;
-      case 'monthlyOpEx':
-        correctValue = monthlyExpenses;
-        fieldName = 'Monthly Operating Expenses';
-        break;
-      case 'noiMonthly':
-        correctValue = liveOutputs.noiMonthly;
-        fieldName = 'Net Operating Income';
-        break;
-      case 'cashFlowMonthly':
-        correctValue = liveOutputs.cashFlowMonthly;
-        fieldName = 'Monthly Cash Flow';
-        break;
-    }
-
-    const diff = Math.abs(numValue - correctValue);
-    if (diff > tolerance) {
-      const hint = diff > 100
-        ? `Off by ${formatCurrency(diff)}. Double-check your calculation.`
-        : `Close! Off by ${formatCurrency(diff)}. Round to nearest dollar.`;
-      setValidationErrors(prev => ({ ...prev, [field]: hint }));
-      return false;
-    } else {
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
-      });
-      return true;
+    // Briefly highlight affected calculations
+    if (key === 'expectedRent' || key === 'vacancyRate') {
+      setHighlightField('effectiveRent');
+      setTimeout(() => setHighlightField(null), 600);
+    } else if (key === 'taxesAnnual' || key === 'insuranceAnnual' || key === 'maintenancePct' || key === 'propertyManagement') {
+      setHighlightField('opex');
+      setTimeout(() => setHighlightField(null), 600);
     }
   };
 
@@ -278,52 +221,25 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-4" data-testid="pro-forma-panel">
       <div className="xl:col-span-2 space-y-4">
-        {/* LEARNING MODE TOGGLE */}
+        {/* FORMULA VIEW TOGGLE */}
         <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur rounded-xl border border-blue-500/30 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-white font-semibold text-sm flex items-center gap-2">
-                {learningMode ? '🎓 Learning Mode' : '⚡ Expert Mode'}
-              </h3>
+              <h3 className="text-white font-semibold text-sm">📊 Interactive Pro Forma</h3>
               <p className="text-gray-400 text-xs mt-1">
-                {learningMode
-                  ? 'Calculate key metrics yourself to learn proforma math'
-                  : 'All calculations done automatically'}
+                Adjust inputs and watch the formulas calculate in real-time
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowFormulas(!showFormulas)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  showFormulas
-                    ? 'bg-blue-500/20 border border-blue-500 text-blue-400'
-                    : 'bg-slate-800 border border-slate-700 text-gray-400'
-                }`}
-              >
-                {showFormulas ? '📐 Formulas ON' : '📐 Formulas'}
-              </button>
-              <button
-                onClick={() => {
-                  setLearningMode(!learningMode);
-                  if (learningMode) {
-                    setPlayerCalculations({
-                      effectiveRent: '',
-                      monthlyOpEx: '',
-                      noiMonthly: '',
-                      cashFlowMonthly: '',
-                    });
-                    setValidationErrors({});
-                  }
-                }}
-                className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
-                  learningMode
-                    ? 'bg-blue-500/20 border border-blue-500 text-blue-400'
-                    : 'bg-purple-500/20 border border-purple-500 text-purple-400'
-                }`}
-              >
-                {learningMode ? '🎓 Learning' : '⚡ Expert'}
-              </button>
-            </div>
+            <button
+              onClick={() => setShowFormulas(!showFormulas)}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                showFormulas
+                  ? 'bg-blue-500/20 border border-blue-500 text-blue-400'
+                  : 'bg-slate-800 border border-slate-700 text-gray-400 hover:border-slate-600'
+              }`}
+            >
+              {showFormulas ? '📐 Hide Formulas' : '📐 Show Formulas'}
+            </button>
           </div>
         </div>
 
@@ -1034,193 +950,148 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
         <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-4 sticky top-4">
           <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-emerald-400" />
-            {learningMode ? '🧮 Calculate Your Pro Forma' : 'Live Outcomes'}
+            Pro Forma Flow
           </h3>
 
           <div className="space-y-4">
-            {/* LEARNING MODE: Player Calculations */}
-            {learningMode && inputs.strategy === 'rent' && (
-              <div className="bg-blue-500/10 rounded-xl border border-blue-500/30 p-4 space-y-3">
-                <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider">📝 Your Calculations</div>
-
+            {/* RENTAL STRATEGY: Show Formula Waterfall */}
+            {inputs.strategy === 'rent' && (
+              <div className="space-y-3">
                 {/* Step 1: Effective Rent */}
-                <div>
-                  <label className="text-gray-300 text-xs block mb-1">
-                    1. Effective Rent (after vacancy)
-                  </label>
+                <div className={`bg-slate-800/50 rounded-xl p-3 border transition-all ${highlightField === 'effectiveRent' ? 'border-emerald-500 shadow-lg shadow-emerald-500/20' : 'border-slate-700'}`}>
+                  <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Step 1: Effective Rent</div>
                   {showFormulas && (
-                    <div className="bg-slate-800/50 rounded p-2 mb-2 text-xs font-mono text-gray-400">
-                      = ${inputs.expectedRent.toLocaleString()} × (1 - {inputs.vacancyRate}%)
+                    <div className="text-xs font-mono text-gray-500 mb-2">
+                      ${inputs.expectedRent.toLocaleString()} × (100% - {inputs.vacancyRate}%)
                     </div>
                   )}
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
-                    <input
-                      type="number"
-                      value={playerCalculations.effectiveRent}
-                      onChange={(e) => {
-                        setPlayerCalculations(prev => ({ ...prev, effectiveRent: e.target.value }));
-                      }}
-                      onBlur={(e) => validatePlayerCalculation('effectiveRent', e.target.value)}
-                      className={`w-full pl-7 pr-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none ${
-                        validationErrors.effectiveRent
-                          ? 'border-red-500'
-                          : playerCalculations.effectiveRent && !validationErrors.effectiveRent
-                          ? 'border-emerald-500'
-                          : 'border-slate-700'
-                      }`}
-                      placeholder="Enter amount"
-                    />
+                  <div className="text-2xl font-bold font-mono text-emerald-400">
+                    = {formatCurrency(effectiveRent)}<span className="text-sm text-gray-500">/mo</span>
                   </div>
-                  {validationErrors.effectiveRent && (
-                    <p className="text-red-400 text-xs mt-1">❌ {validationErrors.effectiveRent}</p>
-                  )}
-                  {playerCalculations.effectiveRent && !validationErrors.effectiveRent && (
-                    <p className="text-emerald-400 text-xs mt-1">✅ Correct!</p>
-                  )}
+                  <div className="text-xs text-gray-500 mt-1">What you actually collect after vacancy</div>
                 </div>
 
-                {/* Step 2: Monthly OpEx */}
-                <div>
-                  <label className="text-gray-300 text-xs block mb-1">
-                    2. Monthly Operating Expenses
-                  </label>
+                {/* Arrow Down */}
+                <div className="flex justify-center">
+                  <div className="text-gray-600">↓</div>
+                </div>
+
+                {/* Step 2: Operating Expenses */}
+                <div className={`bg-slate-800/50 rounded-xl p-3 border transition-all ${highlightField === 'opex' ? 'border-amber-500 shadow-lg shadow-amber-500/20' : 'border-slate-700'}`}>
+                  <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Step 2: Operating Expenses</div>
                   {showFormulas && (
-                    <div className="bg-slate-800/50 rounded p-2 mb-2 text-xs font-mono text-gray-400">
-                      = Taxes/12 + Insurance/12 + Maintenance% + Mgmt%<br/>
-                      = ${(inputs.taxesAnnual/12).toFixed(0)} + ${(inputs.insuranceAnnual/12).toFixed(0)} + ${(inputs.expectedRent * inputs.maintenancePct/100).toFixed(0)} + ${inputs.propertyManagement ? (inputs.expectedRent * inputs.propertyManagementPct/100).toFixed(0) : '0'}
+                    <div className="text-xs font-mono text-gray-500 space-y-0.5 mb-2">
+                      <div>Taxes: ${(inputs.taxesAnnual/12).toFixed(0)}/mo</div>
+                      <div>Insurance: ${(inputs.insuranceAnnual/12).toFixed(0)}/mo</div>
+                      <div>Maintenance: ${(inputs.expectedRent * inputs.maintenancePct/100).toFixed(0)}/mo ({inputs.maintenancePct}%)</div>
+                      {inputs.propertyManagement && <div>Mgmt: ${(inputs.expectedRent * inputs.propertyManagementPct/100).toFixed(0)}/mo ({inputs.propertyManagementPct}%)</div>}
                     </div>
                   )}
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
-                    <input
-                      type="number"
-                      value={playerCalculations.monthlyOpEx}
-                      onChange={(e) => {
-                        setPlayerCalculations(prev => ({ ...prev, monthlyOpEx: e.target.value }));
-                      }}
-                      onBlur={(e) => validatePlayerCalculation('monthlyOpEx', e.target.value)}
-                      className={`w-full pl-7 pr-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none ${
-                        validationErrors.monthlyOpEx
-                          ? 'border-red-500'
-                          : playerCalculations.monthlyOpEx && !validationErrors.monthlyOpEx
-                          ? 'border-emerald-500'
-                          : 'border-slate-700'
-                      }`}
-                      placeholder="Enter amount"
-                    />
+                  <div className="text-2xl font-bold font-mono text-red-400">
+                    = {formatCurrency(monthlyExpenses)}<span className="text-sm text-gray-500">/mo</span>
                   </div>
-                  {validationErrors.monthlyOpEx && (
-                    <p className="text-red-400 text-xs mt-1">❌ {validationErrors.monthlyOpEx}</p>
-                  )}
-                  {playerCalculations.monthlyOpEx && !validationErrors.monthlyOpEx && (
-                    <p className="text-emerald-400 text-xs mt-1">✅ Correct!</p>
-                  )}
+                  <div className="text-xs text-gray-500 mt-1">Monthly costs to operate the property</div>
+                </div>
+
+                {/* Arrow Down */}
+                <div className="flex justify-center">
+                  <div className="text-gray-600">↓</div>
                 </div>
 
                 {/* Step 3: NOI */}
-                <div>
-                  <label className="text-gray-300 text-xs block mb-1">
-                    3. Net Operating Income (NOI)
-                  </label>
+                <div className="bg-blue-500/10 rounded-xl p-3 border border-blue-500/30">
+                  <div className="text-blue-400 text-xs uppercase tracking-wider font-semibold mb-1">Step 3: Net Operating Income (NOI)</div>
                   {showFormulas && (
-                    <div className="bg-slate-800/50 rounded p-2 mb-2 text-xs font-mono text-gray-400">
-                      = Effective Rent - Monthly OpEx
+                    <div className="text-xs font-mono text-gray-400 mb-2">
+                      {formatCurrency(effectiveRent)} - {formatCurrency(monthlyExpenses)}
                     </div>
                   )}
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
-                    <input
-                      type="number"
-                      value={playerCalculations.noiMonthly}
-                      onChange={(e) => {
-                        setPlayerCalculations(prev => ({ ...prev, noiMonthly: e.target.value }));
-                      }}
-                      onBlur={(e) => validatePlayerCalculation('noiMonthly', e.target.value)}
-                      className={`w-full pl-7 pr-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none ${
-                        validationErrors.noiMonthly
-                          ? 'border-red-500'
-                          : playerCalculations.noiMonthly && !validationErrors.noiMonthly
-                          ? 'border-emerald-500'
-                          : 'border-slate-700'
-                      }`}
-                      placeholder="Enter amount"
-                    />
+                  <div className={`text-2xl font-bold font-mono ${liveOutputs.noiMonthly > 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                    = {formatCurrency(liveOutputs.noiMonthly)}<span className="text-sm text-gray-500">/mo</span>
                   </div>
-                  {validationErrors.noiMonthly && (
-                    <p className="text-red-400 text-xs mt-1">❌ {validationErrors.noiMonthly}</p>
-                  )}
-                  {playerCalculations.noiMonthly && !validationErrors.noiMonthly && (
-                    <p className="text-emerald-400 text-xs mt-1">✅ Correct!</p>
-                  )}
+                  <div className="text-xs text-gray-400 mt-1">Income before debt service</div>
+                </div>
+
+                {/* Arrow Down */}
+                <div className="flex justify-center">
+                  <div className="text-gray-600">↓</div>
                 </div>
 
                 {/* Step 4: Cash Flow */}
-                <div>
-                  <label className="text-gray-300 text-xs block mb-1">
-                    4. Monthly Cash Flow
-                  </label>
+                <div className={`rounded-xl p-4 border ${isViable ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-red-500/20 border-red-500/50'}`}>
+                  <div className={`text-xs uppercase tracking-wider font-semibold mb-1 ${isViable ? 'text-emerald-400' : 'text-red-400'}`}>
+                    Step 4: Monthly Cash Flow
+                  </div>
                   {showFormulas && (
-                    <div className="bg-slate-800/50 rounded p-2 mb-2 text-xs font-mono text-gray-400">
-                      = NOI - Debt Service<br/>
-                      = NOI - ${liveOutputs.debtServiceMonthly.toFixed(0)}
+                    <div className="text-xs font-mono text-gray-400 mb-2">
+                      {formatCurrency(liveOutputs.noiMonthly)} - {formatCurrency(liveOutputs.debtServiceMonthly)}
+                      <div className="text-gray-500 text-xs mt-0.5">(NOI - Debt Service)</div>
                     </div>
                   )}
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
-                    <input
-                      type="number"
-                      value={playerCalculations.cashFlowMonthly}
-                      onChange={(e) => {
-                        setPlayerCalculations(prev => ({ ...prev, cashFlowMonthly: e.target.value }));
-                      }}
-                      onBlur={(e) => validatePlayerCalculation('cashFlowMonthly', e.target.value)}
-                      className={`w-full pl-7 pr-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none ${
-                        validationErrors.cashFlowMonthly
-                          ? 'border-red-500'
-                          : playerCalculations.cashFlowMonthly && !validationErrors.cashFlowMonthly
-                          ? 'border-emerald-500'
-                          : 'border-slate-700'
-                      }`}
-                      placeholder="Enter amount"
-                    />
+                  <div className={`text-3xl font-bold font-mono ${isViable ? 'text-emerald-400' : 'text-red-400'}`}>
+                    = {formatCurrency(liveOutputs.cashFlowMonthly)}
                   </div>
-                  {validationErrors.cashFlowMonthly && (
-                    <p className="text-red-400 text-xs mt-1">❌ {validationErrors.cashFlowMonthly}</p>
-                  )}
-                  {playerCalculations.cashFlowMonthly && !validationErrors.cashFlowMonthly && (
-                    <p className="text-emerald-400 text-xs mt-1">✅ Correct!</p>
-                  )}
+                  <div className={`text-xs mt-1 ${isViable ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {isViable ? '✓ Money in your pocket each month' : '✗ Losing money each month'}
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* EXPERT MODE OR AFTER CALCULATIONS: Automated Results */}
-            {(!learningMode || inputs.strategy === 'flip') && (
-              <>
-            {/* Primary Outcome - Strategy Specific */}
-            {inputs.strategy === 'rent' ? (
-              <div className={`rounded-xl p-4 ${isViable ? 'bg-emerald-500/20 border border-emerald-500/30' : 'bg-red-500/20 border border-red-500/30'}`}>
-                <div className={`text-xs font-semibold uppercase tracking-wider ${isViable ? 'text-emerald-400' : 'text-red-400'}`}>
-                  Monthly Cash Flow
+            {/* FLIP STRATEGY: Show simplified flow */}
+            {inputs.strategy === 'flip' && (
+              <div className="space-y-3">
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                  <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">All-In Basis</div>
+                  {showFormulas && (
+                    <div className="text-xs font-mono text-gray-500 mb-2">
+                      Purchase + Closing + Rehab + Contingency<br/>
+                      ${property.price.toLocaleString()} + ${closingCosts.toLocaleString()} + ${inputs.rehabBudget.toLocaleString()} + ${(inputs.rehabBudget * inputs.contingencyPct/100).toFixed(0)}
+                    </div>
+                  )}
+                  <div className="text-2xl font-bold font-mono text-amber-400">
+                    = {formatCurrency(allInBasis)}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Total money into the deal</div>
                 </div>
-                <div className={`text-3xl font-bold font-mono mt-1 ${isViable ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {formatCurrency(liveOutputs.cashFlowMonthly)}
+
+                <div className="flex justify-center">
+                  <div className="text-gray-600">↓</div>
                 </div>
-                <div className="text-gray-500 text-xs mt-1">
-                  {isViable ? 'Positive cash flow' : 'Negative cash flow'}
+
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                  <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Holding Costs</div>
+                  {showFormulas && (
+                    <div className="text-xs font-mono text-gray-500 mb-2">
+                      ${holdingCostPerWeek.toLocaleString()}/week × {inputs.rehabWeeks} weeks
+                    </div>
+                  )}
+                  <div className="text-2xl font-bold font-mono text-red-400">
+                    = {formatCurrency(holdingCostPerWeek * inputs.rehabWeeks)}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Interest + taxes while renovating</div>
                 </div>
-              </div>
-            ) : (
-              <div className={`rounded-xl p-4 ${isViable ? 'bg-amber-500/20 border border-amber-500/30' : 'bg-red-500/20 border border-red-500/30'}`}>
-                <div className={`text-xs font-semibold uppercase tracking-wider ${isViable ? 'text-amber-400' : 'text-red-400'}`}>
-                  Estimated Flip Profit
+
+                <div className="flex justify-center">
+                  <div className="text-gray-600">↓</div>
                 </div>
-                <div className={`text-3xl font-bold font-mono mt-1 ${isViable ? 'text-amber-400' : 'text-red-400'}`}>
-                  {formatCurrency(flipProfit)}
-                </div>
-                <div className="text-gray-500 text-xs mt-1">
-                  ARV: {formatCurrency(arvMid)} - Basis: {formatCurrency(allInBasis)}
+
+                <div className={`rounded-xl p-4 border ${flipProfit > 0 ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-red-500/20 border-red-500/50'}`}>
+                  <div className={`text-xs uppercase tracking-wider font-semibold mb-1 ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    Flip Profit
+                  </div>
+                  {showFormulas && (
+                    <div className="text-xs font-mono text-gray-400 mb-2">
+                      ARV - All-In - Holding Costs<br/>
+                      {formatCurrency(arvMid)} - {formatCurrency(allInBasis)} - {formatCurrency(holdingCostPerWeek * inputs.rehabWeeks)}
+                    </div>
+                  )}
+                  <div className={`text-3xl font-bold font-mono ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    = {formatCurrency(flipProfit)}
+                  </div>
+                  <div className={`text-xs mt-1 ${flipProfit > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {flipProfit > 0 ? '✓ Profit on sale' : '✗ Losing money on this flip'}
+                  </div>
                 </div>
               </div>
             )}
@@ -1289,40 +1160,15 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             <button
               onClick={onCalculate}
               className={`w-full px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
-                isViable && (!learningMode || inputs.strategy === 'flip' || (
-                  playerCalculations.effectiveRent &&
-                  playerCalculations.monthlyOpEx &&
-                  playerCalculations.noiMonthly &&
-                  playerCalculations.cashFlowMonthly &&
-                  Object.keys(validationErrors).length === 0
-                ))
+                isViable
                   ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                   : 'bg-slate-700 text-gray-400 cursor-not-allowed'
               }`}
-              disabled={!isViable || (learningMode && inputs.strategy === 'rent' && (
-                !playerCalculations.effectiveRent ||
-                !playerCalculations.monthlyOpEx ||
-                !playerCalculations.noiMonthly ||
-                !playerCalculations.cashFlowMonthly ||
-                Object.keys(validationErrors).length > 0
-              ))}
+              disabled={!isViable}
               data-testid="button-calculate"
             >
-              {!isViable
-                ? 'Fix Issues First'
-                : learningMode && inputs.strategy === 'rent' && (
-                  !playerCalculations.effectiveRent ||
-                  !playerCalculations.monthlyOpEx ||
-                  !playerCalculations.noiMonthly ||
-                  !playerCalculations.cashFlowMonthly
-                )
-                ? 'Complete All Calculations'
-                : learningMode && inputs.strategy === 'rent' && Object.keys(validationErrors).length > 0
-                ? 'Fix Calculation Errors'
-                : 'Lock In Pro Forma'}
+              {isViable ? 'Lock In Pro Forma' : 'Fix Issues First'}
             </button>
-            </>
-            )}
           </div>
         </div>
       </div>

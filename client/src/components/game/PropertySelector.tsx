@@ -1,12 +1,16 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { MapPin, HelpCircle, Eye, AlertTriangle, Lock } from 'lucide-react';
+import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine } from 'lucide-react';
 import type { Property } from '@shared/schema';
+
+export type LocationFilter = 'all' | 'urban' | 'suburban';
 
 interface PropertySelectorProps {
   properties: Property[];
   selectedId: number | null;
   onSelect: (id: number) => void;
+  locationFilter: LocationFilter;
+  onLocationFilterChange: (filter: LocationFilter) => void;
 }
 
 const getConditionBadge = (conditionTag: string) => {
@@ -24,7 +28,15 @@ const getConditionBadge = (conditionTag: string) => {
   }
 };
 
-export function PropertySelector({ properties, selectedId, onSelect }: PropertySelectorProps) {
+export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange }: PropertySelectorProps) {
+  const urbanCount = properties.filter(p => p.locationType === 'urban').length;
+  const suburbanCount = properties.filter(p => p.locationType === 'suburban').length;
+  
+  const filteredProperties = properties.filter(p => {
+    if (locationFilter === 'all') return true;
+    return p.locationType === locationFilter;
+  });
+
   return (
     <div className="space-y-6">
       {/* Header - Provocative framing */}
@@ -39,13 +51,61 @@ export function PropertySelector({ properties, selectedId, onSelect }: PropertyS
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur rounded-full border border-white/10">
           <Eye className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-300">{properties.length} to investigate</span>
+          <span className="text-sm text-gray-300">{filteredProperties.length} to investigate</span>
         </div>
+      </div>
+
+      {/* Location Filter Tabs */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onLocationFilterChange('all')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            locationFilter === 'all'
+              ? 'bg-gold text-slate-900'
+              : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+          }`}
+          data-testid="button-filter-all"
+        >
+          All
+          <span className={`text-xs px-1.5 py-0.5 rounded-full ${locationFilter === 'all' ? 'bg-slate-900/20' : 'bg-white/10'}`}>
+            {properties.length}
+          </span>
+        </button>
+        <button
+          onClick={() => onLocationFilterChange('urban')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            locationFilter === 'urban'
+              ? 'bg-blue-500 text-white'
+              : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+          }`}
+          data-testid="button-filter-urban"
+        >
+          <Building2 className="w-4 h-4" />
+          Urban
+          <span className={`text-xs px-1.5 py-0.5 rounded-full ${locationFilter === 'urban' ? 'bg-white/20' : 'bg-white/10'}`}>
+            {urbanCount}
+          </span>
+        </button>
+        <button
+          onClick={() => onLocationFilterChange('suburban')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            locationFilter === 'suburban'
+              ? 'bg-emerald-500 text-white'
+              : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+          }`}
+          data-testid="button-filter-suburban"
+        >
+          <TreePine className="w-4 h-4" />
+          Suburban
+          <span className={`text-xs px-1.5 py-0.5 rounded-full ${locationFilter === 'suburban' ? 'bg-white/20' : 'bg-white/10'}`}>
+            {suburbanCount}
+          </span>
+        </button>
       </div>
 
       {/* Property Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {properties.map((property, index) => {
+        {filteredProperties.map((property, index) => {
           const propertyImage = getPropertyImage(property.name);
           const conditionBadge = getConditionBadge(property.conditionTag);
           const isSelected = selectedId === property.id;

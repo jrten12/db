@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { StatusBar } from '@/components/game/StatusBar';
 import { ProFormaPanel } from '@/components/game/ProFormaPanel';
 import { MetricsPanel } from '@/components/game/MetricsPanel';
-import { PropertySelector } from '@/components/game/PropertySelector';
+import { PropertySelector, type LocationFilter } from '@/components/game/PropertySelector';
 import { PropertyDetail } from '@/components/game/PropertyDetail';
 import { ResultsPanel } from '@/components/game/ResultsPanel';
 import { LedgerPanel } from '@/components/game/LedgerPanel';
@@ -43,6 +43,7 @@ export default function Game() {
   const [proFormaCompletions, setProFormaCompletions] = useState<ProFormaCompletionState>({});
   const [flipMetrics, setFlipMetrics] = useState({ profit: 0, roi: 0, holdWeeks: 0 });
   const [showLedger, setShowLedger] = useState(false);
+  const [locationFilter, setLocationFilter] = useState<LocationFilter>('all');
   const STARTING_CASH = 50000;
 
   const { data: gameRun, isLoading: isLoadingGame, error: gameError } = useQuery({
@@ -401,6 +402,8 @@ export default function Game() {
               properties={properties}
               selectedId={selectedPropertyId}
               onSelect={handlePropertyClick}
+              locationFilter={locationFilter}
+              onLocationFilterChange={setLocationFilter}
             />
           )}
 

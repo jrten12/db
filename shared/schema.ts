@@ -50,6 +50,7 @@ export const properties = pgTable("properties", {
   viabilityProfile: text("viability_profile").notNull(),
   isActive: boolean("is_active").notNull().default(true),
   issuesProfile: jsonb("issues_profile"),
+  locationType: text("location_type").notNull().default("suburban"),
 });
 
 export const propertyInvestigations = pgTable("property_investigations", {

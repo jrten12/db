@@ -296,6 +296,218 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   }
 
+  .modern-status-bar {
+    background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(10,10,10,0.98) 100%);
+    border-bottom: 1px solid rgba(16,185,129,0.2);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.8), inset 0 -1px 0 rgba(16,185,129,0.1);
+    backdrop-filter: blur(20px);
+  }
+
+  .stat-card {
+    @apply px-5 py-3 rounded-xl text-left transition-all duration-200;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .stat-card:hover {
+    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  .stat-card-cash {
+    background: linear-gradient(180deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 100%);
+    border: 1px solid rgba(16,185,129,0.3);
+  }
+  .stat-card-cash:hover {
+    background: linear-gradient(180deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.08) 100%);
+    border-color: rgba(16,185,129,0.4);
+    cursor: pointer;
+  }
+
+  .stat-card-time {
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .stat-card-goal {
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .stat-card-header {
+    @apply flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider mb-1;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .stat-card-icon {
+    @apply w-3.5 h-3.5;
+  }
+
+  .stat-card-cash .stat-card-header {
+    color: rgba(16,185,129,0.7);
+  }
+
+  .stat-card-cash .stat-card-icon {
+    color: rgba(16,185,129,0.8);
+  }
+
+  .stat-card-value {
+    @apply text-2xl font-bold;
+  }
+
+  .animated-number {
+    @apply font-mono;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .flip-number-container {
+    @apply inline-flex;
+    perspective: 400px;
+  }
+
+  .flip-digit {
+    @apply inline-block;
+    transform-style: preserve-3d;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .flip-number-container.flipping .flip-digit {
+    animation: digitFlip 0.4s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+  }
+
+  @keyframes digitFlip {
+    0% {
+      transform: rotateX(0deg) scale(1);
+      opacity: 1;
+    }
+    30% {
+      transform: rotateX(-45deg) scale(0.95);
+      opacity: 0.6;
+    }
+    50% {
+      transform: rotateX(0deg) scale(1.08);
+      opacity: 1;
+    }
+    70% {
+      transform: rotateX(0deg) scale(1.02);
+    }
+    100% {
+      transform: rotateX(0deg) scale(1);
+      opacity: 1;
+    }
+  }
+
+  .cash-value {
+    color: #10b981;
+    text-shadow: 0 0 20px rgba(16,185,129,0.5), 0 0 40px rgba(16,185,129,0.2);
+  }
+
+  .number-prefix {
+    @apply mr-0.5;
+  }
+
+  .number-suffix {
+    @apply ml-1 text-base font-normal;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .time-value {
+    color: white;
+  }
+
+  .goal-value {
+    @apply font-bold text-2xl;
+  }
+
+  .goal-current {
+    color: #10b981;
+    text-shadow: 0 0 12px rgba(16,185,129,0.4);
+  }
+
+  .goal-divider {
+    @apply mx-0.5;
+    color: rgba(255,255,255,0.3);
+  }
+
+  .goal-target {
+    color: white;
+  }
+
+  .goal-label {
+    @apply ml-1 text-base font-normal;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .menu-button {
+    @apply p-3 rounded-xl transition-all duration-200;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+  }
+  .menu-button:hover {
+    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    color: white;
+  }
+
+  .menu-button-mobile {
+    @apply p-2.5 rounded-lg transition-all;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+  }
+
+  .stat-card-mobile {
+    @apply flex-1 px-3 py-2.5 rounded-lg text-center transition-all;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .stat-card-mobile-cash {
+    background: linear-gradient(180deg, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.04) 100%);
+    border: 1px solid rgba(16,185,129,0.25);
+  }
+  .stat-card-mobile-cash:hover {
+    background: linear-gradient(180deg, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.08) 100%);
+  }
+
+  .mobile-cash-value {
+    @apply font-mono font-bold text-lg;
+    color: #10b981;
+    text-shadow: 0 0 12px rgba(16,185,129,0.4);
+  }
+
+  .mobile-time-value {
+    @apply font-bold text-lg text-white;
+  }
+
+  .mobile-goal-value {
+    @apply font-bold text-lg;
+  }
+
+  .stat-label-mobile {
+    @apply flex items-center justify-center gap-1 text-xs;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .menu-stat-card {
+    @apply px-4 py-2 rounded-lg text-center;
+    background: rgba(255,255,255,0.05);
+  }
+
+  .menu-cash-value {
+    @apply font-mono font-bold;
+    color: #10b981;
+  }
+
+  .menu-time-value {
+    @apply font-bold text-white;
+  }
+
+  .menu-goal-value {
+    @apply font-bold;
+  }
+
   .metric-card {
     @apply bg-card rounded-lg p-4;
     border: 2px solid hsl(30 25% 30%);

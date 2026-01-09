@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { Play, Sparkles, ShieldCheck, Calculator, FileText, BarChart3, Search, TrendingUp } from 'lucide-react';
+import { Sparkles, ShieldCheck, Calculator, FileText, BarChart3, Search, TrendingUp } from 'lucide-react';
 import heroImage from '@assets/image_1767847036185.png';
 import Footer from '@/components/Footer';
 
@@ -70,10 +70,6 @@ export default function Landing() {
                   </button>
                 </Link>
 
-                <button className="flex items-center gap-2 text-gray-200 hover:text-white transition-colors text-sm" data-testid="button-watch-video">
-                  <Play className="w-4 h-4" />
-                  Watch how it works (60 sec)
-                </button>
               </div>
             </div>
 

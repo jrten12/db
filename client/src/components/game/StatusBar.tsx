@@ -1,7 +1,7 @@
 import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
-import { Menu, Home, X, Wallet } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { Menu, Home, X, Wallet, Clock, Target } from 'lucide-react';
+import { useEffect, useState, useRef, type ReactNode } from 'react';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 
 interface StatusBarProps {
@@ -12,169 +12,203 @@ interface StatusBarProps {
   onOpenLedger?: () => void;
 }
 
-function ScoreboardValue({
-  value,
-  className,
-  children,
-}: {
-  value: string | number;
+function AnimatedNumber({ value, prefix = '', suffix = '', className = '' }: { 
+  value: number | string; 
+  prefix?: string; 
+  suffix?: string;
   className?: string;
-  children: ReactNode;
 }) {
-  const [animate, setAnimate] = useState(false);
-
+  const [isFlipping, setIsFlipping] = useState(false);
+  const prevValue = useRef(value);
+  
   useEffect(() => {
-    setAnimate(true);
-    const timeout = setTimeout(() => setAnimate(false), 450);
-    return () => clearTimeout(timeout);
+    if (String(value) !== String(prevValue.current)) {
+      setIsFlipping(true);
+      prevValue.current = value;
+      const timeout = setTimeout(() => setIsFlipping(false), 400);
+      return () => clearTimeout(timeout);
+    }
   }, [value]);
 
+  const valueStr = String(value);
+  const digits = valueStr.split('');
+  
   return (
-    <span className={`scoreboard-value ${animate ? 'scoreboard-flip' : ''} ${className ?? ''}`}>
-      {children}
+    <span className={`animated-number ${className}`}>
+      {prefix && <span className="number-prefix">{prefix}</span>}
+      <span className={`flip-number-container ${isFlipping ? 'flipping' : ''}`}>
+        {digits.map((digit, i) => (
+          <span 
+            key={i} 
+            className="flip-digit"
+            style={{ animationDelay: `${i * 20}ms` }}
+          >
+            {digit}
+          </span>
+        ))}
+      </span>
+      {suffix && <span className="number-suffix">{suffix}</span>}
     </span>
+  );
+}
+
+function StatCard({ 
+  icon: Icon, 
+  label, 
+  children, 
+  variant = 'default',
+  onClick,
+  testId
+}: { 
+  icon: React.ElementType; 
+  label: string; 
+  children: ReactNode;
+  variant?: 'default' | 'cash' | 'time' | 'goal';
+  onClick?: () => void;
+  testId?: string;
+}) {
+  const variants = {
+    default: 'stat-card-default',
+    cash: 'stat-card-cash',
+    time: 'stat-card-time',
+    goal: 'stat-card-goal'
+  };
+
+  const Component = onClick ? 'button' : 'div';
+  
+  return (
+    <Component 
+      className={`stat-card ${variants[variant]}`}
+      onClick={onClick}
+      data-testid={testId}
+    >
+      <div className="stat-card-header">
+        <Icon className="stat-card-icon" />
+        <span className="stat-card-label">{label}</span>
+      </div>
+      <div className="stat-card-value">
+        {children}
+      </div>
+    </Component>
   );
 }
 
 export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger }: StatusBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const cashDisplay = Math.floor(cash).toLocaleString();
+
   return (
     <>
-      <div className="status-bar safe-area-top" data-testid="status-bar">
+      <div className="modern-status-bar safe-area-top" data-testid="status-bar">
         <div className="max-w-7xl mx-auto px-4 py-3">
           {/* Desktop Layout */}
-          <div className="hidden md:flex items-center gap-8">
-            {/* Logo - Large and Prominent */}
+          <div className="hidden md:flex items-center gap-6">
+            {/* Logo */}
             <Link href="/">
               <div className="relative group cursor-pointer">
+                <div className="absolute -inset-1 bg-emerald-500/20 rounded-2xl blur-md group-hover:bg-emerald-500/30 transition-colors" />
                 <img 
                   src={logo} 
                   alt="Dealbreak: Real Estate Simulator" 
-                  className="h-24 w-24 rounded-2xl shadow-2xl transition-all duration-300 group-hover:scale-105"
+                  className="relative h-20 w-20 rounded-xl shadow-2xl transition-all duration-300 group-hover:scale-105"
                   style={{
-                    boxShadow: '0 8px 40px rgba(0,0,0,0.5), 0 0 0 3px rgba(212,175,55,0.4), 0 0 20px rgba(212,175,55,0.2)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 0 2px rgba(16,185,129,0.3)',
                   }}
                   data-testid="game-logo"
                 />
-                <div className="absolute inset-0 rounded-2xl bg-gold/0 group-hover:bg-gold/10 transition-colors" />
               </div>
             </Link>
             
-            {/* Stats - Glass Cards */}
-            <div className="flex items-center gap-4 flex-1">
-              <button 
+            {/* Stats */}
+            <div className="flex items-center gap-3 flex-1">
+              <StatCard 
+                icon={Wallet} 
+                label="CASH" 
+                variant="cash"
                 onClick={onOpenLedger}
-                className="px-5 py-3 bg-white/5 backdrop-blur-md rounded-xl border border-white/10 hover:bg-white/10 transition-colors cursor-pointer text-left" 
-                data-testid="status-cash"
+                testId="status-cash"
               >
-                <div className="flex items-center gap-1 text-gray-400 text-xs font-medium uppercase tracking-wider mb-0.5">
-                  Cash <Wallet className="w-3 h-3" />
-                </div>
-                <div>
-                  <ScoreboardValue value={cash} className="text-gold font-bold text-2xl font-mono">
-                    {formatCurrency(cash)}
-                  </ScoreboardValue>
-                </div>
-              </button>
+                <AnimatedNumber value={cashDisplay} prefix="$" className="cash-value" />
+              </StatCard>
               
-              <div className="px-5 py-3 bg-white/5 backdrop-blur-md rounded-xl border border-white/10" data-testid="status-time">
-                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-0.5">Time Left</div>
-                <div className="text-white font-bold text-2xl">
-                  <ScoreboardValue value={weeksRemaining} className="text-white font-bold text-2xl">
-                    {weeksRemaining}
-                  </ScoreboardValue>{' '}
-                  <span className="text-base font-normal text-gray-400">Weeks</span>
-                </div>
-              </div>
+              <StatCard icon={Clock} label="TIME LEFT" variant="time" testId="status-time">
+                <AnimatedNumber value={weeksRemaining} suffix=" Weeks" className="time-value" />
+              </StatCard>
               
-              <div className="px-5 py-3 bg-white/5 backdrop-blur-md rounded-xl border border-white/10" data-testid="status-goal">
-                <div className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-0.5">Goal</div>
-                <div className="text-white font-bold text-2xl">
-                  <ScoreboardValue
-                    value={`${profitableDeals}-${goalDeals}`}
-                    className="text-white font-bold text-2xl"
-                  >
-                    <span className="text-emerald-400">{profitableDeals}</span>
-                    <span className="text-gray-500">/</span>
-                    {goalDeals}
-                  </ScoreboardValue>{' '}
-                  <span className="text-base font-normal text-gray-400">Profitable</span>
-                </div>
-              </div>
+              <StatCard icon={Target} label="GOAL" variant="goal" testId="status-goal">
+                <span className="goal-value">
+                  <span className="goal-current">{profitableDeals}</span>
+                  <span className="goal-divider">/</span>
+                  <span className="goal-target">{goalDeals}</span>
+                  <span className="goal-label"> Profitable</span>
+                </span>
+              </StatCard>
             </div>
 
-            {/* Menu Button - Desktop */}
+            {/* Menu Button */}
             <button
               onClick={() => setMenuOpen(true)}
-              className="p-3 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-xl border border-white/10 text-gray-300 hover:text-white transition-all"
+              className="menu-button"
               data-testid="button-menu-desktop"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5" />
             </button>
           </div>
 
           {/* Mobile Layout */}
           <div className="md:hidden">
-            {/* Top Row - Logo and Menu */}
+            {/* Top Row */}
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setMenuOpen(true)}
-                className="p-2 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-lg border border-white/10 text-gray-300"
+                className="menu-button-mobile"
                 data-testid="button-menu-mobile"
               >
                 <Menu className="w-5 h-5" />
               </button>
               
               <Link href="/">
-                <img 
-                  src={logo} 
-                  alt="Dealbreak: Real Estate Simulator" 
-                  className="h-16 w-16 rounded-xl shadow-2xl"
-                  style={{
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 0 2px rgba(212,175,55,0.4), 0 0 15px rgba(212,175,55,0.2)',
-                  }}
-                  data-testid="game-logo-mobile"
-                />
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-emerald-500/20 rounded-xl blur-sm" />
+                  <img 
+                    src={logo} 
+                    alt="Dealbreak" 
+                    className="relative h-14 w-14 rounded-lg shadow-2xl"
+                    style={{
+                      boxShadow: '0 6px 24px rgba(0,0,0,0.5), 0 0 0 2px rgba(16,185,129,0.3)',
+                    }}
+                    data-testid="game-logo-mobile"
+                  />
+                </div>
               </Link>
               
               <div className="w-9" />
             </div>
             
-            {/* Bottom Row - Stats in glass cards */}
+            {/* Mobile Stats */}
             <div className="flex items-stretch justify-between gap-2">
               <button 
                 onClick={onOpenLedger}
-                className="flex-1 px-3 py-2 bg-white/5 backdrop-blur-md rounded-lg border border-white/10 text-center hover:bg-white/10 transition-colors" 
+                className="stat-card-mobile stat-card-mobile-cash"
                 data-testid="status-cash-mobile"
               >
-                <div>
-                  <ScoreboardValue value={cash} className="text-gold font-bold font-mono text-lg">
-                    {formatCurrency(cash)}
-                  </ScoreboardValue>
+                <AnimatedNumber value={cashDisplay} prefix="$" className="mobile-cash-value" />
+                <div className="stat-label-mobile">
+                  <Wallet className="w-3 h-3" /> Cash
                 </div>
-                <div className="text-gray-400 text-xs flex items-center justify-center gap-1">Cash <Wallet className="w-3 h-3" /></div>
               </button>
               
-              <div className="flex-1 px-3 py-2 bg-white/5 backdrop-blur-md rounded-lg border border-white/10 text-center" data-testid="status-time-mobile">
-                <div>
-                  <ScoreboardValue value={weeksRemaining} className="text-white font-bold text-lg">
-                    {weeksRemaining}W
-                  </ScoreboardValue>
-                </div>
-                <div className="text-gray-400 text-xs">Time</div>
+              <div className="stat-card-mobile stat-card-mobile-time" data-testid="status-time-mobile">
+                <AnimatedNumber value={weeksRemaining} suffix="W" className="mobile-time-value" />
+                <div className="stat-label-mobile">Time</div>
               </div>
               
-              <div className="flex-1 px-3 py-2 bg-white/5 backdrop-blur-md rounded-lg border border-white/10 text-center" data-testid="status-goal-mobile">
-                <div>
-                  <ScoreboardValue
-                    value={`${profitableDeals}-${goalDeals}`}
-                    className="text-white font-bold text-lg"
-                  >
-                    <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
-                  </ScoreboardValue>
-                </div>
-                <div className="text-gray-400 text-xs">Deals</div>
+              <div className="stat-card-mobile stat-card-mobile-goal" data-testid="status-goal-mobile">
+                <span className="mobile-goal-value">
+                  <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
+                </span>
+                <div className="stat-label-mobile">Deals</div>
               </div>
             </div>
           </div>
@@ -183,9 +217,8 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
 
       {/* Menu Overlay */}
       {menuOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm" data-testid="menu-overlay">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md" data-testid="menu-overlay">
           <div className="flex flex-col items-center justify-center min-h-screen p-4">
-            {/* Close Button */}
             <button
               onClick={() => setMenuOpen(false)}
               className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
@@ -194,17 +227,18 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               <X className="w-6 h-6" />
             </button>
 
-            {/* Logo */}
-            <img 
-              src={logo} 
-              alt="Dealbreak" 
-              className="w-40 h-40 rounded-3xl shadow-2xl mb-8"
-              style={{
-                boxShadow: '0 12px 60px rgba(0,0,0,0.6), 0 0 0 4px rgba(212,175,55,0.5), 0 0 40px rgba(212,175,55,0.3)',
-              }}
-            />
+            <div className="relative mb-8">
+              <div className="absolute -inset-4 bg-emerald-500/20 rounded-3xl blur-xl" />
+              <img 
+                src={logo} 
+                alt="Dealbreak" 
+                className="relative w-36 h-36 rounded-2xl shadow-2xl"
+                style={{
+                  boxShadow: '0 12px 60px rgba(0,0,0,0.6), 0 0 0 3px rgba(16,185,129,0.4)',
+                }}
+              />
+            </div>
 
-            {/* Menu Items */}
             <div className="space-y-4 w-full max-w-xs">
               <Link href="/">
                 <button
@@ -226,33 +260,19 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               </button>
             </div>
 
-            {/* Game Stats in Menu */}
             <div className="mt-8 flex gap-4">
-              <div className="px-4 py-2 bg-white/5 rounded-lg text-center">
-                <div>
-                  <ScoreboardValue value={cash} className="text-gold font-bold font-mono">
-                    {formatCurrency(cash)}
-                  </ScoreboardValue>
-                </div>
+              <div className="menu-stat-card">
+                <AnimatedNumber value={cashDisplay} prefix="$" className="menu-cash-value" />
                 <div className="text-gray-500 text-xs">Cash</div>
               </div>
-              <div className="px-4 py-2 bg-white/5 rounded-lg text-center">
-                <div>
-                  <ScoreboardValue value={weeksRemaining} className="text-white font-bold">
-                    {weeksRemaining}W
-                  </ScoreboardValue>
-                </div>
+              <div className="menu-stat-card">
+                <span className="menu-time-value">{weeksRemaining}W</span>
                 <div className="text-gray-500 text-xs">Left</div>
               </div>
-              <div className="px-4 py-2 bg-white/5 rounded-lg text-center">
-                <div>
-                  <ScoreboardValue
-                    value={`${profitableDeals}-${goalDeals}`}
-                    className="text-white font-bold"
-                  >
-                    {profitableDeals}/{goalDeals}
-                  </ScoreboardValue>
-                </div>
+              <div className="menu-stat-card">
+                <span className="menu-goal-value">
+                  <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
+                </span>
                 <div className="text-gray-500 text-xs">Deals</div>
               </div>
             </div>

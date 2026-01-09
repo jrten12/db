@@ -1,5 +1,6 @@
 import { ProFormaOutputs, formatCurrency } from '@/lib/gameData';
 import { TrendingDown, TrendingUp, AlertTriangle, HelpCircle, Lightbulb, X, Check } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import mortgageIcon from '@assets/generated_images/mortgage_document_game_icon.png';
 import coinsIcon from '@assets/generated_images/gold_coins_stack_icon.png';
 
@@ -201,7 +202,22 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                     {isGoodCapRate ? (
                       <Check className="w-6 h-6 text-emerald-400" />
                     ) : (
-                      <HelpCircle className="w-6 h-6 text-blue-400" />
+                      <TooltipProvider delayDuration={100}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button className="cursor-help">
+                              <HelpCircle className="w-6 h-6 text-blue-400 hover:text-blue-300 transition-colors" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4">
+                            <div className="space-y-2">
+                              <p className="font-semibold text-blue-400">What is Cap Rate?</p>
+                              <p className="text-gray-300">Cap Rate (Capitalization Rate) measures your property's return if you paid all cash - no mortgage. It's calculated as Net Operating Income ÷ Property Value.</p>
+                              <p className="text-emerald-400 text-xs mt-2">→ Most investors look for 6-10% cap rates. Below 6% means you're paying a premium for the property.</p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                     <div>
                       <div className="text-gray-400 text-sm">Cap Rate</div>
@@ -242,7 +258,22 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <HelpCircle className="w-6 h-6 text-blue-400" />
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button className="cursor-help">
+                            <HelpCircle className="w-6 h-6 text-blue-400 hover:text-blue-300 transition-colors" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4">
+                          <div className="space-y-2">
+                            <p className="font-semibold text-blue-400">What is Hold Time?</p>
+                            <p className="text-gray-300">Hold Time is how long you own the property before selling. Every week costs money - loan interest, taxes, insurance, utilities. The longer you hold, the more these "carrying costs" eat into your profit.</p>
+                            <p className="text-emerald-400 text-xs mt-2">→ For flips, aim for 12-16 weeks max. Longer holds mean more risk and lower returns.</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <div>
                       <div className="text-gray-400 text-sm">Hold Time</div>
                       <div className="text-2xl font-bold font-mono text-white">
@@ -321,9 +352,9 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                   </p>
                   <p className="text-gray-400 mt-2">
                     {isPositiveCashFlow && isGoodCashOnCash 
-                      ? `This deal works because your rent estimate of ${formatCurrency(inputs.expectedRent)}/mo covers all expenses with margin. Your ${inputs.vacancyRate}% vacancy buffer and ${inputs.contingencyPct}% contingency provide protection.`
+                      ? `This deal works because your rent covers all expenses with margin. Your vacancy buffer and contingency provide protection against surprises.`
                       : !isPositiveCashFlow 
-                        ? `This deal fails because your rent estimate of ${formatCurrency(inputs.expectedRent)}/mo doesn't cover expenses. Consider: Is rent too optimistic? Are operating costs (${formatCurrency(outputs.operatingExpenses)}/yr) too high? Is the purchase price (${formatCurrency(outputs.totalInvestment)}) too steep?`
+                        ? `This deal fails because rent doesn't cover your mortgage and expenses. Consider: Is rent too optimistic? Is the purchase price too high? Are you using the right financing?`
                         : `This deal has positive cash flow but ${outputs.cashOnCash.toFixed(1)}% CoC is below the 8% threshold. Your capital would work harder elsewhere. Consider negotiating a lower price or finding higher rents.`
                     }
                   </p>
@@ -338,9 +369,9 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                   </p>
                   <p className="text-gray-400 mt-2">
                     {isPositiveProfit && isGoodROI
-                      ? `This deal works because your ARV estimate of ${formatCurrency(inputs.expectedARV)} minus costs leaves ${formatCurrency(flipProfit)} profit. Your ${inputs.contingencyPct}% contingency helps protect the margin.`
+                      ? `This deal works because your ARV estimate minus all costs leaves ${formatCurrency(flipProfit)} profit. Your contingency helps protect this margin.`
                       : !isPositiveProfit
-                        ? `This deal loses money. Either your ARV (${formatCurrency(inputs.expectedARV)}) is too optimistic, rehab (${formatCurrency(inputs.rehabCosts)}) is underestimated, or the purchase price is too high. Check your assumptions.`
+                        ? `This deal loses money. Either your ARV is too optimistic, rehab costs are underestimated, or the purchase price is too high. Check your assumptions.`
                         : `Profit is positive but ${flipROI.toFixed(1)}% ROI is below the 20% threshold. This margin is too thin to absorb surprises. You need more spread between purchase price and ARV.`
                     }
                   </p>

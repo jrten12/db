@@ -35,9 +35,14 @@ export function LedgerPanel({ entries, startingCash, onClose }: LedgerPanelProps
     new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
 
-  const currentBalance = entries.length > 0 
-    ? entries.reduce((_, e) => e.balanceAfter, startingCash)
+  const firstEntry = sortedEntries[0];
+  const lastEntry = sortedEntries[sortedEntries.length - 1];
+  
+  const computedStartingBalance = firstEntry 
+    ? firstEntry.balanceAfter + (firstEntry.direction === 'debit' ? firstEntry.amount : -firstEntry.amount)
     : startingCash;
+
+  const currentBalance = lastEntry ? lastEntry.balanceAfter : computedStartingBalance;
 
   const totalDebits = entries
     .filter(e => e.direction === 'debit')
@@ -67,7 +72,7 @@ export function LedgerPanel({ entries, startingCash, onClose }: LedgerPanelProps
         <div className="grid grid-cols-3 gap-4 p-4 border-b border-slate-700">
           <div className="bg-slate-800/50 rounded-xl p-3 text-center">
             <div className="text-gray-400 text-xs mb-1">Starting</div>
-            <div className="text-white font-bold font-mono">{formatCurrency(startingCash)}</div>
+            <div className="text-white font-bold font-mono">{formatCurrency(computedStartingBalance)}</div>
           </div>
           <div className="bg-red-500/10 rounded-xl p-3 text-center border border-red-500/30">
             <div className="text-red-400 text-xs mb-1">Total Spent</div>

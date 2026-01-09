@@ -1,7 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
 import { MapPin, HelpCircle, Eye, AlertTriangle, Lock } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Property } from '@shared/schema';
 
 interface PropertySelectorProps {
@@ -95,23 +94,10 @@ export function PropertySelector({ properties, selectedId, onSelect }: PropertyS
 
                 {/* Question mark overlay - invites investigation */}
                 <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 cursor-help">
-                          <HelpCircle className="w-4 h-4 text-amber-400" />
-                          <span className="text-xs text-white">Investigate</span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
-                        <div className="space-y-2">
-                          <p className="font-semibold text-amber-400">Due Diligence</p>
-                          <p className="text-gray-300">Click to investigate this property. You can pay for market studies, appraisals, and contractor walkthroughs to reveal hidden information like actual rent potential, true after-repair value, and realistic rehab costs.</p>
-                          <p className="text-emerald-400 text-xs mt-2">→ Each investigation costs time and money, but reduces your risk of nasty surprises.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 cursor-help" title="Click to investigate this property and reveal hidden financial information">
+                    <HelpCircle className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs text-white">Investigate</span>
+                  </div>
                 </div>
               </div>
 

@@ -131,7 +131,12 @@ export default function Game() {
         diligenceMap[inv.propertyId].push(inv.investigationType);
       }
     }
-    setCompletedDiligence(diligenceMap);
+    setCompletedDiligence(prev => {
+      const prevStr = JSON.stringify(prev);
+      const newStr = JSON.stringify(diligenceMap);
+      if (prevStr === newStr) return prev;
+      return diligenceMap;
+    });
   }, [investigations]);
 
   const selectedProperty = properties.find(p => p.id === selectedPropertyId);

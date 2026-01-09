@@ -80,7 +80,7 @@ export function PropertyDetail({
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
   const [selectedImageKey, setSelectedImageKey] = useState<'front' | 'side' | 'back'>('front');
   const [pendingDiligence, setPendingDiligence] = useState<DiligenceOption | null>(null);
-  const { shouldAnimate, animationAmount, triggerAnimation, resetAnimation } = useMoneyAnimation();
+  const { animationKey, triggerAnimation, resetAnimation } = useMoneyAnimation();
 
   const imageSet = getPropertyImageSet(property.name);
   const galleryImages = [
@@ -626,8 +626,7 @@ export function PropertyDetail({
 
       {/* Money Animation */}
       <MoneyAnimation 
-        trigger={shouldAnimate} 
-        amount={animationAmount} 
+        trigger={animationKey} 
         onComplete={resetAnimation}
       />
     </div>

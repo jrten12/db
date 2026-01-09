@@ -1,10 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { DollarSign } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 interface MoneyAnimationProps {
-  trigger: boolean;
-  amount?: number;
+  trigger: number;
   onComplete?: () => void;
 }
 
@@ -14,108 +13,110 @@ interface Bill {
   endX: number;
   delay: number;
   rotation: number;
-  scale: number;
 }
 
-export function MoneyAnimation({ trigger, amount, onComplete }: MoneyAnimationProps) {
+export function MoneyAnimation({ trigger, onComplete }: MoneyAnimationProps) {
   const [bills, setBills] = useState<Bill[]>([]);
-  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
-    if (trigger && !isAnimating) {
-      setIsAnimating(true);
-      const billCount = Math.min(Math.max(6, Math.floor((amount || 100) / 30)), 15);
+    if (trigger > 0) {
+      const billCount = Math.min(Math.max(8, Math.floor(trigger / 25)), 18);
       const newBills: Bill[] = [];
       
       for (let i = 0; i < billCount; i++) {
         newBills.push({
-          id: Date.now() + i,
-          startX: Math.random() * 120 - 60,
-          endX: Math.random() * 200 - 100,
-          delay: i * 0.12,
-          rotation: Math.random() * 40 - 20,
-          scale: 1 + Math.random() * 0.4,
+          id: Date.now() + i + Math.random(),
+          startX: (Math.random() - 0.5) * 100,
+          endX: (Math.random() - 0.5) * 250,
+          delay: i * 0.08,
+          rotation: (Math.random() - 0.5) * 60,
         });
       }
       
       setBills(newBills);
       
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setBills([]);
-        setIsAnimating(false);
         onComplete?.();
-      }, 2500);
+      }, 2200);
+
+      return () => clearTimeout(timer);
     }
-  }, [trigger, amount, onComplete, isAnimating]);
+  }, [trigger, onComplete]);
+
+  if (bills.length === 0) return null;
 
   return (
-    <AnimatePresence>
-      {bills.map((bill) => (
-        <motion.div
-          key={bill.id}
-          className="fixed pointer-events-none z-[9999]"
-          initial={{ 
-            opacity: 0,
-            y: 0,
-            x: bill.startX,
-            scale: 0.3,
-            rotate: 0,
-          }}
-          animate={{ 
-            opacity: [0, 1, 1, 1, 0],
-            y: -300,
-            x: bill.endX,
-            scale: bill.scale,
-            rotate: bill.rotation,
-          }}
-          exit={{ opacity: 0 }}
-          transition={{
-            duration: 1.8,
-            delay: bill.delay,
-            ease: "easeOut",
-            opacity: { times: [0, 0.1, 0.4, 0.8, 1], duration: 1.8 },
-          }}
-          style={{
-            top: '45%',
-            left: '50%',
-            marginLeft: '-32px',
-          }}
-        >
-          <div className="relative drop-shadow-2xl">
+    <div className="fixed inset-0 pointer-events-none z-[9999] overflow-hidden">
+      <AnimatePresence>
+        {bills.map((bill) => (
+          <motion.div
+            key={bill.id}
+            className="absolute"
+            style={{
+              top: '50%',
+              left: '50%',
+            }}
+            initial={{ 
+              opacity: 0,
+              y: 20,
+              x: bill.startX,
+              scale: 0.5,
+              rotate: 0,
+            }}
+            animate={{ 
+              opacity: [0, 1, 1, 1, 0.8, 0],
+              y: -350,
+              x: bill.endX,
+              scale: [0.5, 1.2, 1],
+              rotate: bill.rotation,
+            }}
+            transition={{
+              duration: 1.6,
+              delay: bill.delay,
+              ease: "easeOut",
+              opacity: { 
+                times: [0, 0.1, 0.3, 0.6, 0.85, 1],
+                duration: 1.6,
+              },
+              scale: {
+                times: [0, 0.2, 0.4],
+                duration: 0.6,
+              }
+            }}
+          >
             <div 
-              className="w-16 h-10 rounded-md flex items-center justify-center border-2 border-emerald-300"
+              className="w-14 h-9 rounded flex items-center justify-center"
               style={{
-                background: 'linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%)',
-                boxShadow: '0 4px 20px rgba(16, 185, 129, 0.6), 0 0 40px rgba(16, 185, 129, 0.3)',
+                background: 'linear-gradient(145deg, #4ade80 0%, #22c55e 40%, #16a34a 100%)',
+                border: '2px solid #86efac',
+                boxShadow: '0 0 20px rgba(34, 197, 94, 0.7), 0 4px 12px rgba(0,0,0,0.3)',
               }}
             >
-              <DollarSign className="w-7 h-7 text-white drop-shadow-md" strokeWidth={3} />
+              <DollarSign className="w-6 h-6 text-white" strokeWidth={3} />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/10 to-white/30 rounded-md" />
-            <div className="absolute -inset-1 bg-emerald-400/20 rounded-lg blur-md -z-10" />
-          </div>
-        </motion.div>
-      ))}
-    </AnimatePresence>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
   );
 }
 
 export function useMoneyAnimation() {
-  const [shouldAnimate, setShouldAnimate] = useState(false);
-  const [animationAmount, setAnimationAmount] = useState(0);
+  const [animationKey, setAnimationKey] = useState(0);
 
-  const triggerAnimation = (amount: number) => {
-    setAnimationAmount(amount);
-    setShouldAnimate(true);
-  };
+  const triggerAnimation = useCallback((amount: number) => {
+    if (amount > 0) {
+      setAnimationKey(Date.now());
+    }
+  }, []);
 
-  const resetAnimation = () => {
-    setShouldAnimate(false);
-  };
+  const resetAnimation = useCallback(() => {
+    setAnimationKey(0);
+  }, []);
 
   return {
-    shouldAnimate,
-    animationAmount,
+    animationKey,
     triggerAnimation,
     resetAnimation,
   };

@@ -7,10 +7,10 @@ import type { Property } from '@shared/schema';
 
 const TERM_DEFINITIONS: Record<string, string> = {
   purchasePrice: "The price you're paying to buy the property. This is your starting point for all calculations.",
-  closingCosts: "Fees paid when the sale is finalized - includes title insurance, attorney fees, recording fees, etc. Typically 2-4% of purchase price.",
+  closingCosts: "Fees paid when the sale is finalized - includes lender's title insurance (required), attorney fees, recording fees, transfer taxes, etc. Typically 2-4% of purchase price.",
   rehabBudget: "The money you plan to spend fixing up the property - repairs, renovations, upgrades. Unknown until you do a Contractor Walkthrough.",
   contingency: "Extra buffer for unexpected costs. Things always cost more than expected! 10-20% is common for experienced investors.",
-  allInBasis: "Your total investment in the property: purchase price + closing costs + rehab + contingency. This is your break-even point - you need to beat this to profit.",
+  allInBasis: "Total Project Cost - the full cost to acquire and renovate the property: purchase price + closing costs + rehab + contingency. This is your break-even point.",
   arv: "After Repair Value (ARV) - what the property will be worth after you fix it up. Critical for flip deals. Unknown until you do a Comp Analysis.",
   downPayment: "Cash you put in upfront. The rest comes from your lender. Higher down payment = lower monthly payments but more cash tied up.",
   interestRate: "The yearly cost of borrowing money, expressed as a percentage. Hard money lenders charge more (10-14%) but approve faster. Banks are cheaper (5-8%) but slower.",
@@ -407,7 +407,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <div className="bg-gradient-to-r from-blue-500/20 to-emerald-500/20 rounded-xl p-4 border border-blue-500/30">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider flex items-center">All-In Basis<InfoTooltip term="allInBasis" /></div>
+                        <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider flex items-center">Total Project Cost<InfoTooltip term="allInBasis" /></div>
                         <div className="text-white text-2xl font-bold font-mono mt-1">{formatCurrency(allInBasis)}</div>
                       </div>
                       <div className="text-right">
@@ -454,7 +454,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-gradient-to-r from-blue-500/20 to-slate-800/50 rounded-xl p-4 border border-blue-500/30">
-                      <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider">All-In Basis</div>
+                      <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider">Total Project Cost</div>
                       <div className="text-white text-xl font-bold font-mono mt-1">{formatCurrency(allInBasis)}</div>
                       <div className="text-gray-500 text-xs mt-1">Total cost to acquire & fix</div>
                     </div>
@@ -463,7 +463,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       <div className={`text-xl font-bold font-mono mt-1 ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {flipProfit > 0 ? '' : '-'}{formatCurrency(Math.abs(flipProfit))}
                       </div>
-                      <div className="text-gray-500 text-xs mt-1">ARV mid - All-in - Holding</div>
+                      <div className="text-gray-500 text-xs mt-1">ARV mid - Total cost - Holding</div>
                     </div>
                   </div>
                 </>
@@ -496,7 +496,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <button
                   onClick={() => {
                     handleChange('financingType', 'bank');
-                    handleChange('interestRate', 5);
+                    handleChange('interestRate', 6.5);
                     handleChange('downPaymentPct', 25);
                   }}
                   className={`p-3 rounded-xl border transition-all ${
@@ -507,7 +507,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   data-testid="button-financing-bank"
                 >
                   <div className="font-semibold text-sm">Conventional</div>
-                  <div className="text-xs opacity-70">25% down, 5% rate</div>
+                  <div className="text-xs opacity-70">25% down, 6.5% rate</div>
                 </button>
                 <button
                   onClick={() => {
@@ -957,18 +957,51 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             {/* RENTAL STRATEGY: Show Formula Waterfall */}
             {inputs.strategy === 'rent' && (
               <div className="space-y-3">
-                {/* Step 1: Effective Rent */}
+                {/* Step 1A: Gross Monthly Rent */}
                 <div className={`bg-slate-800/50 rounded-xl p-3 border transition-all ${highlightField === 'effectiveRent' ? 'border-emerald-500 shadow-lg shadow-emerald-500/20' : 'border-slate-700'}`}>
-                  <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Step 1: Effective Rent</div>
+                  <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Step 1A: Gross Monthly Rent</div>
+                  <div className="text-2xl font-bold font-mono text-emerald-400">
+                    {formatCurrency(inputs.expectedRent)}<span className="text-sm text-gray-500">/mo</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Market rent for this property</div>
+                </div>
+
+                {/* Arrow Down */}
+                <div className="flex justify-center">
+                  <div className="text-gray-600">↓</div>
+                </div>
+
+                {/* Step 1B: Vacancy Reserve */}
+                <div className={`bg-slate-800/50 rounded-xl p-3 border transition-all ${highlightField === 'effectiveRent' ? 'border-red-500 shadow-lg shadow-red-500/20' : 'border-slate-700'}`}>
+                  <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Step 1B: Vacancy Reserve ({inputs.vacancyRate}%)</div>
                   {showFormulas && (
                     <div className="text-xs font-mono text-gray-500 mb-2">
-                      ${inputs.expectedRent.toLocaleString()} × (100% - {inputs.vacancyRate}%)
+                      ${inputs.expectedRent.toLocaleString()} × {inputs.vacancyRate}%
+                    </div>
+                  )}
+                  <div className="text-2xl font-bold font-mono text-red-400">
+                    -{formatCurrency(inputs.expectedRent * inputs.vacancyRate / 100)}<span className="text-sm text-gray-500">/mo</span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Months between tenants, turnover costs</div>
+                </div>
+
+                {/* Arrow Down */}
+                <div className="flex justify-center">
+                  <div className="text-gray-600">↓</div>
+                </div>
+
+                {/* Result: Average Monthly Rent Income */}
+                <div className="bg-emerald-500/10 rounded-xl p-3 border border-emerald-500/30">
+                  <div className="text-emerald-400 text-xs uppercase tracking-wider font-semibold mb-1">= Average Monthly Rent Income</div>
+                  {showFormulas && (
+                    <div className="text-xs font-mono text-gray-400 mb-2">
+                      {formatCurrency(inputs.expectedRent)} - {formatCurrency(inputs.expectedRent * inputs.vacancyRate / 100)}
                     </div>
                   )}
                   <div className="text-2xl font-bold font-mono text-emerald-400">
                     = {formatCurrency(effectiveRent)}<span className="text-sm text-gray-500">/mo</span>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">What you actually collect after vacancy</div>
+                  <div className="text-xs text-emerald-500/70 mt-1">What you actually collect over time</div>
                 </div>
 
                 {/* Arrow Down */}
@@ -1042,7 +1075,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             {inputs.strategy === 'flip' && (
               <div className="space-y-3">
                 <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">All-In Basis</div>
+                  <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Total Project Cost</div>
                   {showFormulas && (
                     <div className="text-xs font-mono text-gray-500 mb-2">
                       Purchase + Closing + Rehab + Contingency<br/>
@@ -1052,7 +1085,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <div className="text-2xl font-bold font-mono text-amber-400">
                     = {formatCurrency(allInBasis)}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">Total money into the deal</div>
+                  <div className="text-xs text-gray-500 mt-1">Total cost to buy and renovate</div>
                 </div>
 
                 <div className="flex justify-center">
@@ -1082,7 +1115,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   </div>
                   {showFormulas && (
                     <div className="text-xs font-mono text-gray-400 mb-2">
-                      ARV - All-In - Holding Costs<br/>
+                      ARV - Total Cost - Holding Costs<br/>
                       {formatCurrency(arvMid)} - {formatCurrency(allInBasis)} - {formatCurrency(holdingCostPerWeek * inputs.rehabWeeks)}
                     </div>
                   )}
@@ -1146,7 +1179,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     </div>
                     <div className="text-gray-400 text-xs mt-1">
                       {!isViable && inputs.strategy === 'rent' && 'Expenses exceed income. Adjust assumptions.'}
-                      {!isViable && inputs.strategy === 'flip' && 'All-in basis exceeds ARV. This deal loses money.'}
+                      {!isViable && inputs.strategy === 'flip' && 'Total project cost exceeds ARV. This deal loses money.'}
                       {isViable && fragility === 'high' && inputs.vacancyRate < 5 && inputs.strategy === 'rent' && 'Low vacancy assumption. One bad tenant breaks this deal.'}
                       {isViable && fragility === 'high' && inputs.contingencyPct < 10 && 'Low contingency. Unexpected repairs will hurt.'}
                       {isViable && fragility === 'moderate' && inputs.strategy === 'rent' && `A rent miss of ${formatCurrency(150)} flips the outcome.`}

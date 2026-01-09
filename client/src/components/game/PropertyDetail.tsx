@@ -116,6 +116,11 @@ export function PropertyDetail({
       'Elmwood': 'Established, Mixed Use',
       'Hillside': 'Scenic, Quiet',
       'Westside': 'Upscale, Premium',
+      'South Street': 'Urban, Emerging',
+      'Fishtown': 'Urban, High Growth',
+      'Port Richmond': 'Urban, Working Class',
+      'Kensington': 'Urban, Value Area',
+      'Northern Liberties': 'Urban, Hot Market',
     };
     return traits[neighborhood] || 'Residential';
   };

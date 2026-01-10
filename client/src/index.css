@@ -726,6 +726,173 @@
     }
   }
 
+  /* Enhanced Trophy Tier Styles */
+  .trophy-badge {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .trophy-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 50%, rgba(0,0,0,0.2) 100%);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .trophy-badge:hover {
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  /* Bronze Trophy */
+  .trophy-bronze {
+    background: linear-gradient(145deg, #cd7f32 0%, #8b5a2b 50%, #a0522d 100%);
+    border: 3px solid #8b4513;
+    box-shadow: 
+      0 4px 12px rgba(139,69,19,0.5),
+      inset 0 2px 4px rgba(255,255,255,0.3),
+      inset 0 -2px 4px rgba(0,0,0,0.3);
+  }
+
+  .trophy-bronze::after {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 15%;
+    width: 30%;
+    height: 30%;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  /* Silver Trophy */
+  .trophy-silver {
+    background: linear-gradient(145deg, #e8e8e8 0%, #a8a8a8 40%, #c0c0c0 100%);
+    border: 3px solid #808080;
+    box-shadow: 
+      0 4px 16px rgba(128,128,128,0.6),
+      0 0 20px rgba(192,192,192,0.3),
+      inset 0 2px 4px rgba(255,255,255,0.5),
+      inset 0 -2px 4px rgba(0,0,0,0.2);
+  }
+
+  .trophy-silver::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%);
+    animation: silver-shine 3s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  @keyframes silver-shine {
+    0%, 100% { transform: translateX(-100%) rotate(45deg); opacity: 0; }
+    50% { transform: translateX(100%) rotate(45deg); opacity: 1; }
+  }
+
+  /* Gold Trophy */
+  .trophy-gold {
+    background: linear-gradient(145deg, #ffd700 0%, #daa520 40%, #ffdf00 70%, #b8860b 100%);
+    border: 3px solid #b8860b;
+    box-shadow: 
+      0 4px 20px rgba(255,215,0,0.6),
+      0 0 30px rgba(255,223,0,0.4),
+      inset 0 2px 6px rgba(255,255,255,0.6),
+      inset 0 -2px 4px rgba(0,0,0,0.2);
+  }
+
+  .trophy-gold::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: gold-pulse 2s ease-in-out infinite;
+    will-change: opacity;
+    z-index: 0;
+  }
+
+  .trophy-gold::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%);
+    animation: gold-sparkle 4s linear infinite;
+    will-change: transform;
+    z-index: 1;
+  }
+
+  @keyframes gold-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+  }
+
+  @keyframes gold-sparkle {
+    0% { transform: translateX(-50%) translateY(-50%) rotate(45deg); }
+    100% { transform: translateX(50%) translateY(50%) rotate(45deg); }
+  }
+
+  /* Trophy Card Styles */
+  .trophy-card {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .trophy-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+    transform: rotate(45deg);
+    transition: all 0.5s ease;
+  }
+
+  .trophy-card:hover::before {
+    left: 100%;
+  }
+
+  .trophy-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+  }
+
+  /* Earned Trophy Glow */
+  .trophy-earned {
+    position: relative;
+  }
+
+  .trophy-earned::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    background: conic-gradient(from 0deg, transparent, currentColor, transparent);
+    animation: trophy-ring-spin 3s linear infinite;
+    opacity: 0.3;
+    z-index: -1;
+  }
+
+  @keyframes trophy-ring-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
   /* Success indicator backgrounds */
   .trophy-success-bg {
     background: linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.1) 100%);

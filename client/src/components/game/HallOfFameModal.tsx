@@ -24,32 +24,38 @@ const iconMap: Record<string, React.ElementType> = {
   'building': Building,
 };
 
-const tierColors: Record<string, string> = {
-  bronze: 'from-amber-700 to-amber-900 border-amber-600',
-  silver: 'from-gray-300 to-gray-500 border-gray-400',
-  gold: 'from-yellow-400 to-amber-500 border-yellow-300',
+const tierClasses: Record<string, string> = {
+  bronze: 'trophy-bronze',
+  silver: 'trophy-silver',
+  gold: 'trophy-gold',
 };
 
 const tierBgColors: Record<string, string> = {
-  bronze: 'bg-amber-700/20',
-  silver: 'bg-gray-400/20',
-  gold: 'bg-yellow-400/20',
+  bronze: 'bg-gradient-to-br from-amber-900/30 to-amber-700/20 border-amber-700/50',
+  silver: 'bg-gradient-to-br from-gray-600/30 to-gray-400/20 border-gray-500/50',
+  gold: 'bg-gradient-to-br from-yellow-600/30 to-amber-500/20 border-yellow-500/50',
 };
 
-function TrophyBadge({ trophyId, size = 'md' }: { trophyId: string; size?: 'sm' | 'md' }) {
+const tierLabelColors: Record<string, string> = {
+  bronze: 'text-amber-400',
+  silver: 'text-gray-300',
+  gold: 'text-yellow-400',
+};
+
+function TrophyBadge({ trophyId, size = 'md', earned = true }: { trophyId: string; size?: 'sm' | 'md' | 'lg'; earned?: boolean }) {
   const trophy = trophyTypes.find(t => t.id === trophyId);
   if (!trophy) return null;
 
   const Icon = iconMap[trophy.icon] || Trophy;
-  const sizeClasses = size === 'sm' ? 'w-8 h-8' : 'w-12 h-12';
-  const iconSize = size === 'sm' ? 'w-4 h-4' : 'w-6 h-6';
+  const sizeClasses = size === 'sm' ? 'w-10 h-10' : size === 'lg' ? 'w-16 h-16' : 'w-14 h-14';
+  const iconSize = size === 'sm' ? 'w-5 h-5' : size === 'lg' ? 'w-8 h-8' : 'w-7 h-7';
 
   return (
     <div
-      className={`${sizeClasses} rounded-full bg-gradient-to-br ${tierColors[trophy.tier]} border-2 flex items-center justify-center shadow-lg`}
+      className={`trophy-badge ${sizeClasses} ${tierClasses[trophy.tier]} ${earned ? '' : 'opacity-40 grayscale'}`}
       title={`${trophy.name}: ${trophy.description}`}
     >
-      <Icon className={`${iconSize} text-white drop-shadow`} />
+      <Icon className={`${iconSize} text-white drop-shadow-lg relative z-10`} />
     </div>
   );
 }
@@ -103,30 +109,90 @@ function PlayerCard({ player, rank }: { player: HallOfFamePlayer & { trophies: P
 }
 
 function TrophyShowcase() {
+  const groupedTrophies = {
+    gold: trophyTypes.filter(t => t.tier === 'gold'),
+    silver: trophyTypes.filter(t => t.tier === 'silver'),
+    bronze: trophyTypes.filter(t => t.tier === 'bronze'),
+  };
+
   return (
     <div className="mt-8 pt-6 border-t border-white/10">
-      <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-        <Trophy className="w-5 h-5 text-gold" />
-        Available Trophies
+      <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <Trophy className="w-6 h-6 text-gold trophy-icon-gold" />
+        Trophy Collection
       </h3>
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {trophyTypes.map((trophy) => {
-          const Icon = iconMap[trophy.icon] || Trophy;
-          return (
-            <div
-              key={trophy.id}
-              className={`p-3 rounded-xl ${tierBgColors[trophy.tier]} border border-white/10 text-center`}
-            >
-              <div className={`w-12 h-12 mx-auto rounded-full bg-gradient-to-br ${tierColors[trophy.tier]} border-2 flex items-center justify-center shadow-lg mb-2`}>
-                <Icon className="w-6 h-6 text-white drop-shadow" />
+      {/* Gold Trophies */}
+      {groupedTrophies.gold.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-3 h-3 rounded-full trophy-gold" />
+            <span className="text-yellow-400 font-semibold text-sm uppercase tracking-wide">Legendary</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {groupedTrophies.gold.map((trophy) => (
+              <div
+                key={trophy.id}
+                className={`trophy-card p-4 rounded-xl ${tierBgColors.gold} border flex items-center gap-4`}
+              >
+                <TrophyBadge trophyId={trophy.id} size="lg" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-yellow-400 font-bold">{trophy.name}</div>
+                  <div className="text-gray-400 text-sm">{trophy.description}</div>
+                </div>
               </div>
-              <div className="text-white font-medium text-sm">{trophy.name}</div>
-              <div className="text-gray-400 text-xs mt-1">{trophy.description}</div>
-            </div>
-          );
-        })}
-      </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Silver Trophies */}
+      {groupedTrophies.silver.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-3 h-3 rounded-full trophy-silver" />
+            <span className="text-gray-300 font-semibold text-sm uppercase tracking-wide">Elite</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {groupedTrophies.silver.map((trophy) => (
+              <div
+                key={trophy.id}
+                className={`trophy-card p-4 rounded-xl ${tierBgColors.silver} border flex items-center gap-4`}
+              >
+                <TrophyBadge trophyId={trophy.id} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-gray-200 font-bold">{trophy.name}</div>
+                  <div className="text-gray-400 text-sm">{trophy.description}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Bronze Trophies */}
+      {groupedTrophies.bronze.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-3 h-3 rounded-full trophy-bronze" />
+            <span className="text-amber-400 font-semibold text-sm uppercase tracking-wide">Starter</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {groupedTrophies.bronze.map((trophy) => (
+              <div
+                key={trophy.id}
+                className={`trophy-card p-3 rounded-xl ${tierBgColors.bronze} border text-center`}
+              >
+                <div className="flex justify-center mb-2">
+                  <TrophyBadge trophyId={trophy.id} size="md" />
+                </div>
+                <div className="text-amber-300 font-medium text-sm">{trophy.name}</div>
+                <div className="text-gray-500 text-xs mt-1">{trophy.description}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

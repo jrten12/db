@@ -34,7 +34,7 @@ const TERM_DEFINITIONS: Record<string, string> = {
   noi: "Net Operating Income (NOI) - Annual rental income minus operating expenses (taxes, insurance, maintenance, management). Does NOT include mortgage payments.",
   debtService: "Monthly mortgage payment including principal and interest. This comes out of your NOI to determine cash flow.",
   leverage: "Using borrowed money to buy property. More leverage = less cash upfront but higher risk. Banks typically require 20-25% down.",
-  loanOriginationFees: "Upfront fees to get the loan - points, origination fees, underwriting. Typically 1-3% of loan amount. Hard money lenders charge more (3-5%). This is cash you need at closing.",
+  loanOriginationFees: "Upfront fees to get the loan - points, origination fees, underwriting. Set automatically: Bank loans 1.5%, Hard money 4%. This is cash you need at closing.",
   sellingCosts: "Cost to sell the property after rehab - realtor commission (5-6%), title insurance, transfer taxes, closing costs. Total is typically 8-10% of sale price. Many new flippers forget this!",
   unknownRent: "Rent is unknown until you complete a Market Rent Study. Without it, you're just guessing what tenants will pay!",
   unknownRehab: "Rehab costs and timeline are unknown until you complete a Contractor Walkthrough. Guessing renovation costs is dangerous!",
@@ -530,6 +530,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     handleChange('financingType', 'bank');
                     handleChange('interestRate', 6.5);
                     handleChange('downPaymentPct', 25);
+                    handleChange('loanOriginationPct', 1.5);
                   }}
                   className={`p-3 rounded-xl border transition-all ${
                     inputs.financingType === 'bank'
@@ -539,13 +540,14 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   data-testid="button-financing-bank"
                 >
                   <div className="font-semibold text-sm">Conventional</div>
-                  <div className="text-xs opacity-70">25% down, 6.5% rate</div>
+                  <div className="text-xs opacity-70">25% down, 6.5% rate, 1.5% fees</div>
                 </button>
                 <button
                   onClick={() => {
                     handleChange('financingType', 'hard-money');
                     handleChange('interestRate', 12);
                     handleChange('downPaymentPct', 10);
+                    handleChange('loanOriginationPct', 4);
                   }}
                   className={`p-3 rounded-xl border transition-all ${
                     inputs.financingType === 'hard-money'
@@ -555,7 +557,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   data-testid="button-financing-hard-money"
                 >
                   <div className="font-semibold text-sm">Hard Money</div>
-                  <div className="text-xs opacity-70">10% down, 12% rate</div>
+                  <div className="text-xs opacity-70">10% down, 12% rate, 4% fees</div>
                 </button>
               </div>
 
@@ -584,28 +586,9 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <span className="text-white font-mono">{inputs.interestRate}%</span>
                 </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-xs flex items-center">Loan Origination Fees<InfoTooltip term="loanOriginationFees" /></span>
-                    <span className="text-white font-mono text-sm">{inputs.loanOriginationPct}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="5"
-                    step="0.5"
-                    value={inputs.loanOriginationPct}
-                    onChange={(e) => handleChange('loanOriginationPct', Number(e.target.value))}
-                    className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, #10b981 0%, #10b981 ${inputs.loanOriginationPct * 20}%, #334155 ${inputs.loanOriginationPct * 20}%, #334155 100%)`
-                    }}
-                    data-testid="input-loan-origination"
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>0% (unusual)</span>
-                    <span>5% (hard money)</span>
-                  </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-400 flex items-center">Loan Origination Fees<InfoTooltip term="loanOriginationFees" /></span>
+                  <span className="text-white font-mono">{inputs.loanOriginationPct}%</span>
                 </div>
               </div>
 

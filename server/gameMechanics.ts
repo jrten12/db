@@ -152,8 +152,19 @@ export async function completeFlipDeal(
 ): Promise<FlipSaleResult> {
   const proFormaOutputs = deal.proFormaOutputs as any;
 
-  // Base sale price from pro forma
-  let salePrice = proFormaOutputs.arv || 0;
+  // Get property to access ARV range for randomization
+  const property = await storage.getProperty(deal.propertyId);
+  
+  // Randomize sale price between property's ARV min and max
+  // This creates realistic market variation in flip outcomes
+  let salePrice: number;
+  if (property && property.arvMin && property.arvMax) {
+    salePrice = Math.round(property.arvMin + Math.random() * (property.arvMax - property.arvMin));
+  } else {
+    // Fallback to pro forma ARV if property not found
+    salePrice = proFormaOutputs.arv || 0;
+  }
+  
   let cashImpact = curveball?.cashImpact || 0;
 
   // Apply curveball bonus/penalty

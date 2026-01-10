@@ -171,28 +171,32 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
               {strategy === 'rent' ? (
                 <>
                   <div className="flex items-center gap-3">
-                    {isPositiveCashFlow ? (
-                      <TrendingUp className="w-6 h-6 text-emerald-400" />
-                    ) : (
-                      <TrendingDown className="w-6 h-6 text-red-400" />
-                    )}
+                    <div className="trophy-icon-container" style={{ padding: '0.75rem' }}>
+                      {isPositiveCashFlow ? (
+                        <TrendingUp className="w-6 h-6 text-emerald-400 trophy-icon-success" />
+                      ) : (
+                        <TrendingDown className="w-6 h-6 text-red-400 trophy-icon-danger" />
+                      )}
+                    </div>
                     <div>
                       <div className="text-gray-400 text-sm">Monthly Cash Flow</div>
-                      <div className={`text-2xl font-bold font-mono ${isPositiveCashFlow ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <div className={`text-2xl font-bold font-mono ${isPositiveCashFlow ? 'text-emerald-400' : 'text-red-400'}`} style={{ filter: isPositiveCashFlow ? 'drop-shadow(0 0 8px rgba(16,185,129,0.5))' : 'drop-shadow(0 0 8px rgba(239,68,68,0.4))' }}>
                         {isPositiveCashFlow ? '' : '-'}{formatCurrency(Math.abs(outputs.cashFlowMonthly))}/mo
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    {isGoodCashOnCash ? (
-                      <Check className="w-6 h-6 text-emerald-400" />
-                    ) : (
-                      <AlertTriangle className="w-6 h-6 text-amber-400" />
-                    )}
+                    <div className="trophy-icon-container" style={{ padding: '0.75rem' }}>
+                      {isGoodCashOnCash ? (
+                        <Check className="w-6 h-6 text-emerald-400 trophy-icon-success" />
+                      ) : (
+                        <AlertTriangle className="w-6 h-6 text-amber-400 trophy-icon-warning" />
+                      )}
+                    </div>
                     <div>
                       <div className="text-gray-400 text-sm">Cash-on-Cash Return</div>
-                      <div className={`text-2xl font-bold font-mono ${outputs.cashOnCash > 0 ? (isGoodCashOnCash ? 'text-emerald-400' : 'text-amber-400') : 'text-red-400'}`}>
+                      <div className={`text-2xl font-bold font-mono ${outputs.cashOnCash > 0 ? (isGoodCashOnCash ? 'text-emerald-400' : 'text-amber-400') : 'text-red-400'}`} style={{ filter: outputs.cashOnCash > 0 ? (isGoodCashOnCash ? 'drop-shadow(0 0 8px rgba(16,185,129,0.5))' : 'drop-shadow(0 0 8px rgba(251,191,36,0.4))') : 'drop-shadow(0 0 8px rgba(239,68,68,0.4))' }}>
                         {outputs.cashOnCash.toFixed(1)}%
                       </div>
                     </div>
@@ -228,28 +232,32 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
               ) : (
                 <>
                   <div className="flex items-center gap-3">
-                    {isPositiveProfit ? (
-                      <TrendingUp className="w-6 h-6 text-emerald-400" />
-                    ) : (
-                      <TrendingDown className="w-6 h-6 text-red-400" />
-                    )}
+                    <div className="trophy-icon-container" style={{ padding: '0.75rem' }}>
+                      {isPositiveProfit ? (
+                        <TrendingUp className="w-6 h-6 text-emerald-400 trophy-icon-success" />
+                      ) : (
+                        <TrendingDown className="w-6 h-6 text-red-400 trophy-icon-danger" />
+                      )}
+                    </div>
                     <div>
                       <div className="text-gray-400 text-sm">Projected Profit</div>
-                      <div className={`text-2xl font-bold font-mono ${isPositiveProfit ? 'text-emerald-400' : 'text-red-400'}`}>
+                      <div className={`text-2xl font-bold font-mono ${isPositiveProfit ? 'text-emerald-400' : 'text-red-400'}`} style={{ filter: isPositiveProfit ? 'drop-shadow(0 0 8px rgba(16,185,129,0.5))' : 'drop-shadow(0 0 8px rgba(239,68,68,0.4))' }}>
                         {isPositiveProfit ? '' : '-'}{formatCurrency(Math.abs(flipProfit))}
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    {isGoodROI ? (
-                      <Check className="w-6 h-6 text-emerald-400" />
-                    ) : (
-                      <AlertTriangle className="w-6 h-6 text-amber-400" />
-                    )}
+                    <div className="trophy-icon-container" style={{ padding: '0.75rem' }}>
+                      {isGoodROI ? (
+                        <Check className="w-6 h-6 text-emerald-400 trophy-icon-success" />
+                      ) : (
+                        <AlertTriangle className="w-6 h-6 text-amber-400 trophy-icon-warning" />
+                      )}
+                    </div>
                     <div>
                       <div className="text-gray-400 text-sm">Return on Investment</div>
-                      <div className={`text-2xl font-bold font-mono ${flipROI > 0 ? (isGoodROI ? 'text-emerald-400' : 'text-amber-400') : 'text-red-400'}`}>
+                      <div className={`text-2xl font-bold font-mono ${flipROI > 0 ? (isGoodROI ? 'text-emerald-400' : 'text-amber-400') : 'text-red-400'}`} style={{ filter: flipROI > 0 ? (isGoodROI ? 'drop-shadow(0 0 8px rgba(16,185,129,0.5))' : 'drop-shadow(0 0 8px rgba(251,191,36,0.4))') : 'drop-shadow(0 0 8px rgba(239,68,68,0.4))' }}>
                         {flipROI.toFixed(1)}%
                       </div>
                     </div>
@@ -312,27 +320,33 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                   : 'bg-red-500/10 border-red-500/50')
           }`} data-testid="deal-verdict">
             <div className="flex items-center gap-3 mb-3">
-              {strategy === 'rent' ? (
-                isPositiveCashFlow && isGoodCashOnCash ? (
-                  <Check className="w-8 h-8 text-emerald-400" />
+              <div className="trophy-icon-container" style={{ padding: '1rem' }}>
+                {strategy === 'rent' ? (
+                  isPositiveCashFlow && isGoodCashOnCash ? (
+                    <Check className="w-8 h-8 text-emerald-400 trophy-icon-success" />
+                  ) : (
+                    <X className="w-8 h-8 text-red-400 trophy-icon-danger" />
+                  )
                 ) : (
-                  <X className="w-8 h-8 text-red-400" />
-                )
-              ) : (
-                isPositiveProfit && isGoodROI ? (
-                  <Check className="w-8 h-8 text-emerald-400" />
-                ) : (
-                  <X className="w-8 h-8 text-red-400" />
-                )
-              )}
+                  isPositiveProfit && isGoodROI ? (
+                    <Check className="w-8 h-8 text-emerald-400 trophy-icon-success" />
+                  ) : (
+                    <X className="w-8 h-8 text-red-400 trophy-icon-danger" />
+                  )
+                )}
+              </div>
               <h3 className={`text-xl font-bold ${
                 strategy === 'rent'
                   ? (isPositiveCashFlow && isGoodCashOnCash ? 'text-emerald-400' : 'text-red-400')
                   : (isPositiveProfit && isGoodROI ? 'text-emerald-400' : 'text-red-400')
-              }`}>
-                {strategy === 'rent' 
-                  ? (isPositiveCashFlow && isGoodCashOnCash ? 'Deal Meets Rental Thresholds' : 'Deal Fails Rental Thresholds')
-                  : (isPositiveProfit && isGoodROI ? 'Deal Meets Flip Thresholds' : 'Deal Fails Flip Thresholds')
+              }`} style={{
+                filter: (strategy === 'rent' ? (isPositiveCashFlow && isGoodCashOnCash) : (isPositiveProfit && isGoodROI))
+                  ? 'drop-shadow(0 0 12px rgba(16,185,129,0.6))'
+                  : 'drop-shadow(0 0 12px rgba(239,68,68,0.5))'
+              }}>
+                {strategy === 'rent'
+                  ? (isPositiveCashFlow && isGoodCashOnCash ? '🏆 Deal Meets Rental Thresholds' : '❌ Deal Fails Rental Thresholds')
+                  : (isPositiveProfit && isGoodROI ? '🏆 Deal Meets Flip Thresholds' : '❌ Deal Fails Flip Thresholds')
                 }
               </h3>
             </div>

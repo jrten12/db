@@ -50,7 +50,7 @@ export const defaultProForma: ProFormaInputs = {
   rehabWeeks: 8,
   contingencyPct: 10,
   financingType: 'bank',
-  interestRate: 5,
+  interestRate: 6.5,
   downPaymentPct: 25,
   loanOriginationPct: 2,
   sellingCostsPct: 8,

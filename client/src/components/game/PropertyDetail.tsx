@@ -3,7 +3,8 @@ import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Sh
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImageSet, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { Property } from '@shared/schema';
 
 const UNKNOWN_VALUE_TOOLTIPS: Record<string, { title: string; explanation: string; action: string }> = {
@@ -37,20 +38,18 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
   }
   
   return (
-    <TooltipProvider delayDuration={100}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="cursor-help">{children}</div>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
-          <div className="space-y-2">
-            <p className="font-semibold text-amber-400">{tooltip.title}</p>
-            <p className="text-gray-300">{tooltip.explanation}</p>
-            <p className="text-emerald-400 text-xs mt-2">→ {tooltip.action}</p>
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" className="cursor-help touch-manipulation active:opacity-70">{children}</button>
+      </PopoverTrigger>
+      <PopoverContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4 z-[100]">
+        <div className="space-y-2">
+          <p className="font-semibold text-amber-400">{tooltip.title}</p>
+          <p className="text-gray-300">{tooltip.explanation}</p>
+          <p className="text-emerald-400 text-xs mt-2">→ {tooltip.action}</p>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -79,6 +78,7 @@ export function PropertyDetail({
   const [financing, setFinancing] = useState<'bank' | 'hard-money'>('bank');
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
   const [selectedImageKey, setSelectedImageKey] = useState<'front' | 'side' | 'back'>('front');
+  const [pendingDiligence, setPendingDiligence] = useState<DiligenceOption | null>(null);
 
   const imageSet = getPropertyImageSet(property.name);
   const galleryImages = [
@@ -91,10 +91,21 @@ export function PropertyDetail({
   const revealedIssues = getRevealedIssues(property.name, completedDiligence);
   const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
 
-  const handleDiligence = (option: DiligenceOption) => {
-    if (!completedDiligence.includes(option.id) && onDiligencePurchase) {
-      onDiligencePurchase(property.id, option.id, option.cost, option.timeWeeks);
+  const handleDiligenceClick = (option: DiligenceOption) => {
+    if (!completedDiligence.includes(option.id)) {
+      setPendingDiligence(option);
     }
+  };
+
+  const handleConfirmDiligence = () => {
+    if (pendingDiligence && onDiligencePurchase) {
+      onDiligencePurchase(property.id, pendingDiligence.id, pendingDiligence.cost, pendingDiligence.timeWeeks);
+    }
+    setPendingDiligence(null);
+  };
+
+  const handleCancelDiligence = () => {
+    setPendingDiligence(null);
   };
 
   const getConditionDescription = (condition: string) => {
@@ -116,6 +127,11 @@ export function PropertyDetail({
       'Elmwood': 'Established, Mixed Use',
       'Hillside': 'Scenic, Quiet',
       'Westside': 'Upscale, Premium',
+      'South Street': 'Urban, Emerging',
+      'Fishtown': 'Urban, High Growth',
+      'Port Richmond': 'Urban, Working Class',
+      'Kensington': 'Urban, Value Area',
+      'Northern Liberties': 'Urban, Hot Market',
     };
     return traits[neighborhood] || 'Residential';
   };
@@ -222,22 +238,20 @@ export function PropertyDetail({
               {/* Unknown Financials Section */}
               <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-600/50">
                 <h4 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button className="cursor-help">
-                          <HelpCircle className="w-4 h-4 text-amber-400 hover:text-amber-300 transition-colors" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
-                        <div className="space-y-2">
-                          <p className="font-semibold text-amber-400">Why These Are Estimates</p>
-                          <p className="text-gray-300">These financial numbers are uncertain until you do your homework. In real estate, guessing wrong on rent, repair costs, or timeline can turn a "great deal" into a money pit.</p>
-                          <p className="text-emerald-400 text-xs mt-2">→ Complete due diligence investigations below to narrow down these ranges and reduce your risk.</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button type="button" className="cursor-help touch-manipulation p-2 -m-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
+                        <HelpCircle className="w-4 h-4 text-amber-400 hover:text-amber-300 transition-colors" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent side="right" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
+                      <div className="space-y-2">
+                        <p className="font-semibold text-amber-400">Why These Are Estimates</p>
+                        <p className="text-gray-300">These financial numbers are uncertain until you do your homework. In real estate, guessing wrong on rent, repair costs, or timeline can turn a "great deal" into a money pit.</p>
+                        <p className="text-emerald-400 text-xs mt-2">→ Complete due diligence investigations below to narrow down these ranges and reduce your risk.</p>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   Financial Estimates
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
@@ -302,7 +316,7 @@ export function PropertyDetail({
                     return (
                       <button
                         key={option.id}
-                        onClick={() => handleDiligence(option)}
+                        onClick={() => handleDiligenceClick(option)}
                         disabled={isDisabled}
                         className={`w-full text-left p-3 rounded-xl transition-all border ${
                           isCompleted
@@ -556,6 +570,56 @@ export function PropertyDetail({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog for Due Diligence Purchase */}
+      <AlertDialog open={!!pendingDiligence} onOpenChange={(open) => !open && handleCancelDiligence()}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700 max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white text-lg">
+              Confirm Investigation
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              {pendingDiligence && (
+                <div className="space-y-4 mt-2">
+                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                    <div className="font-semibold text-gray-200 mb-2">{pendingDiligence.name}</div>
+                    <p className="text-sm text-gray-400 mb-3">{pendingDiligence.reveals}</p>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-400">Cost:</span>
+                      <span className="text-red-400 font-mono font-bold">-{formatCurrency(pendingDiligence.cost)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm mt-1">
+                      <span className="text-gray-400">Time:</span>
+                      <span className="text-amber-400 font-mono">
+                        -{pendingDiligence.timeWeeks < 1 
+                          ? `${Math.round(pendingDiligence.timeWeeks * 7)} days` 
+                          : `${pendingDiligence.timeWeeks} week${pendingDiligence.timeWeeks !== 1 ? 's' : ''}`}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-amber-400/80 italic">
+                    This will be deducted from your cash and time immediately.
+                  </p>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-3">
+            <AlertDialogCancel 
+              onClick={handleCancelDiligence}
+              className="bg-slate-700 hover:bg-slate-600 text-gray-200 border-slate-600"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDiligence}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white"
+            >
+              Confirm Purchase
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

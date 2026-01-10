@@ -23,6 +23,7 @@ export const gameRuns = pgTable("game_runs", {
   difficulty: text("difficulty").notNull().default("apprentice"),
   cash: integer("cash").notNull().default(30000),
   weeksRemaining: integer("weeks_remaining").notNull().default(7),
+  currentWeek: integer("current_week").notNull().default(0), // Track progression through game
   profitableDeals: integer("profitable_deals").notNull().default(0),
   goalDeals: integer("goal_deals").notNull().default(3),
   status: text("status").notNull().default("active"),
@@ -67,12 +68,15 @@ export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
   gameRunId: integer("game_run_id").notNull().references(() => gameRuns.id),
   propertyId: integer("property_id").notNull().references(() => properties.id),
-  strategy: text("strategy").notNull(),
+  strategy: text("strategy").notNull(), // 'flip' | 'rental'
   proFormaInputs: jsonb("pro_forma_inputs").notNull(),
   proFormaOutputs: jsonb("pro_forma_outputs").notNull(),
   actualProfit: integer("actual_profit"),
-  status: text("status").notNull().default("planned"),
+  status: text("status").notNull().default("planned"), // 'planned' | 'in_rehab' | 'leasing' | 'active_rental' | 'listing' | 'completed'
   weeksSpent: integer("weeks_spent"),
+  weeksUntilCompletion: integer("weeks_until_completion"), // For flips in rehab
+  weeklyIncome: integer("weekly_income"), // For active rentals (cash flow per week)
+  lastIncomePaymentWeek: integer("last_income_payment_week"), // Track when last rent was paid
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
 });
@@ -130,3 +134,26 @@ export const insertLedgerEntrySchema = createInsertSchema(ledgerEntries).omit({
 
 export type LedgerEntry = typeof ledgerEntries.$inferSelect;
 export type InsertLedgerEntry = z.infer<typeof insertLedgerEntrySchema>;
+
+export const curveballEvents = pgTable("curveball_events", {
+  id: serial("id").primaryKey(),
+  gameRunId: integer("game_run_id").notNull().references(() => gameRuns.id),
+  dealId: integer("deal_id").references(() => deals.id),
+  curveballId: text("curveball_id").notNull(), // ID from curveballs.ts
+  name: text("name").notNull(),
+  type: text("type").notNull(), // 'positive' | 'negative' | 'neutral'
+  description: text("description").notNull(),
+  cashImpact: integer("cash_impact"), // Positive = gain, Negative = cost
+  timeImpact: integer("time_impact"), // In weeks
+  emoji: text("emoji"),
+  gameWeek: integer("game_week").notNull(), // When it occurred
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCurveballEventSchema = createInsertSchema(curveballEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type CurveballEvent = typeof curveballEvents.$inferSelect;
+export type InsertCurveballEvent = z.infer<typeof insertCurveballEventSchema>;

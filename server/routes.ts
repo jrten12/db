@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema } from "@shared/schema";
 import { z } from "zod";
+import * as gameMechanics from "./gameMechanics";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -159,16 +160,116 @@ export async function registerRoutes(
   app.post("/api/game-runs/:id/ledger", async (req, res) => {
     try {
       const gameRunId = parseInt(req.params.id);
-      const { entries, currentCash } = req.body as { 
+      const { entries, currentCash } = req.body as {
         entries: Array<{ direction: string; category: string; amount: number; description: string; propertyId?: number; dealId?: number }>;
         currentCash: number;
       };
-      
+
       const result = await storage.createLedgerEntriesWithCashUpdate(gameRunId, entries, currentCash);
       res.json(result);
     } catch (error) {
       console.error("Error creating ledger entries:", error);
       res.status(500).json({ error: "Failed to create ledger entries" });
+    }
+  });
+
+  // Advance game by one week (process income, complete deals, trigger events)
+  app.post("/api/game-runs/:id/advance-week", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const result = await gameMechanics.advanceGameWeek(gameRunId);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error advancing game week:", error);
+      res.status(500).json({ error: error.message || "Failed to advance game week" });
+    }
+  });
+
+  // Activate a rental property (after leasing)
+  app.post("/api/deals/:id/activate-rental", async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { gameRunId, monthlyCashFlow } = req.body as {
+        gameRunId: number;
+        monthlyCashFlow: number;
+      };
+
+      const deal = await storage.getDealsByGameRun(gameRunId);
+      const targetDeal = deal.find(d => d.id === dealId);
+      if (!targetDeal) {
+        res.status(404).json({ error: "Deal not found" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const updatedDeal = await gameMechanics.activateRentalProperty(
+        targetDeal,
+        gameRun,
+        monthlyCashFlow
+      );
+      res.json(updatedDeal);
+    } catch (error: any) {
+      console.error("Error activating rental:", error);
+      res.status(500).json({ error: error.message || "Failed to activate rental" });
+    }
+  });
+
+  // Start flip rehab period
+  app.post("/api/deals/:id/start-rehab", async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { gameRunId, rehabWeeks } = req.body as {
+        gameRunId: number;
+        rehabWeeks: number;
+      };
+
+      const deals = await storage.getDealsByGameRun(gameRunId);
+      const targetDeal = deals.find(d => d.id === dealId);
+      if (!targetDeal) {
+        res.status(404).json({ error: "Deal not found" });
+        return;
+      }
+
+      const updatedDeal = await gameMechanics.startFlipRehab(targetDeal, rehabWeeks);
+      res.json(updatedDeal);
+    } catch (error: any) {
+      console.error("Error starting rehab:", error);
+      res.status(500).json({ error: error.message || "Failed to start rehab" });
+    }
+  });
+
+  // Complete a flip deal manually (for testing or immediate completion)
+  app.post("/api/deals/:id/complete-flip", async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { gameRunId, curveball } = req.body as {
+        gameRunId: number;
+        curveball?: any;
+      };
+
+      const deals = await storage.getDealsByGameRun(gameRunId);
+      const targetDeal = deals.find(d => d.id === dealId);
+      if (!targetDeal) {
+        res.status(404).json({ error: "Deal not found" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const result = await gameMechanics.completeFlipDeal(targetDeal, gameRun, curveball);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error completing flip:", error);
+      res.status(500).json({ error: error.message || "Failed to complete flip" });
     }
   });
 

@@ -14,6 +14,7 @@ import * as schema from '@shared/schema';
 import { db } from './storage';
 import { eq } from 'drizzle-orm';
 import { rollForCurveball } from '../client/src/lib/curveballs';
+import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue } from '@shared/propertyIssues';
 
 /**
  * Check and award trophies based on game state
@@ -113,6 +114,8 @@ export async function checkAndAwardTrophies(
 interface FlipSaleResult {
   salePrice: number;
   profit: number;
+  surpriseCosts: number;
+  surpriseIssues: string[];
   curveball?: {
     name: string;
     description: string;
@@ -164,9 +167,15 @@ export async function completeFlipDeal(
   
   // Check if player did due diligence (appraisal = comp analysis)
   const investigations = await storage.getPropertyInvestigations(gameRun.id);
-  const didComps = investigations.some(
-    inv => inv.propertyId === deal.propertyId && inv.investigationType === 'appraisal'
-  );
+  const completedDiligence = investigations
+    .filter(inv => inv.propertyId === deal.propertyId)
+    .map(inv => inv.investigationType);
+  const didComps = completedDiligence.includes('appraisal');
+  
+  // Check for undiscovered property issues (surprise repair costs!)
+  const propertyName = property?.name || '';
+  const undiscoveredIssues = getUndiscoveredIssues(propertyName, completedDiligence);
+  const surpriseCosts = undiscoveredIssues.length > 0 ? calculateSurpriseCosts(undiscoveredIssues) : 0;
   
   // Calculate sale price based on due diligence and rehab investment
   let salePrice: number;
@@ -236,12 +245,22 @@ export async function completeFlipDeal(
     });
   }
 
-  // Calculate profit (sale price - all-in cost)
+  // Calculate profit (sale price - all-in cost - surprise repair costs)
+  // Surprise costs are also reflected in ledger debit, which correctly updates cash.
+  // Both systems track this expense: ledger for cash flow, profit for ROI metrics.
+  // This is not double-counting because:
+  // - Ledger tracks cash balance: +salePrice - surpriseCosts
+  // - Profit tracks ROI: salePrice - allInCost - surpriseCosts
+  // allInCost was the player's total investment (including rehab budget they committed to)
+  // surpriseCosts are ADDITIONAL expenses discovered during flip
   const allInCost = proFormaOutputs.allInBasis || 0;
-  const profit = salePrice - allInCost;
+  const profit = salePrice - allInCost - surpriseCosts;
 
-  // Create ledger entry for sale proceeds
-  const ledgerEntry: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'> = {
+  // Create ledger entries - sale proceeds and any surprise costs
+  const ledgerEntries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[] = [];
+  
+  // Sale proceeds entry
+  ledgerEntries.push({
     direction: 'credit',
     category: 'income',
     amount: salePrice,
@@ -250,7 +269,20 @@ export async function completeFlipDeal(
       : `Flip sale proceeds - ${deal.propertyId}`,
     propertyId: deal.propertyId,
     dealId: deal.id,
-  };
+  });
+  
+  // Surprise repair costs entry (if any undiscovered issues)
+  if (surpriseCosts > 0) {
+    const issueNames = undiscoveredIssues.map(i => i.name).join(', ');
+    ledgerEntries.push({
+      direction: 'debit',
+      category: 'expense',
+      amount: surpriseCosts,
+      description: `⚠️ Surprise repairs discovered: ${issueNames}`,
+      propertyId: deal.propertyId,
+      dealId: deal.id,
+    });
+  }
 
   // Fetch current cash balance to avoid stale data issues
   const currentGameRun = await storage.getGameRun(gameRun.id);
@@ -258,7 +290,7 @@ export async function completeFlipDeal(
 
   const { newCash } = await storage.createLedgerEntriesWithCashUpdate(
     gameRun.id,
-    [ledgerEntry],
+    ledgerEntries,
     currentCash
   );
 
@@ -290,6 +322,8 @@ export async function completeFlipDeal(
   return {
     salePrice,
     profit,
+    surpriseCosts,
+    surpriseIssues: undiscoveredIssues.map(i => i.name),
     curveball: curveball ? {
       name: curveball.name,
       description: curveball.description,

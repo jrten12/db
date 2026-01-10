@@ -606,17 +606,27 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               <div className="bg-slate-800/50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-400 text-xs">Leverage Level</span>
-                  <span className={`text-xs font-semibold ${
-                    leverageLevel === 'high' ? 'text-red-400' : leverageLevel === 'moderate' ? 'text-amber-400' : 'text-emerald-400'
-                  }`}>{leverageLevel.toUpperCase()}</span>
+                  {hasAppraisal ? (
+                    <span className={`text-xs font-semibold ${
+                      leverageLevel === 'high' ? 'text-red-400' : leverageLevel === 'moderate' ? 'text-amber-400' : 'text-emerald-400'
+                    }`}>{leverageLevel.toUpperCase()}</span>
+                  ) : (
+                    <span className="text-amber-400 text-xs flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> Do comps first
+                    </span>
+                  )}
                 </div>
                 <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full transition-all duration-300 ${
-                      leverageLevel === 'high' ? 'bg-red-500' : leverageLevel === 'moderate' ? 'bg-amber-500' : 'bg-emerald-500'
-                    }`}
-                    style={{ width: `${leverageRatio * 100}%` }}
-                  />
+                  {hasAppraisal ? (
+                    <div 
+                      className={`h-full transition-all duration-300 ${
+                        leverageLevel === 'high' ? 'bg-red-500' : leverageLevel === 'moderate' ? 'bg-amber-500' : 'bg-emerald-500'
+                      }`}
+                      style={{ width: `${leverageRatio * 100}%` }}
+                    />
+                  ) : (
+                    <div className="h-full bg-slate-600 w-full" />
+                  )}
                 </div>
               </div>
             </div>

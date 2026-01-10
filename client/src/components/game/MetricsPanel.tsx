@@ -77,13 +77,27 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
               Complete Pro Forma to Unlock
             </p>
           </div>
-        ) : (
+        ) : strategy === 'rent' ? (
           <div className="space-y-4">
             <div className="text-center">
               <div className={`text-3xl font-bold font-mono ${cashFlowNegative ? 'text-danger' : 'text-success'}`}>
                 {outputs ? formatCurrency(outputs.cashFlowMonthly) : '$0'}/mo
               </div>
               <div className="text-muted-foreground text-sm mt-1">Monthly Cash Flow</div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="text-center">
+              <div className={`text-3xl font-bold font-mono ${flipProfit < 0 ? 'text-danger' : 'text-success'}`}>
+                {formatCurrency(flipProfit)}
+              </div>
+              <div className="text-muted-foreground text-sm mt-1">Flip Profit</div>
+            </div>
+            <div className="text-center">
+              <div className={`text-xl font-bold font-mono ${flipROI < STRATEGY_THRESHOLDS.flip.roi ? 'text-warning' : 'text-success'}`}>
+                {flipROI.toFixed(1)}% ROI
+              </div>
             </div>
           </div>
         )}

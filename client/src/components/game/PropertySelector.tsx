@@ -172,8 +172,20 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                   <span className="text-sm">{property.neighborhood}</span>
                 </div>
                 
-                {/* Condition Badge + Unknown Financials Warning */}
+                {/* Location Badge + Condition Badge + Unknown Financials Warning */}
                 <div className="mt-3 flex flex-wrap gap-1.5">
+                  {/* Location Type Badge */}
+                  {property.locationType === 'urban' ? (
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border text-blue-400 bg-blue-500/20 border-blue-500/30">
+                      <Building2 className="w-3 h-3" />
+                      <span>Urban</span>
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border text-emerald-400 bg-emerald-500/20 border-emerald-500/30">
+                      <TreePine className="w-3 h-3" />
+                      <span>Suburban</span>
+                    </div>
+                  )}
                   <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${conditionBadge.color}`}>
                     {conditionBadge.label}
                   </div>

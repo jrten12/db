@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/gameData';
-import { getPropertyImageSet, getIssueImage } from '@/lib/propertyImages';
+import { getPropertyImage, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -132,16 +132,9 @@ export function PropertyDetail({
   const [strategy, setStrategy] = useState<'rent' | 'flip'>('rent');
   const [financing, setFinancing] = useState<'bank' | 'hard-money'>('bank');
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
-  const [selectedImageKey, setSelectedImageKey] = useState<'front' | 'side' | 'back'>('front');
   const [pendingDiligence, setPendingDiligence] = useState<DiligenceOption | null>(null);
 
-  const imageSet = getPropertyImageSet(property.name);
-  const galleryImages = [
-    { key: 'front' as const, label: 'Front View', src: imageSet.gallery.front },
-    { key: 'side' as const, label: 'Side View', src: imageSet.gallery.side },
-    { key: 'back' as const, label: 'Back View', src: imageSet.gallery.back },
-  ];
-  const propertyImage = imageSet.gallery[selectedImageKey] || imageSet.main;
+  const propertyImage = getPropertyImage(property.name);
   const allIssues = getPropertyIssues(property.name);
   const revealedIssues = getRevealedIssues(property.name, completedDiligence);
   const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
@@ -187,6 +180,12 @@ export function PropertyDetail({
       'Port Richmond': 'Urban, Working Class',
       'Kensington': 'Urban, Value Area',
       'Northern Liberties': 'Urban, Hot Market',
+      'Graduate Hospital': 'Urban, Young Professionals',
+      'Queen Village': 'Urban, Historic District',
+      'Rittenhouse Square': 'Urban, Luxury',
+      'Fairmount': 'Urban, Family-Friendly',
+      'Society Hill': 'Urban, Prestigious',
+      'Old City': 'Urban, Historic',
     };
     return traits[neighborhood] || 'Residential';
   };
@@ -256,16 +255,6 @@ export function PropertyDetail({
                 <div className="absolute bottom-4 left-4">
                   <span className="text-3xl font-bold text-white drop-shadow-lg">{formatCurrency(property.price)}</span>
                 </div>
-              </div>
-
-              {/* Thumbnails */}
-              <div className="grid grid-cols-3 gap-2">
-                {galleryImages.map((img) => (
-                  <button key={img.key} onClick={() => setSelectedImageKey(img.key)}
-                    className={`h-14 rounded-lg overflow-hidden transition-all ${selectedImageKey === img.key ? 'ring-2 ring-emerald-400' : 'opacity-70 hover:opacity-100'}`}>
-                    <img src={img.src} alt={img.label} className="w-full h-full object-cover" />
-                  </button>
-                ))}
               </div>
 
               {/* Property Stats - Fixed Facts */}

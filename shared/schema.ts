@@ -52,6 +52,7 @@ export const properties = pgTable("properties", {
   isActive: boolean("is_active").notNull().default(true),
   issuesProfile: jsonb("issues_profile"),
   locationType: text("location_type").notNull().default("suburban"),
+  propertyType: text("property_type").notNull().default("house"), // house, apartment, condo, townhouse, duplex
 });
 
 export const propertyInvestigations = pgTable("property_investigations", {

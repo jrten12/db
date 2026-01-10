@@ -1,30 +1,23 @@
 import oakwoodFront from '@assets/generated_images/properties/oakwood_cottage/front.png';
-import oakwoodSide from '@assets/generated_images/properties/oakwood_cottage/side.png';
-import oakwoodBack from '@assets/generated_images/properties/oakwood_cottage/back.png';
-
 import riversideFront from '@assets/generated_images/properties/riverside_ranch/front.png';
-import riversideSide from '@assets/generated_images/properties/riverside_ranch/side.png';
-import riversideBack from '@assets/generated_images/properties/riverside_ranch/back.png';
-
 import maplewoodFront from '@assets/generated_images/properties/maplewood_colonial/front.png';
-import maplewoodSide from '@assets/generated_images/properties/maplewood_colonial/side.png';
-import maplewoodBack from '@assets/generated_images/properties/maplewood_colonial/back.png';
-
 import downtownFront from '@assets/generated_images/properties/downtown_loft/front.png';
-import downtownSide from '@assets/generated_images/properties/downtown_loft/side.png';
-import downtownBack from '@assets/generated_images/properties/downtown_loft/back.png';
-
 import elmwoodFront from '@assets/generated_images/properties/elmwood_bungalow/front.png';
-import elmwoodSide from '@assets/generated_images/properties/elmwood_bungalow/side.png';
-import elmwoodBack from '@assets/generated_images/properties/elmwood_bungalow/back.png';
-
 import hillsideFront from '@assets/generated_images/properties/hillside_retreat/front.png';
-import hillsideSide from '@assets/generated_images/properties/hillside_retreat/side.png';
-import hillsideBack from '@assets/generated_images/properties/hillside_retreat/back.png';
-
 import westsideFront from '@assets/generated_images/properties/westside_manor/front.png';
-import westsideSide from '@assets/generated_images/properties/westside_manor/side.png';
-import westsideBack from '@assets/generated_images/properties/westside_manor/back.png';
+
+import graduateHospitalStudio from '@assets/generated_images/graduate_hospital_studio_apartment.png';
+import queenVillageTownhouse from '@assets/generated_images/queen_village_townhouse.png';
+import rittenhouseCondo from '@assets/generated_images/rittenhouse_square_condo.png';
+import fairmountDuplex from '@assets/generated_images/fairmount_duplex_building.png';
+import societyHillApartment from '@assets/generated_images/society_hill_apartment.png';
+import oldCityBrownstone from '@assets/generated_images/old_city_brownstone.png';
+
+import southStreetTwin from '@assets/generated_images/south_street_twin_house.png';
+import fishtownRowHouse from '@assets/generated_images/fishtown_row_house.png';
+import portRichmondDuplex from '@assets/generated_images/port_richmond_duplex.png';
+import kensingtonRow from '@assets/generated_images/kensington_row_house.png';
+import northernLibertiesLoft from '@assets/generated_images/northern_liberties_loft_building.png';
 
 import issueMold from '@assets/generated_images/properties/issues/mold.png';
 import issueFoundation from '@assets/generated_images/properties/issues/foundation_crack.png';
@@ -35,72 +28,25 @@ import issueHvac from '@assets/generated_images/properties/issues/hvac.png';
 import issueWaterDamage from '@assets/generated_images/properties/issues/water_damage.png';
 import issueElectrical from '@assets/generated_images/properties/issues/electrical.png';
 
-export interface PropertyImageSet {
-  main: string;
-  gallery: {
-    front: string;
-    side: string;
-    back: string;
-  };
-}
-
-const propertyImageSets: Record<string, PropertyImageSet> = {
-  'Oakwood Cottage': {
-    main: oakwoodFront,
-    gallery: {
-      front: oakwoodFront,
-      side: oakwoodSide,
-      back: oakwoodBack,
-    },
-  },
-  'Riverside Ranch': {
-    main: riversideFront,
-    gallery: {
-      front: riversideFront,
-      side: riversideSide,
-      back: riversideBack,
-    },
-  },
-  'Maplewood Colonial': {
-    main: maplewoodFront,
-    gallery: {
-      front: maplewoodFront,
-      side: maplewoodSide,
-      back: maplewoodBack,
-    },
-  },
-  'Downtown Loft': {
-    main: downtownFront,
-    gallery: {
-      front: downtownFront,
-      side: downtownSide,
-      back: downtownBack,
-    },
-  },
-  'Elmwood Bungalow': {
-    main: elmwoodFront,
-    gallery: {
-      front: elmwoodFront,
-      side: elmwoodSide,
-      back: elmwoodBack,
-    },
-  },
-  'Hillside Retreat': {
-    main: hillsideFront,
-    gallery: {
-      front: hillsideFront,
-      side: hillsideSide,
-      back: hillsideBack,
-    },
-  },
-  'Westside Manor': {
-    main: westsideFront,
-    gallery: {
-      front: westsideFront,
-      side: westsideSide,
-      back: westsideBack,
-    },
-  },
+const propertyImages: Record<string, string> = {
+  'Oakwood Cottage': oakwoodFront,
+  'Riverside Ranch': riversideFront,
+  'Maplewood Colonial': maplewoodFront,
+  'Downtown Loft': downtownFront,
+  'Elmwood Bungalow': elmwoodFront,
+  'Hillside Retreat': hillsideFront,
+  'Westside Manor': westsideFront,
+  'South Street Twin': southStreetTwin,
+  'Fishtown Row House': fishtownRowHouse,
+  'Port Richmond Duplex': portRichmondDuplex,
+  'Kensington Row': kensingtonRow,
+  'Northern Liberties Loft': northernLibertiesLoft,
+  'Graduate Hospital Studio': graduateHospitalStudio,
+  'Queen Village Townhouse': queenVillageTownhouse,
+  'Rittenhouse Square Condo': rittenhouseCondo,
+  'Fairmount Duplex': fairmountDuplex,
+  'Society Hill Apartment': societyHillApartment,
+  'Old City Brownstone': oldCityBrownstone,
 };
 
 export const issueImages: Record<string, string> = {
@@ -121,14 +67,31 @@ export const issueImages: Record<string, string> = {
   'hoa_assessment': issueFoundation,
   'cosmetic_updates': issueWaterDamage,
   'pool_equipment': issuePlumbing,
+  'elevator_issues': issueHvac,
+  'building_systems': issueHvac,
+  'parking_issues': issueFoundation,
+  'security_system': issueElectrical,
+  'roof_shared': issueRoof,
+  'historic_requirements': issueFoundation,
+  'brick_repointing': issueFoundation,
+  'narrow_lot_access': issueFoundation,
+  'high_hoa_fees': issueFoundation,
+  'hvac_high_rise': issueHvac,
+  'dual_system_updates': issueHvac,
+  'utility_separation': issueElectrical,
+  'basement_moisture': issueWaterDamage,
+  'historic_windows': issueWaterDamage,
+  'hoa_reserve_low': issueFoundation,
+  'structural_settling': issueFoundation,
+  'plumbing_replacement': issuePlumbing,
+  'electrical_upgrade': issueElectrical,
+  'roof_historic': issueRoof,
+  'hoa_assessment_pending': issueFoundation,
+  'industrial_conversion': issueHvac,
 };
 
 export const getPropertyImage = (propertyName: string): string => {
-  return propertyImageSets[propertyName]?.main || oakwoodFront;
-};
-
-export const getPropertyImageSet = (propertyName: string): PropertyImageSet => {
-  return propertyImageSets[propertyName] || propertyImageSets['Oakwood Cottage'];
+  return propertyImages[propertyName] || oakwoodFront;
 };
 
 export const getIssueImage = (issueId: string): string | null => {

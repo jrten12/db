@@ -94,7 +94,10 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entries, currentCash }),
     });
-    if (!res.ok) throw new Error('Failed to create ledger entries');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to create ledger entries');
+    }
     return res.json();
   },
 

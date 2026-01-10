@@ -165,7 +165,25 @@ export async function registerRoutes(
         currentCash: number;
       };
 
-      const result = await storage.createLedgerEntriesWithCashUpdate(gameRunId, entries, currentCash);
+      // Calculate total debits to check if player can afford this
+      const totalDebits = entries
+        .filter(e => e.direction === 'debit')
+        .reduce((sum, e) => sum + e.amount, 0);
+      
+      // Get actual current cash from database to prevent stale data issues
+      const gameRun = await storage.getGameRun(gameRunId);
+      const actualCash = gameRun?.cash ?? currentCash;
+      
+      // Prevent purchases that would put player in debt
+      if (totalDebits > actualCash) {
+        res.status(400).json({ 
+          error: "Insufficient funds", 
+          message: `You need $${totalDebits.toLocaleString()} but only have $${actualCash.toLocaleString()} available.`
+        });
+        return;
+      }
+
+      const result = await storage.createLedgerEntriesWithCashUpdate(gameRunId, entries, actualCash);
       res.json(result);
     } catch (error) {
       console.error("Error creating ledger entries:", error);

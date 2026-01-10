@@ -69,7 +69,7 @@ export function LedgerPanel({ entries, startingCash, onClose }: LedgerPanelProps
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 p-4 border-b border-slate-700">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 border-b border-slate-700">
           <div className="bg-slate-800/50 rounded-xl p-3 text-center">
             <div className="text-gray-400 text-xs mb-1">Starting</div>
             <div className="text-white font-bold font-mono">{formatCurrency(computedStartingBalance)}</div>
@@ -79,8 +79,12 @@ export function LedgerPanel({ entries, startingCash, onClose }: LedgerPanelProps
             <div className="text-red-400 font-bold font-mono">-{formatCurrency(totalDebits)}</div>
           </div>
           <div className="bg-emerald-500/10 rounded-xl p-3 text-center border border-emerald-500/30">
-            <div className="text-emerald-400 text-xs mb-1">Current Balance</div>
-            <div className="text-emerald-400 font-bold font-mono">{formatCurrency(currentBalance)}</div>
+            <div className="text-emerald-400 text-xs mb-1">Total Income</div>
+            <div className="text-emerald-400 font-bold font-mono">+{formatCurrency(totalCredits)}</div>
+          </div>
+          <div className={`rounded-xl p-3 text-center border ${currentBalance >= 0 ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
+            <div className={`text-xs mb-1 ${currentBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>Current Balance</div>
+            <div className={`font-bold font-mono ${currentBalance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{formatCurrency(currentBalance)}</div>
           </div>
         </div>
 

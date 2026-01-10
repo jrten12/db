@@ -435,8 +435,15 @@ export default function Game() {
 
       queryClient.invalidateQueries({ queryKey: ['deals'] });
       setCurrentScreen('results');
-    } catch (error) {
-      toast.error('Failed to save deal');
+    } catch (error: any) {
+      // Check for insufficient funds error
+      if (error?.message?.includes('Insufficient funds')) {
+        toast.error(error.message);
+      } else if (error?.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('Failed to save deal');
+      }
     }
   }, [gameRun, selectedProperty, proFormaOutputs, proFormaInputs, createDealMutation, createLedgerMutation, queryClient]);
 

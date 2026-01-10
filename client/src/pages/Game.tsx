@@ -8,8 +8,6 @@ import { PropertyDetail } from '@/components/game/PropertyDetail';
 import { ResultsPanel } from '@/components/game/ResultsPanel';
 import { LedgerPanel } from '@/components/game/LedgerPanel';
 import { MoneyAnimation } from '@/components/game/MoneyAnimation';
-import { 
-  ProFormaInputs, 
 import { TimeProgressionPanel } from '@/components/game/TimeProgressionPanel';
 import { IncomeNotification, useIncomeNotifications } from '@/components/game/IncomeNotification';
 import { PremiumModal } from '@/components/game/PremiumModal';
@@ -509,7 +507,6 @@ export default function Game() {
 
         <main className="max-w-7xl mx-auto px-4 py-6 md:py-8">
           {currentScreen === 'market' && (
-
             <PropertySelector
               properties={properties}
               selectedId={selectedPropertyId}
@@ -517,20 +514,6 @@ export default function Game() {
               locationFilter={locationFilter}
               onLocationFilterChange={setLocationFilter}
             />
-
-            <div className="space-y-6">
-              <TimeProgressionPanel
-                gameRun={gameRun}
-                deals={deals}
-                properties={properties}
-                onAdvanceWeek={handleAdvanceWeek}
-              />
-              <PropertySelector
-                properties={properties}
-                selectedId={selectedPropertyId}
-                onSelect={handlePropertyClick}
-              />
-            </div>
           )}
 
           {currentScreen === 'proforma' && selectedProperty && (

@@ -273,5 +273,93 @@ export async function registerRoutes(
     }
   });
 
+  // Premium purchase - Add cash
+  app.post("/api/game-runs/:id/purchase-cash", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const { amount } = req.body as { amount: number };
+
+      if (!amount || amount <= 0) {
+        res.status(400).json({ error: "Invalid amount" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const updatedGameRun = await storage.updateGameRun(gameRunId, {
+        cash: gameRun.cash + amount
+      });
+
+      res.json(updatedGameRun);
+    } catch (error: any) {
+      console.error("Error purchasing cash:", error);
+      res.status(500).json({ error: error.message || "Failed to purchase cash" });
+    }
+  });
+
+  // Premium purchase - Add weeks
+  app.post("/api/game-runs/:id/purchase-weeks", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const { amount } = req.body as { amount: number };
+
+      if (!amount || amount <= 0) {
+        res.status(400).json({ error: "Invalid amount" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const updatedGameRun = await storage.updateGameRun(gameRunId, {
+        weeksRemaining: gameRun.weeksRemaining + amount
+      });
+
+      res.json(updatedGameRun);
+    } catch (error: any) {
+      console.error("Error purchasing weeks:", error);
+      res.status(500).json({ error: error.message || "Failed to purchase weeks" });
+    }
+  });
+
+  // Premium purchase - Add bundle (cash + weeks)
+  app.post("/api/game-runs/:id/purchase-bundle", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const { cashAmount, weeksAmount } = req.body as {
+        cashAmount: number;
+        weeksAmount: number;
+      };
+
+      if ((!cashAmount || cashAmount <= 0) && (!weeksAmount || weeksAmount <= 0)) {
+        res.status(400).json({ error: "Invalid amounts" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const updatedGameRun = await storage.updateGameRun(gameRunId, {
+        cash: gameRun.cash + (cashAmount || 0),
+        weeksRemaining: gameRun.weeksRemaining + (weeksAmount || 0)
+      });
+
+      res.json(updatedGameRun);
+    } catch (error: any) {
+      console.error("Error purchasing bundle:", error);
+      res.status(500).json({ error: error.message || "Failed to purchase bundle" });
+    }
+  });
+
   return httpServer;
 }

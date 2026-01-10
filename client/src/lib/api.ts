@@ -137,4 +137,35 @@ export const api = {
     if (!res.ok) throw new Error('Failed to complete flip');
     return res.json();
   },
+
+  // Premium Purchases
+  async purchaseCash(gameRunId: number, amount: number): Promise<GameRun> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase-cash`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount }),
+    });
+    if (!res.ok) throw new Error('Failed to purchase cash');
+    return res.json();
+  },
+
+  async purchaseWeeks(gameRunId: number, amount: number): Promise<GameRun> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase-weeks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount }),
+    });
+    if (!res.ok) throw new Error('Failed to purchase weeks');
+    return res.json();
+  },
+
+  async purchaseBundle(gameRunId: number, cashAmount: number, weeksAmount: number): Promise<GameRun> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase-bundle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cashAmount, weeksAmount }),
+    });
+    if (!res.ok) throw new Error('Failed to purchase bundle');
+    return res.json();
+  },
 };

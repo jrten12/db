@@ -9,6 +9,7 @@ import { ResultsPanel } from '@/components/game/ResultsPanel';
 import { LedgerPanel } from '@/components/game/LedgerPanel';
 import { TimeProgressionPanel } from '@/components/game/TimeProgressionPanel';
 import { IncomeNotification, useIncomeNotifications } from '@/components/game/IncomeNotification';
+import { PremiumModal } from '@/components/game/PremiumModal';
 import {
   ProFormaInputs,
   ProFormaOutputs,
@@ -45,6 +46,7 @@ export default function Game() {
   const [proFormaCompletions, setProFormaCompletions] = useState<ProFormaCompletionState>({});
   const [flipMetrics, setFlipMetrics] = useState({ profit: 0, roi: 0, holdWeeks: 0 });
   const [showLedger, setShowLedger] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const STARTING_CASH = 50000;
 
   // Income notifications
@@ -121,18 +123,45 @@ export default function Game() {
   });
 
   const createLedgerMutation = useMutation({
-    mutationFn: ({ gameRunId, entries, currentCash }: { 
-      gameRunId: number; 
+    mutationFn: ({ gameRunId, entries, currentCash }: {
+      gameRunId: number;
       entries: Array<{ direction: string; category: string; amount: number; description: string; propertyId?: number; dealId?: number }>;
       currentCash: number;
     }) => api.createLedgerEntries(gameRunId, entries, currentCash),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
       if (data?.newCash !== undefined) {
-        queryClient.setQueryData(['activeGameRun'], (old: GameRun | undefined) => 
+        queryClient.setQueryData(['activeGameRun'], (old: GameRun | undefined) =>
           old ? { ...old, cash: data.newCash } : old
         );
       }
+    },
+  });
+
+  const purchaseCashMutation = useMutation({
+    mutationFn: ({ gameRunId, amount }: { gameRunId: number; amount: number }) =>
+      api.purchaseCash(gameRunId, amount),
+    onSuccess: (updatedGameRun) => {
+      queryClient.setQueryData(['activeGameRun'], updatedGameRun);
+      toast.success(`Added $${updatedGameRun.cash.toLocaleString()} cash!`);
+    },
+  });
+
+  const purchaseWeeksMutation = useMutation({
+    mutationFn: ({ gameRunId, amount }: { gameRunId: number; amount: number }) =>
+      api.purchaseWeeks(gameRunId, amount),
+    onSuccess: (updatedGameRun) => {
+      queryClient.setQueryData(['activeGameRun'], updatedGameRun);
+      toast.success(`Added ${updatedGameRun.weeksRemaining} weeks!`);
+    },
+  });
+
+  const purchaseBundleMutation = useMutation({
+    mutationFn: ({ gameRunId, cashAmount, weeksAmount }: { gameRunId: number; cashAmount: number; weeksAmount: number }) =>
+      api.purchaseBundle(gameRunId, cashAmount, weeksAmount),
+    onSuccess: (updatedGameRun) => {
+      queryClient.setQueryData(['activeGameRun'], updatedGameRun);
+      toast.success(`Bundle added! New cash: $${updatedGameRun.cash.toLocaleString()}, Weeks: ${updatedGameRun.weeksRemaining}`);
     },
   });
 
@@ -402,6 +431,26 @@ export default function Game() {
     setSelectedPropertyId(null);
   }, []);
 
+  const handlePremiumPurchase = useCallback(async (type: 'cash' | 'weeks' | 'bundle', cashAmount: number, weeksAmount?: number) => {
+    if (!gameRun) return;
+
+    try {
+      if (type === 'cash') {
+        await purchaseCashMutation.mutateAsync({ gameRunId: gameRun.id, amount: cashAmount });
+      } else if (type === 'weeks') {
+        await purchaseWeeksMutation.mutateAsync({ gameRunId: gameRun.id, amount: weeksAmount || 0 });
+      } else if (type === 'bundle') {
+        await purchaseBundleMutation.mutateAsync({
+          gameRunId: gameRun.id,
+          cashAmount,
+          weeksAmount: weeksAmount || 0
+        });
+      }
+    } catch (error) {
+      toast.error('Purchase failed');
+    }
+  }, [gameRun, purchaseCashMutation, purchaseWeeksMutation, purchaseBundleMutation]);
+
   if (isLoadingGame || isLoadingProps) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -436,12 +485,13 @@ export default function Game() {
       data-testid="game-screen"
     >
       <div className="min-h-screen bg-black/30">
-        <StatusBar 
+        <StatusBar
           cash={gameRun.cash}
           weeksRemaining={gameRun.weeksRemaining}
           profitableDeals={gameRun.profitableDeals}
           goalDeals={gameRun.goalDeals}
           onOpenLedger={() => setShowLedger(true)}
+          onOpenPremium={() => setShowPremiumModal(true)}
         />
 
 
@@ -541,6 +591,15 @@ export default function Game() {
             onClose={() => setShowLedger(false)}
           />
         )}
+
+        {/* Premium Modal */}
+        <PremiumModal
+          isOpen={showPremiumModal}
+          onClose={() => setShowPremiumModal(false)}
+          onPurchase={handlePremiumPurchase}
+          currentCash={gameRun.cash}
+          currentWeeks={gameRun.weeksRemaining}
+        />
 
         {/* Income Notifications */}
         <IncomeNotification events={incomeEvents} onDismiss={dismissEvent} />

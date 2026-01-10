@@ -13,6 +13,7 @@ import { IncomeNotification, useIncomeNotifications } from '@/components/game/In
 import { PremiumModal } from '@/components/game/PremiumModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
+import { BankruptModal } from '@/components/game/BankruptModal';
 import {
   ProFormaInputs,
   ProFormaOutputs,
@@ -506,6 +507,56 @@ export default function Game() {
     }
   }, [gameRun, purchaseCashMutation, purchaseWeeksMutation, purchaseBundleMutation]);
 
+  // Check if player is bankrupt (cash below zero)
+  const isBankrupt = gameRun && gameRun.cash < 0;
+
+  const handleBankruptReturnHome = useCallback(() => {
+    // Reset game state and go back to name entry
+    setGameRun(null);
+    setShowNameEntry(true);
+    setCurrentScreen('market');
+    setSelectedPropertyId(null);
+    setProFormaInputs(defaultProForma);
+    setProFormaOutputs(null);
+    setIsProFormaComplete(false);
+    setCompletedDiligence({});
+    setProFormaCompletions({});
+    queryClient.invalidateQueries();
+  }, [queryClient]);
+
+  const handleBankruptTryAgain = useCallback(async () => {
+    if (!playerName) {
+      handleBankruptReturnHome();
+      return;
+    }
+    // Start a fresh game with the same player name
+    try {
+      const newRun = await api.createGameRun({
+        playerName: playerName,
+        difficulty: 'apprentice',
+        cash: STARTING_CASH,
+        weeksRemaining: 52,
+        currentWeek: 0,
+        profitableDeals: 0,
+        goalDeals: 3,
+        status: 'active',
+      });
+      setGameRun(newRun);
+      setCurrentScreen('market');
+      setSelectedPropertyId(null);
+      setProFormaInputs(defaultProForma);
+      setProFormaOutputs(null);
+      setIsProFormaComplete(false);
+      setCompletedDiligence({});
+      setProFormaCompletions({});
+      queryClient.invalidateQueries();
+      toast.success('New game started!');
+    } catch (error) {
+      toast.error('Failed to start new game');
+      handleBankruptReturnHome();
+    }
+  }, [playerName, queryClient, handleBankruptReturnHome]);
+
   if (isLoadingGame && !gameRun) {
     return (
       <div 
@@ -702,6 +753,16 @@ export default function Game() {
 
         {/* Income Notifications */}
         <IncomeNotification events={incomeEvents} onDismiss={dismissEvent} />
+
+        {/* Bankruptcy Modal */}
+        {isBankrupt && (
+          <BankruptModal
+            cash={gameRun.cash}
+            weeksPlayed={52 - gameRun.weeksRemaining}
+            onReturnHome={handleBankruptReturnHome}
+            onTryAgain={handleBankruptTryAgain}
+          />
+        )}
       </div>
     </div>
   );

@@ -60,7 +60,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Game Logic Architecture
 - Pro forma calculations handled client-side in `lib/gameData.ts`
-- Property issue system for due diligence reveals in `lib/propertyIssues.ts`
+- Property issue system for due diligence reveals in `lib/propertyIssues.ts` and `shared/propertyIssues.ts`
+- **Surprise Repair Costs**: If player skips contractor walkthrough/inspection, hidden property issues are discovered during flip completion. These surprise costs are deducted from both profit and cash (via ledger), teaching the consequences of skipping due diligence.
 - Strategy options: Rent vs Flip with different financial models
 - Financing options: Bank vs Hard Money with different terms
 - Contractor options: Cheap vs Fast affecting timeline and costs

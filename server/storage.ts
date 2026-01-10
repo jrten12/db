@@ -41,6 +41,7 @@ export interface IStorage {
   getProperty(id: number): Promise<Property | undefined>;
   createProperty(property: InsertProperty): Promise<Property>;
   seedProperties(): Promise<void>;
+  addNewUrbanProperties(): Promise<void>;
 
   // Deal methods
   createDeal(deal: InsertDeal): Promise<Deal>;
@@ -383,6 +384,120 @@ export class DBStorage implements IStorage {
     ];
 
     await db.insert(schema.properties).values(starterProperties);
+  }
+
+  async addNewUrbanProperties(): Promise<void> {
+    const newUrbanProperties: InsertProperty[] = [
+      {
+        name: "South Street Twin",
+        price: 165000,
+        sizeSqft: 1400,
+        neighborhood: "South Street",
+        rentMin: 1450,
+        rentMax: 1750,
+        arvMin: 200000,
+        arvMax: 230000,
+        conditionTag: "Fair",
+        photoUrl: null,
+        rehabMin: 20000,
+        rehabMax: 35000,
+        timelineMin: 5,
+        timelineMax: 10,
+        offMarketRate: 0.16,
+        viabilityProfile: "viable",
+        isActive: true,
+      },
+      {
+        name: "Fishtown Row House",
+        price: 195000,
+        sizeSqft: 1500,
+        neighborhood: "Fishtown",
+        rentMin: 1800,
+        rentMax: 2100,
+        arvMin: 245000,
+        arvMax: 280000,
+        conditionTag: "Good",
+        photoUrl: null,
+        rehabMin: 15000,
+        rehabMax: 28000,
+        timelineMin: 4,
+        timelineMax: 8,
+        offMarketRate: 0.20,
+        viabilityProfile: "viable",
+        isActive: true,
+      },
+      {
+        name: "Port Richmond Duplex",
+        price: 235000,
+        sizeSqft: 2200,
+        neighborhood: "Port Richmond",
+        rentMin: 2400,
+        rentMax: 2800,
+        arvMin: 280000,
+        arvMax: 320000,
+        conditionTag: "Fair",
+        photoUrl: null,
+        rehabMin: 30000,
+        rehabMax: 50000,
+        timelineMin: 6,
+        timelineMax: 12,
+        offMarketRate: 0.18,
+        viabilityProfile: "viable",
+        isActive: true,
+      },
+      {
+        name: "Kensington Row",
+        price: 145000,
+        sizeSqft: 1350,
+        neighborhood: "Kensington",
+        rentMin: 1350,
+        rentMax: 1650,
+        arvMin: 195000,
+        arvMax: 225000,
+        conditionTag: "Fixer-Upper",
+        photoUrl: null,
+        rehabMin: 35000,
+        rehabMax: 60000,
+        timelineMin: 8,
+        timelineMax: 16,
+        offMarketRate: 0.14,
+        viabilityProfile: "viable",
+        isActive: true,
+      },
+      {
+        name: "Northern Liberties Loft",
+        price: 285000,
+        sizeSqft: 1800,
+        neighborhood: "Northern Liberties",
+        rentMin: 2500,
+        rentMax: 2900,
+        arvMin: 330000,
+        arvMax: 370000,
+        conditionTag: "Excellent",
+        photoUrl: null,
+        rehabMin: 10000,
+        rehabMax: 20000,
+        timelineMin: 3,
+        timelineMax: 6,
+        offMarketRate: 0.28,
+        viabilityProfile: "viable",
+        isActive: true,
+      },
+    ];
+
+    // Check which properties don't exist yet and insert only those
+    for (const prop of newUrbanProperties) {
+      const existing = await db
+        .select()
+        .from(schema.properties)
+        .where(eq(schema.properties.name, prop.name))
+        .limit(1);
+
+      if (existing.length === 0) {
+        await db.insert(schema.properties).values(prop);
+        console.log(`Added new property: ${prop.name}`);
+      }
+    }
   }
 
   // Deal methods

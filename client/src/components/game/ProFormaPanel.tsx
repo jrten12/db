@@ -20,7 +20,9 @@ const TERM_DEFINITIONS: Record<string, string> = {
   vacancyRate: "Percentage of time the property sits empty between tenants. 5-10% is typical in most markets - that's about 2-5 weeks per year with no income.",
   taxesAnnual: "Yearly property taxes paid to the county. Usually 1-3% of property value depending on location. Check the county assessor's website.",
   insuranceAnnual: "Yearly insurance premium. Landlord/investor policies cost more than regular homeowner's insurance because of liability coverage.",
-  maintenancePct: "Ongoing repair costs as a percentage of rent. Budget 5-10% for maintenance reserves. Older properties need more.",
+  maintenancePct: "Ongoing repair costs as a percentage of rent. Budget 5-10% for maintenance reserves - things like fixing leaky faucets, painting, minor repairs. Older properties need more.",
+  capExPct: "Capital Expenditures (CapEx) - Big-ticket replacements like roof, HVAC, water heater, appliances. Unlike maintenance (ongoing repairs), CapEx covers major systems that wear out. Budget 8-12% of rent. This is separate from your rehab budget.",
+  utilities: "If you pay utilities (water, sewer, trash, gas/electric) instead of tenants, factor this in. Multi-family often has owner-paid utilities. Adds $100-200/month typically.",
   propertyManagement: "Hiring a company to handle tenant screening, rent collection, repairs, and day-to-day operations. Typically 8-10% of collected rent.",
   rehabWeeks: "How long the renovation will take. Add buffer time - contractors are almost never early! Unknown until you do a Contractor Walkthrough.",
   holdingCosts: "Costs you pay while owning the property: loan payments, taxes, insurance, utilities. These add up fast during rehab - every week costs money!",
@@ -32,6 +34,8 @@ const TERM_DEFINITIONS: Record<string, string> = {
   noi: "Net Operating Income (NOI) - Annual rental income minus operating expenses (taxes, insurance, maintenance, management). Does NOT include mortgage payments.",
   debtService: "Monthly mortgage payment including principal and interest. This comes out of your NOI to determine cash flow.",
   leverage: "Using borrowed money to buy property. More leverage = less cash upfront but higher risk. Banks typically require 20-25% down.",
+  loanOriginationFees: "Upfront fees to get the loan - points, origination fees, underwriting. Typically 1-3% of loan amount. Hard money lenders charge more (3-5%). This is cash you need at closing.",
+  sellingCosts: "Cost to sell the property after rehab - realtor commission (5-6%), title insurance, transfer taxes, closing costs. Total is typically 8-10% of sale price. Many new flippers forget this!",
   unknownRent: "Rent is unknown until you complete a Market Rent Study. Without it, you're just guessing what tenants will pay!",
   unknownRehab: "Rehab costs and timeline are unknown until you complete a Contractor Walkthrough. Guessing renovation costs is dangerous!",
   unknownArv: "After Repair Value is unknown until you complete a Comp Analysis. You need to know what similar fixed-up homes sold for.",
@@ -151,7 +155,9 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     const risks = [];
     if (inputs.vacancyRate < 5) risks.push({ field: 'vacancy', message: 'Vacancy rate under 5% is optimistic', severity: 'high' });
     if (inputs.maintenancePct < 5) risks.push({ field: 'maintenance', message: 'Maintenance under 5% is dangerously low', severity: 'high' });
+    if (inputs.capExPct < 8) risks.push({ field: 'capex', message: 'CapEx under 8% leaves no buffer for big replacements', severity: 'high' });
     if (inputs.contingencyPct < 10) risks.push({ field: 'contingency', message: 'Contingency under 10% leaves no buffer', severity: 'medium' });
+    if (inputs.sellingCostsPct < 7.5 && inputs.strategy === 'flip') risks.push({ field: 'selling', message: 'Selling costs under 7.5% is optimistic', severity: 'medium' });
     if (inputs.expectedRent > effectiveRanges.rent.max * 0.9 && effectiveRanges.rent.known) {
       risks.push({ field: 'rent', message: 'Rent assumption near top of range', severity: 'medium' });
     }
@@ -169,8 +175,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   }, [inputs, property]);
 
   const effectiveRent = inputs.expectedRent * (1 - inputs.vacancyRate / 100);
-  const monthlyExpenses = (inputs.taxesAnnual / 12) + (inputs.insuranceAnnual / 12) + 
+  const monthlyExpenses = (inputs.taxesAnnual / 12) + (inputs.insuranceAnnual / 12) +
     (inputs.expectedRent * inputs.maintenancePct / 100) +
+    (inputs.expectedRent * inputs.capExPct / 100) +
+    (inputs.utilities ? inputs.utilitiesMonthly : 0) +
     (inputs.propertyManagement ? inputs.expectedRent * inputs.propertyManagementPct / 100 : 0);
   
   const leverageRatio = (100 - inputs.downPaymentPct) / 100;
@@ -180,7 +188,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     (inputs.taxesAnnual / 52) + (inputs.insuranceAnnual / 52));
 
   const arvMid = (property.arvMin + property.arvMax) / 2;
-  const flipProfit = arvMid - allInBasis - (holdingCostPerWeek * inputs.rehabWeeks);
+  const sellingCosts = arvMid * (inputs.sellingCostsPct / 100);
+  const flipProfit = arvMid - allInBasis - (holdingCostPerWeek * inputs.rehabWeeks) - sellingCosts;
   const flipROI = liveOutputs.totalCashInvested > 0 ? (flipProfit / liveOutputs.totalCashInvested) * 100 : 0;
 
   const isViable = inputs.strategy === 'rent' 
@@ -429,7 +438,34 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       <div className="text-amber-500/70 text-xs">Expected sale price</div>
                     </div>
                   </div>
-                  
+
+                  <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-400 text-xs flex items-center">Selling Costs<InfoTooltip term="sellingCosts" /></span>
+                      <span className="text-white font-mono text-sm">{inputs.sellingCostsPct}% of ARV</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="6"
+                      max="12"
+                      step="0.5"
+                      value={inputs.sellingCostsPct}
+                      onChange={(e) => handleChange('sellingCostsPct', Number(e.target.value))}
+                      className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                      style={{
+                        background: `linear-gradient(to right, #10b981 0%, #10b981 ${((inputs.sellingCostsPct - 6) / 6) * 100}%, #334155 ${((inputs.sellingCostsPct - 6) / 6) * 100}%, #334155 100%)`
+                      }}
+                      data-testid="input-selling-costs"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>6% (optimistic)</span>
+                      <span>12% (conservative)</span>
+                    </div>
+                    <div className="text-center mt-2">
+                      <span className="text-red-400 font-mono text-sm">= {formatCurrency(sellingCosts)}</span>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-3 gap-3">
                     <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
                       <div className="text-gray-400 text-xs mb-1 flex items-center">Closing Costs<InfoTooltip term="closingCosts" /></div>
@@ -546,6 +582,30 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400 flex items-center">Interest Rate<InfoTooltip term="interestRate" /></span>
                   <span className="text-white font-mono">{inputs.interestRate}%</span>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-400 text-xs flex items-center">Loan Origination Fees<InfoTooltip term="loanOriginationFees" /></span>
+                    <span className="text-white font-mono text-sm">{inputs.loanOriginationPct}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    step="0.5"
+                    value={inputs.loanOriginationPct}
+                    onChange={(e) => handleChange('loanOriginationPct', Number(e.target.value))}
+                    className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #10b981 0%, #10b981 ${inputs.loanOriginationPct * 20}%, #334155 ${inputs.loanOriginationPct * 20}%, #334155 100%)`
+                    }}
+                    data-testid="input-loan-origination"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>0% (unusual)</span>
+                    <span>5% (hard money)</span>
+                  </div>
                 </div>
               </div>
 
@@ -750,6 +810,30 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500"
                     data-testid="input-maintenance"
                   />
+                </div>
+                <div>
+                  <label className="text-gray-400 text-xs flex items-center">CapEx Reserve (%)<InfoTooltip term="capExPct" /></label>
+                  <input
+                    type="number"
+                    value={inputs.capExPct}
+                    onChange={(e) => handleChange('capExPct', Number(e.target.value))}
+                    className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500"
+                    data-testid="input-capex"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-400 text-xs flex items-center">Utilities<InfoTooltip term="utilities" /></label>
+                  <button
+                    onClick={() => handleChange('utilities', !inputs.utilities)}
+                    className={`w-full mt-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                      inputs.utilities
+                        ? 'bg-emerald-500/20 border border-emerald-500 text-emerald-400'
+                        : 'bg-slate-800 border border-slate-700 text-gray-400'
+                    }`}
+                    data-testid="toggle-utilities"
+                  >
+                    {inputs.utilities ? `ON ($${inputs.utilitiesMonthly}/mo)` : 'Tenant Pays'}
+                  </button>
                 </div>
                 <div>
                   <label className="text-gray-400 text-xs flex items-center">Property Mgmt<InfoTooltip term="propertyManagement" /></label>
@@ -1013,6 +1097,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       <div>Taxes: ${(inputs.taxesAnnual/12).toFixed(0)}/mo</div>
                       <div>Insurance: ${(inputs.insuranceAnnual/12).toFixed(0)}/mo</div>
                       <div>Maintenance: ${(inputs.expectedRent * inputs.maintenancePct/100).toFixed(0)}/mo ({inputs.maintenancePct}%)</div>
+                      <div>CapEx: ${(inputs.expectedRent * inputs.capExPct/100).toFixed(0)}/mo ({inputs.capExPct}%)</div>
+                      {inputs.utilities && <div>Utilities: ${inputs.utilitiesMonthly}/mo</div>}
                       {inputs.propertyManagement && <div>Mgmt: ${(inputs.expectedRent * inputs.propertyManagementPct/100).toFixed(0)}/mo ({inputs.propertyManagementPct}%)</div>}
                     </div>
                   )}
@@ -1099,6 +1185,23 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     = {formatCurrency(holdingCostPerWeek * inputs.rehabWeeks)}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">Interest + taxes while renovating</div>
+                </div>
+
+                <div className="flex justify-center">
+                  <div className="text-gray-600">↓</div>
+                </div>
+
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                  <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Selling Costs</div>
+                  {showFormulas && (
+                    <div className="text-xs font-mono text-gray-500 mb-2">
+                      {inputs.sellingCostsPct}% × {formatCurrency(arvMid)}
+                    </div>
+                  )}
+                  <div className="text-2xl font-bold font-mono text-red-400">
+                    = {formatCurrency(sellingCosts)}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Realtor, title, closing costs</div>
                 </div>
 
                 <div className="flex justify-center">

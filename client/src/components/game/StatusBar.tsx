@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
-import { Menu, Home, X, Wallet, Clock, Target } from 'lucide-react';
+import { Menu, Home, X, Wallet, Clock, Target, Sparkles } from 'lucide-react';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 
@@ -10,6 +10,7 @@ interface StatusBarProps {
   profitableDeals: number;
   goalDeals: number;
   onOpenLedger?: () => void;
+  onOpenPremium?: () => void;
 }
 
 function AnimatedNumber({ value, prefix = '', suffix = '', className = '' }: { 
@@ -93,7 +94,7 @@ function StatCard({
   );
 }
 
-export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger }: StatusBarProps) {
+export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium }: StatusBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const cashDisplay = Math.floor(cash).toLocaleString();
@@ -240,6 +241,18 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             </div>
 
             <div className="space-y-4 w-full max-w-xs">
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  onOpenPremium?.();
+                }}
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 backdrop-blur-md rounded-xl border border-yellow-500/30 text-yellow-400 font-semibold transition-all"
+                data-testid="button-premium"
+              >
+                <Sparkles className="w-5 h-5" />
+                Premium Boosts
+              </button>
+
               <Link href="/">
                 <button
                   onClick={() => setMenuOpen(false)}
@@ -250,7 +263,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                   Main Menu
                 </button>
               </Link>
-              
+
               <button
                 onClick={() => setMenuOpen(false)}
                 className="w-full px-6 py-4 bg-emerald-500/20 hover:bg-emerald-500/30 backdrop-blur-md rounded-xl border border-emerald-500/30 text-emerald-400 font-semibold transition-all"

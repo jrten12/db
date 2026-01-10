@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema } from "@shared/schema";
 import { z } from "zod";
+import * as gameMechanics from "./gameMechanics";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -159,16 +160,204 @@ export async function registerRoutes(
   app.post("/api/game-runs/:id/ledger", async (req, res) => {
     try {
       const gameRunId = parseInt(req.params.id);
-      const { entries, currentCash } = req.body as { 
+      const { entries, currentCash } = req.body as {
         entries: Array<{ direction: string; category: string; amount: number; description: string; propertyId?: number; dealId?: number }>;
         currentCash: number;
       };
-      
+
       const result = await storage.createLedgerEntriesWithCashUpdate(gameRunId, entries, currentCash);
       res.json(result);
     } catch (error) {
       console.error("Error creating ledger entries:", error);
       res.status(500).json({ error: "Failed to create ledger entries" });
+    }
+  });
+
+  // Advance game by one week (process income, complete deals, trigger events)
+  app.post("/api/game-runs/:id/advance-week", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const result = await gameMechanics.advanceGameWeek(gameRunId);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error advancing game week:", error);
+      res.status(500).json({ error: error.message || "Failed to advance game week" });
+    }
+  });
+
+  // Activate a rental property (after leasing)
+  app.post("/api/deals/:id/activate-rental", async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { gameRunId, monthlyCashFlow } = req.body as {
+        gameRunId: number;
+        monthlyCashFlow: number;
+      };
+
+      const deal = await storage.getDealsByGameRun(gameRunId);
+      const targetDeal = deal.find(d => d.id === dealId);
+      if (!targetDeal) {
+        res.status(404).json({ error: "Deal not found" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const updatedDeal = await gameMechanics.activateRentalProperty(
+        targetDeal,
+        gameRun,
+        monthlyCashFlow
+      );
+      res.json(updatedDeal);
+    } catch (error: any) {
+      console.error("Error activating rental:", error);
+      res.status(500).json({ error: error.message || "Failed to activate rental" });
+    }
+  });
+
+  // Start flip rehab period
+  app.post("/api/deals/:id/start-rehab", async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { gameRunId, rehabWeeks } = req.body as {
+        gameRunId: number;
+        rehabWeeks: number;
+      };
+
+      const deals = await storage.getDealsByGameRun(gameRunId);
+      const targetDeal = deals.find(d => d.id === dealId);
+      if (!targetDeal) {
+        res.status(404).json({ error: "Deal not found" });
+        return;
+      }
+
+      const updatedDeal = await gameMechanics.startFlipRehab(targetDeal, rehabWeeks);
+      res.json(updatedDeal);
+    } catch (error: any) {
+      console.error("Error starting rehab:", error);
+      res.status(500).json({ error: error.message || "Failed to start rehab" });
+    }
+  });
+
+  // Complete a flip deal manually (for testing or immediate completion)
+  app.post("/api/deals/:id/complete-flip", async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { gameRunId, curveball } = req.body as {
+        gameRunId: number;
+        curveball?: any;
+      };
+
+      const deals = await storage.getDealsByGameRun(gameRunId);
+      const targetDeal = deals.find(d => d.id === dealId);
+      if (!targetDeal) {
+        res.status(404).json({ error: "Deal not found" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const result = await gameMechanics.completeFlipDeal(targetDeal, gameRun, curveball);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error completing flip:", error);
+      res.status(500).json({ error: error.message || "Failed to complete flip" });
+    }
+  });
+
+  // Premium purchase - Add cash
+  app.post("/api/game-runs/:id/purchase-cash", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const { amount } = req.body as { amount: number };
+
+      if (!amount || amount <= 0) {
+        res.status(400).json({ error: "Invalid amount" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const updatedGameRun = await storage.updateGameRun(gameRunId, {
+        cash: gameRun.cash + amount
+      });
+
+      res.json(updatedGameRun);
+    } catch (error: any) {
+      console.error("Error purchasing cash:", error);
+      res.status(500).json({ error: error.message || "Failed to purchase cash" });
+    }
+  });
+
+  // Premium purchase - Add weeks
+  app.post("/api/game-runs/:id/purchase-weeks", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const { amount } = req.body as { amount: number };
+
+      if (!amount || amount <= 0) {
+        res.status(400).json({ error: "Invalid amount" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const updatedGameRun = await storage.updateGameRun(gameRunId, {
+        weeksRemaining: gameRun.weeksRemaining + amount
+      });
+
+      res.json(updatedGameRun);
+    } catch (error: any) {
+      console.error("Error purchasing weeks:", error);
+      res.status(500).json({ error: error.message || "Failed to purchase weeks" });
+    }
+  });
+
+  // Premium purchase - Add bundle (cash + weeks)
+  app.post("/api/game-runs/:id/purchase-bundle", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const { cashAmount, weeksAmount } = req.body as {
+        cashAmount: number;
+        weeksAmount: number;
+      };
+
+      if ((!cashAmount || cashAmount <= 0) && (!weeksAmount || weeksAmount <= 0)) {
+        res.status(400).json({ error: "Invalid amounts" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const updatedGameRun = await storage.updateGameRun(gameRunId, {
+        cash: gameRun.cash + (cashAmount || 0),
+        weeksRemaining: gameRun.weeksRemaining + (weeksAmount || 0)
+      });
+
+      res.json(updatedGameRun);
+    } catch (error: any) {
+      console.error("Error purchasing bundle:", error);
+      res.status(500).json({ error: error.message || "Failed to purchase bundle" });
     }
   });
 

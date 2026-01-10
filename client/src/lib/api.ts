@@ -85,7 +85,7 @@ export const api = {
   },
 
   async createLedgerEntries(
-    gameRunId: number, 
+    gameRunId: number,
     entries: Array<{ direction: string; category: string; amount: number; description: string; propertyId?: number; dealId?: number }>,
     currentCash: number
   ): Promise<{ entries: LedgerEntry[], newCash: number }> {
@@ -95,6 +95,77 @@ export const api = {
       body: JSON.stringify({ entries, currentCash }),
     });
     if (!res.ok) throw new Error('Failed to create ledger entries');
+    return res.json();
+  },
+
+  // Game Mechanics
+  async advanceGameWeek(gameRunId: number): Promise<any> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/advance-week`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) throw new Error('Failed to advance game week');
+    return res.json();
+  },
+
+  async activateRental(dealId: number, gameRunId: number, monthlyCashFlow: number): Promise<Deal> {
+    const res = await fetch(`${API_BASE}/deals/${dealId}/activate-rental`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameRunId, monthlyCashFlow }),
+    });
+    if (!res.ok) throw new Error('Failed to activate rental');
+    return res.json();
+  },
+
+  async startFlipRehab(dealId: number, gameRunId: number, rehabWeeks: number): Promise<Deal> {
+    const res = await fetch(`${API_BASE}/deals/${dealId}/start-rehab`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameRunId, rehabWeeks }),
+    });
+    if (!res.ok) throw new Error('Failed to start flip rehab');
+    return res.json();
+  },
+
+  async completeFlip(dealId: number, gameRunId: number, curveball?: any): Promise<any> {
+    const res = await fetch(`${API_BASE}/deals/${dealId}/complete-flip`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameRunId, curveball }),
+    });
+    if (!res.ok) throw new Error('Failed to complete flip');
+    return res.json();
+  },
+
+  // Premium Purchases
+  async purchaseCash(gameRunId: number, amount: number): Promise<GameRun> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase-cash`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount }),
+    });
+    if (!res.ok) throw new Error('Failed to purchase cash');
+    return res.json();
+  },
+
+  async purchaseWeeks(gameRunId: number, amount: number): Promise<GameRun> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase-weeks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount }),
+    });
+    if (!res.ok) throw new Error('Failed to purchase weeks');
+    return res.json();
+  },
+
+  async purchaseBundle(gameRunId: number, cashAmount: number, weeksAmount: number): Promise<GameRun> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase-bundle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cashAmount, weeksAmount }),
+    });
+    if (!res.ok) throw new Error('Failed to purchase bundle');
     return res.json();
   },
 };

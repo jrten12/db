@@ -144,6 +144,10 @@ interface WeekProgressionResult {
 
 /**
  * Complete a flip deal and return proceeds to player's balance
+ * Sale price is calculated based on rehab investment relative to property requirements:
+ * - Higher rehab spending (up to property's rehabMax) yields higher sale prices
+ * - Sale price varies between arvMin and arvMax based on rehab completion factor
+ * - Small random variance (±5%) simulates market conditions
  */
 export async function completeFlipDeal(
   deal: Deal,
@@ -151,15 +155,33 @@ export async function completeFlipDeal(
   curveball?: any
 ): Promise<FlipSaleResult> {
   const proFormaOutputs = deal.proFormaOutputs as any;
+  const proFormaInputs = deal.proFormaInputs as any;
 
-  // Get property to access ARV range for randomization
+  // Get property to access ARV and rehab ranges
   const property = await storage.getProperty(deal.propertyId);
   
-  // Randomize sale price between property's ARV min and max
-  // This creates realistic market variation in flip outcomes
+  // Calculate sale price based on rehab investment
   let salePrice: number;
-  if (property && property.arvMin && property.arvMax) {
-    salePrice = Math.round(property.arvMin + Math.random() * (property.arvMax - property.arvMin));
+  if (property && property.arvMin && property.arvMax && property.rehabMin && property.rehabMax) {
+    // Get player's actual rehab spend (budget + contingency)
+    const rehabBudget = proFormaInputs?.rehabBudget || 0;
+    const contingencyPct = proFormaInputs?.contingencyPct || 10;
+    const actualRehabSpend = rehabBudget * (1 + contingencyPct / 100);
+    
+    // Calculate rehab completion factor (0 to 1)
+    // How much of the required rehab did the player budget for?
+    const rehabRange = property.rehabMax - property.rehabMin;
+    const completionFactor = rehabRange > 0 
+      ? Math.max(0, Math.min(1, (actualRehabSpend - property.rehabMin) / rehabRange))
+      : 0.5;
+    
+    // Base sale price scales with rehab completion
+    const arvRange = property.arvMax - property.arvMin;
+    const baseSalePrice = property.arvMin + (completionFactor * arvRange);
+    
+    // Apply ±5% market variance
+    const marketVariance = 0.95 + (Math.random() * 0.10); // 0.95 to 1.05
+    salePrice = Math.round(baseSalePrice * marketVariance);
   } else {
     // Fallback to pro forma ARV if property not found
     salePrice = proFormaOutputs.arv || 0;
@@ -202,10 +224,14 @@ export async function completeFlipDeal(
     dealId: deal.id,
   };
 
+  // Fetch current cash balance to avoid stale data issues
+  const currentGameRun = await storage.getGameRun(gameRun.id);
+  const currentCash = currentGameRun?.cash ?? gameRun.cash;
+
   const { newCash } = await storage.createLedgerEntriesWithCashUpdate(
     gameRun.id,
     [ledgerEntry],
-    gameRun.cash
+    currentCash
   );
 
   // Update deal status
@@ -292,10 +318,14 @@ export async function processRentalIncome(
     dealId: deal.id,
   };
 
+  // Fetch current cash balance to avoid stale data issues
+  const currentGameRun = await storage.getGameRun(gameRun.id);
+  const currentCash = currentGameRun?.cash ?? gameRun.cash;
+
   const { newCash } = await storage.createLedgerEntriesWithCashUpdate(
     gameRun.id,
     [ledgerEntry],
-    gameRun.cash
+    currentCash
   );
 
   // Update deal's last payment week

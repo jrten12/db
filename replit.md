@@ -35,9 +35,11 @@ Preferred communication style: Simple, everyday language.
 ### Key Data Models
 - **Users**: Basic auth with username/password
 - **GameRuns**: Active game sessions with player state (cash, weeks, goals)
-- **Properties**: Real estate listings with financial ranges (rent, ARV, rehab costs)
+- **Properties**: Real estate listings with financial ranges (rent, ARV, rehab costs), location types (urban/suburban), and property types (house, apartment, condo, townhouse, duplex)
 - **Deals**: Player investment decisions linked to game runs
 - **PropertyInvestigations**: Due diligence purchases tracking what's been revealed
+- **HallOfFamePlayers**: Persistent player records that survive game resets
+- **PlayerTrophies**: Trophy awards linked to players for achievements
 
 ### Project Structure
 ```

@@ -458,5 +458,67 @@ export async function registerRoutes(
     }
   });
 
+  // End game and award trophies
+  app.post("/api/game-runs/:id/end", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const { won, finalCash, weeksRemaining } = req.body as {
+        won: boolean;
+        finalCash: number;
+        weeksRemaining: number;
+      };
+      
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      // Update game run status
+      await storage.updateGameRun(gameRunId, {
+        status: won ? 'won' : 'lost',
+      });
+
+      // Get player and award trophies (wrapped to prevent blocking game end)
+      const player = await storage.getOrCreatePlayer(gameRun.playerName);
+      let awardedTrophies: string[] = [];
+      try {
+        awardedTrophies = await gameMechanics.checkAndAwardTrophies(player.id, gameRunId, {
+          gameEnded: true,
+          gameWon: won,
+          finalCash,
+          weeksRemaining,
+        });
+      } catch (trophyErr) {
+        console.error('Error awarding trophies (continuing):', trophyErr);
+      }
+
+      // Update player stats
+      const deals = await storage.getDealsByGameRun(gameRunId);
+      const completedDeals = deals.filter(d => d.status === 'completed' || d.status === 'active_rental');
+      const totalProfit = completedDeals.reduce((sum, d) => sum + (d.actualProfit || 0), 0);
+
+      await storage.updatePlayerStats(player.id, {
+        totalGamesPlayed: player.totalGamesPlayed + 1,
+        totalDealsCompleted: player.totalDealsCompleted + completedDeals.length,
+        totalProfitEarned: player.totalProfitEarned + Math.max(0, totalProfit),
+        bestGameProfit: Math.max(player.bestGameProfit, totalProfit),
+        gamesWon: player.gamesWon + (won ? 1 : 0),
+      });
+
+      res.json({ 
+        success: true, 
+        awardedTrophies,
+        playerStats: {
+          totalGamesPlayed: player.totalGamesPlayed + 1,
+          gamesWon: player.gamesWon + (won ? 1 : 0),
+        }
+      });
+    } catch (error) {
+      console.error("Error ending game:", error);
+      res.status(500).json({ error: "Failed to end game" });
+    }
+  });
+
   return httpServer;
 }

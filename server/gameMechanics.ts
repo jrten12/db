@@ -15,6 +15,97 @@ import { db } from './storage';
 import { eq } from 'drizzle-orm';
 import { rollForCurveball } from '../client/src/lib/curveballs';
 
+/**
+ * Check and award trophies based on game state
+ * Returns array of newly awarded trophy IDs
+ */
+export async function checkAndAwardTrophies(
+  playerId: number,
+  gameRunId: number,
+  context: {
+    dealCompleted?: boolean;
+    dealProfit?: number;
+    dealStrategy?: 'flip' | 'rental';
+    gameEnded?: boolean;
+    gameWon?: boolean;
+    finalCash?: number;
+    weeksRemaining?: number;
+  }
+): Promise<string[]> {
+  const awardedTrophies: string[] = [];
+  const gameRun = await storage.getGameRun(gameRunId);
+  if (!gameRun) return awardedTrophies;
+
+  const deals = await storage.getDealsByGameRun(gameRunId);
+  const completedDeals = deals.filter(d => d.status === 'completed' || d.status === 'active_rental');
+  const profitableDeals = completedDeals.filter(d => (d.actualProfit || 0) > 0 || d.status === 'active_rental');
+  const flipDeals = completedDeals.filter(d => d.strategy === 'flip');
+  const rentalDeals = deals.filter(d => d.status === 'active_rental');
+
+  // Get all deals across all games for cross-game trophies
+  const allPlayerDeals = await storage.getDealsByPlayerName(gameRun.playerName);
+  const allCompletedFlips = allPlayerDeals.filter(d => d.status === 'completed' && d.strategy === 'flip');
+
+  // Helper to award trophy if not already earned
+  const tryAward = async (trophyId: string): Promise<boolean> => {
+    const hasTrophy = await storage.hasPlayerTrophy(playerId, trophyId);
+    if (!hasTrophy) {
+      await storage.awardTrophy(playerId, trophyId, gameRunId);
+      awardedTrophies.push(trophyId);
+      return true;
+    }
+    return false;
+  };
+
+  // First Deal - Complete any deal
+  if (completedDeals.length >= 1) {
+    await tryAward('first_deal');
+  }
+
+  // Profitable Deal - Complete a profitable deal
+  if (profitableDeals.length >= 1) {
+    await tryAward('profitable_deal');
+  }
+
+  // Flip Master - Complete 5 successful flips (across all games)
+  if (allCompletedFlips.length >= 5) {
+    await tryAward('flip_master');
+  }
+
+  // Landlord - Own 3 rental properties in one game
+  if (rentalDeals.length >= 3) {
+    await tryAward('landlord');
+  }
+
+  // Game-end trophies
+  if (context.gameEnded) {
+    // Winner - Win the game
+    if (context.gameWon) {
+      await tryAward('winner');
+    }
+
+    // Speed Demon - Win with 20+ weeks remaining
+    if (context.gameWon && (context.weeksRemaining || 0) >= 20) {
+      await tryAward('speed_demon');
+    }
+
+    // Millionaire - End game with $1M+ cash
+    if ((context.finalCash || 0) >= 1000000) {
+      await tryAward('millionaire');
+    }
+
+    // Perfectionist - Win with all profitable deals (no losses)
+    if (context.gameWon && completedDeals.length > 0) {
+      const allProfitable = completedDeals.every(d => (d.actualProfit || 0) >= 0 || d.status === 'active_rental');
+      if (allProfitable) {
+        await tryAward('perfectionist');
+      }
+    }
+  }
+
+  return awardedTrophies;
+}
+
 interface FlipSaleResult {
   salePrice: number;
   profit: number;
@@ -106,7 +197,6 @@ export async function completeFlipDeal(
   await storage.updateDeal(deal.id, {
     status: 'completed',
     actualProfit: profit,
-    completedAt: new Date(),
   });
 
   // Update profitable deals count if profit > 0
@@ -114,6 +204,18 @@ export async function completeFlipDeal(
     await storage.updateGameRun(gameRun.id, {
       profitableDeals: gameRun.profitableDeals + 1,
     });
+  }
+
+  // Award trophies for deal completion
+  try {
+    const player = await storage.getOrCreatePlayer(gameRun.playerName);
+    await checkAndAwardTrophies(player.id, gameRun.id, {
+      dealCompleted: true,
+      dealProfit: profit,
+      dealStrategy: 'flip',
+    });
+  } catch (err) {
+    console.error('Error awarding trophies:', err);
   }
 
   return {
@@ -305,6 +407,17 @@ export async function activateRentalProperty(
     weeklyIncome,
     lastIncomePaymentWeek: gameRun.currentWeek,
   });
+
+  // Award trophies for rental activation
+  try {
+    const player = await storage.getOrCreatePlayer(gameRun.playerName);
+    await checkAndAwardTrophies(player.id, gameRun.id, {
+      dealCompleted: true,
+      dealStrategy: 'rental',
+    });
+  } catch (err) {
+    console.error('Error awarding trophies:', err);
+  }
 
   return updatedDeal!;
 }

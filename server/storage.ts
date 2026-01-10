@@ -50,6 +50,7 @@ export interface IStorage {
   // Deal methods
   createDeal(deal: InsertDeal): Promise<Deal>;
   getDealsByGameRun(gameRunId: number): Promise<Deal[]>;
+  getDealsByPlayerName(playerName: string): Promise<Deal[]>;
   updateDeal(id: number, updates: Partial<InsertDeal>): Promise<Deal | undefined>;
 
   // Property Investigation methods
@@ -527,6 +528,26 @@ export class DBStorage implements IStorage {
       .select()
       .from(schema.deals)
       .where(eq(schema.deals.gameRunId, gameRunId));
+  }
+
+  async getDealsByPlayerName(playerName: string): Promise<Deal[]> {
+    const playerGameRuns = await db
+      .select({ id: schema.gameRuns.id })
+      .from(schema.gameRuns)
+      .where(eq(schema.gameRuns.playerName, playerName));
+    
+    if (playerGameRuns.length === 0) return [];
+    
+    const gameRunIds = playerGameRuns.map(gr => gr.id);
+    const allDeals: Deal[] = [];
+    for (const gameRunId of gameRunIds) {
+      const deals = await db
+        .select()
+        .from(schema.deals)
+        .where(eq(schema.deals.gameRunId, gameRunId));
+      allDeals.push(...deals);
+    }
+    return allDeals;
   }
 
   async updateDeal(id: number, updates: Partial<InsertDeal>): Promise<Deal | undefined> {

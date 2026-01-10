@@ -217,4 +217,18 @@ export const api = {
     if (!res.ok) throw new Error('Failed to update player stats');
     return res.json();
   },
+
+  async endGame(gameRunId: number, won: boolean, finalCash: number, weeksRemaining: number): Promise<{
+    success: boolean;
+    awardedTrophies: string[];
+    playerStats: { totalGamesPlayed: number; gamesWon: number };
+  }> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/end`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ won, finalCash, weeksRemaining }),
+    });
+    if (!res.ok) throw new Error('Failed to end game');
+    return res.json();
+  },
 };

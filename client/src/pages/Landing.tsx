@@ -75,6 +75,9 @@ export default function Landing() {
               <p className="mt-6 text-center text-gray-600 text-xs">
                 A real estate decision simulator. Not financial advice.
               </p>
+              <p className="mt-2 text-center text-gray-700 text-xs font-mono">
+                v1.21
+              </p>
             </div>
           </div>
         </main>

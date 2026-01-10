@@ -158,3 +158,60 @@ export const insertCurveballEventSchema = createInsertSchema(curveballEvents).om
 
 export type CurveballEvent = typeof curveballEvents.$inferSelect;
 export type InsertCurveballEvent = z.infer<typeof insertCurveballEventSchema>;
+
+// Hall of Fame - Persistent player records that survive game resets
+export const hallOfFamePlayers = pgTable("hall_of_fame_players", {
+  id: serial("id").primaryKey(),
+  playerName: text("player_name").notNull(),
+  totalGamesPlayed: integer("total_games_played").notNull().default(0),
+  totalDealsCompleted: integer("total_deals_completed").notNull().default(0),
+  totalProfitEarned: integer("total_profit_earned").notNull().default(0),
+  bestGameProfit: integer("best_game_profit").notNull().default(0),
+  gamesWon: integer("games_won").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastPlayedAt: timestamp("last_played_at").defaultNow().notNull(),
+});
+
+// Trophy definitions - what trophies exist and how to earn them
+export const trophyTypes = [
+  { id: 'first_deal', name: 'First Blood', description: 'Complete your first deal', icon: 'trophy', tier: 'bronze' },
+  { id: 'profitable_deal', name: 'In the Black', description: 'Complete a profitable deal', icon: 'dollar-sign', tier: 'bronze' },
+  { id: 'flip_master', name: 'Flip Master', description: 'Complete 5 successful flips', icon: 'hammer', tier: 'silver' },
+  { id: 'landlord', name: 'Landlord', description: 'Own 3 rental properties in one game', icon: 'home', tier: 'silver' },
+  { id: 'due_diligence', name: 'Detective', description: 'Complete all due diligence on 5 properties', icon: 'search', tier: 'bronze' },
+  { id: 'big_spender', name: 'Big Spender', description: 'Spend over $500,000 on properties', icon: 'credit-card', tier: 'silver' },
+  { id: 'speed_demon', name: 'Speed Demon', description: 'Win a game with 20+ weeks remaining', icon: 'zap', tier: 'gold' },
+  { id: 'millionaire', name: 'Millionaire', description: 'Earn $1,000,000 in total profit', icon: 'gem', tier: 'gold' },
+  { id: 'perfectionist', name: 'Perfectionist', description: 'Win without any failed deals', icon: 'star', tier: 'gold' },
+  { id: 'survivor', name: 'Survivor', description: 'Win with less than 2 weeks remaining', icon: 'clock', tier: 'silver' },
+  { id: 'five_timer', name: 'Five Timer', description: 'Win 5 games', icon: 'award', tier: 'gold' },
+  { id: 'urban_expert', name: 'Urban Expert', description: 'Complete 5 deals in urban areas', icon: 'building', tier: 'silver' },
+] as const;
+
+export type TrophyId = typeof trophyTypes[number]['id'];
+
+// Player trophies - earned achievements
+export const playerTrophies = pgTable("player_trophies", {
+  id: serial("id").primaryKey(),
+  playerId: integer("player_id").notNull().references(() => hallOfFamePlayers.id),
+  trophyId: text("trophy_id").notNull(), // References trophyTypes
+  earnedAt: timestamp("earned_at").defaultNow().notNull(),
+  gameRunId: integer("game_run_id").references(() => gameRuns.id), // Which game run earned it
+});
+
+export const insertHallOfFamePlayerSchema = createInsertSchema(hallOfFamePlayers).omit({
+  id: true,
+  createdAt: true,
+  lastPlayedAt: true,
+});
+
+export const insertPlayerTrophySchema = createInsertSchema(playerTrophies).omit({
+  id: true,
+  earnedAt: true,
+});
+
+export type HallOfFamePlayer = typeof hallOfFamePlayers.$inferSelect;
+export type InsertHallOfFamePlayer = z.infer<typeof insertHallOfFamePlayerSchema>;
+
+export type PlayerTrophy = typeof playerTrophies.$inferSelect;
+export type InsertPlayerTrophy = z.infer<typeof insertPlayerTrophySchema>;

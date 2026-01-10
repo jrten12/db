@@ -15,7 +15,11 @@ import type {
   PropertyInvestigation,
   InsertPropertyInvestigation,
   LedgerEntry,
-  InsertLedgerEntry
+  InsertLedgerEntry,
+  HallOfFamePlayer,
+  InsertHallOfFamePlayer,
+  PlayerTrophy,
+  InsertPlayerTrophy
 } from "@shared/schema";
 
 const pool = new Pool({
@@ -56,6 +60,15 @@ export interface IStorage {
   createLedgerEntry(entry: InsertLedgerEntry): Promise<LedgerEntry>;
   getLedgerByGameRun(gameRunId: number): Promise<LedgerEntry[]>;
   createLedgerEntriesWithCashUpdate(gameRunId: number, entries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[], currentCash: number): Promise<{ entries: LedgerEntry[], newCash: number }>;
+
+  // Hall of Fame methods
+  getOrCreatePlayer(playerName: string): Promise<HallOfFamePlayer>;
+  getAllPlayers(): Promise<HallOfFamePlayer[]>;
+  updatePlayerStats(playerId: number, updates: Partial<InsertHallOfFamePlayer>): Promise<HallOfFamePlayer | undefined>;
+  awardTrophy(playerId: number, trophyId: string, gameRunId?: number): Promise<PlayerTrophy>;
+  getPlayerTrophies(playerId: number): Promise<PlayerTrophy[]>;
+  getAllTrophies(): Promise<PlayerTrophy[]>;
+  hasPlayerTrophy(playerId: number, trophyId: string): Promise<boolean>;
 }
 
 export class DBStorage implements IStorage {
@@ -590,6 +603,78 @@ export class DBStorage implements IStorage {
       .where(eq(schema.gameRuns.id, gameRunId));
 
     return { entries: createdEntries, newCash: runningBalance };
+  }
+
+  // Hall of Fame methods
+  async getOrCreatePlayer(playerName: string): Promise<HallOfFamePlayer> {
+    const [existing] = await db
+      .select()
+      .from(schema.hallOfFamePlayers)
+      .where(eq(schema.hallOfFamePlayers.playerName, playerName))
+      .limit(1);
+
+    if (existing) {
+      await db
+        .update(schema.hallOfFamePlayers)
+        .set({ lastPlayedAt: new Date() })
+        .where(eq(schema.hallOfFamePlayers.id, existing.id));
+      return existing;
+    }
+
+    const [player] = await db
+      .insert(schema.hallOfFamePlayers)
+      .values({ playerName })
+      .returning();
+    return player;
+  }
+
+  async getAllPlayers(): Promise<HallOfFamePlayer[]> {
+    return await db
+      .select()
+      .from(schema.hallOfFamePlayers)
+      .orderBy(desc(schema.hallOfFamePlayers.totalProfitEarned));
+  }
+
+  async updatePlayerStats(playerId: number, updates: Partial<InsertHallOfFamePlayer>): Promise<HallOfFamePlayer | undefined> {
+    const [player] = await db
+      .update(schema.hallOfFamePlayers)
+      .set({ ...updates, lastPlayedAt: new Date() })
+      .where(eq(schema.hallOfFamePlayers.id, playerId))
+      .returning();
+    return player;
+  }
+
+  async awardTrophy(playerId: number, trophyId: string, gameRunId?: number): Promise<PlayerTrophy> {
+    const [trophy] = await db
+      .insert(schema.playerTrophies)
+      .values({ playerId, trophyId, gameRunId: gameRunId || null })
+      .returning();
+    return trophy;
+  }
+
+  async getPlayerTrophies(playerId: number): Promise<PlayerTrophy[]> {
+    return await db
+      .select()
+      .from(schema.playerTrophies)
+      .where(eq(schema.playerTrophies.playerId, playerId));
+  }
+
+  async getAllTrophies(): Promise<PlayerTrophy[]> {
+    return await db
+      .select()
+      .from(schema.playerTrophies);
+  }
+
+  async hasPlayerTrophy(playerId: number, trophyId: string): Promise<boolean> {
+    const [trophy] = await db
+      .select()
+      .from(schema.playerTrophies)
+      .where(and(
+        eq(schema.playerTrophies.playerId, playerId),
+        eq(schema.playerTrophies.trophyId, trophyId)
+      ))
+      .limit(1);
+    return !!trophy;
   }
 }
 

@@ -111,7 +111,12 @@ export const api = {
     return res.json();
   },
 
-  async activateRental(dealId: number, gameRunId: number, monthlyCashFlow: number): Promise<Deal> {
+  async activateRental(dealId: number, gameRunId: number, monthlyCashFlow: number): Promise<{
+    deal: Deal;
+    surpriseCosts: number;
+    surpriseIssues: string[];
+    newCash: number;
+  }> {
     const res = await fetch(`${API_BASE}/deals/${dealId}/activate-rental`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

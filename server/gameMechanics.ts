@@ -502,17 +502,69 @@ export function calculateWeeklyIncome(monthlyCashFlow: number): number {
  * Activate a rental property after leasing period
  * Sets up weekly income and marks as active
  */
+interface RentalActivationResult {
+  deal: Deal;
+  surpriseCosts: number;
+  surpriseIssues: string[];
+  newCash: number;
+}
+
 export async function activateRentalProperty(
   deal: Deal,
   gameRun: GameRun,
   monthlyCashFlow: number
-): Promise<Deal> {
+): Promise<RentalActivationResult> {
   const weeklyIncome = calculateWeeklyIncome(monthlyCashFlow);
+  
+  // Get property to check for undiscovered issues
+  const property = await storage.getProperty(deal.propertyId);
+  const investigations = await storage.getPropertyInvestigations(gameRun.id);
+  const completedDiligence = investigations
+    .filter(inv => inv.propertyId === deal.propertyId)
+    .map(inv => inv.investigationType);
+  
+  // Check for undiscovered property issues (surprise repair costs!)
+  const propertyName = property?.name || '';
+  const undiscoveredIssues = getUndiscoveredIssues(propertyName, completedDiligence);
+  const surpriseCosts = undiscoveredIssues.length > 0 ? calculateSurpriseCosts(undiscoveredIssues) : 0;
+  
+  // Create ledger entry for surprise repair costs if any
+  let newCash = gameRun.cash;
+  if (surpriseCosts > 0) {
+    const issueNames = undiscoveredIssues.map(i => i.name).join(', ');
+    const ledgerEntry: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'> = {
+      direction: 'debit',
+      category: 'expense',
+      amount: surpriseCosts,
+      description: `⚠️ Surprise repairs discovered: ${issueNames}`,
+      propertyId: deal.propertyId,
+      dealId: deal.id,
+    };
+    
+    const currentGameRun = await storage.getGameRun(gameRun.id);
+    const currentCash = currentGameRun?.cash ?? gameRun.cash;
+    
+    const result = await storage.createLedgerEntriesWithCashUpdate(
+      gameRun.id,
+      [ledgerEntry],
+      currentCash
+    );
+    newCash = result.newCash;
+  }
+  
+  // Update pro forma outputs to include surprise costs in total investment
+  const proFormaOutputs = deal.proFormaOutputs as any;
+  const updatedProFormaOutputs = {
+    ...proFormaOutputs,
+    surpriseCosts,
+    totalCashInvested: (proFormaOutputs?.totalCashInvested || 0) + surpriseCosts,
+  };
 
   const updatedDeal = await storage.updateDeal(deal.id, {
     status: 'active_rental',
     weeklyIncome,
     lastIncomePaymentWeek: gameRun.currentWeek,
+    proFormaOutputs: updatedProFormaOutputs,
   });
 
   // Award trophies for rental activation
@@ -526,7 +578,12 @@ export async function activateRentalProperty(
     console.error('Error awarding trophies:', err);
   }
 
-  return updatedDeal!;
+  return {
+    deal: updatedDeal!,
+    surpriseCosts,
+    surpriseIssues: undiscoveredIssues.map(i => i.name),
+    newCash,
+  };
 }
 
 /**

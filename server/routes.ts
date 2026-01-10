@@ -225,12 +225,12 @@ export async function registerRoutes(
         return;
       }
 
-      const updatedDeal = await gameMechanics.activateRentalProperty(
+      const result = await gameMechanics.activateRentalProperty(
         targetDeal,
         gameRun,
         monthlyCashFlow
       );
-      res.json(updatedDeal);
+      res.json(result);
     } catch (error: any) {
       console.error("Error activating rental:", error);
       res.status(500).json({ error: error.message || "Failed to activate rental" });

@@ -430,11 +430,22 @@ export default function Game() {
         toast.success('Flip started! Check Time & Income panel to track progress.');
       } else {
         // Activate rental property
-        await api.activateRental(newDeal.id, gameRun.id, proFormaOutputs.cashFlowMonthly);
+        const rentalResult = await api.activateRental(newDeal.id, gameRun.id, proFormaOutputs.cashFlowMonthly);
+        
+        // Show surprise costs warning if any hidden issues were discovered
+        if (rentalResult.surpriseCosts > 0) {
+          toast.warning(`⚠️ Surprise repairs: $${rentalResult.surpriseCosts.toLocaleString()} for ${rentalResult.surpriseIssues.join(', ')}. Your investment just got more expensive!`);
+        }
+        
+        // Update game run with new cash balance after surprise costs
+        const updatedGameRun = await api.getGameRun(gameRun.id);
+        setGameRun(updatedGameRun);
+        
         toast.success('Rental activated! You will receive weekly income.');
       }
 
       queryClient.invalidateQueries({ queryKey: ['deals'] });
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
       setCurrentScreen('results');
     } catch (error: any) {
       // Check for insufficient funds error
@@ -465,6 +476,11 @@ export default function Game() {
         const deal = deals.find(d => d.id === flip.dealId);
         const property = properties.find(p => p.id === deal?.propertyId);
         addFlipProceeds(flip.salePrice, flip.profit, property?.name);
+        
+        // Show surprise costs warning if any hidden issues were discovered during flip
+        if (flip.surpriseCosts > 0) {
+          toast.warning(`⚠️ Surprise repairs on ${property?.name || 'property'}: $${flip.surpriseCosts.toLocaleString()} for ${flip.surpriseIssues?.join(', ')}. This cut into your profit!`);
+        }
       });
 
       // Refresh game run state and other data

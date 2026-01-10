@@ -269,29 +269,52 @@
   }
 
   .game-button {
-    @apply px-6 py-2 rounded font-semibold text-white transition-all duration-150;
-    background: linear-gradient(180deg, hsl(145 55% 45%) 0%, hsl(145 60% 35%) 100%);
+    @apply px-6 py-2 rounded font-semibold text-white transition-all duration-200;
+    background: linear-gradient(135deg, hsl(145 55% 48%) 0%, hsl(145 60% 40%) 50%, hsl(145 60% 32%) 100%);
     border: 2px solid hsl(145 50% 30%);
-    box-shadow: 
+    box-shadow:
       0 3px 0 hsl(145 60% 25%),
-      0 5px 10px rgba(0,0,0,0.3),
-      inset 0 1px 0 rgba(255,255,255,0.2);
+      0 6px 12px rgba(16,185,129,0.3),
+      0 8px 20px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.25),
+      inset 0 -1px 2px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .game-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
   }
 
   .game-button:hover {
     transform: translateY(-1px);
-    box-shadow: 
+    box-shadow:
       0 4px 0 hsl(145 60% 25%),
-      0 7px 14px rgba(0,0,0,0.35),
-      inset 0 1px 0 rgba(255,255,255,0.2);
+      0 8px 16px rgba(16,185,129,0.4),
+      0 10px 24px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -1px 2px rgba(0,0,0,0.2);
+  }
+
+  .game-button:hover::before {
+    left: 100%;
   }
 
   .game-button:active {
     transform: translateY(2px);
-    box-shadow: 
+    box-shadow:
       0 1px 0 hsl(145 60% 25%),
-      0 2px 4px rgba(0,0,0,0.3),
-      inset 0 1px 0 rgba(255,255,255,0.2);
+      0 3px 8px rgba(16,185,129,0.2),
+      0 4px 12px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -1px 0 rgba(0,0,0,0.25);
   }
 
   .status-bar {
@@ -308,35 +331,91 @@
   }
 
   .stat-card {
-    @apply px-5 py-3 rounded-xl text-left transition-all duration-200;
-    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-    border: 1px solid rgba(255,255,255,0.08);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+    @apply px-5 py-3 rounded-xl text-left transition-all duration-300;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.01) 100%);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    box-shadow:
+      0 4px 16px rgba(0,0,0,0.4),
+      0 8px 32px rgba(0,0,0,0.2),
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      inset 0 -1px 0 rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
   }
 
   .stat-card:hover {
-    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
-    border-color: rgba(255,255,255,0.12);
+    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 100%);
+    border-color: rgba(255,255,255,0.18);
+    box-shadow:
+      0 6px 20px rgba(0,0,0,0.5),
+      0 10px 40px rgba(0,0,0,0.25),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -1px 0 rgba(0,0,0,0.25);
+    transform: translateY(-2px);
+  }
+
+  .stat-card:hover::before {
+    left: 100%;
   }
 
   .stat-card-cash {
-    background: linear-gradient(180deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 100%);
-    border: 1px solid rgba(16,185,129,0.3);
+    background: linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.12) 50%, rgba(16,185,129,0.06) 100%);
+    border: 1.5px solid rgba(16,185,129,0.4);
+    box-shadow:
+      0 4px 16px rgba(16,185,129,0.3),
+      0 8px 32px rgba(16,185,129,0.15),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -1px 0 rgba(0,0,0,0.15);
+  }
+  .stat-card-cash::before {
+    background: linear-gradient(90deg, transparent, rgba(16,185,129,0.3), transparent);
   }
   .stat-card-cash:hover {
-    background: linear-gradient(180deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.08) 100%);
-    border-color: rgba(16,185,129,0.4);
+    background: linear-gradient(135deg, rgba(16,185,129,0.28) 0%, rgba(16,185,129,0.18) 50%, rgba(16,185,129,0.1) 100%);
+    border-color: rgba(16,185,129,0.5);
     cursor: pointer;
+    box-shadow:
+      0 6px 20px rgba(16,185,129,0.4),
+      0 10px 40px rgba(16,185,129,0.2),
+      inset 0 1px 0 rgba(255,255,255,0.25),
+      inset 0 -1px 0 rgba(0,0,0,0.2);
   }
 
   .stat-card-time {
-    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.08) 50%, rgba(59,130,246,0.03) 100%);
+    border: 1.5px solid rgba(59,130,246,0.25);
+    box-shadow:
+      0 4px 16px rgba(59,130,246,0.2),
+      0 8px 32px rgba(59,130,246,0.1),
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      inset 0 -1px 0 rgba(0,0,0,0.15);
+  }
+  .stat-card-time::before {
+    background: linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent);
   }
 
   .stat-card-goal {
-    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(251,191,36,0.08) 50%, rgba(251,191,36,0.03) 100%);
+    border: 1.5px solid rgba(251,191,36,0.3);
+    box-shadow:
+      0 4px 16px rgba(251,191,36,0.25),
+      0 8px 32px rgba(251,191,36,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -1px 0 rgba(0,0,0,0.15);
+  }
+  .stat-card-goal::before {
+    background: linear-gradient(90deg, transparent, rgba(251,191,36,0.25), transparent);
   }
 
   .stat-card-header {
@@ -404,7 +483,12 @@
 
   .cash-value {
     color: #10b981;
-    text-shadow: 0 0 20px rgba(16,185,129,0.5), 0 0 40px rgba(16,185,129,0.2);
+    text-shadow:
+      0 0 10px rgba(16,185,129,0.8),
+      0 0 20px rgba(16,185,129,0.6),
+      0 0 30px rgba(16,185,129,0.4),
+      0 2px 4px rgba(0,0,0,0.5);
+    filter: drop-shadow(0 0 8px rgba(16,185,129,0.5));
   }
 
   .number-prefix {
@@ -426,7 +510,13 @@
 
   .goal-current {
     color: #10b981;
-    text-shadow: 0 0 12px rgba(16,185,129,0.4);
+    text-shadow:
+      0 0 8px rgba(16,185,129,0.8),
+      0 0 16px rgba(16,185,129,0.6),
+      0 0 24px rgba(16,185,129,0.4),
+      0 2px 4px rgba(0,0,0,0.5);
+    filter: drop-shadow(0 0 6px rgba(16,185,129,0.6));
+    font-weight: 900;
   }
 
   .goal-divider {
@@ -462,23 +552,58 @@
   }
 
   .stat-card-mobile {
-    @apply flex-1 px-3 py-2.5 rounded-lg text-center transition-all;
-    background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-    border: 1px solid rgba(255,255,255,0.08);
+    @apply flex-1 px-3 py-2.5 rounded-lg text-center transition-all duration-300;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.01) 100%);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow:
+      0 2px 8px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.1),
+      inset 0 -1px 0 rgba(0,0,0,0.15);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card-mobile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.5s;
   }
 
   .stat-card-mobile-cash {
-    background: linear-gradient(180deg, rgba(16,185,129,0.12) 0%, rgba(16,185,129,0.04) 100%);
-    border: 1px solid rgba(16,185,129,0.25);
+    background: linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.1) 50%, rgba(16,185,129,0.04) 100%);
+    border: 1px solid rgba(16,185,129,0.3);
+    box-shadow:
+      0 2px 8px rgba(16,185,129,0.25),
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      inset 0 -1px 0 rgba(0,0,0,0.1);
+  }
+  .stat-card-mobile-cash::before {
+    background: linear-gradient(90deg, transparent, rgba(16,185,129,0.3), transparent);
   }
   .stat-card-mobile-cash:hover {
-    background: linear-gradient(180deg, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.08) 100%);
+    background: linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(16,185,129,0.15) 50%, rgba(16,185,129,0.08) 100%);
+    box-shadow:
+      0 4px 12px rgba(16,185,129,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -1px 0 rgba(0,0,0,0.15);
+  }
+  .stat-card-mobile-cash:active::before {
+    left: 100%;
   }
 
   .mobile-cash-value {
     @apply font-mono font-bold text-lg;
     color: #10b981;
-    text-shadow: 0 0 12px rgba(16,185,129,0.4);
+    text-shadow:
+      0 0 8px rgba(16,185,129,0.8),
+      0 0 16px rgba(16,185,129,0.5),
+      0 2px 4px rgba(0,0,0,0.5);
+    filter: drop-shadow(0 0 6px rgba(16,185,129,0.5));
   }
 
   .mobile-time-value {
@@ -515,9 +640,24 @@
   .metric-card {
     @apply bg-card rounded-lg p-4;
     border: 2px solid hsl(30 25% 30%);
-    box-shadow: 
-      inset 0 1px 0 rgba(255,255,255,0.05),
-      0 4px 8px rgba(0,0,0,0.3);
+    box-shadow:
+      0 4px 12px rgba(0,0,0,0.4),
+      0 8px 24px rgba(0,0,0,0.2),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      inset 0 -1px 2px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, hsl(30 15% 20%) 0%, hsl(30 15% 18%) 50%, hsl(30 15% 16%) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
   }
 
   .tab-active {
@@ -546,6 +686,99 @@
   }
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Trophy/Badge Icon Enhancements */
+  .trophy-icon-success {
+    filter: drop-shadow(0 0 8px rgba(16,185,129,0.8)) drop-shadow(0 0 16px rgba(16,185,129,0.5));
+    animation: trophy-pulse 2s ease-in-out infinite;
+  }
+
+  .trophy-icon-danger {
+    filter: drop-shadow(0 0 8px rgba(239,68,68,0.6)) drop-shadow(0 0 12px rgba(239,68,68,0.4));
+  }
+
+  .trophy-icon-warning {
+    filter: drop-shadow(0 0 8px rgba(251,191,36,0.6)) drop-shadow(0 0 12px rgba(251,191,36,0.4));
+  }
+
+  .trophy-icon-gold {
+    filter: drop-shadow(0 0 10px rgba(251,191,36,0.8)) drop-shadow(0 0 20px rgba(251,191,36,0.5));
+  }
+
+  @keyframes trophy-pulse {
+    0%, 100% {
+      filter: drop-shadow(0 0 8px rgba(16,185,129,0.8)) drop-shadow(0 0 16px rgba(16,185,129,0.5));
+      transform: scale(1);
+    }
+    50% {
+      filter: drop-shadow(0 0 12px rgba(16,185,129,1)) drop-shadow(0 0 24px rgba(16,185,129,0.7));
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes trophy-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px currentColor, 0 0 40px currentColor;
+    }
+    50% {
+      box-shadow: 0 0 30px currentColor, 0 0 60px currentColor;
+    }
+  }
+
+  /* Success indicator backgrounds */
+  .trophy-success-bg {
+    background: linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.1) 100%);
+    border: 2px solid rgba(16,185,129,0.4);
+    box-shadow:
+      0 4px 16px rgba(16,185,129,0.3),
+      0 8px 32px rgba(16,185,129,0.15),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -1px 0 rgba(0,0,0,0.1);
+  }
+
+  .trophy-danger-bg {
+    background: linear-gradient(135deg, rgba(239,68,68,0.2) 0%, rgba(239,68,68,0.1) 100%);
+    border: 2px solid rgba(239,68,68,0.4);
+    box-shadow:
+      0 4px 16px rgba(239,68,68,0.3),
+      0 8px 32px rgba(239,68,68,0.15),
+      inset 0 1px 0 rgba(255,255,255,0.15),
+      inset 0 -1px 0 rgba(0,0,0,0.1);
+  }
+
+  .trophy-warning-bg {
+    background: linear-gradient(135deg, rgba(251,191,36,0.2) 0%, rgba(251,191,36,0.1) 100%);
+    border: 2px solid rgba(251,191,36,0.4);
+    box-shadow:
+      0 4px 16px rgba(251,191,36,0.3),
+      0 8px 32px rgba(251,191,36,0.15),
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      inset 0 -1px 0 rgba(0,0,0,0.1);
+  }
+
+  /* Icon container with metallic effect */
+  .trophy-icon-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+    box-shadow:
+      0 4px 12px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -1px 0 rgba(0,0,0,0.2);
+  }
+
+  .trophy-icon-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+    opacity: 0.5;
   }
 }
 

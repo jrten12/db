@@ -165,11 +165,11 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
                 <span className="text-muted-foreground">Cash-on-Cash</span>
               </MetricTooltip>
               <div className="flex items-center gap-2">
-                <span className="text-gold font-bold">{STRATEGY_THRESHOLDS.rent.cashOnCash}%+</span>
+                <span className="text-gold font-bold trophy-icon-gold">{STRATEGY_THRESHOLDS.rent.cashOnCash}%+</span>
                 {isUnlocked && outputs && (
-                  outputs.cashOnCash >= STRATEGY_THRESHOLDS.rent.cashOnCash 
-                    ? <TrendingUp className="w-4 h-4 text-success" />
-                    : <TrendingDown className="w-4 h-4 text-danger" />
+                  outputs.cashOnCash >= STRATEGY_THRESHOLDS.rent.cashOnCash
+                    ? <div className="trophy-icon-container"><TrendingUp className="w-4 h-4 text-success trophy-icon-success" /></div>
+                    : <div className="trophy-icon-container"><TrendingDown className="w-4 h-4 text-danger trophy-icon-danger" /></div>
                 )}
               </div>
             </div>
@@ -178,11 +178,11 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
                 <span className="text-muted-foreground">Monthly Cash Flow</span>
               </MetricTooltip>
               <div className="flex items-center gap-2">
-                <span className="text-gold font-bold">Positive</span>
+                <span className="text-gold font-bold trophy-icon-gold">Positive</span>
                 {isUnlocked && outputs && (
                   outputs.cashFlowMonthly > 0
-                    ? <TrendingUp className="w-4 h-4 text-success" />
-                    : <TrendingDown className="w-4 h-4 text-danger" />
+                    ? <div className="trophy-icon-container"><TrendingUp className="w-4 h-4 text-success trophy-icon-success" /></div>
+                    : <div className="trophy-icon-container"><TrendingDown className="w-4 h-4 text-danger trophy-icon-danger" /></div>
                 )}
               </div>
             </div>
@@ -194,11 +194,11 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
                 <span className="text-muted-foreground">ROI</span>
               </MetricTooltip>
               <div className="flex items-center gap-2">
-                <span className="text-gold font-bold">{STRATEGY_THRESHOLDS.flip.roi}%+</span>
+                <span className="text-gold font-bold trophy-icon-gold">{STRATEGY_THRESHOLDS.flip.roi}%+</span>
                 {isUnlocked && (
                   flipROI >= STRATEGY_THRESHOLDS.flip.roi
-                    ? <TrendingUp className="w-4 h-4 text-success" />
-                    : <TrendingDown className="w-4 h-4 text-danger" />
+                    ? <div className="trophy-icon-container"><TrendingUp className="w-4 h-4 text-success trophy-icon-success" /></div>
+                    : <div className="trophy-icon-container"><TrendingDown className="w-4 h-4 text-danger trophy-icon-danger" /></div>
                 )}
               </div>
             </div>
@@ -207,11 +207,11 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
                 <span className="text-muted-foreground">Min Profit</span>
               </MetricTooltip>
               <div className="flex items-center gap-2">
-                <span className="text-gold font-bold">{formatCurrency(STRATEGY_THRESHOLDS.flip.profitMin)}+</span>
+                <span className="text-gold font-bold trophy-icon-gold">{formatCurrency(STRATEGY_THRESHOLDS.flip.profitMin)}+</span>
                 {isUnlocked && (
                   flipProfit >= STRATEGY_THRESHOLDS.flip.profitMin
-                    ? <TrendingUp className="w-4 h-4 text-success" />
-                    : <TrendingDown className="w-4 h-4 text-danger" />
+                    ? <div className="trophy-icon-container"><TrendingUp className="w-4 h-4 text-success trophy-icon-success" /></div>
+                    : <div className="trophy-icon-container"><TrendingDown className="w-4 h-4 text-danger trophy-icon-danger" /></div>
                 )}
               </div>
             </div>
@@ -219,8 +219,8 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
         )}
 
         {isUnlocked && (
-          <div className={`mt-3 pt-3 border-t border-border text-center text-sm font-semibold ${meetsThresholds ? 'text-success' : 'text-warning'}`}>
-            {meetsThresholds ? 'Meets Investment Criteria' : 'Below Target Thresholds'}
+          <div className={`mt-3 pt-3 border-t border-border text-center text-sm font-semibold rounded-lg p-2 ${meetsThresholds ? 'text-success trophy-success-bg' : 'text-warning trophy-warning-bg'}`}>
+            {meetsThresholds ? '✓ Meets Investment Criteria' : '⚠ Below Target Thresholds'}
           </div>
         )}
       </div>

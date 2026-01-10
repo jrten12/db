@@ -14,6 +14,7 @@ interface PremiumPackage {
   type: 'cash' | 'weeks' | 'bundle';
   title: string;
   description: string;
+  priceUSD: number;
   cashAmount?: number;
   weeksAmount?: number;
   icon: React.ElementType;
@@ -29,6 +30,7 @@ const packages: PremiumPackage[] = [
     type: 'cash',
     title: '$50,000 Cash Boost',
     description: 'Perfect for closing your next deal',
+    priceUSD: 0.99,
     cashAmount: 50000,
     icon: Wallet,
     iconColor: 'text-emerald-400',
@@ -40,6 +42,7 @@ const packages: PremiumPackage[] = [
     type: 'cash',
     title: '$150,000 Cash Boost',
     description: 'Level up your investment power',
+    priceUSD: 1.99,
     cashAmount: 150000,
     icon: Wallet,
     iconColor: 'text-emerald-400',
@@ -51,6 +54,7 @@ const packages: PremiumPackage[] = [
     type: 'cash',
     title: '$300,000 Cash Boost',
     description: 'Premium investor package',
+    priceUSD: 2.99,
     cashAmount: 300000,
     icon: Wallet,
     iconColor: 'text-emerald-400',
@@ -63,6 +67,7 @@ const packages: PremiumPackage[] = [
     type: 'weeks',
     title: '10 Extra Weeks',
     description: 'More time to find opportunities',
+    priceUSD: 0.99,
     weeksAmount: 10,
     icon: Clock,
     iconColor: 'text-blue-400',
@@ -74,6 +79,7 @@ const packages: PremiumPackage[] = [
     type: 'weeks',
     title: '25 Extra Weeks',
     description: 'Extended timeline for success',
+    priceUSD: 1.99,
     weeksAmount: 25,
     icon: Clock,
     iconColor: 'text-blue-400',
@@ -85,6 +91,7 @@ const packages: PremiumPackage[] = [
     type: 'bundle',
     title: 'Ultimate Bundle',
     description: 'Cash & Time combo package',
+    priceUSD: 4.99,
     cashAmount: 200000,
     weeksAmount: 20,
     icon: Sparkles,
@@ -224,7 +231,7 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
                       }`}
                       data-testid={`button-purchase-${pkg.id}`}
                     >
-                      {isPurchasing ? '✓ Purchased!' : 'Get Now (Free)'}
+                      {isPurchasing ? '✓ Purchased!' : `Buy for $${pkg.priceUSD.toFixed(2)}`}
                     </button>
                   </div>
                 </div>
@@ -234,7 +241,7 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
 
           {/* Info Note */}
           <div className="text-center text-gray-500 text-sm">
-            <p>🎮 Game mode - No payment required</p>
+            <p>Purchases are simulated - Stripe integration coming soon</p>
             <p className="mt-1">Premium purchases instantly boost your in-game resources</p>
           </div>
         </div>

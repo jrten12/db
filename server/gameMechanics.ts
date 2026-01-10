@@ -144,10 +144,12 @@ interface WeekProgressionResult {
 
 /**
  * Complete a flip deal and return proceeds to player's balance
- * Sale price is calculated based on rehab investment relative to property requirements:
- * - Higher rehab spending (up to property's rehabMax) yields higher sale prices
- * - Sale price varies between arvMin and arvMax based on rehab completion factor
- * - Small random variance (±5%) simulates market conditions
+ * Sale price is calculated based on:
+ * 1. Whether player did comp analysis (appraisal) - reduces uncertainty
+ * 2. Rehab investment relative to property requirements
+ * 
+ * WITH comps: Sale price is within actual market range (arvMin-arvMax)
+ * WITHOUT comps: Sale price can deviate significantly from player's estimate!
  */
 export async function completeFlipDeal(
   deal: Deal,
@@ -160,7 +162,13 @@ export async function completeFlipDeal(
   // Get property to access ARV and rehab ranges
   const property = await storage.getProperty(deal.propertyId);
   
-  // Calculate sale price based on rehab investment
+  // Check if player did due diligence (appraisal = comp analysis)
+  const investigations = await storage.getPropertyInvestigations(gameRun.id);
+  const didComps = investigations.some(
+    inv => inv.propertyId === deal.propertyId && inv.investigationType === 'appraisal'
+  );
+  
+  // Calculate sale price based on due diligence and rehab investment
   let salePrice: number;
   if (property && property.arvMin && property.arvMax && property.rehabMin && property.rehabMax) {
     // Get player's actual rehab spend (budget + contingency)
@@ -169,19 +177,39 @@ export async function completeFlipDeal(
     const actualRehabSpend = rehabBudget * (1 + contingencyPct / 100);
     
     // Calculate rehab completion factor (0 to 1)
-    // How much of the required rehab did the player budget for?
     const rehabRange = property.rehabMax - property.rehabMin;
     const completionFactor = rehabRange > 0 
       ? Math.max(0, Math.min(1, (actualRehabSpend - property.rehabMin) / rehabRange))
       : 0.5;
     
-    // Base sale price scales with rehab completion
-    const arvRange = property.arvMax - property.arvMin;
-    const baseSalePrice = property.arvMin + (completionFactor * arvRange);
-    
-    // Apply ±5% market variance
-    const marketVariance = 0.95 + (Math.random() * 0.10); // 0.95 to 1.05
-    salePrice = Math.round(baseSalePrice * marketVariance);
+    if (didComps) {
+      // WITH COMPS: Sale price is reliably within actual market range
+      // Base sale price scales with rehab completion within the known range
+      const arvRange = property.arvMax - property.arvMin;
+      const baseSalePrice = property.arvMin + (completionFactor * arvRange);
+      
+      // Apply small ±5% market variance
+      const marketVariance = 0.95 + (Math.random() * 0.10);
+      salePrice = Math.round(baseSalePrice * marketVariance);
+    } else {
+      // WITHOUT COMPS: Player is flying blind! Market reality may differ wildly
+      // Their estimate could be off by 15-30% in either direction
+      const playerEstimate = proFormaInputs?.arv || ((property.arvMin + property.arvMax) / 2);
+      
+      // Generate a "reality check" - what the market actually values this at
+      // Could be 70% to 130% of what player expected
+      const realityFactor = 0.70 + (Math.random() * 0.60); // 0.70 to 1.30
+      
+      // Rehab still matters for final price, but uncertainty is huge
+      const baseFromRehab = property.arvMin + (completionFactor * (property.arvMax - property.arvMin));
+      
+      // Blend player estimate (with uncertainty) and actual value
+      // Without comps, the market may not agree with player's assumptions
+      const uncertainPrice = playerEstimate * realityFactor;
+      
+      // Final price leans toward uncertain estimate since player didn't research
+      salePrice = Math.round((uncertainPrice * 0.7) + (baseFromRehab * 0.3));
+    }
   } else {
     // Fallback to pro forma ARV if property not found
     salePrice = proFormaOutputs.arv || 0;

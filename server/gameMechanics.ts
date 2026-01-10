@@ -89,8 +89,12 @@ export async function checkAndAwardTrophies(
       await tryAward('speed_demon');
     }
 
-    // Millionaire - End game with $1M+ cash
-    if ((context.finalCash || 0) >= 1000000) {
+    // Millionaire - Earn $500K total profit across all games (cumulative)
+    const player = await storage.getOrCreatePlayer(gameRun.playerName);
+    // Calculate new cumulative profit after this game
+    const thisGameProfit = completedDeals.reduce((sum, d) => sum + (d.actualProfit || 0), 0);
+    const cumulativeProfit = player.totalProfitEarned + Math.max(0, thisGameProfit);
+    if (cumulativeProfit >= 500000) {
       await tryAward('millionaire');
     }
 

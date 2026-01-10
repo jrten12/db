@@ -222,16 +222,11 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
                     </div>
 
                     <button
-                      onClick={() => handlePurchase(pkg)}
-                      disabled={purchasing}
-                      className={`w-full py-3 rounded-xl font-bold transition-all ${
-                        isPurchasing
-                          ? 'bg-emerald-500 text-white animate-pulse'
-                          : 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                      }`}
+                      disabled={true}
+                      className="w-full py-3 rounded-xl font-bold transition-all bg-gray-600/50 text-gray-400 border border-gray-500/30 cursor-not-allowed"
                       data-testid={`button-purchase-${pkg.id}`}
                     >
-                      {isPurchasing ? '✓ Purchased!' : `Buy for $${pkg.priceUSD.toFixed(2)}`}
+                      ${pkg.priceUSD.toFixed(2)} - Coming Soon
                     </button>
                   </div>
                 </div>
@@ -241,8 +236,8 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
 
           {/* Info Note */}
           <div className="text-center text-gray-500 text-sm">
-            <p>Purchases are simulated - Stripe integration coming soon</p>
-            <p className="mt-1">Premium purchases instantly boost your in-game resources</p>
+            <p>Premium purchases coming soon!</p>
+            <p className="mt-1">These boosts will be available after payment integration</p>
           </div>
         </div>
       </div>

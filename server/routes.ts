@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema } from "@shared/schema";
+import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema, trophyTypes } from "@shared/schema";
 import { z } from "zod";
 import * as gameMechanics from "./gameMechanics";
 
@@ -358,6 +358,103 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Error purchasing bundle:", error);
       res.status(500).json({ error: error.message || "Failed to purchase bundle" });
+    }
+  });
+
+  // ============ HALL OF FAME ROUTES ============
+
+  // Get or create player by name
+  app.post("/api/players", async (req, res) => {
+    try {
+      const { playerName } = req.body as { playerName: string };
+      if (!playerName || playerName.trim().length === 0) {
+        res.status(400).json({ error: "Player name is required" });
+        return;
+      }
+      const player = await storage.getOrCreatePlayer(playerName.trim());
+      res.json(player);
+    } catch (error) {
+      console.error("Error creating/fetching player:", error);
+      res.status(500).json({ error: "Failed to create player" });
+    }
+  });
+
+  // Get all Hall of Fame players (leaderboard)
+  app.get("/api/hall-of-fame", async (req, res) => {
+    try {
+      const players = await storage.getAllPlayers();
+      const allTrophies = await storage.getAllTrophies();
+      
+      const playersWithTrophies = players.map(player => ({
+        ...player,
+        trophies: allTrophies.filter(t => t.playerId === player.id)
+      }));
+      
+      res.json(playersWithTrophies);
+    } catch (error) {
+      console.error("Error fetching Hall of Fame:", error);
+      res.status(500).json({ error: "Failed to fetch Hall of Fame" });
+    }
+  });
+
+  // Get trophy definitions
+  app.get("/api/trophies/definitions", async (req, res) => {
+    res.json(trophyTypes);
+  });
+
+  // Get player's trophies
+  app.get("/api/players/:id/trophies", async (req, res) => {
+    try {
+      const playerId = parseInt(req.params.id);
+      const trophies = await storage.getPlayerTrophies(playerId);
+      res.json(trophies);
+    } catch (error) {
+      console.error("Error fetching player trophies:", error);
+      res.status(500).json({ error: "Failed to fetch trophies" });
+    }
+  });
+
+  // Award trophy to player
+  app.post("/api/players/:id/trophies", async (req, res) => {
+    try {
+      const playerId = parseInt(req.params.id);
+      const { trophyId, gameRunId } = req.body as { trophyId: string; gameRunId?: number };
+      
+      const hasTrophy = await storage.hasPlayerTrophy(playerId, trophyId);
+      if (hasTrophy) {
+        res.status(200).json({ message: "Trophy already awarded", alreadyHad: true });
+        return;
+      }
+      
+      const trophy = await storage.awardTrophy(playerId, trophyId, gameRunId);
+      res.json({ trophy, alreadyHad: false });
+    } catch (error) {
+      console.error("Error awarding trophy:", error);
+      res.status(500).json({ error: "Failed to award trophy" });
+    }
+  });
+
+  // Update player stats (after game completion)
+  app.patch("/api/players/:id/stats", async (req, res) => {
+    try {
+      const playerId = parseInt(req.params.id);
+      const updates = req.body as {
+        totalGamesPlayed?: number;
+        totalDealsCompleted?: number;
+        totalProfitEarned?: number;
+        bestGameProfit?: number;
+        gamesWon?: number;
+      };
+      
+      const player = await storage.updatePlayerStats(playerId, updates);
+      if (!player) {
+        res.status(404).json({ error: "Player not found" });
+        return;
+      }
+      res.json(player);
+    } catch (error) {
+      console.error("Error updating player stats:", error);
+      res.status(500).json({ error: "Failed to update player stats" });
     }
   });
 

@@ -11,6 +11,8 @@ import { MoneyAnimation } from '@/components/game/MoneyAnimation';
 import { TimeProgressionPanel } from '@/components/game/TimeProgressionPanel';
 import { IncomeNotification, useIncomeNotifications } from '@/components/game/IncomeNotification';
 import { PremiumModal } from '@/components/game/PremiumModal';
+import { PlayerNameModal } from '@/components/game/PlayerNameModal';
+import { HallOfFameModal } from '@/components/game/HallOfFameModal';
 import {
   ProFormaInputs,
   ProFormaOutputs,
@@ -20,7 +22,7 @@ import {
 } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
 import { api } from '@/lib/api';
-import type { GameRun, Property, LedgerEntry, Deal } from '@shared/schema';
+import type { GameRun, Property, LedgerEntry, Deal, HallOfFamePlayer } from '@shared/schema';
 import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.png';
 import Footer from '@/components/Footer';
 import { Loader2 } from 'lucide-react';
@@ -51,17 +53,52 @@ export default function Game() {
   const [locationFilter, setLocationFilter] = useState<LocationFilter>('all');
   const [moneyAnimationTrigger, setMoneyAnimationTrigger] = useState(0);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showHallOfFame, setShowHallOfFame] = useState(false);
+  const [playerName, setPlayerName] = useState<string | null>(null);
+  const [currentPlayer, setCurrentPlayer] = useState<HallOfFamePlayer | null>(null);
+  const [showNameEntry, setShowNameEntry] = useState(true);
 
   const STARTING_CASH = 50000;
 
   // Income notifications
   const { events: incomeEvents, dismissEvent, addRentalPayment, addFlipProceeds, addCurveballBonus } = useIncomeNotifications();
 
-  const { data: gameRun, isLoading: isLoadingGame, error: gameError } = useQuery({
-    queryKey: ['activeGameRun'],
-    queryFn: async () => {
+  const [gameRun, setGameRun] = useState<GameRun | null>(null);
+  const [isLoadingGame, setIsLoadingGame] = useState(true);
+  const [gameError, setGameError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    const checkActiveGame = async () => {
+      try {
+        const activeRun = await api.getActiveGameRun();
+        if (activeRun) {
+          setGameRun(activeRun);
+          setPlayerName(activeRun.playerName);
+          setShowNameEntry(false);
+        }
+      } catch (err) {
+        console.error('Failed to check active game:', err);
+      } finally {
+        setIsLoadingGame(false);
+      }
+    };
+    checkActiveGame();
+  }, []);
+
+  const startNewGame = useCallback(async (name: string) => {
+    setIsLoadingGame(true);
+    setGameError(null);
+    try {
+      const player = await api.getOrCreatePlayer(name);
+      setCurrentPlayer(player);
+      setPlayerName(name);
+      
+      await api.updatePlayerStats(player.id, {
+        totalGamesPlayed: player.totalGamesPlayed + 1,
+      });
+
       const newRun = await api.createGameRun({
-        playerName: 'Player',
+        playerName: name,
         difficulty: 'apprentice',
         cash: 50000,
         weeksRemaining: 52,
@@ -74,12 +111,14 @@ export default function Game() {
         throw new Error('Failed to create game run');
       }
       
-      return newRun;
-    },
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-  });
+      setGameRun(newRun);
+      setShowNameEntry(false);
+    } catch (err) {
+      setGameError(err as Error);
+    } finally {
+      setIsLoadingGame(false);
+    }
+  }, []);
 
   const { data: properties = [], isLoading: isLoadingProps } = useQuery({
     queryKey: ['properties'],
@@ -90,7 +129,7 @@ export default function Game() {
     mutationFn: ({ id, updates }: { id: number; updates: Partial<GameRun> }) =>
       api.updateGameRun(id, updates),
     onSuccess: (updatedGameRun) => {
-      queryClient.setQueryData(['activeGameRun'], updatedGameRun);
+      setGameRun(updatedGameRun);
     },
   });
 
@@ -136,9 +175,7 @@ export default function Game() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
       if (data?.newCash !== undefined) {
-        queryClient.setQueryData(['activeGameRun'], (old: GameRun | undefined) =>
-          old ? { ...old, cash: data.newCash } : old
-        );
+        setGameRun(prev => prev ? { ...prev, cash: data.newCash } : prev);
       }
     },
   });
@@ -147,7 +184,7 @@ export default function Game() {
     mutationFn: ({ gameRunId, amount }: { gameRunId: number; amount: number }) =>
       api.purchaseCash(gameRunId, amount),
     onSuccess: (updatedGameRun) => {
-      queryClient.setQueryData(['activeGameRun'], updatedGameRun);
+      setGameRun(updatedGameRun);
       toast.success(`Added $${updatedGameRun.cash.toLocaleString()} cash!`);
     },
   });
@@ -156,7 +193,7 @@ export default function Game() {
     mutationFn: ({ gameRunId, amount }: { gameRunId: number; amount: number }) =>
       api.purchaseWeeks(gameRunId, amount),
     onSuccess: (updatedGameRun) => {
-      queryClient.setQueryData(['activeGameRun'], updatedGameRun);
+      setGameRun(updatedGameRun);
       toast.success(`Added ${updatedGameRun.weeksRemaining} weeks!`);
     },
   });
@@ -165,7 +202,7 @@ export default function Game() {
     mutationFn: ({ gameRunId, cashAmount, weeksAmount }: { gameRunId: number; cashAmount: number; weeksAmount: number }) =>
       api.purchaseBundle(gameRunId, cashAmount, weeksAmount),
     onSuccess: (updatedGameRun) => {
-      queryClient.setQueryData(['activeGameRun'], updatedGameRun);
+      setGameRun(updatedGameRun);
       toast.success(`Bundle added! New cash: $${updatedGameRun.cash.toLocaleString()}, Weeks: ${updatedGameRun.weeksRemaining}`);
     },
   });
@@ -422,8 +459,9 @@ export default function Game() {
         addFlipProceeds(flip.salePrice, flip.profit, property?.name);
       });
 
-      // Refresh all data
-      queryClient.invalidateQueries({ queryKey: ['activeGameRun'] });
+      // Refresh game run state and other data
+      const updatedGameRun = await api.getGameRun(gameRun.id);
+      setGameRun(updatedGameRun);
       queryClient.invalidateQueries({ queryKey: ['deals'] });
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
 
@@ -461,10 +499,41 @@ export default function Game() {
     }
   }, [gameRun, purchaseCashMutation, purchaseWeeksMutation, purchaseBundleMutation]);
 
-  if (isLoadingGame || isLoadingProps) {
+  if (isLoadingGame && !gameRun) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-gold" />
+      <div 
+        className="min-h-screen bg-cover bg-center bg-fixed"
+        style={{ backgroundImage: `url(${woodTexture})` }}
+      >
+        <div className="min-h-screen bg-black/50 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-gold" />
+        </div>
+      </div>
+    );
+  }
+
+  if (showNameEntry) {
+    return (
+      <div 
+        className="min-h-screen bg-cover bg-center bg-fixed"
+        style={{ backgroundImage: `url(${woodTexture})` }}
+      >
+        <div className="min-h-screen bg-black/50">
+          <PlayerNameModal
+            isOpen={showNameEntry && !showHallOfFame}
+            onSubmit={startNewGame}
+            onViewHallOfFame={() => setShowHallOfFame(true)}
+          />
+          <HallOfFameModal
+            isOpen={showHallOfFame}
+            onClose={() => setShowHallOfFame(false)}
+          />
+          {isLoadingGame && (
+            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+              <Loader2 className="w-8 h-8 animate-spin text-gold" />
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -474,7 +543,13 @@ export default function Game() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-foreground mb-2">Failed to load game</p>
-          <p className="text-sm text-muted-foreground">{(gameError as Error).message}</p>
+          <p className="text-sm text-muted-foreground">{gameError.message}</p>
+          <button 
+            onClick={() => setShowNameEntry(true)}
+            className="mt-4 px-4 py-2 bg-gold text-black rounded-lg font-medium"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
@@ -502,6 +577,7 @@ export default function Game() {
           goalDeals={gameRun.goalDeals}
           onOpenLedger={() => setShowLedger(true)}
           onOpenPremium={() => setShowPremiumModal(true)}
+          onOpenHallOfFame={() => setShowHallOfFame(true)}
         />
 
 
@@ -609,6 +685,12 @@ export default function Game() {
           onPurchase={handlePremiumPurchase}
           currentCash={gameRun.cash}
           currentWeeks={gameRun.weeksRemaining}
+        />
+
+        {/* Hall of Fame Modal */}
+        <HallOfFameModal
+          isOpen={showHallOfFame}
+          onClose={() => setShowHallOfFame(false)}
         />
 
         {/* Income Notifications */}

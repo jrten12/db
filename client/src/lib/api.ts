@@ -1,4 +1,4 @@
-import type { GameRun, Property, Deal, InsertGameRun, InsertDeal, PropertyInvestigation, InsertPropertyInvestigation, LedgerEntry } from '@shared/schema';
+import type { GameRun, Property, Deal, InsertGameRun, InsertDeal, PropertyInvestigation, InsertPropertyInvestigation, LedgerEntry, HallOfFamePlayer, PlayerTrophy } from '@shared/schema';
 
 const API_BASE = '/api';
 
@@ -166,6 +166,55 @@ export const api = {
       body: JSON.stringify({ cashAmount, weeksAmount }),
     });
     if (!res.ok) throw new Error('Failed to purchase bundle');
+    return res.json();
+  },
+
+  // Hall of Fame
+  async getOrCreatePlayer(playerName: string): Promise<HallOfFamePlayer> {
+    const res = await fetch(`${API_BASE}/players`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerName }),
+    });
+    if (!res.ok) throw new Error('Failed to get/create player');
+    return res.json();
+  },
+
+  async getHallOfFame(): Promise<(HallOfFamePlayer & { trophies: PlayerTrophy[] })[]> {
+    const res = await fetch(`${API_BASE}/hall-of-fame`);
+    if (!res.ok) throw new Error('Failed to fetch Hall of Fame');
+    return res.json();
+  },
+
+  async getTrophyDefinitions(): Promise<any[]> {
+    const res = await fetch(`${API_BASE}/trophies/definitions`);
+    if (!res.ok) throw new Error('Failed to fetch trophy definitions');
+    return res.json();
+  },
+
+  async awardTrophy(playerId: number, trophyId: string, gameRunId?: number): Promise<{ trophy?: PlayerTrophy; alreadyHad: boolean }> {
+    const res = await fetch(`${API_BASE}/players/${playerId}/trophies`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trophyId, gameRunId }),
+    });
+    if (!res.ok) throw new Error('Failed to award trophy');
+    return res.json();
+  },
+
+  async updatePlayerStats(playerId: number, stats: {
+    totalGamesPlayed?: number;
+    totalDealsCompleted?: number;
+    totalProfitEarned?: number;
+    bestGameProfit?: number;
+    gamesWon?: number;
+  }): Promise<HallOfFamePlayer> {
+    const res = await fetch(`${API_BASE}/players/${playerId}/stats`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(stats),
+    });
+    if (!res.ok) throw new Error('Failed to update player stats');
     return res.json();
   },
 };

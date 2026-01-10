@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
-import { Menu, Home, X, Wallet, Clock, Target, Sparkles } from 'lucide-react';
+import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy } from 'lucide-react';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 
@@ -11,6 +11,7 @@ interface StatusBarProps {
   goalDeals: number;
   onOpenLedger?: () => void;
   onOpenPremium?: () => void;
+  onOpenHallOfFame?: () => void;
 }
 
 function AnimatedNumber({ value, prefix = '', suffix = '', className = '' }: { 
@@ -94,7 +95,7 @@ function StatCard({
   );
 }
 
-export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium }: StatusBarProps) {
+export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame }: StatusBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const cashDisplay = Math.floor(cash).toLocaleString();
@@ -241,6 +242,18 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             </div>
 
             <div className="space-y-4 w-full max-w-xs">
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  onOpenHallOfFame?.();
+                }}
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-amber-500/20 to-yellow-600/20 hover:from-amber-500/30 hover:to-yellow-600/30 backdrop-blur-md rounded-xl border border-amber-500/30 text-amber-400 font-semibold transition-all"
+                data-testid="button-hall-of-fame"
+              >
+                <Trophy className="w-5 h-5" />
+                Hall of Fame
+              </button>
+
               <button
                 onClick={() => {
                   setMenuOpen(false);

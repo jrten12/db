@@ -48,6 +48,15 @@ export default function Game() {
   const [isProFormaComplete, setIsProFormaComplete] = useState(false);
   const [completedDiligence, setCompletedDiligence] = useState<DiligenceState>({});
   const [proFormaCompletions, setProFormaCompletions] = useState<ProFormaCompletionState>({});
+  const [skippedDiligenceDeals, setSkippedDiligenceDeals] = useState<Set<number>>(() => {
+    try {
+      const stored = sessionStorage.getItem('skippedDiligenceDeals');
+      if (stored) {
+        return new Set(JSON.parse(stored) as number[]);
+      }
+    } catch {}
+    return new Set();
+  });
   const [flipMetrics, setFlipMetrics] = useState({ profit: 0, roi: 0, holdWeeks: 0 });
   const [showLedger, setShowLedger] = useState(false);
 
@@ -67,6 +76,12 @@ export default function Game() {
   const [gameRun, setGameRun] = useState<GameRun | null>(null);
   const [isLoadingGame, setIsLoadingGame] = useState(true);
   const [gameError, setGameError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('skippedDiligenceDeals', JSON.stringify([...skippedDiligenceDeals]));
+    } catch {}
+  }, [skippedDiligenceDeals]);
 
   useEffect(() => {
     const checkActiveGame = async () => {
@@ -116,6 +131,8 @@ export default function Game() {
       }
       
       sessionStorage.setItem('currentGameRunId', String(newRun.id));
+      sessionStorage.removeItem('skippedDiligenceDeals');
+      setSkippedDiligenceDeals(new Set());
       setGameRun(newRun);
       setShowNameEntry(false);
     } catch (err) {
@@ -353,6 +370,16 @@ export default function Game() {
     setIsProFormaComplete(false);
     setProFormaOutputs(null);
   }, []);
+
+  const handleReturnToProperty = useCallback(() => {
+    setCurrentScreen('detail');
+  }, []);
+
+  const handleProceedWithoutDiligence = useCallback(() => {
+    if (!selectedProperty) return;
+    setSkippedDiligenceDeals(prev => new Set([...prev, selectedProperty.id]));
+    toast.warning('Proceeding without full due diligence - hidden issues may surface later!');
+  }, [selectedProperty]);
 
   const handleInputsChange = useCallback((inputs: ProFormaInputs) => {
     setProFormaInputs(inputs);
@@ -689,6 +716,9 @@ export default function Game() {
                     onCalculate={handleCalculate}
                     completedDiligence={completedDiligence[selectedProperty.id] || []}
                     playerCash={gameRun?.cash ?? 50000}
+                    onReturnToProperty={handleReturnToProperty}
+                    onProceedWithoutDiligence={handleProceedWithoutDiligence}
+                    skippedDiligence={skippedDiligenceDeals.has(selectedProperty.id)}
                   />
                 </div>
 

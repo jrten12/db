@@ -110,9 +110,12 @@ interface ProFormaPanelProps {
   onCalculate: () => void;
   completedDiligence?: string[];
   playerCash?: number;
+  onReturnToProperty?: () => void;
+  onProceedWithoutDiligence?: () => void;
+  skippedDiligence?: boolean;
 }
 
-export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 50000 }: ProFormaPanelProps) {
+export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 50000, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false }: ProFormaPanelProps) {
   const effectiveRanges = useMemo(() => getEffectiveRanges(
     {
       rentMin: property.rentRange?.[0] ?? property.rentMin ?? 1000,
@@ -255,7 +258,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const diligenceRiskLevel = Object.values(missingDiligence).filter(Boolean).length;
   const completedDiligenceCount = completedDiligence.length;
   
-  const canShowViability = completedDiligenceCount >= 2;
+  const canShowViability = completedDiligenceCount >= 2 || skippedDiligence;
   const canShowReturns = inputs.strategy === 'rent' ? hasMarketStudy : hasAppraisal;
   const canShowFragility = completedDiligenceCount >= 1;
   
@@ -1467,12 +1470,40 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 {isViable ? 'Lock In Pro Forma' : 'Fix Issues First'}
               </button>
             ) : (
-              <div className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-center">
-                <div className="flex items-center justify-center gap-2">
-                  <Lock className="w-4 h-4 text-amber-400" />
-                  <span className="text-amber-400 font-semibold text-sm">Complete 2+ due diligence items to proceed</span>
+              <div className="w-full rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/50 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Lock className="w-5 h-5 text-amber-400" />
+                  <span className="text-amber-400 font-bold text-sm">Due Diligence Incomplete</span>
                 </div>
-                <p className="text-gray-500 text-xs mt-1">You need to research the property before making a decision</p>
+                <p className="text-gray-300 text-sm mb-4">
+                  You haven't completed enough research on this property. Key financial metrics are still hidden.
+                </p>
+                
+                <div className="space-y-2">
+                  {onReturnToProperty && (
+                    <button
+                      onClick={onReturnToProperty}
+                      className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold text-sm transition-all shadow-lg shadow-emerald-500/20"
+                      data-testid="button-return-to-property"
+                    >
+                      ← Return to Due Diligence (Recommended)
+                    </button>
+                  )}
+                  
+                  {onProceedWithoutDiligence && (
+                    <button
+                      onClick={onProceedWithoutDiligence}
+                      className="w-full px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 text-xs transition-all border border-slate-600"
+                      data-testid="button-proceed-without-diligence"
+                    >
+                      Proceed Anyway (Not Recommended)
+                    </button>
+                  )}
+                </div>
+                
+                <p className="text-gray-500 text-xs mt-3 italic">
+                  Skipping due diligence may lead to surprise costs and hidden issues when the deal closes.
+                </p>
               </div>
             )}
           </div>

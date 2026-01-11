@@ -688,6 +688,7 @@ export default function Game() {
                     onInputsChange={handleInputsChange}
                     onCalculate={handleCalculate}
                     completedDiligence={completedDiligence[selectedProperty.id] || []}
+                    playerCash={gameRun?.cash ?? 50000}
                   />
                 </div>
 

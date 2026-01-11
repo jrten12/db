@@ -109,9 +109,10 @@ interface ProFormaPanelProps {
   onInputsChange: (inputs: ProFormaInputs) => void;
   onCalculate: () => void;
   completedDiligence?: string[];
+  playerCash?: number;
 }
 
-export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [] }: ProFormaPanelProps) {
+export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 50000 }: ProFormaPanelProps) {
   const effectiveRanges = useMemo(() => getEffectiveRanges(
     {
       rentMin: property.rentRange?.[0] ?? property.rentMin ?? 1000,
@@ -705,22 +706,46 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   )}
                 </div>
                 <div className="border-t-2 border-blue-400/30 pt-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-blue-300 font-bold text-base">TOTAL CASH REQUIRED</span>
-                    <span className="text-emerald-400 font-mono font-bold text-2xl">
-                      {formatCurrency(
-                        liveOutputs.downPaymentAmount +
-                        closingCosts +
-                        Math.round(liveOutputs.loanAmount * inputs.loanOriginationPct / 100) +
-                        (inputs.strategy === 'flip' ? holdingCostPerWeek * 4 : 0)
-                      )}
-                    </span>
-                  </div>
-                  <p className="text-gray-400 text-xs mt-2 italic">
-                    {inputs.strategy === 'rent'
-                      ? 'Cash you need at closing to acquire this rental property'
-                      : 'Cash you need upfront to acquire and start renovations'}
-                  </p>
+                  {(() => {
+                    const totalCashRequired = liveOutputs.downPaymentAmount +
+                      closingCosts +
+                      Math.round(liveOutputs.loanAmount * inputs.loanOriginationPct / 100) +
+                      (inputs.strategy === 'flip' ? holdingCostPerWeek * 4 : 0);
+                    const canAfford = playerCash >= totalCashRequired;
+                    const cashRatio = Math.min(playerCash / totalCashRequired, 1) * 100;
+                    
+                    return (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-blue-300 font-bold text-base">TOTAL CASH REQUIRED</span>
+                          <span className={`font-mono font-bold text-2xl ${canAfford ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {formatCurrency(totalCashRequired)}
+                          </span>
+                        </div>
+                        
+                        <div className="mt-3 space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-400">Your Cash: <span className="text-white font-mono">{formatCurrency(playerCash)}</span></span>
+                            <span className={canAfford ? 'text-emerald-400' : 'text-red-400'}>
+                              {canAfford ? '✓ Can Afford' : `Need ${formatCurrency(totalCashRequired - playerCash)} more`}
+                            </span>
+                          </div>
+                          <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full transition-all duration-300 ${canAfford ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-red-500 to-amber-500'}`}
+                              style={{ width: `${cashRatio}%` }}
+                            />
+                          </div>
+                        </div>
+                        
+                        <p className="text-gray-400 text-xs mt-2 italic">
+                          {inputs.strategy === 'rent'
+                            ? 'Cash you need at closing to acquire this rental property'
+                            : 'Cash you need upfront to acquire and start renovations'}
+                        </p>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

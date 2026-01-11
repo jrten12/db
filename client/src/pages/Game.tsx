@@ -71,11 +71,14 @@ export default function Game() {
   useEffect(() => {
     const checkActiveGame = async () => {
       try {
-        const activeRun = await api.getActiveGameRun();
-        if (activeRun) {
-          setGameRun(activeRun);
-          setPlayerName(activeRun.playerName);
-          setShowNameEntry(false);
+        const sessionGameId = sessionStorage.getItem('currentGameRunId');
+        if (sessionGameId) {
+          const activeRun = await api.getActiveGameRun();
+          if (activeRun && activeRun.id === parseInt(sessionGameId)) {
+            setGameRun(activeRun);
+            setPlayerName(activeRun.playerName);
+            setShowNameEntry(false);
+          }
         }
       } catch (err) {
         console.error('Failed to check active game:', err);
@@ -112,6 +115,7 @@ export default function Game() {
         throw new Error('Failed to create game run');
       }
       
+      sessionStorage.setItem('currentGameRunId', String(newRun.id));
       setGameRun(newRun);
       setShowNameEntry(false);
     } catch (err) {

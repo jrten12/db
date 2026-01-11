@@ -12,6 +12,9 @@ export async function registerRoutes(
   
   // Initialize database with starter properties
   await storage.seedProperties();
+  
+  // Update location types for existing properties (fixes production data)
+  await storage.updatePropertyLocationTypes();
 
   // Get all properties
   app.get("/api/properties", async (req, res) => {

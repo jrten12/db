@@ -45,6 +45,7 @@ export interface IStorage {
   getProperty(id: number): Promise<Property | undefined>;
   createProperty(property: InsertProperty): Promise<Property>;
   seedProperties(): Promise<void>;
+  updatePropertyLocationTypes(): Promise<void>;
   addNewUrbanProperties(): Promise<void>;
 
   // Deal methods
@@ -398,6 +399,32 @@ export class DBStorage implements IStorage {
     ];
 
     await db.insert(schema.properties).values(starterProperties);
+  }
+
+  async updatePropertyLocationTypes(): Promise<void> {
+    const urbanNeighborhoods = [
+      "Downtown", "Northern Liberties", "Fishtown", "South Street", 
+      "Kensington", "Port Richmond", "Old City", "Center City",
+      "Rittenhouse Square", "Society Hill", "Queen Village", 
+      "Graduate Hospital", "Fairmount"
+    ];
+    
+    const allProperties = await db.select().from(schema.properties);
+    
+    for (const prop of allProperties) {
+      const isUrban = urbanNeighborhoods.some(n => 
+        prop.neighborhood.toLowerCase().includes(n.toLowerCase())
+      );
+      const correctLocationType = isUrban ? "urban" : "suburban";
+      
+      if (prop.locationType !== correctLocationType) {
+        await db
+          .update(schema.properties)
+          .set({ locationType: correctLocationType })
+          .where(eq(schema.properties.id, prop.id));
+        console.log(`Updated ${prop.name} to ${correctLocationType}`);
+      }
+    }
   }
 
   async addNewUrbanProperties(): Promise<void> {

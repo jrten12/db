@@ -157,7 +157,7 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" className="cursor-help touch-manipulation active:opacity-70">{children}</button>
+        <div role="button" tabIndex={0} className="cursor-help touch-manipulation active:opacity-70">{children}</div>
       </PopoverTrigger>
       <PopoverContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4 z-[100]">
         <div className="space-y-2">
@@ -207,10 +207,14 @@ export function PropertyDetail({
     ...interiorImages.filter(img => !imageLoadErrors.has(img.url))
   ];
 
-  const currentImage = allImages[currentImageIndex];
+  const safeIndex = Math.min(currentImageIndex, Math.max(0, allImages.length - 1));
+  const currentImage = allImages[safeIndex] || allImages[0];
 
   const handleImageError = (url: string) => {
     setImageLoadErrors(prev => new Set([...prev, url]));
+    if (currentImageIndex >= allImages.length - 1) {
+      setCurrentImageIndex(0);
+    }
   };
 
   const nextImage = () => {

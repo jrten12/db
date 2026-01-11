@@ -110,21 +110,7 @@ export const getPropertyImage = (propertyName: string): string => {
 };
 
 export const getPropertyInteriorImages = (propertyName: string): Array<{ type: string; label: string; url: string }> => {
-  const images: Array<{ type: string; label: string; url: string }> = [];
-  const dirName = propertyName.toLowerCase().replace(/ /g, '_');
-
-  // Try to construct paths to interior images
-  // These will be 404 if not generated yet, but the UI can handle that gracefully
-  const basePath = `/attached_assets/generated_images/properties/${dirName}`;
-
-  const possibleImages = [
-    { type: 'kitchen', label: 'Kitchen', url: `${basePath}/kitchen.png` },
-    { type: 'living_room', label: 'Living Room', url: `${basePath}/living_room.png` },
-    { type: 'bedroom', label: 'Bedroom', url: `${basePath}/bedroom.png` },
-  ];
-
-  // Return all possible images - the UI component will check if they load
-  return possibleImages;
+  return [];
 };
 
 export const hasInteriorImages = (propertyName: string): boolean => {

@@ -338,69 +338,70 @@ export async function completeFlipDeal(
 
 /**
  * Process weekly rental income for an active rental property
- * Now breaks down gross rent and expenses separately for educational clarity
+ * Uses pre-calculated values from activation for consistency
+ * Shows gross rent, expenses, and any reality check adjustment separately
  */
 export async function processRentalIncome(
   deal: Deal,
   gameRun: GameRun,
   curveball?: any
 ): Promise<RentalIncomeResult> {
-  // Get the stored pro forma inputs for this deal
-  const proFormaInputs = deal.proFormaInputs as any;
   const proFormaOutputs = deal.proFormaOutputs as any;
-  
-  // Calculate weekly values from monthly inputs
+  const proFormaInputs = deal.proFormaInputs as any;
   const weeksPerMonth = 4.33;
   
-  // Get reality-adjusted rent (if available) or use player's assumed rent
-  const realityCheck = proFormaOutputs?.realityCheck;
-  let monthlyRent = proFormaInputs?.monthlyRent || proFormaInputs?.expectedRent || 0;
+  // Use pre-stored values from activation (if available)
+  let monthlyGrossRent = proFormaOutputs?.monthlyGrossRent || 0;
+  let totalMonthlyExpenses = proFormaOutputs?.totalMonthlyExpenses || 0;
+  let realityAdjustmentMonthly = proFormaOutputs?.realityAdjustmentMonthly || 0;
   
-  // Apply reality check adjustments to rent
-  if (realityCheck?.rentDelta) {
-    // If player was optimistic, reduce rent to market reality
-    if (realityCheck.rentDelta > 0 && !realityCheck.wasOptimistic === false) {
-      monthlyRent = monthlyRent - realityCheck.rentDelta;
+  // Handle legacy rentals: if stored fields are missing, derive from deal.weeklyIncome
+  if (monthlyGrossRent === 0 && deal.weeklyIncome) {
+    // Fallback: reconstruct from stored values
+    monthlyGrossRent = proFormaInputs?.expectedRent || proFormaInputs?.monthlyRent || 0;
+    const playerCashFlowMonthly = proFormaOutputs?.cashFlowMonthly || 0;
+    totalMonthlyExpenses = monthlyGrossRent > 0 ? monthlyGrossRent - playerCashFlowMonthly : 0;
+    // Get reality adjustment from stored reality check data
+    const storedRealityCheck = proFormaOutputs?.realityCheck;
+    if (storedRealityCheck) {
+      realityAdjustmentMonthly = (storedRealityCheck.actualCashFlow || 0) - (storedRealityCheck.projectedCashFlow || 0);
     }
   }
   
-  const weeklyGrossRent = Math.round(monthlyRent / weeksPerMonth);
+  // Use the stored weeklyIncome as the authoritative net value
+  // This ensures ledger matches what was calculated at activation
+  const storedWeeklyIncome = deal.weeklyIncome || 0;
   
-  // Calculate weekly expenses from stored inputs
-  const vacancyRate = proFormaInputs?.vacancyRate || 5;
-  const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
-  const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
-  const maintenancePct = proFormaInputs?.maintenancePct || 5;
-  const capexPct = proFormaInputs?.capexPct || 5;
-  const hasPropertyMgmt = proFormaInputs?.propertyMgmt || false;
-  const landlordPaysUtilities = proFormaInputs?.utilities || false;
+  // Convert to weekly values
+  let weeklyGrossRent = Math.max(0, Math.floor(monthlyGrossRent / weeksPerMonth));
+  const rawWeeklyExpenses = Math.max(0, Math.floor(totalMonthlyExpenses / weeksPerMonth));
+  const weeklyRealityAdjustment = Math.floor(realityAdjustmentMonthly / weeksPerMonth);
   
-  // Calculate weekly expenses
-  const weeklyVacancyLoss = Math.round((monthlyRent * vacancyRate / 100) / weeksPerMonth);
-  const weeklyTaxes = Math.round(taxesAnnual / 52);
-  const weeklyInsurance = Math.round(insuranceAnnual / 52);
-  const weeklyMaintenance = Math.round((monthlyRent * maintenancePct / 100) / weeksPerMonth);
-  const weeklyCapex = Math.round((monthlyRent * capexPct / 100) / weeksPerMonth);
-  const weeklyMgmt = hasPropertyMgmt ? Math.round((monthlyRent * 10 / 100) / weeksPerMonth) : 0;
-  const weeklyUtilities = landlordPaysUtilities ? Math.round(150 / weeksPerMonth) : 0;
-  
-  // Calculate debt service (mortgage payment)
-  const debtServiceMonthly = proFormaOutputs?.debtServiceMonthly || 0;
-  const weeklyDebtService = Math.round(debtServiceMonthly / weeksPerMonth);
-  
-  // Total weekly expenses
-  const totalWeeklyExpenses = weeklyVacancyLoss + weeklyTaxes + weeklyInsurance + 
-    weeklyMaintenance + weeklyCapex + weeklyMgmt + weeklyUtilities + weeklyDebtService;
-  
-  // Net weekly income
-  let netWeeklyIncome = weeklyGrossRent - totalWeeklyExpenses;
-  
-  // Apply curveball effects
+  // Apply curveball effects first to determine actual income this week
+  let netWeeklyIncome = storedWeeklyIncome;
   let cashImpact = curveball?.cashImpact || 0;
+  let rentMultiplierApplied = false;
   if (curveball?.rentMultiplier !== undefined) {
     netWeeklyIncome = Math.round(netWeeklyIncome * curveball.rentMultiplier);
+    weeklyGrossRent = Math.round(weeklyGrossRent * curveball.rentMultiplier);
+    rentMultiplierApplied = true;
   }
   netWeeklyIncome += cashImpact;
+  
+  // Adjust expenses so that gross - expenses + adjustment + cashImpact = netWeeklyIncome
+  // Since cashImpact is its own ledger entry, we calculate without it for the base components
+  const baseNetWithoutCashImpact = netWeeklyIncome - cashImpact;
+  const calculatedBaseNet = weeklyGrossRent - rawWeeklyExpenses + weeklyRealityAdjustment;
+  const roundingDiff = calculatedBaseNet - baseNetWithoutCashImpact;
+  // Clamp adjusted expenses to be >= 0
+  const totalWeeklyExpenses = Math.max(0, rawWeeklyExpenses + roundingDiff);
+  
+  // If we couldn't absorb the difference in expenses, adjust gross rent instead
+  const finalBaseNet = weeklyGrossRent - totalWeeklyExpenses + weeklyRealityAdjustment;
+  if (finalBaseNet !== baseNetWithoutCashImpact && weeklyGrossRent > 0) {
+    // Push remaining difference into gross rent
+    weeklyGrossRent = weeklyGrossRent - (finalBaseNet - baseNetWithoutCashImpact);
+  }
 
   // Record curveball event if one occurred
   if (curveball) {
@@ -426,16 +427,18 @@ export async function processRentalIncome(
   const ledgerEntries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[] = [];
   
   // Credit: Gross rent income
-  ledgerEntries.push({
-    direction: 'credit',
-    category: 'income',
-    amount: weeklyGrossRent,
-    description: curveball
-      ? `🏠 Rent - ${propertyName} ${curveball.emoji || ''} ${curveball.name}`
-      : `🏠 Weekly rent - ${propertyName}`,
-    propertyId: deal.propertyId,
-    dealId: deal.id,
-  });
+  if (weeklyGrossRent > 0) {
+    ledgerEntries.push({
+      direction: 'credit',
+      category: 'income',
+      amount: weeklyGrossRent,
+      description: curveball
+        ? `🏠 Rent - ${propertyName} ${curveball.emoji || ''} ${curveball.name}`
+        : `🏠 Weekly rent - ${propertyName}`,
+      propertyId: deal.propertyId,
+      dealId: deal.id,
+    });
+  }
   
   // Debit: Operating expenses (combined for cleaner ledger)
   if (totalWeeklyExpenses > 0) {
@@ -443,10 +446,58 @@ export async function processRentalIncome(
       direction: 'debit',
       category: 'expense',
       amount: totalWeeklyExpenses,
-      description: `📊 Operating costs - ${propertyName} (vacancy, taxes, insurance, maintenance, debt)`,
+      description: `📊 Operating costs - ${propertyName}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
     });
+  }
+  
+  // Reality check adjustment (if player was optimistic or conservative)
+  if (weeklyRealityAdjustment !== 0) {
+    if (weeklyRealityAdjustment < 0) {
+      // Player was optimistic - debit the difference
+      ledgerEntries.push({
+        direction: 'debit',
+        category: 'expense',
+        amount: Math.abs(weeklyRealityAdjustment),
+        description: `📉 Reality check - ${propertyName}`,
+        propertyId: deal.propertyId,
+        dealId: deal.id,
+      });
+    } else {
+      // Player was conservative - credit the bonus
+      ledgerEntries.push({
+        direction: 'credit',
+        category: 'income',
+        amount: weeklyRealityAdjustment,
+        description: `📈 Conservative bonus - ${propertyName}`,
+        propertyId: deal.propertyId,
+        dealId: deal.id,
+      });
+    }
+  }
+  
+  // Curveball cash impact (if any)
+  if (cashImpact !== 0) {
+    if (cashImpact > 0) {
+      ledgerEntries.push({
+        direction: 'credit',
+        category: 'income',
+        amount: cashImpact,
+        description: `${curveball?.emoji || '🎲'} ${curveball?.name || 'Curveball'} - ${propertyName}`,
+        propertyId: deal.propertyId,
+        dealId: deal.id,
+      });
+    } else {
+      ledgerEntries.push({
+        direction: 'debit',
+        category: 'expense',
+        amount: Math.abs(cashImpact),
+        description: `${curveball?.emoji || '🎲'} ${curveball?.name || 'Curveball'} - ${propertyName}`,
+        propertyId: deal.propertyId,
+        dealId: deal.id,
+      });
+    }
   }
 
   // Fetch current cash balance to avoid stale data issues
@@ -704,14 +755,15 @@ export async function activateRentalProperty(
   
   // Extract player inputs from stored pro forma
   const proFormaInputs = deal.proFormaInputs as any;
-  const playerMonthlyRent = proFormaInputs?.monthlyRent || 0;
+  // Note: Client uses 'expectedRent', not 'monthlyRent'
+  const playerMonthlyRent = proFormaInputs?.expectedRent || proFormaInputs?.monthlyRent || 0;
   const playerVacancyRate = proFormaInputs?.vacancyRate || 5;
   
   // Perform reality check - compare player assumptions to market reality
   let realityCheck: RealityCheckResult | undefined;
   let actualMonthlyCashFlow = monthlyCashFlow;
   
-  if (property) {
+  if (property && playerMonthlyRent > 0) {
     realityCheck = calculateRealityCheck(
       {
         rentMin: property.rentMin,
@@ -761,8 +813,25 @@ export async function activateRentalProperty(
     newCash = result.newCash;
   }
   
-  // Update pro forma outputs to include surprise costs and reality check data
+  // Store breakdown for weekly processing based on pro forma outputs
+  // The pro forma already calculates: grossRent - expenses - debtService = cashFlowMonthly
+  // We use the stored values and apply reality check as an adjustment
   const proFormaOutputs = deal.proFormaOutputs as any;
+  
+  // Use player's projected rent (before vacancy) from inputs
+  const monthlyGrossRent = proFormaInputs?.expectedRent || proFormaInputs?.monthlyRent || 0;
+  
+  // Calculate expenses from the pro forma
+  // Total expenses = grossRent - cashFlowMonthly (includes vacancy, opex, debt)
+  const playerCashFlowMonthly = proFormaOutputs?.cashFlowMonthly || 0;
+  const totalMonthlyExpenses = monthlyGrossRent - playerCashFlowMonthly;
+  
+  // Reality check adjustment (negative = player was optimistic, positive = conservative)
+  const realityAdjustmentMonthly = realityCheck 
+    ? (realityCheck.actualCashFlow - realityCheck.projectedCashFlow)
+    : 0;
+  
+  // Store expense breakdown for weekly processing
   const updatedProFormaOutputs = {
     ...proFormaOutputs,
     surpriseCosts,
@@ -776,6 +845,10 @@ export async function activateRentalProperty(
       explanation: realityCheck.explanation,
       wasOptimistic: realityCheck.wasOptimistic,
     } : null,
+    // Store values for weekly processing
+    monthlyGrossRent,
+    totalMonthlyExpenses,
+    realityAdjustmentMonthly,
   };
 
   const updatedDeal = await storage.updateDeal(deal.id, {

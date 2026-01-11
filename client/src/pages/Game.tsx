@@ -516,7 +516,12 @@ export default function Game() {
       // Show income notifications for rental payments
       result.rentalPayments.forEach((payment: any) => {
         const property = properties.find(p => p.id === deals.find(d => d.id === payment.dealId)?.propertyId);
-        addRentalPayment(payment.weeklyIncome, property?.name);
+        addRentalPayment(
+          payment.weeklyIncome,
+          payment.grossRent || 0,
+          payment.totalExpenses || 0,
+          property?.name
+        );
       });
 
       // Show flip completion notifications

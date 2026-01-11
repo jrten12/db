@@ -211,7 +211,11 @@ export function PropertyDetail({
   const currentImage = allImages[safeIndex] || allImages[0];
 
   const handleImageError = (url: string) => {
-    setImageLoadErrors(prev => new Set([...prev, url]));
+    setImageLoadErrors(prev => {
+      const newSet = new Set(prev);
+      newSet.add(url);
+      return newSet;
+    });
     if (currentImageIndex >= allImages.length - 1) {
       setCurrentImageIndex(0);
     }
@@ -558,7 +562,7 @@ export function PropertyDetail({
                           {isCompleted ? (
                             <Check className="w-4 h-4 text-emerald-400" />
                           ) : (
-                            <span className="text-xs text-gray-400">{formatCurrency(option.cost)} + {option.timeWeeks < 1 ? `${option.timeWeeks * 7}d` : `${option.timeWeeks}w`}</span>
+                            <span className="text-xs text-gray-400">{formatCurrency(option.cost)} + {option.timeWeeks}w</span>
                           )}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">{option.reveals}</p>
@@ -812,9 +816,7 @@ export function PropertyDetail({
                 <div className="flex items-center justify-between text-sm mt-1">
                   <span className="text-gray-400">Time:</span>
                   <span className="text-amber-400 font-mono">
-                    -{pendingDiligence.timeWeeks < 1 
-                      ? `${Math.round(pendingDiligence.timeWeeks * 7)} days` 
-                      : `${pendingDiligence.timeWeeks} week${pendingDiligence.timeWeeks !== 1 ? 's' : ''}`}
+                    -{pendingDiligence.timeWeeks} week{pendingDiligence.timeWeeks !== 1 ? 's' : ''}
                   </span>
                 </div>
               </div>

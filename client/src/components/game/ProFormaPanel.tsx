@@ -209,6 +209,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   };
   
   const diligenceRiskLevel = Object.values(missingDiligence).filter(Boolean).length;
+  const completedDiligenceCount = completedDiligence.length;
+  
+  const canShowViability = completedDiligenceCount >= 2;
+  const canShowReturns = inputs.strategy === 'rent' ? hasMarketStudy : hasAppraisal;
+  const canShowFragility = completedDiligenceCount >= 1;
   
   const fragility = inputs.strategy === 'rent'
     ? (diligenceRiskLevel >= 2 ? 'high' :
@@ -1126,8 +1131,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
 
                 {/* Step 4: Cash Flow */}
-                <div className={`rounded-xl p-4 border ${isViable ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-red-500/20 border-red-500/50'}`}>
-                  <div className={`text-xs uppercase tracking-wider font-semibold mb-1 ${isViable ? 'text-emerald-400' : 'text-red-400'}`}>
+                <div className={`rounded-xl p-4 border ${canShowViability ? (isViable ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-red-500/20 border-red-500/50') : 'bg-slate-800/50 border-slate-700'}`}>
+                  <div className={`text-xs uppercase tracking-wider font-semibold mb-1 ${canShowViability ? (isViable ? 'text-emerald-400' : 'text-red-400') : 'text-gray-400'}`}>
                     Step 4: Monthly Cash Flow
                   </div>
                   {showFormulas && (
@@ -1136,12 +1141,18 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       <div className="text-gray-500 text-xs mt-0.5">(NOI - Debt Service)</div>
                     </div>
                   )}
-                  <div className={`text-3xl font-bold font-mono ${isViable ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <div className={`text-3xl font-bold font-mono ${canShowViability ? (isViable ? 'text-emerald-400' : 'text-red-400') : 'text-white'}`}>
                     = {formatCurrency(liveOutputs.cashFlowMonthly)}
                   </div>
-                  <div className={`text-xs mt-1 ${isViable ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {isViable ? '✓ Money in your pocket each month' : '✗ Losing money each month'}
-                  </div>
+                  {canShowViability ? (
+                    <div className={`text-xs mt-1 ${isViable ? 'text-emerald-500' : 'text-red-500'}`}>
+                      {isViable ? '✓ Money in your pocket each month' : '✗ Losing money each month'}
+                    </div>
+                  ) : (
+                    <div className="text-xs mt-1 text-amber-400 flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> Complete 2+ due diligence to see if this works
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1201,8 +1212,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <div className="text-gray-600">↓</div>
                 </div>
 
-                <div className={`rounded-xl p-4 border ${flipProfit > 0 ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-red-500/20 border-red-500/50'}`}>
-                  <div className={`text-xs uppercase tracking-wider font-semibold mb-1 ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <div className={`rounded-xl p-4 border ${canShowViability ? (flipProfit > 0 ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-red-500/20 border-red-500/50') : 'bg-slate-800/50 border-slate-700'}`}>
+                  <div className={`text-xs uppercase tracking-wider font-semibold mb-1 ${canShowViability ? (flipProfit > 0 ? 'text-emerald-400' : 'text-red-400') : 'text-gray-400'}`}>
                     Flip Profit
                   </div>
                   {showFormulas && (
@@ -1211,12 +1222,18 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       {formatCurrency(arvMid)} - {formatCurrency(allInBasis)} - {formatCurrency(holdingCostPerWeek * inputs.rehabWeeks)}
                     </div>
                   )}
-                  <div className={`text-3xl font-bold font-mono ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <div className={`text-3xl font-bold font-mono ${canShowViability ? (flipProfit > 0 ? 'text-emerald-400' : 'text-red-400') : 'text-white'}`}>
                     = {formatCurrency(flipProfit)}
                   </div>
-                  <div className={`text-xs mt-1 ${flipProfit > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {flipProfit > 0 ? '✓ Profit on sale' : '✗ Losing money on this flip'}
-                  </div>
+                  {canShowViability ? (
+                    <div className={`text-xs mt-1 ${flipProfit > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                      {flipProfit > 0 ? '✓ Profit on sale' : '✗ Losing money on this flip'}
+                    </div>
+                  ) : (
+                    <div className="text-xs mt-1 text-amber-400 flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> Complete 2+ due diligence to see if this works
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1226,24 +1243,42 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <>
                   <div className="bg-slate-800/50 rounded-xl p-3">
                     <div className="text-gray-400 text-xs">Cash-on-Cash</div>
-                    <div className={`text-lg font-bold font-mono ${liveOutputs.cashOnCash > 8 ? 'text-emerald-400' : liveOutputs.cashOnCash > 0 ? 'text-amber-400' : 'text-red-400'}`}>
-                      {liveOutputs.cashOnCash.toFixed(1)}%
-                    </div>
+                    {canShowReturns ? (
+                      <div className={`text-lg font-bold font-mono ${liveOutputs.cashOnCash > 8 ? 'text-emerald-400' : liveOutputs.cashOnCash > 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                        {liveOutputs.cashOnCash.toFixed(1)}%
+                      </div>
+                    ) : (
+                      <div className="text-amber-400 text-sm flex items-center gap-1 font-mono">
+                        <Lock className="w-3 h-3" /> ???
+                      </div>
+                    )}
                   </div>
                   <div className="bg-slate-800/50 rounded-xl p-3">
                     <div className="text-gray-400 text-xs">Cap Rate</div>
-                    <div className={`text-lg font-bold font-mono ${liveOutputs.capRate > 6 ? 'text-emerald-400' : liveOutputs.capRate > 4 ? 'text-amber-400' : 'text-red-400'}`}>
-                      {liveOutputs.capRate.toFixed(1)}%
-                    </div>
+                    {canShowReturns ? (
+                      <div className={`text-lg font-bold font-mono ${liveOutputs.capRate > 6 ? 'text-emerald-400' : liveOutputs.capRate > 4 ? 'text-amber-400' : 'text-red-400'}`}>
+                        {liveOutputs.capRate.toFixed(1)}%
+                      </div>
+                    ) : (
+                      <div className="text-amber-400 text-sm flex items-center gap-1 font-mono">
+                        <Lock className="w-3 h-3" /> ???
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
                 <>
                   <div className="bg-slate-800/50 rounded-xl p-3">
                     <div className="text-gray-400 text-xs">ROI</div>
-                    <div className={`text-lg font-bold font-mono ${flipROI > 20 ? 'text-emerald-400' : flipROI > 10 ? 'text-amber-400' : 'text-red-400'}`}>
-                      {flipROI.toFixed(1)}%
-                    </div>
+                    {canShowReturns ? (
+                      <div className={`text-lg font-bold font-mono ${flipROI > 20 ? 'text-emerald-400' : flipROI > 10 ? 'text-amber-400' : 'text-red-400'}`}>
+                        {flipROI.toFixed(1)}%
+                      </div>
+                    ) : (
+                      <div className="text-amber-400 text-sm flex items-center gap-1 font-mono">
+                        <Lock className="w-3 h-3" /> ???
+                      </div>
+                    )}
                   </div>
                   <div className="bg-slate-800/50 rounded-xl p-3">
                     <div className="text-gray-400 text-xs">Hold Time</div>
@@ -1261,39 +1296,63 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             </div>
 
             {/* Fragility Warnings */}
-            {(fragility !== 'low' || !isViable) && (
-              <div className={`rounded-xl p-3 ${fragility === 'high' || !isViable ? 'bg-red-500/20 border border-red-500/30' : 'bg-amber-500/20 border border-amber-500/30'}`}>
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className={`w-4 h-4 mt-0.5 ${fragility === 'high' || !isViable ? 'text-red-400' : 'text-amber-400'}`} />
-                  <div>
-                    <div className={`text-xs font-semibold ${fragility === 'high' || !isViable ? 'text-red-400' : 'text-amber-400'}`}>
-                      {!isViable ? 'Deal Fails' : 'Fragility Warning'}
+            {canShowFragility ? (
+              (fragility !== 'low' || !isViable) && (
+                <div className={`rounded-xl p-3 ${fragility === 'high' || !isViable ? 'bg-red-500/20 border border-red-500/30' : 'bg-amber-500/20 border border-amber-500/30'}`}>
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className={`w-4 h-4 mt-0.5 ${fragility === 'high' || !isViable ? 'text-red-400' : 'text-amber-400'}`} />
+                    <div>
+                      <div className={`text-xs font-semibold ${fragility === 'high' || !isViable ? 'text-red-400' : 'text-amber-400'}`}>
+                        {!isViable ? 'Deal Fails' : 'Fragility Warning'}
+                      </div>
+                      <div className="text-gray-400 text-xs mt-1">
+                        {!isViable && inputs.strategy === 'rent' && 'Expenses exceed income. Adjust assumptions.'}
+                        {!isViable && inputs.strategy === 'flip' && 'Total project cost exceeds ARV. This deal loses money.'}
+                        {isViable && fragility === 'high' && inputs.vacancyRate < 5 && inputs.strategy === 'rent' && 'Low vacancy assumption. One bad tenant breaks this deal.'}
+                        {isViable && fragility === 'high' && inputs.contingencyPct < 10 && 'Low contingency. Unexpected repairs will hurt.'}
+                        {isViable && fragility === 'moderate' && inputs.strategy === 'rent' && `A rent miss of ${formatCurrency(150)} flips the outcome.`}
+                        {isViable && fragility === 'moderate' && inputs.strategy === 'flip' && 'Timeline delays add holding costs. Budget extra time.'}
+                      </div>
                     </div>
-                    <div className="text-gray-400 text-xs mt-1">
-                      {!isViable && inputs.strategy === 'rent' && 'Expenses exceed income. Adjust assumptions.'}
-                      {!isViable && inputs.strategy === 'flip' && 'Total project cost exceeds ARV. This deal loses money.'}
-                      {isViable && fragility === 'high' && inputs.vacancyRate < 5 && inputs.strategy === 'rent' && 'Low vacancy assumption. One bad tenant breaks this deal.'}
-                      {isViable && fragility === 'high' && inputs.contingencyPct < 10 && 'Low contingency. Unexpected repairs will hurt.'}
-                      {isViable && fragility === 'moderate' && inputs.strategy === 'rent' && `A rent miss of ${formatCurrency(150)} flips the outcome.`}
-                      {isViable && fragility === 'moderate' && inputs.strategy === 'flip' && 'Timeline delays add holding costs. Budget extra time.'}
+                  </div>
+                </div>
+              )
+            ) : (
+              <div className="rounded-xl p-3 bg-slate-800/50 border border-slate-700">
+                <div className="flex items-start gap-2">
+                  <Lock className="w-4 h-4 mt-0.5 text-gray-500" />
+                  <div>
+                    <div className="text-xs font-semibold text-gray-400">Risk Assessment Locked</div>
+                    <div className="text-gray-500 text-xs mt-1">
+                      Complete at least 1 due diligence item to see deal fragility analysis
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            <button
-              onClick={onCalculate}
-              className={`w-full px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
-                isViable
-                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                  : 'bg-slate-700 text-gray-400 cursor-not-allowed'
-              }`}
-              disabled={!isViable}
-              data-testid="button-calculate"
-            >
-              {isViable ? 'Lock In Pro Forma' : 'Fix Issues First'}
-            </button>
+            {canShowViability ? (
+              <button
+                onClick={onCalculate}
+                className={`w-full px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
+                  isViable
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
+                    : 'bg-slate-700 text-gray-400 cursor-not-allowed'
+                }`}
+                disabled={!isViable}
+                data-testid="button-calculate"
+              >
+                {isViable ? 'Lock In Pro Forma' : 'Fix Issues First'}
+              </button>
+            ) : (
+              <div className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <Lock className="w-4 h-4 text-amber-400" />
+                  <span className="text-amber-400 font-semibold text-sm">Complete 2+ due diligence items to proceed</span>
+                </div>
+                <p className="text-gray-500 text-xs mt-1">You need to research the property before making a decision</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

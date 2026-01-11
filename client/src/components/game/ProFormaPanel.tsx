@@ -623,7 +623,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
                 <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
                   {hasAppraisal ? (
-                    <div 
+                    <div
                       className={`h-full transition-all duration-300 ${
                         leverageLevel === 'high' ? 'bg-red-500' : leverageLevel === 'moderate' ? 'bg-amber-500' : 'bg-emerald-500'
                       }`}
@@ -634,27 +634,74 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   )}
                 </div>
               </div>
+
+              {/* TOTAL CASH NEEDED SUMMARY */}
+              <div className="bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-emerald-500/20 backdrop-blur rounded-xl border-2 border-blue-500/50 p-4 shadow-lg">
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="w-5 h-5 text-blue-400" />
+                  <h4 className="text-blue-400 font-bold text-sm uppercase tracking-wider">💰 Total Cash Needed to Close</h4>
+                </div>
+                <div className="space-y-2 mb-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-300">Down Payment ({inputs.downPaymentPct}%)</span>
+                    <span className="text-white font-mono font-semibold">{formatCurrency(liveOutputs.downPaymentAmount)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-300">+ Closing Costs</span>
+                    <span className="text-white font-mono font-semibold">{formatCurrency(closingCosts)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-300">+ Loan Fees ({inputs.loanOriginationPct}%)</span>
+                    <span className="text-white font-mono font-semibold">{formatCurrency(Math.round(liveOutputs.loanAmount * inputs.loanOriginationPct / 100))}</span>
+                  </div>
+                  {inputs.strategy === 'flip' && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-300">+ Initial Holding Costs (4 weeks)</span>
+                      <span className="text-white font-mono font-semibold">{formatCurrency(holdingCostPerWeek * 4)}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="border-t-2 border-blue-400/30 pt-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-blue-300 font-bold text-base">TOTAL CASH REQUIRED</span>
+                    <span className="text-emerald-400 font-mono font-bold text-2xl">
+                      {formatCurrency(
+                        liveOutputs.downPaymentAmount +
+                        closingCosts +
+                        Math.round(liveOutputs.loanAmount * inputs.loanOriginationPct / 100) +
+                        (inputs.strategy === 'flip' ? holdingCostPerWeek * 4 : 0)
+                      )}
+                    </span>
+                  </div>
+                  <p className="text-gray-400 text-xs mt-2 italic">
+                    {inputs.strategy === 'rent'
+                      ? 'Cash you need at closing to acquire this rental property'
+                      : 'Cash you need upfront to acquire and start renovations'}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
 
-        {/* LAYER 3: OPERATING ASSUMPTIONS */}
-        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 overflow-hidden">
-          <button 
-            onClick={() => toggleSection('operations')}
-            className="w-full flex items-center justify-between p-4 hover:bg-slate-800/50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-emerald-400" />
+        {/* LAYER 3: OPERATING ASSUMPTIONS - Only show for rental strategy */}
+        {inputs.strategy === 'rent' && (
+          <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 overflow-hidden">
+            <button
+              onClick={() => toggleSection('operations')}
+              className="w-full flex items-center justify-between p-4 hover:bg-slate-800/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-white font-semibold text-sm">Operating Assumptions</h3>
+                  <p className="text-gray-500 text-xs">Income and expenses</p>
+                </div>
               </div>
-              <div className="text-left">
-                <h3 className="text-white font-semibold text-sm">Operating Assumptions</h3>
-                <p className="text-gray-500 text-xs">Income and expenses</p>
-              </div>
-            </div>
-            {expandedSections.operations ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-          </button>
+              {expandedSections.operations ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+            </button>
           
           {expandedSections.operations && (
             <div className="px-4 pb-4 space-y-4">
@@ -850,7 +897,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               </div>
             </div>
           )}
-        </div>
+          </div>
+        )}
 
         {/* LAYER 4: TIMELINE & RISK */}
         <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 overflow-hidden">

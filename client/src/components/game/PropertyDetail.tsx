@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle } from 'lucide-react';
+import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/gameData';
-import { getPropertyImage, getIssueImage } from '@/lib/propertyImages';
+import { getPropertyImage, getPropertyInteriorImages, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -69,7 +69,7 @@ const UNKNOWN_VALUE_TOOLTIPS: Record<string, { title: string; explanation: strin
     action: "Complete a Market Rent Study to unlock rent estimates based on what similar properties are renting for.",
   },
   arv: {
-    title: "After Repair Value Unknown", 
+    title: "After Repair Value Unknown",
     explanation: "ARV = what the property will be worth after you fix it up. This is critical for flips - you need to know your exit price!",
     action: "Complete a Comp Analysis to see recent sales of similar renovated homes in the area.",
   },
@@ -84,6 +84,68 @@ const UNKNOWN_VALUE_TOOLTIPS: Record<string, { title: string; explanation: strin
     action: "Complete a Contractor Walkthrough to get a realistic renovation timeline.",
   },
 };
+
+const DILIGENCE_EDUCATION_TOOLTIPS: Record<string, { realWorldSource: string; tools: string; howTo: string }> = {
+  market_study: {
+    realWorldSource: "Real-world investors research rental comps themselves or hire property managers",
+    tools: "Zillow, Rentometer, Apartments.com, Craigslist, or call local property managers for area insights",
+    howTo: "Search for similar properties (same beds/baths/neighborhood) currently listed for rent and average the prices",
+  },
+  appraisal: {
+    realWorldSource: "Real-world investors get CMAs from real estate agents or use MLS databases",
+    tools: "Redfin, Zillow (sold listings), MLS access through an agent, or hire a licensed appraiser ($300-500)",
+    howTo: "Look for recently sold homes (last 3-6 months) with similar size, condition, and location. Adjust for differences.",
+  },
+  contractor_walkthrough: {
+    realWorldSource: "Real-world investors bring contractors to walk properties before making offers",
+    tools: "Network with contractors, ask for references from other investors, or join local REI meetups",
+    howTo: "Bring 2-3 contractors to estimate repair costs. Most will do free walkthroughs hoping to win the job.",
+  },
+  inspection: {
+    realWorldSource: "Real-world investors hire licensed home inspectors to find hidden issues",
+    tools: "Search for certified inspectors (ASHI, InterNACHI), expect to pay $300-500 for a detailed report",
+    howTo: "Schedule inspection during due diligence period (7-14 days). Inspector checks structure, systems, and major components.",
+  },
+  title_search: {
+    realWorldSource: "Real-world investors order preliminary title reports or use title companies",
+    tools: "Title companies, real estate attorneys, or county recorder's office for DIY research",
+    howTo: "Title company searches public records for liens, easements, ownership disputes. Usually required by lender anyway.",
+  },
+};
+
+function DiligenceEducationTooltip({ diligenceId }: { diligenceId: string }) {
+  const education = DILIGENCE_EDUCATION_TOOLTIPS[diligenceId];
+  if (!education) return null;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="p-1 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70"
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Learn about real-world data sources"
+        >
+          <HelpCircle className="w-3.5 h-3.5 text-blue-400 hover:text-blue-300" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4 z-[100]">
+        <div className="space-y-2">
+          <p className="font-semibold text-blue-400">📚 How Real Investors Get This Data</p>
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Common Sources:</p>
+            <p className="text-gray-300 text-xs">{education.tools}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Typical Process:</p>
+            <p className="text-gray-300 text-xs">{education.howTo}</p>
+          </div>
+          <p className="text-emerald-400 text-xs mt-2 italic">💡 {education.realWorldSource}</p>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNKNOWN_VALUE_TOOLTIPS; isKnown: boolean; children: React.ReactNode }) {
   const tooltip = UNKNOWN_VALUE_TOOLTIPS[type];
@@ -119,11 +181,11 @@ interface PropertyDetailProps {
   cash?: number;
 }
 
-export function PropertyDetail({ 
-  property, 
-  onClose, 
-  onOpenProForma, 
-  onPass, 
+export function PropertyDetail({
+  property,
+  onClose,
+  onOpenProForma,
+  onPass,
   isProFormaComplete = false,
   completedDiligence = [],
   onDiligencePurchase,
@@ -133,8 +195,32 @@ export function PropertyDetail({
   const [financing, setFinancing] = useState<'bank' | 'hard-money'>('bank');
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
   const [pendingDiligence, setPendingDiligence] = useState<DiligenceOption | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
 
   const propertyImage = getPropertyImage(property.name);
+  const interiorImages = getPropertyInteriorImages(property.name);
+
+  // Build complete image gallery: exterior + working interior images
+  const allImages = [
+    { type: 'exterior', label: 'Exterior', url: propertyImage },
+    ...interiorImages.filter(img => !imageLoadErrors.has(img.url))
+  ];
+
+  const currentImage = allImages[currentImageIndex];
+
+  const handleImageError = (url: string) => {
+    setImageLoadErrors(prev => new Set([...prev, url]));
+  };
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  };
+
   const allIssues = getPropertyIssues(property.name);
   const revealedIssues = getRevealedIssues(property.name, completedDiligence);
   const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
@@ -248,14 +334,96 @@ export function PropertyDetail({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
             {/* Left Column - Property Info (5 cols) */}
             <div className="lg:col-span-5 space-y-4">
-              {/* Main Image */}
-              <div className="relative rounded-xl overflow-hidden aspect-video shadow-lg">
-                <img src={propertyImage} alt={property.name} className="w-full h-full object-cover" data-testid="property-main-image" />
+              {/* Main Image Gallery */}
+              <div className="relative rounded-xl overflow-hidden aspect-video shadow-lg bg-slate-900">
+                <img
+                  src={currentImage.url}
+                  alt={`${property.name} - ${currentImage.label}`}
+                  className="w-full h-full object-cover"
+                  data-testid="property-main-image"
+                  onError={() => handleImageError(currentImage.url)}
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                {/* Price Badge */}
                 <div className="absolute bottom-4 left-4">
                   <span className="text-3xl font-bold text-white drop-shadow-lg">{formatCurrency(property.price)}</span>
                 </div>
+
+                {/* Image Type Label */}
+                <div className="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-lg border border-slate-700">
+                  <span className="text-white text-sm font-semibold">{currentImage.label}</span>
+                </div>
+
+                {/* Navigation Arrows */}
+                {allImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevImage}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-2 rounded-full border border-slate-700 transition-all"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft className="w-5 h-5 text-white" />
+                    </button>
+                    <button
+                      onClick={nextImage}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-2 rounded-full border border-slate-700 transition-all"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight className="w-5 h-5 text-white" />
+                    </button>
+                  </>
+                )}
+
+                {/* Image Counter */}
+                {allImages.length > 1 && (
+                  <div className="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-lg border border-slate-700">
+                    <span className="text-white text-sm font-mono">
+                      {currentImageIndex + 1} / {allImages.length}
+                    </span>
+                  </div>
+                )}
+
+                {/* Hidden images for preloading and error handling */}
+                <div className="hidden">
+                  {interiorImages.map((img) => (
+                    <img
+                      key={img.url}
+                      src={img.url}
+                      alt={img.label}
+                      onError={() => handleImageError(img.url)}
+                    />
+                  ))}
+                </div>
               </div>
+
+              {/* Thumbnail Gallery */}
+              {allImages.length > 1 && (
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {allImages.map((img, index) => (
+                    <button
+                      key={img.url}
+                      onClick={() => setCurrentImageIndex(index)}
+                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                        index === currentImageIndex
+                          ? 'border-emerald-500 scale-105'
+                          : 'border-slate-700 hover:border-slate-600 opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.label}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 flex items-end p-1">
+                        <span className="text-[8px] text-white bg-black/60 px-1 rounded truncate w-full text-center">
+                          {img.label}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Property Stats - Fixed Facts */}
               <div className="grid grid-cols-2 gap-3">
@@ -381,6 +549,7 @@ export function PropertyDetail({
                             {option.id === 'inspection' && <Search className="w-4 h-4" />}
                             {option.id === 'title_search' && <FileText className="w-4 h-4" />}
                             <span className="font-semibold text-sm">{option.name}</span>
+                            <DiligenceEducationTooltip diligenceId={option.id} />
                           </div>
                           {isCompleted ? (
                             <Check className="w-4 h-4 text-emerald-400" />

@@ -90,8 +90,47 @@ export const issueImages: Record<string, string> = {
   'industrial_conversion': issueHvac,
 };
 
+// Interior images - using glob imports for dynamic loading
+// This will be populated once images are generated
+const interiorImagesMap: Record<string, Record<string, string>> = {};
+
+// Helper to build interior images map from property name
+function getInteriorImagesForProperty(propertyName: string) {
+  const dirName = propertyName.toLowerCase().replace(/ /g, '_');
+  const images: Record<string, string> = {};
+
+  // For now, return empty object. Images will be added once generated.
+  // When images are generated, they should be imported like the exterior images above.
+
+  return images;
+}
+
 export const getPropertyImage = (propertyName: string): string => {
   return propertyImages[propertyName] || oakwoodFront;
+};
+
+export const getPropertyInteriorImages = (propertyName: string): Array<{ type: string; label: string; url: string }> => {
+  const images: Array<{ type: string; label: string; url: string }> = [];
+  const dirName = propertyName.toLowerCase().replace(/ /g, '_');
+
+  // Try to construct paths to interior images
+  // These will be 404 if not generated yet, but the UI can handle that gracefully
+  const basePath = `/attached_assets/generated_images/properties/${dirName}`;
+
+  const possibleImages = [
+    { type: 'kitchen', label: 'Kitchen', url: `${basePath}/kitchen.png` },
+    { type: 'living_room', label: 'Living Room', url: `${basePath}/living_room.png` },
+    { type: 'bedroom', label: 'Bedroom', url: `${basePath}/bedroom.png` },
+  ];
+
+  // Return all possible images - the UI component will check if they load
+  return possibleImages;
+};
+
+export const hasInteriorImages = (propertyName: string): boolean => {
+  // For now, assume interior images might exist for all properties
+  // The UI will handle displaying only loaded images
+  return true;
 };
 
 export const getIssueImage = (issueId: string): string | null => {

@@ -69,7 +69,9 @@ export const calculateProForma = (
   const numPayments = 30 * 12;
   const debtServiceMonthly = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
 
-  const effectiveRent = inputs.expectedRent * (1 - inputs.vacancyRate / 100);
+  const tenantPaysUtilitiesVacancyPenalty = inputs.utilities ? 0 : 1.92;
+  const effectiveVacancyRate = inputs.vacancyRate + tenantPaysUtilitiesVacancyPenalty;
+  const effectiveRent = inputs.expectedRent * (1 - effectiveVacancyRate / 100);
   const monthlyTaxes = inputs.taxesAnnual / 12;
   const monthlyInsurance = inputs.insuranceAnnual / 12;
   const maintenanceCost = inputs.expectedRent * (inputs.maintenancePct / 100);

@@ -150,6 +150,47 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     }
   };
 
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState<string>('');
+
+  const handleNumberFocus = (key: keyof ProFormaInputs) => {
+    setEditingField(key);
+    setEditingValue(String(inputs[key]));
+  };
+  
+  const handleNumberChangeFor = (key: keyof ProFormaInputs, rawValue: string) => {
+    setEditingValue(rawValue);
+    if (rawValue !== '' && rawValue !== '-') {
+      const parsed = parseFloat(rawValue);
+      if (!isNaN(parsed)) {
+        handleChange(key, parsed as ProFormaInputs[typeof key]);
+      }
+    }
+  };
+  
+  const handleNumberBlur = (key: keyof ProFormaInputs, min?: number, max?: number) => {
+    setEditingField(null);
+    if (editingValue === '' || editingValue === '-') {
+      const defaultValue = min ?? 0;
+      handleChange(key, defaultValue as ProFormaInputs[typeof key]);
+      return;
+    }
+    const parsed = parseFloat(editingValue);
+    if (!isNaN(parsed)) {
+      let finalValue = parsed;
+      if (min !== undefined && parsed < min) finalValue = min;
+      if (max !== undefined && parsed > max) finalValue = max;
+      handleChange(key, finalValue as ProFormaInputs[typeof key]);
+    }
+  };
+  
+  const getInputValue = (key: keyof ProFormaInputs): string => {
+    if (editingField === key) {
+      return editingValue;
+    }
+    return String(inputs[key]);
+  };
+
   // Check for risky assumptions
   const riskyAssumptions = useMemo(() => {
     const risks = [];
@@ -174,7 +215,9 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     return calculateProForma(inputs, property);
   }, [inputs, property]);
 
-  const effectiveRent = inputs.expectedRent * (1 - inputs.vacancyRate / 100);
+  const tenantPaysUtilitiesVacancyPenalty = inputs.utilities ? 0 : 1.92;
+  const effectiveVacancyRate = inputs.vacancyRate + tenantPaysUtilitiesVacancyPenalty;
+  const effectiveRent = inputs.expectedRent * (1 - effectiveVacancyRate / 100);
   const monthlyExpenses = (inputs.taxesAnnual / 12) + (inputs.insuranceAnnual / 12) +
     (inputs.expectedRent * inputs.maintenancePct / 100) +
     (inputs.expectedRent * inputs.capExPct / 100) +
@@ -727,16 +770,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         <div className="relative">
                           <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
                           <input
-                            type="number"
-                            value={inputs.expectedRent}
-                            onChange={(e) => {
-                              const val = Number(e.target.value);
-                              if (val >= effectiveRanges.rent.min && val <= effectiveRanges.rent.max) {
-                                handleChange('expectedRent', val);
-                              }
-                            }}
-                            min={effectiveRanges.rent.min}
-                            max={effectiveRanges.rent.max}
+                            type="text"
+                            inputMode="numeric"
+                            value={getInputValue('expectedRent')}
+                            onFocus={() => handleNumberFocus('expectedRent')}
+                            onChange={(e) => handleNumberChangeFor('expectedRent', e.target.value)}
+                            onBlur={() => handleNumberBlur('expectedRent', effectiveRanges.rent.min, effectiveRanges.rent.max)}
                             className="w-full pl-7 pr-12 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-emerald-500"
                             data-testid="input-expected-rent-number"
                           />
@@ -771,7 +810,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-400 text-xs flex items-center">Vacancy Rate<InfoTooltip term="vacancyRate" /></span>
-                  <span className="text-white font-mono text-sm">{inputs.vacancyRate}%</span>
+                  <span className="text-white font-mono text-sm">
+                    {inputs.vacancyRate}%
+                    {!inputs.utilities && <span className="text-amber-400 text-xs ml-1">(+2% tenant pays)</span>}
+                  </span>
                 </div>
                 <input
                   type="range"
@@ -829,9 +871,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <div>
                   <label className="text-gray-400 text-xs flex items-center">Taxes (annual)<InfoTooltip term="taxesAnnual" /></label>
                   <input
-                    type="number"
-                    value={inputs.taxesAnnual}
-                    onChange={(e) => handleChange('taxesAnnual', Number(e.target.value))}
+                    type="text"
+                    inputMode="numeric"
+                    value={getInputValue('taxesAnnual')}
+                    onFocus={() => handleNumberFocus('taxesAnnual')}
+                    onChange={(e) => handleNumberChangeFor('taxesAnnual', e.target.value)}
+                    onBlur={() => handleNumberBlur('taxesAnnual', 0)}
                     className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500"
                     data-testid="input-taxes"
                   />
@@ -839,9 +884,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <div>
                   <label className="text-gray-400 text-xs flex items-center">Insurance (annual)<InfoTooltip term="insuranceAnnual" /></label>
                   <input
-                    type="number"
-                    value={inputs.insuranceAnnual}
-                    onChange={(e) => handleChange('insuranceAnnual', Number(e.target.value))}
+                    type="text"
+                    inputMode="numeric"
+                    value={getInputValue('insuranceAnnual')}
+                    onFocus={() => handleNumberFocus('insuranceAnnual')}
+                    onChange={(e) => handleNumberChangeFor('insuranceAnnual', e.target.value)}
+                    onBlur={() => handleNumberBlur('insuranceAnnual', 0)}
                     className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500"
                     data-testid="input-insurance"
                   />
@@ -849,9 +897,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <div>
                   <label className="text-gray-400 text-xs flex items-center">Maintenance (%)<InfoTooltip term="maintenancePct" /></label>
                   <input
-                    type="number"
-                    value={inputs.maintenancePct}
-                    onChange={(e) => handleChange('maintenancePct', Number(e.target.value))}
+                    type="text"
+                    inputMode="numeric"
+                    value={getInputValue('maintenancePct')}
+                    onFocus={() => handleNumberFocus('maintenancePct')}
+                    onChange={(e) => handleNumberChangeFor('maintenancePct', e.target.value)}
+                    onBlur={() => handleNumberBlur('maintenancePct', 0, 50)}
                     className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500"
                     data-testid="input-maintenance"
                   />
@@ -859,9 +910,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <div>
                   <label className="text-gray-400 text-xs flex items-center">CapEx Reserve (%)<InfoTooltip term="capExPct" /></label>
                   <input
-                    type="number"
-                    value={inputs.capExPct}
-                    onChange={(e) => handleChange('capExPct', Number(e.target.value))}
+                    type="text"
+                    inputMode="numeric"
+                    value={getInputValue('capExPct')}
+                    onFocus={() => handleNumberFocus('capExPct')}
+                    onChange={(e) => handleNumberChangeFor('capExPct', e.target.value)}
+                    onBlur={() => handleNumberBlur('capExPct', 0, 50)}
                     className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500"
                     data-testid="input-capex"
                   />
@@ -872,12 +926,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     onClick={() => handleChange('utilities', !inputs.utilities)}
                     className={`w-full mt-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
                       inputs.utilities
-                        ? 'bg-emerald-500/20 border border-emerald-500 text-emerald-400'
-                        : 'bg-slate-800 border border-slate-700 text-gray-400'
+                        ? 'bg-red-500/20 border border-red-500 text-red-400'
+                        : 'bg-amber-500/20 border border-amber-500 text-amber-400'
                     }`}
                     data-testid="toggle-utilities"
                   >
-                    {inputs.utilities ? `ON ($${inputs.utilitiesMonthly}/mo)` : 'Tenant Pays'}
+                    {inputs.utilities ? `You Pay ($${inputs.utilitiesMonthly}/mo)` : 'Tenant (+1wk vacancy)'}
                   </button>
                 </div>
                 <div>
@@ -942,17 +996,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         <div className="relative">
                           <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
                           <input
-                            type="number"
-                            value={inputs.rehabBudget}
-                            onChange={(e) => {
-                              const val = Number(e.target.value);
-                              if (val >= effectiveRanges.rehab.min && val <= effectiveRanges.rehab.max) {
-                                handleChange('rehabBudget', val);
-                              }
-                            }}
-                            min={effectiveRanges.rehab.min}
-                            max={effectiveRanges.rehab.max}
-                            step="1000"
+                            type="text"
+                            inputMode="numeric"
+                            value={getInputValue('rehabBudget')}
+                            onFocus={() => handleNumberFocus('rehabBudget')}
+                            onChange={(e) => handleNumberChangeFor('rehabBudget', e.target.value)}
+                            onBlur={() => handleNumberBlur('rehabBudget', effectiveRanges.rehab.min, effectiveRanges.rehab.max)}
                             className="w-full pl-7 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-amber-500"
                             data-testid="input-rehab-budget-number"
                           />

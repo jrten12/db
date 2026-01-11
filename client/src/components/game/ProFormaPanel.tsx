@@ -840,7 +840,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <span className="text-gray-400 text-xs flex items-center">Vacancy Rate<InfoTooltip term="vacancyRate" /></span>
                   <span className="text-white font-mono text-sm">
                     {inputs.vacancyRate}%
-                    {!inputs.utilities && <span className="text-amber-400 text-xs ml-1">(+2% tenant pays)</span>}
+                    {!inputs.utilities && <span className="text-amber-400 text-xs ml-1">(+1wk vacancy)</span>}
                   </span>
                 </div>
                 <input

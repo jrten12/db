@@ -499,14 +499,124 @@ export function calculateWeeklyIncome(monthlyCashFlow: number): number {
 }
 
 /**
+ * Reality Check Model
+ * 
+ * Compares player's pro forma assumptions against property's "true" market values.
+ * Returns reality-adjusted cash flow that reflects actual market conditions.
+ * 
+ * True values are derived from:
+ * - Rent: Midpoint of property's rent range (market study reveals this)
+ * - Vacancy: Location-based baseline (urban 7%, suburban 5%)
+ */
+interface RealityCheckResult {
+  projectedCashFlow: number;      // What player thought they'd get
+  actualCashFlow: number;         // What market actually delivers
+  rentDelta: number;              // Difference in rent assumption vs reality
+  vacancyDelta: number;           // Difference in vacancy assumption vs reality
+  explanation: string;            // Human-readable feedback
+  wasOptimistic: boolean;         // Did player assume too rosy a picture?
+}
+
+export function calculateRealityCheck(
+  property: { rentMin: number; rentMax: number; locationType: string },
+  playerInputs: { monthlyRent: number; vacancyRate: number },
+  playerProjectedCashFlow: number,
+  completedDiligence: string[]
+): RealityCheckResult {
+  // True market rent is the midpoint of the property's range
+  const trueMarketRent = Math.floor((property.rentMin + property.rentMax) / 2);
+  
+  // True vacancy rate based on location (urban markets have higher turnover)
+  const trueVacancyRate = property.locationType === 'urban' ? 7 : 5;
+  
+  // Calculate deltas (player assumption - reality)
+  const rentDelta = playerInputs.monthlyRent - trueMarketRent;
+  const vacancyDelta = playerInputs.vacancyRate - trueVacancyRate;
+  
+  // Did player do market study? If so, rent assumption is more accurate
+  const hasMarketStudy = completedDiligence.includes('market_study');
+  
+  // Calculate the income impact from rent difference
+  // If player assumed $1500 rent but market is $1300, they lose $200/month
+  // If player assumed $1200 rent but market is $1400, they gain $200/month (conservative win!)
+  let rentImpact = 0;
+  if (!hasMarketStudy) {
+    if (rentDelta > 0) {
+      // Optimistic: assumed higher rent than market - hurts cash flow
+      rentImpact = -rentDelta;
+    } else if (rentDelta < 0) {
+      // Conservative: assumed lower rent than market - bonus cash flow!
+      rentImpact = Math.abs(rentDelta);
+    }
+  }
+  
+  // Calculate vacancy impact
+  // If player assumed 5% but reality is 7%, that's 2% more vacancy (hurts)
+  // If player assumed 10% but reality is 7%, that's 3% less vacancy (helps!)
+  let vacancyImpact = 0;
+  if (vacancyDelta < 0) {
+    // Player assumed less vacancy than reality - more lost rent
+    const additionalVacancy = Math.abs(vacancyDelta) / 100;
+    vacancyImpact = -Math.floor(trueMarketRent * additionalVacancy);
+  } else if (vacancyDelta > 0) {
+    // Player assumed more vacancy than reality - bonus from lower actual vacancy!
+    const lessVacancy = vacancyDelta / 100;
+    vacancyImpact = Math.floor(trueMarketRent * lessVacancy);
+  }
+  
+  // Total monthly impact
+  const totalMonthlyImpact = rentImpact + vacancyImpact;
+  const actualCashFlow = playerProjectedCashFlow + totalMonthlyImpact;
+  
+  // Build explanation
+  const negativeExplanationParts: string[] = [];
+  const positiveExplanationParts: string[] = [];
+  
+  if (rentImpact < 0) {
+    negativeExplanationParts.push(`Rent is $${Math.abs(rentDelta)}/mo lower than assumed`);
+  } else if (rentImpact > 0) {
+    positiveExplanationParts.push(`Market rent is $${Math.abs(rentDelta)}/mo higher than you assumed`);
+  }
+  
+  if (vacancyImpact < 0) {
+    negativeExplanationParts.push(`${Math.abs(vacancyDelta)}% higher vacancy than expected`);
+  } else if (vacancyImpact > 0) {
+    positiveExplanationParts.push(`${vacancyDelta}% lower vacancy than you budgeted`);
+  }
+  
+  const wasOptimistic = totalMonthlyImpact < 0;
+  const wasConservative = totalMonthlyImpact > 0;
+  
+  let explanation = '';
+  if (wasOptimistic) {
+    explanation = `Reality check: ${negativeExplanationParts.join(', ')}. Actual cash flow is $${Math.abs(totalMonthlyImpact)}/mo less than projected.`;
+  } else if (wasConservative) {
+    explanation = `Conservative win! ${positiveExplanationParts.join(', ')}. Cash flow is $${totalMonthlyImpact}/mo better than projected.`;
+  } else {
+    explanation = 'Your assumptions match market reality.';
+  }
+  
+  return {
+    projectedCashFlow: playerProjectedCashFlow,
+    actualCashFlow,
+    rentDelta,
+    vacancyDelta,
+    explanation,
+    wasOptimistic,
+  };
+}
+
+/**
  * Activate a rental property after leasing period
  * Sets up weekly income and marks as active
+ * Now includes reality check - comparing player assumptions to market reality
  */
 interface RentalActivationResult {
   deal: Deal;
   surpriseCosts: number;
   surpriseIssues: string[];
   newCash: number;
+  realityCheck?: RealityCheckResult;
 }
 
 export async function activateRentalProperty(
@@ -514,14 +624,42 @@ export async function activateRentalProperty(
   gameRun: GameRun,
   monthlyCashFlow: number
 ): Promise<RentalActivationResult> {
-  const weeklyIncome = calculateWeeklyIncome(monthlyCashFlow);
-  
-  // Get property to check for undiscovered issues
+  // Get property to check for undiscovered issues and reality check
   const property = await storage.getProperty(deal.propertyId);
   const investigations = await storage.getPropertyInvestigations(gameRun.id);
   const completedDiligence = investigations
     .filter(inv => inv.propertyId === deal.propertyId)
     .map(inv => inv.investigationType);
+  
+  // Extract player inputs from stored pro forma
+  const proFormaInputs = deal.proFormaInputs as any;
+  const playerMonthlyRent = proFormaInputs?.monthlyRent || 0;
+  const playerVacancyRate = proFormaInputs?.vacancyRate || 5;
+  
+  // Perform reality check - compare player assumptions to market reality
+  let realityCheck: RealityCheckResult | undefined;
+  let actualMonthlyCashFlow = monthlyCashFlow;
+  
+  if (property) {
+    realityCheck = calculateRealityCheck(
+      {
+        rentMin: property.rentMin,
+        rentMax: property.rentMax,
+        locationType: property.locationType,
+      },
+      {
+        monthlyRent: playerMonthlyRent,
+        vacancyRate: playerVacancyRate,
+      },
+      monthlyCashFlow,
+      completedDiligence
+    );
+    
+    // Use reality-adjusted cash flow for weekly income
+    actualMonthlyCashFlow = realityCheck.actualCashFlow;
+  }
+  
+  const weeklyIncome = calculateWeeklyIncome(actualMonthlyCashFlow);
   
   // Check for undiscovered property issues (surprise repair costs!)
   const propertyName = property?.name || '';
@@ -552,12 +690,21 @@ export async function activateRentalProperty(
     newCash = result.newCash;
   }
   
-  // Update pro forma outputs to include surprise costs in total investment
+  // Update pro forma outputs to include surprise costs and reality check data
   const proFormaOutputs = deal.proFormaOutputs as any;
   const updatedProFormaOutputs = {
     ...proFormaOutputs,
     surpriseCosts,
     totalCashInvested: (proFormaOutputs?.totalCashInvested || 0) + surpriseCosts,
+    // Reality check data
+    realityCheck: realityCheck ? {
+      projectedCashFlow: realityCheck.projectedCashFlow,
+      actualCashFlow: realityCheck.actualCashFlow,
+      rentDelta: realityCheck.rentDelta,
+      vacancyDelta: realityCheck.vacancyDelta,
+      explanation: realityCheck.explanation,
+      wasOptimistic: realityCheck.wasOptimistic,
+    } : null,
   };
 
   const updatedDeal = await storage.updateDeal(deal.id, {
@@ -583,6 +730,7 @@ export async function activateRentalProperty(
     surpriseCosts,
     surpriseIssues: undiscoveredIssues.map(i => i.name),
     newCash,
+    realityCheck,
   };
 }
 

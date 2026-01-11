@@ -57,6 +57,9 @@ export default function Game() {
     } catch {}
     return new Set();
   });
+  
+  // Persist skipped diligence to sessionStorage
+  const skippedDiligenceArray = Array.from(skippedDiligenceDeals);
   const [flipMetrics, setFlipMetrics] = useState({ profit: 0, roi: 0, holdWeeks: 0 });
   const [showLedger, setShowLedger] = useState(false);
 
@@ -79,9 +82,9 @@ export default function Game() {
 
   useEffect(() => {
     try {
-      sessionStorage.setItem('skippedDiligenceDeals', JSON.stringify([...skippedDiligenceDeals]));
+      sessionStorage.setItem('skippedDiligenceDeals', JSON.stringify(skippedDiligenceArray));
     } catch {}
-  }, [skippedDiligenceDeals]);
+  }, [skippedDiligenceArray]);
 
   useEffect(() => {
     const checkActiveGame = async () => {
@@ -377,7 +380,11 @@ export default function Game() {
 
   const handleProceedWithoutDiligence = useCallback(() => {
     if (!selectedProperty) return;
-    setSkippedDiligenceDeals(prev => new Set([...prev, selectedProperty.id]));
+    setSkippedDiligenceDeals(prev => {
+      const newSet = new Set(prev);
+      newSet.add(selectedProperty.id);
+      return newSet;
+    });
     toast.warning('Proceeding without full due diligence - hidden issues may surface later!');
   }, [selectedProperty]);
 
@@ -466,6 +473,16 @@ export default function Game() {
         // Show surprise costs warning if any hidden issues were discovered
         if (rentalResult.surpriseCosts > 0) {
           toast.warning(`⚠️ Surprise repairs: $${rentalResult.surpriseCosts.toLocaleString()} for ${rentalResult.surpriseIssues.join(', ')}. Your investment just got more expensive!`);
+        }
+        
+        // Show reality check feedback - compare player assumptions to market reality
+        if (rentalResult.realityCheck) {
+          const rc = rentalResult.realityCheck;
+          if (rc.wasOptimistic) {
+            toast.error(`📊 Reality Check: ${rc.explanation}`, { duration: 8000 });
+          } else if (rc.actualCashFlow > rc.projectedCashFlow) {
+            toast.success(`📊 ${rc.explanation}`, { duration: 5000 });
+          }
         }
         
         // Update game run with new cash balance after surprise costs

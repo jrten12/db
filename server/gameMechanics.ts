@@ -127,6 +127,8 @@ interface FlipSaleResult {
 
 interface RentalIncomeResult {
   weeklyIncome: number;
+  grossRent: number;
+  totalExpenses: number;
   curveball?: {
     name: string;
     description: string;
@@ -336,21 +338,69 @@ export async function completeFlipDeal(
 
 /**
  * Process weekly rental income for an active rental property
+ * Now breaks down gross rent and expenses separately for educational clarity
  */
 export async function processRentalIncome(
   deal: Deal,
   gameRun: GameRun,
   curveball?: any
 ): Promise<RentalIncomeResult> {
-  // Get weekly income from deal (should be pre-calculated)
-  let weeklyIncome = deal.weeklyIncome || 0;
-  let cashImpact = curveball?.cashImpact || 0;
-  let actualIncome = weeklyIncome + cashImpact;
-
-  // Handle curveballs that affect rent
-  if (curveball?.rentMultiplier !== undefined) {
-    actualIncome = weeklyIncome * curveball.rentMultiplier;
+  // Get the stored pro forma inputs for this deal
+  const proFormaInputs = deal.proFormaInputs as any;
+  const proFormaOutputs = deal.proFormaOutputs as any;
+  
+  // Calculate weekly values from monthly inputs
+  const weeksPerMonth = 4.33;
+  
+  // Get reality-adjusted rent (if available) or use player's assumed rent
+  const realityCheck = proFormaOutputs?.realityCheck;
+  let monthlyRent = proFormaInputs?.monthlyRent || proFormaInputs?.expectedRent || 0;
+  
+  // Apply reality check adjustments to rent
+  if (realityCheck?.rentDelta) {
+    // If player was optimistic, reduce rent to market reality
+    if (realityCheck.rentDelta > 0 && !realityCheck.wasOptimistic === false) {
+      monthlyRent = monthlyRent - realityCheck.rentDelta;
+    }
   }
+  
+  const weeklyGrossRent = Math.round(monthlyRent / weeksPerMonth);
+  
+  // Calculate weekly expenses from stored inputs
+  const vacancyRate = proFormaInputs?.vacancyRate || 5;
+  const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
+  const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
+  const maintenancePct = proFormaInputs?.maintenancePct || 5;
+  const capexPct = proFormaInputs?.capexPct || 5;
+  const hasPropertyMgmt = proFormaInputs?.propertyMgmt || false;
+  const landlordPaysUtilities = proFormaInputs?.utilities || false;
+  
+  // Calculate weekly expenses
+  const weeklyVacancyLoss = Math.round((monthlyRent * vacancyRate / 100) / weeksPerMonth);
+  const weeklyTaxes = Math.round(taxesAnnual / 52);
+  const weeklyInsurance = Math.round(insuranceAnnual / 52);
+  const weeklyMaintenance = Math.round((monthlyRent * maintenancePct / 100) / weeksPerMonth);
+  const weeklyCapex = Math.round((monthlyRent * capexPct / 100) / weeksPerMonth);
+  const weeklyMgmt = hasPropertyMgmt ? Math.round((monthlyRent * 10 / 100) / weeksPerMonth) : 0;
+  const weeklyUtilities = landlordPaysUtilities ? Math.round(150 / weeksPerMonth) : 0;
+  
+  // Calculate debt service (mortgage payment)
+  const debtServiceMonthly = proFormaOutputs?.debtServiceMonthly || 0;
+  const weeklyDebtService = Math.round(debtServiceMonthly / weeksPerMonth);
+  
+  // Total weekly expenses
+  const totalWeeklyExpenses = weeklyVacancyLoss + weeklyTaxes + weeklyInsurance + 
+    weeklyMaintenance + weeklyCapex + weeklyMgmt + weeklyUtilities + weeklyDebtService;
+  
+  // Net weekly income
+  let netWeeklyIncome = weeklyGrossRent - totalWeeklyExpenses;
+  
+  // Apply curveball effects
+  let cashImpact = curveball?.cashImpact || 0;
+  if (curveball?.rentMultiplier !== undefined) {
+    netWeeklyIncome = Math.round(netWeeklyIncome * curveball.rentMultiplier);
+  }
+  netWeeklyIncome += cashImpact;
 
   // Record curveball event if one occurred
   if (curveball) {
@@ -368,17 +418,36 @@ export async function processRentalIncome(
     });
   }
 
-  // Create ledger entry for rental income
-  const ledgerEntry: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'> = {
+  // Get property name for descriptions
+  const property = await storage.getProperty(deal.propertyId);
+  const propertyName = property?.name || `Property #${deal.propertyId}`;
+  
+  // Create ledger entries - rent income and expense debit
+  const ledgerEntries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[] = [];
+  
+  // Credit: Gross rent income
+  ledgerEntries.push({
     direction: 'credit',
     category: 'income',
-    amount: actualIncome,
+    amount: weeklyGrossRent,
     description: curveball
-      ? `Weekly rent - ${deal.propertyId} ${curveball.emoji || ''} ${curveball.name}`
-      : `Weekly rent payment - ${deal.propertyId}`,
+      ? `🏠 Rent - ${propertyName} ${curveball.emoji || ''} ${curveball.name}`
+      : `🏠 Weekly rent - ${propertyName}`,
     propertyId: deal.propertyId,
     dealId: deal.id,
-  };
+  });
+  
+  // Debit: Operating expenses (combined for cleaner ledger)
+  if (totalWeeklyExpenses > 0) {
+    ledgerEntries.push({
+      direction: 'debit',
+      category: 'expense',
+      amount: totalWeeklyExpenses,
+      description: `📊 Operating costs - ${propertyName} (vacancy, taxes, insurance, maintenance, debt)`,
+      propertyId: deal.propertyId,
+      dealId: deal.id,
+    });
+  }
 
   // Fetch current cash balance to avoid stale data issues
   const currentGameRun = await storage.getGameRun(gameRun.id);
@@ -386,7 +455,7 @@ export async function processRentalIncome(
 
   const { newCash } = await storage.createLedgerEntriesWithCashUpdate(
     gameRun.id,
-    [ledgerEntry],
+    ledgerEntries,
     currentCash
   );
 
@@ -396,7 +465,9 @@ export async function processRentalIncome(
   });
 
   return {
-    weeklyIncome: actualIncome,
+    weeklyIncome: netWeeklyIncome,
+    grossRent: weeklyGrossRent,
+    totalExpenses: totalWeeklyExpenses,
     curveball: curveball ? {
       name: curveball.name,
       description: curveball.description,

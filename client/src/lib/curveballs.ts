@@ -19,6 +19,7 @@ export interface Curveball {
   type: CurveballType;
   trigger: CurveballTrigger;
   probability: number;        // 0-100 (percentage chance per check)
+  tenantIssue?: boolean;      // Indicates tenant-facing rental issues for popups
 
   // Financial impact
   cashImpact?: number;        // Positive = gain, Negative = cost
@@ -175,6 +176,45 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     timeImpact: 1,  // Delayed by 1 week
     description: 'Tenant had a payroll issue - rent will be 1 week late. 😬',
     emoji: '😬',
+    color: 'yellow',
+  },
+  {
+    id: 'tenant_key_replacement',
+    name: 'Key Replacement',
+    type: 'negative',
+    trigger: 'rental_monthly',
+    probability: 2,
+    tenantIssue: true,
+    cashImpactMin: -90,
+    cashImpactMax: -220,
+    description: 'Tenant misplaced their keys and needs a lock rekey for safety.',
+    emoji: '🗝️',
+    color: 'red',
+  },
+  {
+    id: 'tenant_drain_issue',
+    name: 'Slow Drain Fix',
+    type: 'negative',
+    trigger: 'rental_monthly',
+    probability: 2,
+    tenantIssue: true,
+    cashImpactMin: -140,
+    cashImpactMax: -360,
+    description: 'Tenant reported a slow drain that needs a plumber visit.',
+    emoji: '🧰',
+    color: 'red',
+  },
+  {
+    id: 'tenant_access_delay',
+    name: 'Scheduling Delay',
+    type: 'negative',
+    trigger: 'rental_monthly',
+    probability: 2,
+    tenantIssue: true,
+    timeImpact: 1,
+    rentMultiplier: 0,
+    description: 'Tenant travel schedule delayed access, so rent is held this week.',
+    emoji: '📅',
     color: 'yellow',
   },
   {

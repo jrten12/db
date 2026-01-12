@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema, trophyTypes } from "@shared/schema";
 import { z } from "zod";
 import * as gameMechanics from "./gameMechanics";
-import { dealLimiter, ledgerLimiter, gameActionLimiter, authLimiter } from "./rateLimiter";
+import { dealLimiter, ledgerLimiter, gameActionLimiter, authLimiter, purchaseLimiter } from "./rateLimiter";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -351,8 +351,8 @@ export async function registerRoutes(
     }
   });
 
-  // Premium purchase - Add cash
-  app.post("/api/game-runs/:id/purchase-cash", async (req, res) => {
+  // Premium purchase - Add cash (rate limited - sensitive operation)
+  app.post("/api/game-runs/:id/purchase-cash", purchaseLimiter, async (req, res) => {
     try {
       const gameRunId = parseInt(req.params.id);
       const { amount } = req.body as { amount: number };
@@ -379,8 +379,8 @@ export async function registerRoutes(
     }
   });
 
-  // Premium purchase - Add weeks
-  app.post("/api/game-runs/:id/purchase-weeks", async (req, res) => {
+  // Premium purchase - Add weeks (rate limited - sensitive operation)
+  app.post("/api/game-runs/:id/purchase-weeks", purchaseLimiter, async (req, res) => {
     try {
       const gameRunId = parseInt(req.params.id);
       const { amount } = req.body as { amount: number };
@@ -407,8 +407,8 @@ export async function registerRoutes(
     }
   });
 
-  // Premium purchase - Add bundle (cash + weeks)
-  app.post("/api/game-runs/:id/purchase-bundle", async (req, res) => {
+  // Premium purchase - Add bundle (rate limited - sensitive operation)
+  app.post("/api/game-runs/:id/purchase-bundle", purchaseLimiter, async (req, res) => {
     try {
       const gameRunId = parseInt(req.params.id);
       const { cashAmount, weeksAmount } = req.body as {

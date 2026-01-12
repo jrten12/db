@@ -8,14 +8,7 @@ const BLOCK_DURATION_MS = 30 * 60 * 1000;
 const STRIKE_DECAY_MS = 5 * 60 * 1000;
 
 function getClientIP(req: Request): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') {
-    return forwarded.split(',')[0].trim();
-  }
-  return req.ip || req.socket.remoteAddress || 'unknown';
-}
-
-function normalizeIPv6(ip: string): string {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
   if (ip.startsWith('::ffff:')) {
     return ip.substring(7);
   }
@@ -92,7 +85,6 @@ export const globalLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: createLimiterHandler('You are making too many requests. Please slow down.'),
-  validate: false,
 });
 
 export const dealLimiter = rateLimit({
@@ -102,7 +94,6 @@ export const dealLimiter = rateLimit({
   legacyHeaders: false,
   message: 'Too many deal attempts. Please wait before trying again.',
   handler: createLimiterHandler('Too many deal attempts. Please wait a minute before trying again.'),
-  validate: false,
 });
 
 export const ledgerLimiter = rateLimit({
@@ -111,7 +102,6 @@ export const ledgerLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: createLimiterHandler('Too many transactions. Please wait before trying again.'),
-  validate: false,
 });
 
 export const gameActionLimiter = rateLimit({
@@ -120,7 +110,6 @@ export const gameActionLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: createLimiterHandler('Too many game actions. Please wait before trying again.'),
-  validate: false,
 });
 
 export const authLimiter = rateLimit({
@@ -129,7 +118,14 @@ export const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: createLimiterHandler('Too many authentication attempts. Please try again in 15 minutes.'),
-  validate: false,
+});
+
+export const purchaseLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: createLimiterHandler('Too many purchase attempts. Please wait before trying again.'),
 });
 
 setInterval(() => {

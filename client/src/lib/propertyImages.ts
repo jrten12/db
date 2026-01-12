@@ -41,6 +41,13 @@ import portRichmondHvac from '@assets/generated_images/port_richmond_duplex_hvac
 import queenVillageBrick from '@assets/generated_images/queen_village_townhouse_brick.png';
 import westsideCosmetic from '@assets/generated_images/westside_manor_cosmetic_updates.png';
 import fairmountDualSystems from '@assets/generated_images/fairmount_duplex_dual_systems.png';
+import downtownLoftPipes from '@assets/generated_images/downtown_loft_kitchen_pipes.png';
+import northernLibertiesHvac from '@assets/generated_images/northern_liberties_loft_hvac.png';
+import graduateHospitalKitchen from '@assets/generated_images/graduate_hospital_studio_kitchen.png';
+import rittenhouseHvac from '@assets/generated_images/rittenhouse_condo_hvac_unit.png';
+import societyHillWindows from '@assets/generated_images/society_hill_historic_windows.png';
+import fishtownSettling from '@assets/generated_images/fishtown_row_house_settling.png';
+import hillsideSeptic from '@assets/generated_images/hillside_retreat_septic_well.png';
 
 import issueMold from '@assets/generated_images/properties/issues/mold.png';
 import issueFoundation from '@assets/generated_images/properties/issues/foundation_crack.png';
@@ -200,8 +207,39 @@ const propertySpecificInteriors: Record<string, Array<{ type: string; label: str
     { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
   ],
   'Hillside Retreat': [
+    { type: 'basement', label: 'Utility Room', url: hillsideSeptic },
     { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
     { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  ],
+  'Downtown Loft': [
+    { type: 'kitchen', label: 'Kitchen', url: downtownLoftPipes },
+    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  ],
+  'Northern Liberties Loft': [
+    { type: 'living', label: 'Living Room', url: northernLibertiesHvac },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  ],
+  'Graduate Hospital Studio': [
+    { type: 'kitchen', label: 'Kitchen', url: graduateHospitalKitchen },
+    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  ],
+  'Rittenhouse Square Condo': [
+    { type: 'living', label: 'Living Room', url: rittenhouseHvac },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  ],
+  'Society Hill Apartment': [
+    { type: 'living', label: 'Living Room', url: societyHillWindows },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  ],
+  'Fishtown Row House': [
+    { type: 'living', label: 'Living Room', url: fishtownSettling },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
     { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
     { type: 'basement', label: 'Basement', url: interiorBasementClean },
   ],

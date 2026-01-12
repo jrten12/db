@@ -216,7 +216,7 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <div role="button" tabIndex={0} className="cursor-help touch-manipulation active:opacity-70">{children}</div>
+        <span className="cursor-help touch-manipulation active:opacity-70 block">{children}</span>
       </PopoverTrigger>
       <PopoverContent side="top" align="center" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4 z-[100]">
         <div className="space-y-2">

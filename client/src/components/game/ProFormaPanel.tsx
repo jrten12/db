@@ -3,6 +3,8 @@ import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isP
 import { getEffectiveRanges, EffectiveRanges } from '@/lib/propertyIssues';
 import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { AssumptionInput, PercentAssumption } from './AssumptionInput';
+import { FormulaCanvas, MiniFormula } from './FormulaCanvas';
 import type { Property } from '@shared/schema';
 
 // Helper to safely get numeric value (default to 0 for calculations)
@@ -990,90 +992,145 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-gray-400 text-xs flex items-center">Taxes (annual)<InfoTooltip term="taxesAnnual" /></label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={getInputValue('taxesAnnual')}
-                    placeholder={FIELD_HINTS.taxesAnnual}
-                    onFocus={() => handleNumberFocus('taxesAnnual')}
-                    onChange={(e) => handleNumberChangeFor('taxesAnnual', e.target.value)}
-                    onBlur={() => handleNumberBlur('taxesAnnual', 0)}
-                    className={`w-full mt-1 px-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500 ${getInputClass(isFilled(inputs.taxesAnnual))}`}
-                    data-testid="input-taxes"
+              <div className="space-y-3">
+                <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Operating Expenses</p>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <AssumptionInput
+                    label="Taxes"
+                    value={inputs.taxesAnnual}
+                    onChange={(v) => handleChange('taxesAnnual', v)}
+                    min={Math.round(property.price * 0.005)}
+                    max={Math.round(property.price * 0.03)}
+                    step={100}
+                    format="currency"
+                    compact
+                    presets={[
+                      { label: 'Low', value: Math.round(property.price * 0.01), description: '1% of price', color: 'conservative' },
+                      { label: 'Avg', value: Math.round(property.price * 0.015), description: '1.5% typical', color: 'market' },
+                      { label: 'High', value: Math.round(property.price * 0.025), description: '2.5% of price', color: 'aggressive' },
+                    ]}
+                    helpText="Property taxes per year. Usually 1-2.5% of property value depending on location."
+                  />
+                  
+                  <AssumptionInput
+                    label="Insurance"
+                    value={inputs.insuranceAnnual}
+                    onChange={(v) => handleChange('insuranceAnnual', v)}
+                    min={600}
+                    max={Math.round(property.price * 0.015)}
+                    step={100}
+                    format="currency"
+                    compact
+                    presets={[
+                      { label: 'Low', value: 900, description: 'Basic policy', color: 'conservative' },
+                      { label: 'Avg', value: 1500, description: 'Standard coverage', color: 'market' },
+                      { label: 'Full', value: 2400, description: 'Comprehensive', color: 'aggressive' },
+                    ]}
+                    helpText="Yearly landlord insurance premium. Typically $75-200/month."
                   />
                 </div>
-                <div>
-                  <label className="text-gray-400 text-xs flex items-center">Insurance (annual)<InfoTooltip term="insuranceAnnual" /></label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={getInputValue('insuranceAnnual')}
-                    placeholder={FIELD_HINTS.insuranceAnnual}
-                    onFocus={() => handleNumberFocus('insuranceAnnual')}
-                    onChange={(e) => handleNumberChangeFor('insuranceAnnual', e.target.value)}
-                    onBlur={() => handleNumberBlur('insuranceAnnual', 0)}
-                    className={`w-full mt-1 px-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500 ${getInputClass(isFilled(inputs.insuranceAnnual))}`}
-                    data-testid="input-insurance"
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <PercentAssumption
+                    label="Maintenance"
+                    value={inputs.maintenancePct}
+                    onChange={(v) => handleChange('maintenancePct', v)}
+                    baseAmount={n(inputs.expectedRent) * 12}
+                    baseLabel="annual rent"
+                    min={3}
+                    max={15}
+                    step={1}
+                    presets={[
+                      { label: 'Risky', value: 5, color: 'aggressive' },
+                      { label: 'Safe', value: 8, color: 'market' },
+                      { label: 'Old Home', value: 12, color: 'conservative' },
+                    ]}
+                    helpText="% of rent set aside for ongoing repairs. 5-10% is typical. Older properties need more."
+                  />
+                  
+                  <PercentAssumption
+                    label="CapEx Reserve"
+                    value={inputs.capExPct}
+                    onChange={(v) => handleChange('capExPct', v)}
+                    baseAmount={n(inputs.expectedRent) * 12}
+                    baseLabel="annual rent"
+                    min={5}
+                    max={15}
+                    step={1}
+                    presets={[
+                      { label: 'Risky', value: 5, color: 'aggressive' },
+                      { label: 'Safe', value: 10, color: 'market' },
+                      { label: 'Old Home', value: 12, color: 'conservative' },
+                    ]}
+                    helpText="% of rent for big-ticket replacements (roof, HVAC, appliances). Budget 8-12%."
                   />
                 </div>
-                <div>
-                  <label className="text-gray-400 text-xs flex items-center">Maintenance (%)<InfoTooltip term="maintenancePct" /></label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={getInputValue('maintenancePct')}
-                    placeholder={FIELD_HINTS.maintenancePct}
-                    onFocus={() => handleNumberFocus('maintenancePct')}
-                    onChange={(e) => handleNumberChangeFor('maintenancePct', e.target.value)}
-                    onBlur={() => handleNumberBlur('maintenancePct', 0, 50)}
-                    className={`w-full mt-1 px-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500 ${getInputClass(isFilled(inputs.maintenancePct))}`}
-                    data-testid="input-maintenance"
-                  />
-                </div>
-                <div>
-                  <label className="text-gray-400 text-xs flex items-center">CapEx Reserve (%)<InfoTooltip term="capExPct" /></label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={getInputValue('capExPct')}
-                    placeholder={FIELD_HINTS.capExPct}
-                    onFocus={() => handleNumberFocus('capExPct')}
-                    onChange={(e) => handleNumberChangeFor('capExPct', e.target.value)}
-                    onBlur={() => handleNumberBlur('capExPct', 0, 50)}
-                    className={`w-full mt-1 px-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500 ${getInputClass(isFilled(inputs.capExPct))}`}
-                    data-testid="input-capex"
-                  />
-                </div>
-                <div>
-                  <label className="text-gray-400 text-xs flex items-center">Utilities<InfoTooltip term="utilities" /></label>
-                  <button
-                    onClick={() => handleChange('utilities', !inputs.utilities)}
-                    className={`w-full mt-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
-                      inputs.utilities
-                        ? 'bg-red-500/20 border border-red-500 text-red-400'
-                        : 'bg-amber-500/20 border border-amber-500 text-amber-400'
-                    }`}
-                    data-testid="toggle-utilities"
-                  >
-                    {inputs.utilities ? `You Pay ($${inputs.utilitiesMonthly}/mo)` : 'Tenant (+1wk vacancy)'}
-                  </button>
-                </div>
-                <div>
-                  <label className="text-gray-400 text-xs flex items-center">Property Mgmt<InfoTooltip term="propertyManagement" /></label>
-                  <button
-                    onClick={() => handleChange('propertyManagement', !inputs.propertyManagement)}
-                    className={`w-full mt-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
-                      inputs.propertyManagement
-                        ? 'bg-emerald-500/20 border border-emerald-500 text-emerald-400'
-                        : 'bg-slate-800 border border-slate-700 text-gray-400'
-                    }`}
-                    data-testid="toggle-property-mgmt"
-                  >
-                    {inputs.propertyManagement ? `ON (${inputs.propertyManagementPct}%)` : 'OFF'}
-                  </button>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-400 text-xs font-medium">Utilities</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => handleChange('utilities', false)}
+                        className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
+                          !inputs.utilities
+                            ? 'bg-amber-500/30 border border-amber-500 text-amber-400'
+                            : 'bg-slate-700/50 border border-slate-600 text-gray-400 hover:border-slate-500'
+                        }`}
+                        data-testid="toggle-utilities-tenant"
+                      >
+                        Tenant
+                        <span className="block text-[10px] opacity-70">+1wk vacancy</span>
+                      </button>
+                      <button
+                        onClick={() => handleChange('utilities', true)}
+                        className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
+                          inputs.utilities
+                            ? 'bg-red-500/30 border border-red-500 text-red-400'
+                            : 'bg-slate-700/50 border border-slate-600 text-gray-400 hover:border-slate-500'
+                        }`}
+                        data-testid="toggle-utilities-owner"
+                      >
+                        You Pay
+                        <span className="block text-[10px] opacity-70">${inputs.utilitiesMonthly}/mo</span>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-400 text-xs font-medium">Property Mgmt</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => handleChange('propertyManagement', false)}
+                        className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
+                          !inputs.propertyManagement
+                            ? 'bg-emerald-500/30 border border-emerald-500 text-emerald-400'
+                            : 'bg-slate-700/50 border border-slate-600 text-gray-400 hover:border-slate-500'
+                        }`}
+                        data-testid="toggle-property-mgmt-off"
+                      >
+                        Self-Manage
+                        <span className="block text-[10px] opacity-70">$0/mo</span>
+                      </button>
+                      <button
+                        onClick={() => handleChange('propertyManagement', true)}
+                        className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
+                          inputs.propertyManagement
+                            ? 'bg-blue-500/30 border border-blue-500 text-blue-400'
+                            : 'bg-slate-700/50 border border-slate-600 text-gray-400 hover:border-slate-500'
+                        }`}
+                        data-testid="toggle-property-mgmt-on"
+                      >
+                        Hire PM
+                        <span className="block text-[10px] opacity-70">{inputs.propertyManagementPct}% of rent</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

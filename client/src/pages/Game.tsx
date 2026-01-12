@@ -638,7 +638,7 @@ export default function Game() {
         toast.success('Rental activated! You will receive weekly income.');
       }
 
-      // Store deal outcome for animation
+      // Store deal outcome for animation - this triggers the DealTransactionAnimation
       setDealOutcome({
         property: selectedProperty,
         totalCashRequired,
@@ -655,13 +655,10 @@ export default function Game() {
       queryClient.invalidateQueries({ queryKey: ['deals'] });
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
       
-      // Small delay for animation before transitioning
-      setTimeout(() => {
-        setCurrentScreen('results');
-        setIsCommittingDeal(false);
-      }, 1500);
+      // Animation onComplete callback will handle transitioning to results screen
     } catch (error: any) {
       setIsCommittingDeal(false);
+      setDealOutcome(null);
       // Check for insufficient funds error
       if (error?.message?.includes('Insufficient funds')) {
         toast.error(error.message);
@@ -993,6 +990,7 @@ export default function Game() {
           loanAmount={dealOutcome?.loanAmount || 0}
           strategy={dealOutcome?.strategy || 'rent'}
           onComplete={() => {
+            setCurrentScreen('results');
             setIsCommittingDeal(false);
             setDealOutcome(null);
           }}

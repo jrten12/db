@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields } from '@/lib/gameData';
+import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getLoanFeesFromLTV, getDownPaymentFromLTV } from '@/lib/gameData';
 import { getEffectiveRanges, EffectiveRanges } from '@/lib/propertyIssues';
 import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -54,9 +54,8 @@ const TERM_DEFINITIONS: Record<string, string> = {
   allInBasis: "Total Project Cost - the full cost to acquire and renovate the property: purchase price + closing costs + rehab + contingency. This is your break-even point.",
   arv: "After Repair Value (ARV) - what the property will be worth after you fix it up. Critical for flip deals. In real life, find comps on Zillow, Redfin, or your local MLS. Look for recently sold similar properties in the same neighborhood that have been renovated.",
   downPayment: "Cash you put in upfront. The rest comes from your lender. Higher down payment = lower monthly payments but more cash tied up.",
-  interestRate: "The yearly cost of borrowing money, expressed as a percentage. Hard money lenders charge more (10-14%) but approve faster. Banks are cheaper (5-8%) but slower.",
+  interestRate: "The yearly cost of borrowing money, expressed as a percentage. Higher LTV means more risk for lenders, so they charge higher rates (5% at 50% LTV up to 12% at 90% LTV).",
   loanTerm: "How long you have to pay back the loan. Longer terms = lower monthly payments but more total interest paid over time.",
-  financingType: "Hard money: Private lenders who approve fast but charge high rates. Good for flips. Bank loan: Traditional mortgage, slower approval, lower rates. Better for long-term rentals.",
   expectedRent: "What tenants will pay monthly. Be conservative - overestimating rent is the #1 mistake new investors make. In real life, check Zillow Rent Zestimate, Rentometer, or Craigslist listings for comparable units in the area.",
   vacancyRate: "Percentage of time the property sits empty between tenants. 5-10% is typical in most markets - that's about 2-5 weeks per year with no income.",
   taxesAnnual: "Yearly property taxes paid to the county. Usually 1-3% of property value depending on location. Check the county assessor's website.",
@@ -74,8 +73,8 @@ const TERM_DEFINITIONS: Record<string, string> = {
   flipProfit: "Your profit on a flip: Sale Price (ARV) minus all costs (purchase + closing + rehab + holding costs). What's left is what you pocket.",
   noi: "Net Operating Income (NOI) - Annual rental income minus operating expenses (taxes, insurance, maintenance, management). Does NOT include mortgage payments.",
   debtService: "Monthly mortgage payment including principal and interest. This comes out of your NOI to determine cash flow.",
-  leverage: "Using borrowed money to buy property. More leverage = less cash upfront but higher risk. Banks typically require 20-25% down.",
-  loanOriginationFees: "Upfront fees to get the loan - points, origination fees, underwriting. Set automatically: Bank loans 1.5%, Hard money 4%. This is cash you need at closing.",
+  leverage: "Using borrowed money (LTV = Loan-to-Value). Higher LTV means less cash down but higher interest rates and loan fees. Risk increases with leverage.",
+  loanOriginationFees: "Upfront fees to get the loan - points, origination fees, underwriting. Scales with LTV: 1% at 50% LTV up to 4% at 90% LTV. This is cash you need at closing.",
   sellingCosts: "Cost to sell the property after rehab - realtor commission (5-6%), title insurance, transfer taxes, closing costs. Total is typically 8-10% of sale price. Many new flippers forget this!",
   unknownRent: "Rent is unknown until you complete a Market Rent Study. Without it, you're just guessing what tenants will pay!",
   unknownRehab: "Rehab costs and timeline are unknown until you complete a Contractor Walkthrough. Guessing renovation costs is dangerous!",
@@ -279,10 +278,14 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     (inputs.utilities ? n(inputs.utilitiesMonthly) : 0) +
     (inputs.propertyManagement ? n(inputs.expectedRent) * n(inputs.propertyManagementPct) / 100 : 0);
   
-  const leverageRatio = (100 - n(inputs.downPaymentPct)) / 100;
+  const leverageRatio = inputs.ltv / 100;
   const leverageLevel = leverageRatio > 0.85 ? 'high' : leverageRatio > 0.7 ? 'moderate' : 'low';
   
-  const holdingCostPerWeek = Math.round((property.price * (n(inputs.interestRate) / 100) / 52) + 
+  const derivedInterestRate = getInterestRateFromLTV(inputs.ltv);
+  const derivedLoanFeesPct = getLoanFeesFromLTV(inputs.ltv);
+  const derivedDownPaymentPct = getDownPaymentFromLTV(inputs.ltv);
+  
+  const holdingCostPerWeek = Math.round((property.price * (derivedInterestRate / 100) / 52) + 
     (n(inputs.taxesAnnual) / 52) + (n(inputs.insuranceAnnual) / 52));
 
   const arvMid = (property.arvMin + property.arvMax) / 2;
@@ -671,71 +674,64 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           
           {expandedSections.capital && (
             <div className="px-4 pb-4 space-y-4">
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => {
-                    handleChange('financingType', 'bank');
-                    handleChange('interestRate', 6.5);
-                    handleChange('downPaymentPct', 25);
-                    handleChange('loanOriginationPct', 1.5);
-                  }}
-                  className={`p-3 rounded-xl border transition-all ${
-                    inputs.financingType === 'bank'
-                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-                      : 'bg-slate-800/50 border-slate-700 text-gray-400 hover:border-slate-600'
-                  }`}
-                  data-testid="button-financing-bank"
-                >
-                  <div className="font-semibold text-sm">Conventional</div>
-                  <div className="text-xs opacity-70">25% down, 6.5% rate, 1.5% fees</div>
-                </button>
-                <button
-                  onClick={() => {
-                    handleChange('financingType', 'hard-money');
-                    handleChange('interestRate', 12);
-                    handleChange('downPaymentPct', 10);
-                    handleChange('loanOriginationPct', 4);
-                  }}
-                  className={`p-3 rounded-xl border transition-all ${
-                    inputs.financingType === 'hard-money'
-                      ? 'bg-amber-500/20 border-amber-500 text-amber-400'
-                      : 'bg-slate-800/50 border-slate-700 text-gray-400 hover:border-slate-600'
-                  }`}
-                  data-testid="button-financing-hard-money"
-                >
-                  <div className="font-semibold text-sm">Hard Money</div>
-                  <div className="text-xs opacity-70">10% down, 12% rate, 4% fees</div>
-                </button>
-              </div>
-
+              {/* LTV Slider - drives all financing terms */}
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-xs flex items-center">Loan-to-Value (LTV)<InfoTooltip term="downPayment" /></span>
-                    <span className="text-white font-mono text-sm">{100 - n(inputs.downPaymentPct)}%</span>
+                    <span className="text-gray-400 text-xs flex items-center">Loan-to-Value (LTV)<InfoTooltip term="leverage" /></span>
+                    <span className="text-white font-mono text-sm font-bold">{inputs.ltv}%</span>
                   </div>
                   <input
                     type="range"
-                    min="50"
-                    max="95"
-                    value={100 - n(inputs.downPaymentPct)}
-                    onChange={(e) => handleChange('downPaymentPct', 100 - Number(e.target.value))}
+                    min={LTV_MIN}
+                    max={LTV_MAX}
+                    value={inputs.ltv}
+                    onChange={(e) => handleChange('ltv', Number(e.target.value))}
                     className="w-full h-2 rounded-full appearance-none cursor-pointer"
                     style={{
-                      background: `linear-gradient(to right, ${leverageLevel === 'high' ? '#ef4444' : leverageLevel === 'moderate' ? '#f59e0b' : '#10b981'} 0%, ${leverageLevel === 'high' ? '#ef4444' : leverageLevel === 'moderate' ? '#f59e0b' : '#10b981'} ${(100 - n(inputs.downPaymentPct) - 50) * 2.22}%, #334155 ${(100 - n(inputs.downPaymentPct) - 50) * 2.22}%, #334155 100%)`
+                      background: `linear-gradient(to right, ${leverageLevel === 'high' ? '#ef4444' : leverageLevel === 'moderate' ? '#f59e0b' : '#10b981'} 0%, ${leverageLevel === 'high' ? '#ef4444' : leverageLevel === 'moderate' ? '#f59e0b' : '#10b981'} ${((inputs.ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)) * 100}%, #334155 ${((inputs.ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)) * 100}%, #334155 100%)`
                     }}
                     data-testid="input-ltv"
                   />
+                  <div className="flex justify-between text-[10px] text-gray-500 mt-1">
+                    <span>{LTV_MIN}% (Conservative)</span>
+                    <span>{LTV_MAX}% (Aggressive)</span>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400 flex items-center">Interest Rate<InfoTooltip term="interestRate" /></span>
-                  <span className="text-white font-mono">{n(inputs.interestRate)}%</span>
+                {/* Derived values displayed as badges */}
+                <div className="grid grid-cols-3 gap-2 mt-3">
+                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                    <div className="text-gray-500 text-[10px] uppercase">Down Payment</div>
+                    <div className="text-white font-mono text-sm font-semibold">{getDownPaymentFromLTV(inputs.ltv)}%</div>
+                  </div>
+                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                    <div className="text-gray-500 text-[10px] uppercase">Interest Rate</div>
+                    <div className={`font-mono text-sm font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>
+                      {getInterestRateFromLTV(inputs.ltv).toFixed(1)}%
+                    </div>
+                  </div>
+                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                    <div className="text-gray-500 text-[10px] uppercase">Loan Fees</div>
+                    <div className={`font-mono text-sm font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>
+                      {getLoanFeesFromLTV(inputs.ltv).toFixed(1)}%
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400 flex items-center">Loan Origination Fees<InfoTooltip term="loanOriginationFees" /></span>
-                  <span className="text-white font-mono">{n(inputs.loanOriginationPct)}%</span>
+                {/* Educational message about leverage-risk tradeoff */}
+                <div className={`text-xs p-2 rounded-lg ${
+                  inputs.ltv >= 85 ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 
+                  inputs.ltv >= 75 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' : 
+                  'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                }`}>
+                  {inputs.ltv >= 85 ? (
+                    <>High leverage = higher interest rate + fees. Less cash down, but riskier.</>
+                  ) : inputs.ltv >= 75 ? (
+                    <>Moderate leverage. Balanced approach between cash down and borrowing costs.</>
+                  ) : (
+                    <>Conservative leverage = lower interest rate + fees. More cash down, but safer.</>
+                  )}
                 </div>
               </div>
 
@@ -786,7 +782,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   </h4>
                 </div>
                 {(() => {
-                  const loanFees = Math.round(liveOutputs.loanAmount * n(inputs.loanOriginationPct) / 100);
+                  const loanFees = Math.round(liveOutputs.loanAmount * derivedLoanFeesPct / 100);
                   const flipHoldingCosts = holdingCostPerWeek * (inputs.rehabWeeks ?? 4);
                   const rehabWithContingency = inputs.strategy === 'flip' 
                     ? Math.round(n(inputs.rehabBudget) * (inputs.contractorType === 'fast' ? 1.5 : 1.0) * (1 + n(inputs.contingencyPct) / 100))
@@ -805,7 +801,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                           <div className="text-gray-400 text-xs mb-1 font-semibold">Cash at Closing</div>
                           <div className="space-y-1 text-sm">
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-400 text-xs">Down Payment ({n(inputs.downPaymentPct)}%)</span>
+                              <span className="text-gray-400 text-xs">Down Payment ({derivedDownPaymentPct}%)</span>
                               <span className="text-white font-mono text-xs">{formatCurrency(liveOutputs.downPaymentAmount)}</span>
                             </div>
                             <div className="flex items-center justify-between">
@@ -813,7 +809,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                               <span className="text-white font-mono text-xs">{formatCurrency(closingCosts)}</span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-400 text-xs">+ Loan Fees ({n(inputs.loanOriginationPct)}%)</span>
+                              <span className="text-gray-400 text-xs">+ Loan Fees ({derivedLoanFeesPct.toFixed(1)}%)</span>
                               <span className="text-white font-mono text-xs">{formatCurrency(loanFees)}</span>
                             </div>
                           </div>

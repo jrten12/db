@@ -233,7 +233,7 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
 interface PropertyDetailProps {
   property: Property;
   onClose: () => void;
-  onOpenProForma: (strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money', contractor: 'cheap' | 'fast') => void;
+  onOpenProForma: (strategy: 'rent' | 'flip', contractor: 'cheap' | 'fast') => void;
   onPass: () => void;
   isProFormaComplete?: boolean;
   completedDiligence?: string[];
@@ -252,7 +252,6 @@ export function PropertyDetail({
   cash = 30000,
 }: PropertyDetailProps) {
   const [strategy, setStrategy] = useState<'rent' | 'flip'>('rent');
-  const [financing, setFinancing] = useState<'bank' | 'hard-money'>('bank');
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
   const [pendingDiligence, setPendingDiligence] = useState<DiligenceOption | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -617,7 +616,6 @@ export function PropertyDetail({
                     const isDisabled = isCompleted || !canAfford;
                     const colorMapping = DILIGENCE_COLOR_MAP[option.id];
                     const primaryColor = FINANCIAL_COLORS[colorMapping.primary];
-                    const secondaryColor = colorMapping.secondary ? FINANCIAL_COLORS[colorMapping.secondary] : null;
                     
                     return (
                       <button
@@ -640,11 +638,6 @@ export function PropertyDetail({
                             {option.id === 'title_search' && <FileText className={`w-4 h-4 ${isCompleted ? primaryColor.text : 'text-gray-400'}`} />}
                             <span className={`font-semibold text-sm ${isCompleted ? primaryColor.text : ''}`}>{option.name}</span>
                             <DiligenceEducationTooltip diligenceId={option.id} />
-                            {secondaryColor && (
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${secondaryColor.bg} ${secondaryColor.text} ${secondaryColor.border} border`}>
-                                +Timeline
-                              </span>
-                            )}
                           </div>
                           {isCompleted ? (
                             <Check className={`w-4 h-4 ${primaryColor.text}`} />
@@ -867,7 +860,7 @@ export function PropertyDetail({
               <div className="space-y-3">
                 {/* PRIMARY: View Pro Forma */}
                 <button 
-                  onClick={() => onOpenProForma(strategy, financing, contractor)}
+                  onClick={() => onOpenProForma(strategy, contractor)}
                   className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-xl font-bold text-base transition-all shadow-lg shadow-emerald-500/30"
                   data-testid="button-pro-forma"
                 >

@@ -15,13 +15,35 @@ export interface ProFormaInputs {
   rehabBudget: number | null;
   rehabWeeks: number | null;
   contingencyPct: number | null;
-  financingType: 'bank' | 'hard-money';
-  interestRate: number | null;
-  downPaymentPct: number | null;
-  loanOriginationPct: number | null;
+  ltv: number; // Loan-to-Value 50-90%, drives interest rate and fees
   sellingCostsPct: number | null;
   contractorType: 'cheap' | 'fast';
 }
+
+// LTV-based financing calculations
+// Higher LTV = higher risk = higher interest rate and fees
+export const LTV_MIN = 50;
+export const LTV_MAX = 90;
+export const INTEREST_MIN = 5.0; // At 50% LTV
+export const INTEREST_MAX = 12.0; // At 90% LTV
+
+// Curved risk premium formula: interest increases faster at higher LTV
+export const getInterestRateFromLTV = (ltv: number): number => {
+  const normalizedLTV = Math.max(0, Math.min(1, (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)));
+  const curvedFactor = Math.pow(normalizedLTV, 1.3);
+  return INTEREST_MIN + curvedFactor * (INTEREST_MAX - INTEREST_MIN);
+};
+
+// Loan origination fees: 1% at 50% LTV, 4% at 90% LTV (linear)
+export const getLoanFeesFromLTV = (ltv: number): number => {
+  const normalizedLTV = (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN);
+  return 1 + normalizedLTV * 3;
+};
+
+// Down payment is simply 100 - LTV
+export const getDownPaymentFromLTV = (ltv: number): number => {
+  return 100 - ltv;
+};
 
 export interface ProFormaOutputs {
   noiMonthly: number;
@@ -34,7 +56,10 @@ export interface ProFormaOutputs {
   totalCashInvested: number;
 }
 
-// Default values with financing pre-set for clean initialization
+// Default LTV at 75% (25% down payment, ~7.5% interest)
+export const DEFAULT_LTV = 75;
+
+// Default values with LTV-based financing
 // Player still needs to fill in strategy-specific fields
 export const defaultProForma: ProFormaInputs = {
   strategy: 'rent',
@@ -51,24 +76,20 @@ export const defaultProForma: ProFormaInputs = {
   rehabBudget: null,
   rehabWeeks: null,
   contingencyPct: null,
-  financingType: 'bank',
-  interestRate: 6.5,
-  downPaymentPct: 25,
-  loanOriginationPct: 1.5,
+  ltv: DEFAULT_LTV,
   sellingCostsPct: null,
   contractorType: 'cheap',
 };
 
-// Required fields for rent strategy
+// Required fields for rent strategy (LTV handles financing automatically)
 export const requiredRentFields: (keyof ProFormaInputs)[] = [
   'expectedRent', 'vacancyRate', 'taxesAnnual', 'insuranceAnnual',
-  'maintenancePct', 'capExPct', 'downPaymentPct', 'interestRate'
+  'maintenancePct', 'capExPct'
 ];
 
 // Required fields for flip strategy
 export const requiredFlipFields: (keyof ProFormaInputs)[] = [
-  'rehabBudget', 'rehabWeeks', 'contingencyPct', 'downPaymentPct', 
-  'interestRate', 'sellingCostsPct'
+  'rehabBudget', 'rehabWeeks', 'contingencyPct', 'sellingCostsPct'
 ];
 
 // Check if pro forma is complete (all required fields filled)
@@ -107,10 +128,13 @@ export const calculateProForma = (
   const contractorMultiplier = inputs.contractorType === 'fast' ? 1.5 : 1.0;
   const rehabBudget = baseRehabBudget * contractorMultiplier;
   const contingencyPct = inputs.contingencyPct ?? 0;
-  const interestRate = inputs.interestRate ?? 0;
-  const downPaymentPct = inputs.downPaymentPct ?? 0;
-  const loanOriginationPct = inputs.loanOriginationPct ?? 0;
   const rehabWeeks = inputs.rehabWeeks ?? 4;
+  
+  // Derive financing terms from LTV
+  const ltv = inputs.ltv;
+  const downPaymentPct = getDownPaymentFromLTV(ltv);
+  const interestRate = getInterestRateFromLTV(ltv);
+  const loanOriginationPct = getLoanFeesFromLTV(ltv);
 
   const loanAmount = property.price * (1 - downPaymentPct / 100);
   const downPaymentAmount = property.price * (downPaymentPct / 100);

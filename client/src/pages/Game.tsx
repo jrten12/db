@@ -21,7 +21,9 @@ import {
   ProFormaOutputs,
   defaultProForma,
   calculateProForma,
-  convertPropertyToGameProperty
+  convertPropertyToGameProperty,
+  getInterestRateFromLTV,
+  getLoanFeesFromLTV
 } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
 import { api } from '@/lib/api';
@@ -352,7 +354,7 @@ export default function Game() {
     setCurrentScreen('market');
   }, []);
 
-  const handleOpenProForma = useCallback((strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money', contractor: 'cheap' | 'fast') => {
+  const handleOpenProForma = useCallback((strategy: 'rent' | 'flip', contractor: 'cheap' | 'fast') => {
     if (!selectedProperty) return;
     
     const diligenceForProperty = completedDiligence[selectedProperty.id] || [];
@@ -379,10 +381,6 @@ export default function Game() {
     setProFormaInputs(prev => ({
       ...prev,
       strategy,
-      financingType: financing,
-      interestRate: financing === 'bank' ? 6.5 : 12,
-      downPaymentPct: financing === 'bank' ? 25 : 10,
-      loanOriginationPct: financing === 'bank' ? 1.5 : 4,
       contractorType: contractor,
       expectedRent: rentEstimate,
       rehabBudget: rehabEstimate,
@@ -518,10 +516,12 @@ export default function Game() {
     }
 
     const closingCosts = Math.round(selectedProperty.price * 0.03);
-    const loanOriginationFee = Math.round((selectedProperty.price - proFormaOutputs.downPaymentAmount) * 0.01);
+    const loanFeesPct = getLoanFeesFromLTV(proFormaInputs.ltv);
+    const loanOriginationFee = Math.round((selectedProperty.price - proFormaOutputs.downPaymentAmount) * (loanFeesPct / 100));
     
-    // Calculate total cash required for the deal
-    const totalCashRequired = proFormaOutputs.downPaymentAmount + closingCosts + loanOriginationFee;
+    // Use totalCashInvested from pro forma as single source of truth
+    // This includes: down payment + closing costs + loan fees + rehab + holding costs (for flips)
+    const totalCashRequired = proFormaOutputs.totalCashInvested;
     
     // CASH VALIDATION - Block if player doesn't have enough
     if (totalCashRequired > gameRun.cash) {
@@ -578,7 +578,7 @@ export default function Game() {
             direction: 'debit',
             category: 'loan_fee',
             amount: loanOriginationFee,
-            description: `Loan origination fee (1%) - ${selectedProperty.name}`,
+            description: `Loan origination fee (${loanFeesPct.toFixed(1)}%) - ${selectedProperty.name}`,
             propertyId: selectedProperty.id,
           },
         ],
@@ -588,7 +588,7 @@ export default function Game() {
       if (proFormaInputs.strategy === 'flip') {
         const rehabBudget = proFormaInputs.rehabBudget ?? 0;
         const contingencyPct = proFormaInputs.contingencyPct ?? 0;
-        const interestRate = proFormaInputs.interestRate ?? 0;
+        const interestRate = getInterestRateFromLTV(proFormaInputs.ltv);
         const taxesAnnual = proFormaInputs.taxesAnnual ?? 0;
         const insuranceAnnual = proFormaInputs.insuranceAnnual ?? 0;
         const rehabWeeks = proFormaInputs.rehabWeeks ?? 0;

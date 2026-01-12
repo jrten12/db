@@ -730,12 +730,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400 flex items-center">Interest Rate<InfoTooltip term="interestRate" /></span>
-                  <span className="text-white font-mono">{inputs.interestRate}%</span>
+                  <span className="text-white font-mono">{n(inputs.interestRate)}%</span>
                 </div>
 
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-400 flex items-center">Loan Origination Fees<InfoTooltip term="loanOriginationFees" /></span>
-                  <span className="text-white font-mono">{inputs.loanOriginationPct}%</span>
+                  <span className="text-white font-mono">{n(inputs.loanOriginationPct)}%</span>
                 </div>
               </div>
 
@@ -805,7 +805,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                           <div className="text-gray-400 text-xs mb-1 font-semibold">Cash at Closing</div>
                           <div className="space-y-1 text-sm">
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-400 text-xs">Down Payment ({inputs.downPaymentPct}%)</span>
+                              <span className="text-gray-400 text-xs">Down Payment ({n(inputs.downPaymentPct)}%)</span>
                               <span className="text-white font-mono text-xs">{formatCurrency(liveOutputs.downPaymentAmount)}</span>
                             </div>
                             <div className="flex items-center justify-between">

@@ -19,6 +19,11 @@ import portRichmondDuplex from '@assets/generated_images/port_richmond_duplex.pn
 import kensingtonRow from '@assets/generated_images/kensington_row_house.png';
 import northernLibertiesLoft from '@assets/generated_images/northern_liberties_loft_building.png';
 
+import interiorKitchen from '@assets/generated_images/fixer-upper_kitchen_needs_work.png';
+import interiorBathroom from '@assets/generated_images/bathroom_needs_renovation.png';
+import interiorLivingRoom from '@assets/generated_images/living_room_needs_updates.png';
+import interiorBasement from '@assets/generated_images/basement_with_potential_issues.png';
+
 import issueMold from '@assets/generated_images/properties/issues/mold.png';
 import issueFoundation from '@assets/generated_images/properties/issues/foundation_crack.png';
 import issueRoof from '@assets/generated_images/properties/issues/roof_damage.png';
@@ -110,7 +115,14 @@ export const getPropertyImage = (propertyName: string): string => {
 };
 
 export const getPropertyInteriorImages = (propertyName: string): Array<{ type: string; label: string; url: string }> => {
-  return [];
+  // Generic interior images that apply to most fixer-upper properties
+  // These help investors visualize what to look for during property walkthroughs
+  return [
+    { type: 'kitchen', label: 'Kitchen (needs updates)', url: interiorKitchen },
+    { type: 'bathroom', label: 'Bathroom (dated)', url: interiorBathroom },
+    { type: 'living', label: 'Living Room', url: interiorLivingRoom },
+    { type: 'basement', label: 'Basement/Mechanical', url: interiorBasement },
+  ];
 };
 
 export const hasInteriorImages = (propertyName: string): boolean => {

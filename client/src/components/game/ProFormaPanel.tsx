@@ -49,12 +49,12 @@ const TERM_DEFINITIONS: Record<string, string> = {
   rehabBudget: "The money you plan to spend fixing up the property - repairs, renovations, upgrades. Unknown until you do a Contractor Walkthrough.",
   contingency: "Extra buffer for unexpected costs. Things always cost more than expected! 10-20% is common for experienced investors.",
   allInBasis: "Total Project Cost - the full cost to acquire and renovate the property: purchase price + closing costs + rehab + contingency. This is your break-even point.",
-  arv: "After Repair Value (ARV) - what the property will be worth after you fix it up. Critical for flip deals. Unknown until you do a Comp Analysis.",
+  arv: "After Repair Value (ARV) - what the property will be worth after you fix it up. Critical for flip deals. In real life, find comps on Zillow, Redfin, or your local MLS. Look for recently sold similar properties in the same neighborhood that have been renovated.",
   downPayment: "Cash you put in upfront. The rest comes from your lender. Higher down payment = lower monthly payments but more cash tied up.",
   interestRate: "The yearly cost of borrowing money, expressed as a percentage. Hard money lenders charge more (10-14%) but approve faster. Banks are cheaper (5-8%) but slower.",
   loanTerm: "How long you have to pay back the loan. Longer terms = lower monthly payments but more total interest paid over time.",
   financingType: "Hard money: Private lenders who approve fast but charge high rates. Good for flips. Bank loan: Traditional mortgage, slower approval, lower rates. Better for long-term rentals.",
-  expectedRent: "What tenants will pay monthly. Be conservative - overestimating rent is the #1 mistake new investors make. Unknown until you do a Market Rent Study.",
+  expectedRent: "What tenants will pay monthly. Be conservative - overestimating rent is the #1 mistake new investors make. In real life, check Zillow Rent Zestimate, Rentometer, or Craigslist listings for comparable units in the area.",
   vacancyRate: "Percentage of time the property sits empty between tenants. 5-10% is typical in most markets - that's about 2-5 weeks per year with no income.",
   taxesAnnual: "Yearly property taxes paid to the county. Usually 1-3% of property value depending on location. Check the county assessor's website.",
   insuranceAnnual: "Yearly insurance premium. Landlord/investor policies cost more than regular homeowner's insurance because of liability coverage.",
@@ -794,18 +794,30 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     <span className="text-white font-mono font-semibold">{formatCurrency(Math.round(liveOutputs.loanAmount * n(inputs.loanOriginationPct) / 100))}</span>
                   </div>
                   {inputs.strategy === 'flip' && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-300">+ Initial Holding Costs (4 weeks)</span>
-                      <span className="text-white font-mono font-semibold">{formatCurrency(holdingCostPerWeek * 4)}</span>
-                    </div>
+                    <>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-300">+ Rehab Budget Reserve</span>
+                        <span className="text-white font-mono font-semibold">{formatCurrency(n(inputs.rehabBudget))}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-300">+ Contingency ({n(inputs.contingencyPct)}%)</span>
+                        <span className="text-white font-mono font-semibold">{formatCurrency(Math.round(n(inputs.rehabBudget) * n(inputs.contingencyPct) / 100))}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-300">+ Holding Costs ({n(inputs.rehabWeeks)} weeks)</span>
+                        <span className="text-white font-mono font-semibold">{formatCurrency(holdingCostPerWeek * n(inputs.rehabWeeks))}</span>
+                      </div>
+                    </>
                   )}
                 </div>
                 <div className="border-t-2 border-blue-400/30 pt-3">
                   {(() => {
+                    const rehabWithContingency = n(inputs.rehabBudget) * (1 + n(inputs.contingencyPct) / 100);
+                    const totalHoldingCosts = holdingCostPerWeek * n(inputs.rehabWeeks);
                     const totalCashRequired = liveOutputs.downPaymentAmount +
                       closingCosts +
                       Math.round(liveOutputs.loanAmount * n(inputs.loanOriginationPct) / 100) +
-                      (inputs.strategy === 'flip' ? holdingCostPerWeek * 4 : 0);
+                      (inputs.strategy === 'flip' ? rehabWithContingency + totalHoldingCosts : 0);
                     const canAfford = playerCash >= totalCashRequired;
                     const cashRatio = Math.min(playerCash / totalCashRequired, 1) * 100;
                     

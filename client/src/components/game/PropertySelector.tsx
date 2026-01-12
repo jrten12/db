@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine } from 'lucide-react';
+import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench } from 'lucide-react';
 import type { Property } from '@shared/schema';
 
 export type LocationFilter = 'all' | 'urban' | 'suburban';
@@ -11,6 +11,7 @@ interface PropertySelectorProps {
   onSelect: (id: number) => void;
   locationFilter: LocationFilter;
   onLocationFilterChange: (filter: LocationFilter) => void;
+  propertiesWithInvestigations?: Set<number>;
 }
 
 const getConditionBadge = (conditionTag: string) => {
@@ -28,7 +29,7 @@ const getConditionBadge = (conditionTag: string) => {
   }
 };
 
-export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange }: PropertySelectorProps) {
+export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set() }: PropertySelectorProps) {
   const urbanCount = properties.filter(p => p.locationType === 'urban').length;
   const suburbanCount = properties.filter(p => p.locationType === 'suburban').length;
   
@@ -109,6 +110,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
           const propertyImage = getPropertyImage(property.name);
           const conditionBadge = getConditionBadge(property.conditionTag);
           const isSelected = selectedId === property.id;
+          const hasInvestigations = propertiesWithInvestigations.has(property.id);
           
           return (
             <button
@@ -151,6 +153,16 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                     <span className="text-xs text-gray-400">sqft</span>
                   </div>
                 </div>
+
+                {/* Work in Progress Badge */}
+                {hasInvestigations && (
+                  <div className="absolute bottom-3 left-3">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/90 backdrop-blur-md rounded-lg border border-amber-400/50 animate-pulse">
+                      <Wrench className="w-4 h-4 text-white" />
+                      <span className="text-xs font-semibold text-white">In Progress</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Question mark overlay - invites investigation */}
                 <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">

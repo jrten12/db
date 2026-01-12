@@ -848,6 +848,7 @@ export default function Game() {
               onSelect={handlePropertyClick}
               locationFilter={locationFilter}
               onLocationFilterChange={setLocationFilter}
+              propertiesWithInvestigations={new Set(investigations.map(inv => inv.propertyId))}
             />
           )}
 

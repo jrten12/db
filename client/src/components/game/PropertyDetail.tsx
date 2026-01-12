@@ -367,18 +367,30 @@ export function PropertyDetail({
                 {allImages.length > 1 && (
                   <>
                     <button
-                      onClick={prevImage}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-2 rounded-full border border-slate-700 transition-all"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        prevImage();
+                      }}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-3 rounded-full border border-slate-700 transition-all z-10"
                       aria-label="Previous image"
+                      type="button"
+                      data-testid="button-prev-image"
                     >
-                      <ChevronLeft className="w-5 h-5 text-white" />
+                      <ChevronLeft className="w-5 h-5 text-white pointer-events-none" />
                     </button>
                     <button
-                      onClick={nextImage}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-2 rounded-full border border-slate-700 transition-all"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        nextImage();
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-3 rounded-full border border-slate-700 transition-all z-10"
                       aria-label="Next image"
+                      type="button"
+                      data-testid="button-next-image"
                     >
-                      <ChevronRight className="w-5 h-5 text-white" />
+                      <ChevronRight className="w-5 h-5 text-white pointer-events-none" />
                     </button>
                   </>
                 )}
@@ -411,20 +423,26 @@ export function PropertyDetail({
                   {allImages.map((img, index) => (
                     <button
                       key={img.url}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setCurrentImageIndex(index);
+                      }}
+                      className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                         index === currentImageIndex
                           ? 'border-emerald-500 scale-105'
                           : 'border-slate-700 hover:border-slate-600 opacity-70 hover:opacity-100'
                       }`}
+                      type="button"
+                      data-testid={`thumbnail-${index}`}
                     >
                       <img
                         src={img.url}
                         alt={img.label}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover pointer-events-none"
                       />
-                      <div className="absolute inset-0 flex items-end p-1">
-                        <span className="text-[8px] text-white bg-black/60 px-1 rounded truncate w-full text-center">
+                      <div className="absolute bottom-0 left-0 right-0 p-1 bg-gradient-to-t from-black/80 to-transparent">
+                        <span className="text-[8px] text-white truncate block text-center">
                           {img.label}
                         </span>
                       </div>

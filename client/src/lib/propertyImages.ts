@@ -19,10 +19,15 @@ import portRichmondDuplex from '@assets/generated_images/port_richmond_duplex.pn
 import kensingtonRow from '@assets/generated_images/kensington_row_house.png';
 import northernLibertiesLoft from '@assets/generated_images/northern_liberties_loft_building.png';
 
-import interiorKitchen from '@assets/generated_images/fixer-upper_kitchen_needs_work.png';
-import interiorBathroom from '@assets/generated_images/bathroom_needs_renovation.png';
-import interiorLivingRoom from '@assets/generated_images/living_room_needs_updates.png';
-import interiorBasement from '@assets/generated_images/basement_with_potential_issues.png';
+import interiorKitchenExtreme from '@assets/generated_images/fixer-upper_kitchen_needs_work.png';
+import interiorBathroomExtreme from '@assets/generated_images/bathroom_needs_renovation.png';
+import interiorLivingRoomExtreme from '@assets/generated_images/living_room_needs_updates.png';
+import interiorBasementExtreme from '@assets/generated_images/basement_with_potential_issues.png';
+
+import interiorKitchenDated from '@assets/generated_images/dated_kitchen_needs_updating.png';
+import interiorBathroomDated from '@assets/generated_images/dated_bathroom_cosmetic_updates.png';
+import interiorLivingRoomDated from '@assets/generated_images/dated_living_room_light_updates.png';
+import interiorBasementClean from '@assets/generated_images/clean_unfinished_basement_potential.png';
 
 import issueMold from '@assets/generated_images/properties/issues/mold.png';
 import issueFoundation from '@assets/generated_images/properties/issues/foundation_crack.png';
@@ -114,39 +119,52 @@ export const getPropertyImage = (propertyName: string): string => {
   return propertyImages[propertyName] || oakwoodFront;
 };
 
-// Properties with Fair or Fixer-Upper condition that need interior photos
-const FIXER_UPPER_PROPERTIES = [
-  'Oakwood Cottage',       // Good condition
-  'Elmwood Bungalow',      // Fixer-Upper
-  'Hillside Retreat',      // Fair
-  'Kensington Row',        // Fixer-Upper  
-  'Old City Brownstone',   // Fixer-Upper
-  'Riverside Ranch',       // Fair
-  'South Street Twin',     // Fair
-  'Port Richmond Duplex',  // Fair
-  'Maplewood Colonial',    // Fixer-Upper
-  'Westside Manor',        // Good (needs work based on rehab)
-  'Queen Village Townhouse', // Fair
-  'Fairmount Duplex',      // Fair
+// Property condition categories for appropriate interior images
+const FIXER_UPPER_EXTREME = [
+  'Elmwood Bungalow',      // Fixer-Upper - major work needed
+  'Kensington Row',        // Fixer-Upper - extensive rehab
+  'Old City Brownstone',   // Fixer-Upper - historic restoration
+];
+
+const FIXER_UPPER_DATED = [
+  'Maplewood Colonial',    // Fixer-Upper - but a nice colonial, just dated
+  'Hillside Retreat',      // Fair - needs updates
+  'Riverside Ranch',       // Fair - cosmetic work
+  'South Street Twin',     // Fair - needs updating
+  'Port Richmond Duplex',  // Fair - dated interiors
+  'Queen Village Townhouse', // Fair - needs cosmetic updates
+  'Fairmount Duplex',      // Fair - dated but functional
+  'Oakwood Cottage',       // Good - minor updates
+  'Westside Manor',        // Good - light updates
 ];
 
 export const getPropertyInteriorImages = (propertyName: string): Array<{ type: string; label: string; url: string }> => {
-  // Only show fixer-upper interior images for properties that need work
-  if (FIXER_UPPER_PROPERTIES.includes(propertyName)) {
+  // Extreme fixer-uppers - show major issues
+  if (FIXER_UPPER_EXTREME.includes(propertyName)) {
     return [
-      { type: 'kitchen', label: 'Kitchen (needs updates)', url: interiorKitchen },
-      { type: 'bathroom', label: 'Bathroom (dated)', url: interiorBathroom },
-      { type: 'living', label: 'Living Room', url: interiorLivingRoom },
-      { type: 'basement', label: 'Basement/Mechanical', url: interiorBasement },
+      { type: 'kitchen', label: 'Kitchen', url: interiorKitchenExtreme },
+      { type: 'bathroom', label: 'Bathroom', url: interiorBathroomExtreme },
+      { type: 'living', label: 'Living Room', url: interiorLivingRoomExtreme },
+      { type: 'basement', label: 'Basement', url: interiorBasementExtreme },
     ];
   }
   
-  // For newer/better condition properties, no fixer-upper interior images
+  // Dated properties - show outdated but not destroyed interiors
+  if (FIXER_UPPER_DATED.includes(propertyName)) {
+    return [
+      { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+      { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+      { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
+      { type: 'basement', label: 'Basement', url: interiorBasementClean },
+    ];
+  }
+  
+  // For newer/better condition properties (Excellent/Good condos, etc.), no interior photos
   return [];
 };
 
 export const hasInteriorImages = (propertyName: string): boolean => {
-  return FIXER_UPPER_PROPERTIES.includes(propertyName);
+  return FIXER_UPPER_EXTREME.includes(propertyName) || FIXER_UPPER_DATED.includes(propertyName);
 };
 
 export const getIssueImage = (issueId: string): string | null => {

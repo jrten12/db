@@ -129,6 +129,10 @@ export const api = {
     deal: Deal;
     surpriseCosts: number;
     surpriseIssues: string[];
+    titleIssue?: {
+      name: string;
+      cost: number;
+    };
     newCash: number;
     realityCheck?: {
       projectedCashFlow: number;

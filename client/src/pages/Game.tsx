@@ -567,9 +567,18 @@ export default function Game() {
         // Activate rental property
         const rentalResult = await api.activateRental(newDeal.id, gameRun.id, proFormaOutputs.cashFlowMonthly);
         
+        // Show title issue warning if skipped title search
+        if (rentalResult.titleIssue) {
+          toast.error(`📜 Title Issue: ${rentalResult.titleIssue.name} - $${rentalResult.titleIssue.cost.toLocaleString()} to resolve! Should have done the title search.`, { duration: 8000 });
+        }
+        
         // Show surprise costs warning if any hidden issues were discovered
-        if (rentalResult.surpriseCosts > 0) {
-          toast.warning(`⚠️ Surprise repairs: $${rentalResult.surpriseCosts.toLocaleString()} for ${rentalResult.surpriseIssues.join(', ')}. Your investment just got more expensive!`);
+        const repairIssues = rentalResult.surpriseIssues.filter((i: string) => !i.startsWith('Title:'));
+        if (repairIssues.length > 0) {
+          const repairCost = rentalResult.surpriseCosts - (rentalResult.titleIssue?.cost || 0);
+          if (repairCost > 0) {
+            toast.warning(`⚠️ Surprise repairs: $${repairCost.toLocaleString()} for ${repairIssues.join(', ')}. Your investment just got more expensive!`);
+          }
         }
         
         // Show reality check feedback - compare player assumptions to market reality
@@ -627,9 +636,18 @@ export default function Game() {
         const property = properties.find(p => p.id === deal?.propertyId);
         addFlipProceeds(flip.salePrice, flip.profit, property?.name);
         
-        // Show surprise costs warning if any hidden issues were discovered during flip
-        if (flip.surpriseCosts > 0) {
-          toast.warning(`⚠️ Surprise repairs on ${property?.name || 'property'}: $${flip.surpriseCosts.toLocaleString()} for ${flip.surpriseIssues?.join(', ')}. This cut into your profit!`);
+        // Show title issue warning if skipped title search
+        if (flip.titleIssue) {
+          toast.error(`📜 Title Issue on ${property?.name || 'property'}: ${flip.titleIssue.name} - $${flip.titleIssue.cost.toLocaleString()} to resolve! Should have done the title search.`, { duration: 8000 });
+        }
+        
+        // Show surprise costs warning if any hidden repair issues were discovered during flip
+        const repairIssues = (flip.surpriseIssues || []).filter((i: string) => !i.startsWith('Title:'));
+        if (repairIssues.length > 0) {
+          const repairCost = flip.surpriseCosts - (flip.titleIssue?.cost || 0);
+          if (repairCost > 0) {
+            toast.warning(`⚠️ Surprise repairs on ${property?.name || 'property'}: $${repairCost.toLocaleString()} for ${repairIssues.join(', ')}. This cut into your profit!`);
+          }
         }
       });
 

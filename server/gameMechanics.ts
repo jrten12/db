@@ -17,6 +17,57 @@ import { rollForCurveball } from '../client/src/lib/curveballs';
 import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue } from '@shared/propertyIssues';
 
 /**
+ * Title Issue Types that can occur when skipping title search
+ */
+const TITLE_ISSUES = [
+  { name: 'Unknown lien', minCost: 5000, maxCost: 25000 },
+  { name: 'Unpaid property taxes', minCost: 2000, maxCost: 15000 },
+  { name: 'Mechanics lien from previous owner', minCost: 3000, maxCost: 20000 },
+  { name: 'Boundary dispute resolution', minCost: 5000, maxCost: 35000 },
+  { name: 'Easement clearance', minCost: 2000, maxCost: 10000 },
+  { name: 'Estate heir claim settlement', minCost: 10000, maxCost: 50000 },
+  { name: 'Forged deed in chain of title', minCost: 25000, maxCost: 100000 },
+  { name: 'Outstanding HOA liens', minCost: 2000, maxCost: 12000 },
+  { name: 'Judgment lien from previous owner', minCost: 8000, maxCost: 40000 },
+  { name: 'Unpaid contractor liens', minCost: 4000, maxCost: 18000 },
+];
+
+/**
+ * Check for title issues when player skipped title search
+ * 20% chance of a title issue occurring, with costs ranging $2,000-$100,000
+ */
+interface TitleIssueResult {
+  hasIssue: boolean;
+  issueName?: string;
+  cost: number;
+}
+
+function checkForTitleIssue(didTitleSearch: boolean): TitleIssueResult {
+  // If player did title search, no issue occurs
+  if (didTitleSearch) {
+    return { hasIssue: false, cost: 0 };
+  }
+  
+  // 20% chance of title issue when skipping title search
+  const roll = Math.random();
+  if (roll > 0.20) {
+    return { hasIssue: false, cost: 0 };
+  }
+  
+  // Pick a random title issue
+  const issue = TITLE_ISSUES[Math.floor(Math.random() * TITLE_ISSUES.length)];
+  
+  // Generate random cost within the issue's range
+  const cost = Math.round(issue.minCost + Math.random() * (issue.maxCost - issue.minCost));
+  
+  return {
+    hasIssue: true,
+    issueName: issue.name,
+    cost,
+  };
+}
+
+/**
  * Check and award trophies based on game state
  * Returns array of newly awarded trophy IDs
  */
@@ -116,6 +167,10 @@ interface FlipSaleResult {
   profit: number;
   surpriseCosts: number;
   surpriseIssues: string[];
+  titleIssue?: {
+    name: string;
+    cost: number;
+  };
   curveball?: {
     name: string;
     description: string;
@@ -179,7 +234,16 @@ export async function completeFlipDeal(
   // Check for undiscovered property issues (surprise repair costs!)
   const propertyName = property?.name || '';
   const undiscoveredIssues = getUndiscoveredIssues(propertyName, completedDiligence);
-  const surpriseCosts = undiscoveredIssues.length > 0 ? calculateSurpriseCosts(undiscoveredIssues) : 0;
+  let surpriseCosts = undiscoveredIssues.length > 0 ? calculateSurpriseCosts(undiscoveredIssues) : 0;
+  
+  // Check for title issues (20% chance if title search was skipped)
+  const didTitleSearch = completedDiligence.includes('title_search');
+  const titleIssue = checkForTitleIssue(didTitleSearch);
+  let titleIssueName: string | undefined;
+  if (titleIssue.hasIssue) {
+    surpriseCosts += titleIssue.cost;
+    titleIssueName = titleIssue.issueName;
+  }
   
   // Calculate sale price based on due diligence and rehab investment
   let salePrice: number;
@@ -275,14 +339,21 @@ export async function completeFlipDeal(
     dealId: deal.id,
   });
   
-  // Surprise repair costs entry (if any undiscovered issues)
+  // Surprise repair costs entry (if any undiscovered issues or title issues)
   if (surpriseCosts > 0) {
-    const issueNames = undiscoveredIssues.map(i => i.name).join(', ');
+    const repairIssueNames = undiscoveredIssues.map(i => i.name);
+    const allIssueNames = titleIssueName 
+      ? [...repairIssueNames, `Title issue: ${titleIssueName}`]
+      : repairIssueNames;
+    const issueDescription = allIssueNames.join(', ');
+    
     ledgerEntries.push({
       direction: 'debit',
       category: 'expense',
       amount: surpriseCosts,
-      description: `⚠️ Surprise repairs discovered: ${issueNames}`,
+      description: titleIssueName && repairIssueNames.length === 0
+        ? `📜 Title issue discovered: ${titleIssueName}`
+        : `⚠️ Issues discovered: ${issueDescription}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
     });
@@ -323,11 +394,18 @@ export async function completeFlipDeal(
     console.error('Error awarding trophies:', err);
   }
 
+  // Collect all surprise issues for reporting
+  const allSurpriseIssues = undiscoveredIssues.map(i => i.name);
+  if (titleIssueName) {
+    allSurpriseIssues.push(`Title: ${titleIssueName}`);
+  }
+
   return {
     salePrice,
     profit,
     surpriseCosts,
-    surpriseIssues: undiscoveredIssues.map(i => i.name),
+    surpriseIssues: allSurpriseIssues,
+    titleIssue: titleIssue.hasIssue ? { name: titleIssueName!, cost: titleIssue.cost } : undefined,
     curveball: curveball ? {
       name: curveball.name,
       description: curveball.description,
@@ -794,6 +872,10 @@ interface RentalActivationResult {
   deal: Deal;
   surpriseCosts: number;
   surpriseIssues: string[];
+  titleIssue?: {
+    name: string;
+    cost: number;
+  };
   newCash: number;
   realityCheck?: RealityCheckResult;
 }
@@ -844,17 +926,33 @@ export async function activateRentalProperty(
   // Check for undiscovered property issues (surprise repair costs!)
   const propertyName = property?.name || '';
   const undiscoveredIssues = getUndiscoveredIssues(propertyName, completedDiligence);
-  const surpriseCosts = undiscoveredIssues.length > 0 ? calculateSurpriseCosts(undiscoveredIssues) : 0;
+  let surpriseCosts = undiscoveredIssues.length > 0 ? calculateSurpriseCosts(undiscoveredIssues) : 0;
   
-  // Create ledger entry for surprise repair costs if any
+  // Check for title issues (20% chance if title search was skipped)
+  const didTitleSearch = completedDiligence.includes('title_search');
+  const titleIssue = checkForTitleIssue(didTitleSearch);
+  let titleIssueName: string | undefined;
+  if (titleIssue.hasIssue) {
+    surpriseCosts += titleIssue.cost;
+    titleIssueName = titleIssue.issueName;
+  }
+  
+  // Create ledger entry for surprise repair costs or title issues if any
   let newCash = gameRun.cash;
   if (surpriseCosts > 0) {
-    const issueNames = undiscoveredIssues.map(i => i.name).join(', ');
+    const repairIssueNames = undiscoveredIssues.map(i => i.name);
+    const allIssueNames = titleIssueName 
+      ? [...repairIssueNames, `Title issue: ${titleIssueName}`]
+      : repairIssueNames;
+    const issueDescription = allIssueNames.join(', ');
+    
     const ledgerEntry: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'> = {
       direction: 'debit',
       category: 'expense',
       amount: surpriseCosts,
-      description: `⚠️ Surprise repairs discovered: ${issueNames}`,
+      description: titleIssueName && repairIssueNames.length === 0
+        ? `📜 Title issue discovered: ${titleIssueName}`
+        : `⚠️ Issues discovered: ${issueDescription}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
     };
@@ -974,10 +1072,17 @@ export async function activateRentalProperty(
     console.error('Error awarding trophies:', err);
   }
 
+  // Collect all surprise issues for reporting
+  const allSurpriseIssues = undiscoveredIssues.map(i => i.name);
+  if (titleIssueName) {
+    allSurpriseIssues.push(`Title: ${titleIssueName}`);
+  }
+
   return {
     deal: updatedDeal!,
     surpriseCosts,
-    surpriseIssues: undiscoveredIssues.map(i => i.name),
+    surpriseIssues: allSurpriseIssues,
+    titleIssue: titleIssue.hasIssue ? { name: titleIssueName!, cost: titleIssue.cost } : undefined,
     newCash,
     realityCheck,
   };

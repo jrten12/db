@@ -34,7 +34,8 @@ export interface ProFormaOutputs {
   totalCashInvested: number;
 }
 
-// Empty defaults - player must fill in all values
+// Default values with financing pre-set for clean initialization
+// Player still needs to fill in strategy-specific fields
 export const defaultProForma: ProFormaInputs = {
   strategy: 'rent',
   expectedRent: null,
@@ -51,9 +52,9 @@ export const defaultProForma: ProFormaInputs = {
   rehabWeeks: null,
   contingencyPct: null,
   financingType: 'bank',
-  interestRate: null,
-  downPaymentPct: null,
-  loanOriginationPct: null,
+  interestRate: 6.5,
+  downPaymentPct: 25,
+  loanOriginationPct: 1.5,
   sellingCostsPct: null,
   contractorType: 'cheap',
 };

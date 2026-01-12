@@ -382,6 +382,7 @@ export default function Game() {
       financingType: financing,
       interestRate: financing === 'bank' ? 6.5 : 12,
       downPaymentPct: financing === 'bank' ? 25 : 10,
+      loanOriginationPct: financing === 'bank' ? 1.5 : 4,
       contractorType: contractor,
       expectedRent: rentEstimate,
       rehabBudget: rehabEstimate,

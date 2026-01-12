@@ -51,9 +51,11 @@ interface MetricsPanelProps {
   strategy?: 'rent' | 'flip';
   flipROI?: number;
   flipProfit?: number;
+  isCommitting?: boolean;
+  playerCash?: number;
 }
 
-export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 'rent', flipROI = 0, flipProfit = 0 }: MetricsPanelProps) {
+export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 'rent', flipROI = 0, flipProfit = 0, isCommitting = false, playerCash = 0 }: MetricsPanelProps) {
   const cashFlowNegative = outputs && outputs.cashFlowMonthly < 0;
   const cashOnCashNegative = outputs && outputs.cashOnCash < 0;
   
@@ -152,15 +154,55 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
             </div>
           </div>
 
-          {onCommitDeal && (
-            <button 
-              onClick={onCommitDeal}
-              className="game-button w-full flex items-center justify-center gap-2"
-              data-testid="button-commit-deal"
-            >
-              <DollarSign className="w-5 h-5" />
-              Commit to Deal
-            </button>
+          {onCommitDeal && outputs && (
+            <>
+              {/* Cash Requirement Display */}
+              <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700 mb-3">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="text-muted-foreground">Cash Required:</span>
+                  <span className="font-mono font-bold text-warning">
+                    {formatCurrency(outputs.totalCashInvested)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Your Cash:</span>
+                  <span className={`font-mono font-bold ${playerCash >= outputs.totalCashInvested ? 'text-success' : 'text-danger'}`}>
+                    {formatCurrency(playerCash)}
+                  </span>
+                </div>
+                {playerCash < outputs.totalCashInvested && (
+                  <div className="mt-2 p-2 bg-danger/20 border border-danger/30 rounded text-xs text-danger flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                    <span>Insufficient funds! Need ${(outputs.totalCashInvested - playerCash).toLocaleString()} more.</span>
+                  </div>
+                )}
+              </div>
+              
+              <button 
+                onClick={onCommitDeal}
+                disabled={isCommitting || playerCash < outputs.totalCashInvested}
+                className={`w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-semibold text-lg transition-all ${
+                  isCommitting 
+                    ? 'bg-slate-700 text-slate-400 cursor-wait' 
+                    : playerCash < outputs.totalCashInvested
+                    ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                    : 'game-button'
+                }`}
+                data-testid="button-commit-deal"
+              >
+                {isCommitting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <DollarSign className="w-5 h-5" />
+                    Commit to Deal
+                  </>
+                )}
+              </button>
+            </>
           )}
         </>
       )}

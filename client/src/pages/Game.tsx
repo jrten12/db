@@ -8,6 +8,7 @@ import { PropertyDetail } from '@/components/game/PropertyDetail';
 import { ResultsPanel } from '@/components/game/ResultsPanel';
 import { LedgerPanel } from '@/components/game/LedgerPanel';
 import { MoneyAnimation } from '@/components/game/MoneyAnimation';
+import { DealTransactionAnimation } from '@/components/game/DealTransactionAnimation';
 import { TimeProgressionPanel } from '@/components/game/TimeProgressionPanel';
 import { IncomeNotification, useIncomeNotifications } from '@/components/game/IncomeNotification';
 import { PremiumModal } from '@/components/game/PremiumModal';
@@ -498,11 +499,36 @@ export default function Game() {
     }
   }, [proFormaInputs, selectedProperty]);
 
+  const [isCommittingDeal, setIsCommittingDeal] = useState(false);
+  const [dealOutcome, setDealOutcome] = useState<{
+    property: Property;
+    totalCashRequired: number;
+    downPayment: number;
+    closingCosts: number;
+    loanOriginationFee: number;
+    loanAmount: number;
+    strategy: 'rent' | 'flip';
+  } | null>(null);
+
   const handleCommitDeal = useCallback(async () => {
-    if (!gameRun || !selectedProperty || !proFormaOutputs) return;
+    if (!gameRun || !selectedProperty || !proFormaOutputs) {
+      toast.error('Missing required data. Please try again.');
+      return;
+    }
 
     const closingCosts = Math.round(selectedProperty.price * 0.03);
     const loanOriginationFee = Math.round((selectedProperty.price - proFormaOutputs.downPaymentAmount) * 0.01);
+    
+    // Calculate total cash required for the deal
+    const totalCashRequired = proFormaOutputs.downPaymentAmount + closingCosts + loanOriginationFee;
+    
+    // CASH VALIDATION - Block if player doesn't have enough
+    if (totalCashRequired > gameRun.cash) {
+      toast.error(`Insufficient funds! You need $${totalCashRequired.toLocaleString()} but only have $${gameRun.cash.toLocaleString()}.`, { duration: 5000 });
+      return;
+    }
+    
+    setIsCommittingDeal(true);
     
     // Check contractor type for penalties
     const contractorType = proFormaInputs.contractorType ?? 'cheap';
@@ -612,20 +638,41 @@ export default function Game() {
         toast.success('Rental activated! You will receive weekly income.');
       }
 
+      // Store deal outcome for animation
+      setDealOutcome({
+        property: selectedProperty,
+        totalCashRequired,
+        downPayment: proFormaOutputs.downPaymentAmount,
+        closingCosts,
+        loanOriginationFee,
+        loanAmount: selectedProperty.price - proFormaOutputs.downPaymentAmount,
+        strategy: proFormaInputs.strategy,
+      });
+
+      // Trigger money animation
+      setMoneyAnimationTrigger(totalCashRequired);
+
       queryClient.invalidateQueries({ queryKey: ['deals'] });
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
-      setCurrentScreen('results');
+      
+      // Small delay for animation before transitioning
+      setTimeout(() => {
+        setCurrentScreen('results');
+        setIsCommittingDeal(false);
+      }, 1500);
     } catch (error: any) {
+      setIsCommittingDeal(false);
       // Check for insufficient funds error
       if (error?.message?.includes('Insufficient funds')) {
         toast.error(error.message);
       } else if (error?.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
-        toast.error('Failed to save deal');
+        console.error('Deal commit error:', error);
+        toast.error('Failed to save deal. Please try again.');
       }
     }
-  }, [gameRun, selectedProperty, proFormaOutputs, proFormaInputs, createDealMutation, createLedgerMutation, queryClient]);
+  }, [gameRun, selectedProperty, proFormaOutputs, proFormaInputs, createDealMutation, createLedgerMutation, queryClient, updateGameMutation]);
 
   const handleAdvanceWeek = useCallback(async () => {
     if (!gameRun) return;
@@ -884,6 +931,8 @@ export default function Game() {
                     onCommitDeal={handleCommitDeal}
                     strategy={proFormaInputs.strategy}
                     flipROI={flipMetrics.roi}
+                    isCommitting={isCommittingDeal}
+                    playerCash={gameRun?.cash ?? 0}
                     flipProfit={flipMetrics.profit}
                   />
                   
@@ -931,6 +980,22 @@ export default function Game() {
         <MoneyAnimation 
           trigger={moneyAnimationTrigger} 
           onComplete={() => setMoneyAnimationTrigger(0)}
+        />
+
+        {/* Deal Transaction Animation */}
+        <DealTransactionAnimation
+          isVisible={isCommittingDeal && dealOutcome !== null}
+          propertyName={dealOutcome?.property.name || ''}
+          purchasePrice={dealOutcome?.property.price || 0}
+          downPayment={dealOutcome?.downPayment || 0}
+          closingCosts={dealOutcome?.closingCosts || 0}
+          loanOriginationFee={dealOutcome?.loanOriginationFee || 0}
+          loanAmount={dealOutcome?.loanAmount || 0}
+          strategy={dealOutcome?.strategy || 'rent'}
+          onComplete={() => {
+            setIsCommittingDeal(false);
+            setDealOutcome(null);
+          }}
         />
 
         {/* Ledger Panel Modal */}

@@ -96,6 +96,17 @@ export async function registerRoutes(
   app.post("/api/deals", dealLimiter, async (req, res) => {
     try {
       const validated = insertDealSchema.parse(req.body);
+      
+      // Check if property is already sold in this game run
+      const existingDeals = await storage.getDealsByGameRun(validated.gameRunId);
+      const activeDeal = existingDeals.find(
+        d => d.propertyId === validated.propertyId && d.status !== 'planned'
+      );
+      if (activeDeal) {
+        res.status(400).json({ error: "This property has already been purchased in this game" });
+        return;
+      }
+      
       const deal = await storage.createDeal(validated);
       res.json(deal);
     } catch (error) {

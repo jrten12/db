@@ -893,6 +893,7 @@ export default function Game() {
               locationFilter={locationFilter}
               onLocationFilterChange={setLocationFilter}
               propertiesWithInvestigations={new Set(investigations.map(inv => inv.propertyId))}
+              soldPropertyIds={new Set(deals.filter(d => d.status !== 'planned').map(d => d.propertyId))}
             />
           )}
 

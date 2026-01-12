@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench } from 'lucide-react';
+import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, CheckCircle2 } from 'lucide-react';
 import type { Property } from '@shared/schema';
 
 export type LocationFilter = 'all' | 'urban' | 'suburban';
@@ -12,6 +12,7 @@ interface PropertySelectorProps {
   locationFilter: LocationFilter;
   onLocationFilterChange: (filter: LocationFilter) => void;
   propertiesWithInvestigations?: Set<number>;
+  soldPropertyIds?: Set<number>;
 }
 
 const getConditionBadge = (conditionTag: string) => {
@@ -29,7 +30,7 @@ const getConditionBadge = (conditionTag: string) => {
   }
 };
 
-export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set() }: PropertySelectorProps) {
+export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), soldPropertyIds = new Set() }: PropertySelectorProps) {
   const urbanCount = properties.filter(p => p.locationType === 'urban').length;
   const suburbanCount = properties.filter(p => p.locationType === 'suburban').length;
   
@@ -111,15 +112,19 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
           const conditionBadge = getConditionBadge(property.conditionTag);
           const isSelected = selectedId === property.id;
           const hasInvestigations = propertiesWithInvestigations.has(property.id);
+          const isSold = soldPropertyIds.has(property.id);
           
           return (
             <button
               key={property.id}
-              onClick={() => onSelect(property.id)}
+              onClick={() => !isSold && onSelect(property.id)}
+              disabled={isSold}
               className={`group relative rounded-2xl overflow-hidden transition-all duration-300 text-left ${
-                isSelected
-                  ? 'ring-2 ring-gold scale-[1.02] shadow-xl shadow-gold/20'
-                  : 'hover:scale-[1.02] hover:shadow-xl hover:shadow-black/40'
+                isSold
+                  ? 'opacity-60 cursor-not-allowed grayscale'
+                  : isSelected
+                    ? 'ring-2 ring-gold scale-[1.02] shadow-xl shadow-gold/20'
+                    : 'hover:scale-[1.02] hover:shadow-xl hover:shadow-black/40'
               }`}
               data-testid={`property-card-${property.id}`}
             >
@@ -154,8 +159,18 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                   </div>
                 </div>
 
+                {/* SOLD Badge */}
+                {isSold && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-600 rounded-lg border-2 border-emerald-400 shadow-lg transform -rotate-12">
+                      <CheckCircle2 className="w-5 h-5 text-white" />
+                      <span className="text-lg font-bold text-white uppercase tracking-wider">SOLD</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Work in Progress Badge */}
-                {hasInvestigations && (
+                {hasInvestigations && !isSold && (
                   <div className="absolute bottom-3 left-3">
                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/90 backdrop-blur-md rounded-lg border border-amber-400/50 animate-pulse">
                       <Wrench className="w-4 h-4 text-white" />
@@ -165,12 +180,14 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                 )}
 
                 {/* Question mark overlay - invites investigation */}
-                <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 cursor-help" title="Click to investigate this property and reveal hidden financial information">
-                    <HelpCircle className="w-4 h-4 text-amber-400" />
-                    <span className="text-xs text-white">Investigate</span>
+                {!isSold && (
+                  <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 cursor-help" title="Click to investigate this property and reveal hidden financial information">
+                      <HelpCircle className="w-4 h-4 text-amber-400" />
+                      <span className="text-xs text-white">Investigate</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Property Info */}

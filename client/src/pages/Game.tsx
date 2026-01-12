@@ -722,6 +722,32 @@ export default function Game() {
     }
   }, [gameRun, queryClient, addRentalPayment, addFlipProceeds, properties, deals]);
 
+  const handleSellRental = useCallback(async (dealId: number) => {
+    if (!gameRun) return;
+    
+    try {
+      const result = await api.sellRental(dealId, gameRun.id);
+      
+      // Update game state with new cash and weeks
+      setGameRun(result.gameRun);
+      
+      // Find property name for toast
+      const deal = deals.find(d => d.id === dealId);
+      const property = properties.find(p => p.id === deal?.propertyId);
+      
+      const profitSign = result.saleProfit >= 0 ? '+' : '';
+      toast.success(
+        `Sold ${property?.name || 'property'} for $${result.salePrice.toLocaleString()} (${profitSign}$${result.saleProfit.toLocaleString()})`,
+        { duration: 5000 }
+      );
+      
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to sell property');
+    }
+  }, [gameRun, deals, properties, queryClient]);
+
   const handleContinueFromResults = useCallback(() => {
     setCurrentScreen('market');
     setIsProFormaComplete(false);
@@ -887,15 +913,28 @@ export default function Game() {
 
         <main className="max-w-7xl mx-auto px-4 py-6 md:py-8">
           {currentScreen === 'market' && (
-            <PropertySelector
-              properties={properties}
-              selectedId={selectedPropertyId}
-              onSelect={handlePropertyClick}
-              locationFilter={locationFilter}
-              onLocationFilterChange={setLocationFilter}
-              propertiesWithInvestigations={new Set(investigations.map(inv => inv.propertyId))}
-              soldPropertyIds={new Set(deals.filter(d => d.status !== 'planned').map(d => d.propertyId))}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-3">
+                <PropertySelector
+                  properties={properties}
+                  selectedId={selectedPropertyId}
+                  onSelect={handlePropertyClick}
+                  locationFilter={locationFilter}
+                  onLocationFilterChange={setLocationFilter}
+                  propertiesWithInvestigations={new Set(investigations.map(inv => inv.propertyId))}
+                  soldPropertyIds={new Set(deals.filter(d => d.status !== 'planned').map(d => d.propertyId))}
+                />
+              </div>
+              <div className="lg:col-span-1">
+                <TimeProgressionPanel
+                  gameRun={gameRun}
+                  deals={deals}
+                  properties={properties}
+                  onAdvanceWeek={handleAdvanceWeek}
+                  onSellRental={handleSellRental}
+                />
+              </div>
+            </div>
           )}
 
           {currentScreen === 'proforma' && selectedProperty && (

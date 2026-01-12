@@ -74,11 +74,14 @@ export const deals = pgTable("deals", {
   proFormaInputs: jsonb("pro_forma_inputs").notNull(),
   proFormaOutputs: jsonb("pro_forma_outputs").notNull(),
   actualProfit: integer("actual_profit"),
-  status: text("status").notNull().default("planned"), // 'planned' | 'in_rehab' | 'leasing' | 'active_rental' | 'listing' | 'completed'
+  status: text("status").notNull().default("planned"), // 'planned' | 'in_rehab' | 'leasing' | 'active_rental' | 'listing' | 'completed' | 'sold_rental'
   weeksSpent: integer("weeks_spent"),
   weeksUntilCompletion: integer("weeks_until_completion"), // For flips in rehab
   weeklyIncome: integer("weekly_income"), // For active rentals (cash flow per week)
   lastIncomePaymentWeek: integer("last_income_payment_week"), // Track when last rent was paid
+  purchasePrice: integer("purchase_price"), // Original purchase price (for calculating sale proceeds)
+  salePrice: integer("sale_price"), // Final sale price when rental is sold
+  saleMultiplier: real("sale_multiplier"), // The random multiplier used (0.90 to 1.15)
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
 });

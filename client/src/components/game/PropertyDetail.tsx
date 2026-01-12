@@ -736,36 +736,6 @@ export function PropertyDetail({
                   </div>
                 </div>
 
-                {/* Financing */}
-                <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
-                  <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">Financing Options</h3>
-                  <div className="space-y-2">
-                    <button onClick={() => setFinancing('hard-money')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${financing === 'hard-money' ? 'bg-amber-500/20 border-2 border-amber-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
-                      data-testid="button-financing-hard-money">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${financing === 'hard-money' ? 'bg-amber-500' : 'bg-slate-600'}`}>
-                        {financing === 'hard-money' && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Hard Money Loan</div>
-                        <div className="text-xs text-gray-400">10% Down, 12% Interest</div>
-                      </div>
-                      <Zap className={`w-5 h-5 ${financing === 'hard-money' ? 'text-amber-400' : 'text-gray-500'}`} />
-                    </button>
-                    <button onClick={() => setFinancing('bank')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${financing === 'bank' ? 'bg-emerald-500/20 border-2 border-emerald-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
-                      data-testid="button-financing-bank">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${financing === 'bank' ? 'bg-emerald-500' : 'bg-slate-600'}`}>
-                        {financing === 'bank' && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Bank Loan</div>
-                        <div className="text-xs text-gray-400">25% Down, 5% Interest</div>
-                      </div>
-                      <Shield className={`w-5 h-5 ${financing === 'bank' ? 'text-emerald-400' : 'text-gray-500'}`} />
-                    </button>
-                  </div>
-                </div>
               </div>
 
               {/* Timeline Risk Explanation */}

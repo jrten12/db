@@ -50,9 +50,11 @@ export interface IStorage {
 
   // Deal methods
   createDeal(deal: InsertDeal): Promise<Deal>;
+  getDeal(id: number): Promise<Deal | undefined>;
   getDealsByGameRun(gameRunId: number): Promise<Deal[]>;
   getDealsByPlayerName(playerName: string): Promise<Deal[]>;
   updateDeal(id: number, updates: Partial<InsertDeal>): Promise<Deal | undefined>;
+  sellRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number }>;
 
   // Property Investigation methods
   createPropertyInvestigation(investigation: InsertPropertyInvestigation): Promise<PropertyInvestigation>;
@@ -550,6 +552,15 @@ export class DBStorage implements IStorage {
     return newDeal;
   }
 
+  async getDeal(id: number): Promise<Deal | undefined> {
+    const [deal] = await db
+      .select()
+      .from(schema.deals)
+      .where(eq(schema.deals.id, id))
+      .limit(1);
+    return deal;
+  }
+
   async getDealsByGameRun(gameRunId: number): Promise<Deal[]> {
     return await db
       .select()
@@ -584,6 +595,99 @@ export class DBStorage implements IStorage {
       .where(eq(schema.deals.id, id))
       .returning();
     return deal;
+  }
+
+  async sellRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number }> {
+    const [deal] = await db
+      .select()
+      .from(schema.deals)
+      .where(and(eq(schema.deals.id, dealId), eq(schema.deals.gameRunId, gameRunId)))
+      .limit(1);
+    
+    if (!deal) {
+      throw new Error('Deal not found');
+    }
+    
+    if (deal.status !== 'active_rental') {
+      throw new Error('Can only sell active rental properties');
+    }
+    
+    const [gameRun] = await db
+      .select()
+      .from(schema.gameRuns)
+      .where(eq(schema.gameRuns.id, gameRunId))
+      .limit(1);
+    
+    if (!gameRun) {
+      throw new Error('Game run not found');
+    }
+    
+    if (gameRun.weeksRemaining < 2) {
+      throw new Error('Not enough weeks remaining to sell (need 2 weeks)');
+    }
+    
+    let purchasePrice = deal.purchasePrice ?? 0;
+    if (purchasePrice <= 0) {
+      const [property] = await db
+        .select()
+        .from(schema.properties)
+        .where(eq(schema.properties.id, deal.propertyId))
+        .limit(1);
+      if (!property) throw new Error('Property not found');
+      purchasePrice = property.price;
+    }
+    
+    const saleMultiplier = 0.90 + Math.random() * 0.25;
+    const salePrice = Math.round(purchasePrice * saleMultiplier);
+    const saleProfit = salePrice - purchasePrice;
+    
+    const [updatedDeal] = await db
+      .update(schema.deals)
+      .set({
+        status: 'sold_rental',
+        salePrice,
+        saleMultiplier,
+        purchasePrice,
+        weeklyIncome: 0,
+        completedAt: new Date(),
+      })
+      .where(eq(schema.deals.id, dealId))
+      .returning();
+    
+    const newWeeksRemaining = gameRun.weeksRemaining - 2;
+    const newCash = gameRun.cash + salePrice;
+    const isProfitable = saleProfit > 0;
+    const newProfitableDeals = isProfitable ? gameRun.profitableDeals + 1 : gameRun.profitableDeals;
+    
+    const [updatedGameRun] = await db
+      .update(schema.gameRuns)
+      .set({
+        weeksRemaining: newWeeksRemaining,
+        cash: newCash,
+        profitableDeals: newProfitableDeals,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.gameRuns.id, gameRunId))
+      .returning();
+    
+    await db.insert(schema.ledgerEntries).values({
+      gameRunId,
+      direction: 'credit',
+      category: 'sale_proceeds',
+      amount: salePrice,
+      balanceAfter: newCash,
+      description: `Sold rental property - ${saleMultiplier >= 1 ? '+' : ''}${Math.round((saleMultiplier - 1) * 100)}% of purchase price`,
+      propertyId: deal.propertyId,
+      dealId: dealId,
+    });
+    
+    return {
+      deal: updatedDeal,
+      gameRun: updatedGameRun,
+      saleProfit,
+      salePrice,
+      purchasePrice,
+    };
   }
 
   // Property Investigation methods

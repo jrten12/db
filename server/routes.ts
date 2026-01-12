@@ -609,5 +609,42 @@ export async function registerRoutes(
     }
   });
 
+  // Sell an active rental property
+  app.post("/api/deals/:id/sell", dealLimiter, async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { gameRunId } = req.body as { gameRunId: number };
+
+      const deal = await storage.getDeal(dealId);
+      if (!deal) {
+        res.status(404).json({ error: "Deal not found" });
+        return;
+      }
+      if (deal.status !== 'active_rental') {
+        res.status(400).json({ error: "Can only sell active rental properties" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      // Selling costs 2 weeks
+      const WEEKS_TO_SELL = 2;
+      if (gameRun.weeksRemaining < WEEKS_TO_SELL) {
+        res.status(400).json({ error: "Not enough time to sell (requires 2 weeks)" });
+        return;
+      }
+
+      const result = await storage.sellRentalProperty(dealId, gameRunId);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error selling rental:", error);
+      res.status(500).json({ error: error.message || "Failed to sell property" });
+    }
+  });
+
   return httpServer;
 }

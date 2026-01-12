@@ -1059,6 +1059,7 @@ export async function activateRentalProperty(
     weeklyIncome,
     lastIncomePaymentWeek: gameRun.currentWeek,
     proFormaOutputs: updatedProFormaOutputs,
+    purchasePrice: property?.price || 0,
   });
 
   // Award trophies for rental activation

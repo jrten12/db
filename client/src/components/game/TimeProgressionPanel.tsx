@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Clock, TrendingUp, Home, Play, Loader2 } from 'lucide-react';
+import { Clock, TrendingUp, Home, Play, Loader2, DollarSign } from 'lucide-react';
 import type { Deal, GameRun, Property } from '@shared/schema';
 
 interface TimeProgressionPanelProps {
@@ -18,6 +18,7 @@ interface TimeProgressionPanelProps {
   deals: Deal[];
   properties: Property[];
   onAdvanceWeek: () => Promise<void>;
+  onSellRental?: (dealId: number) => Promise<void>;
 }
 
 export function TimeProgressionPanel({
@@ -25,8 +26,20 @@ export function TimeProgressionPanel({
   deals,
   properties,
   onAdvanceWeek,
+  onSellRental,
 }: TimeProgressionPanelProps) {
   const [isAdvancing, setIsAdvancing] = useState(false);
+  const [sellingDealId, setSellingDealId] = useState<number | null>(null);
+
+  const handleSellRental = async (dealId: number) => {
+    if (!onSellRental) return;
+    setSellingDealId(dealId);
+    try {
+      await onSellRental(dealId);
+    } finally {
+      setSellingDealId(null);
+    }
+  };
 
   // Filter active deals
   const activeRentals = deals.filter(d => d.status === 'active_rental');
@@ -112,27 +125,60 @@ export function TimeProgressionPanel({
               Active Rentals ({activeRentals.length})
             </h4>
             <div className="space-y-2">
-              {activeRentals.map((deal) => (
-                <div
-                  key={deal.id}
-                  className="bg-white border rounded-lg p-3 flex items-center justify-between"
-                >
-                  <div>
-                    <p className="font-medium text-sm">{getPropertyName(deal.propertyId)}</p>
-                    <p className="text-xs text-gray-600">
-                      Last payment: Week {deal.lastIncomePaymentWeek || 0}
-                    </p>
+              {activeRentals.map((deal) => {
+                const purchasePrice = deal.purchasePrice || 0;
+                const estimatedSaleMin = Math.round(purchasePrice * 0.90);
+                const estimatedSaleMax = Math.round(purchasePrice * 1.15);
+                const canSell = gameRun.weeksRemaining >= 2 && onSellRental;
+                
+                return (
+                  <div
+                    key={deal.id}
+                    className="bg-white border rounded-lg p-3"
+                    data-testid={`rental-deal-${deal.id}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">{getPropertyName(deal.propertyId)}</p>
+                        <p className="text-xs text-gray-600">
+                          Last payment: Week {deal.lastIncomePaymentWeek || 0}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-green-600">
+                          +${(deal.weeklyIncome || 0).toLocaleString()}/wk
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          ~${Math.floor((deal.weeklyIncome || 0) * 4.33).toLocaleString()}/mo
+                        </p>
+                      </div>
+                    </div>
+                    {purchasePrice > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                        <div className="text-xs text-gray-500">
+                          <p>Sale estimate: ${estimatedSaleMin.toLocaleString()} - ${estimatedSaleMax.toLocaleString()}</p>
+                          <p className="text-amber-600">Selling costs 2 weeks</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-orange-300 text-orange-600 hover:bg-orange-50"
+                          disabled={!canSell || sellingDealId === deal.id}
+                          onClick={() => handleSellRental(deal.id)}
+                          data-testid={`button-sell-rental-${deal.id}`}
+                        >
+                          {sellingDealId === deal.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                          ) : (
+                            <DollarSign className="w-3 h-3 mr-1" />
+                          )}
+                          Sell Property
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-green-600">
-                      +${(deal.weeklyIncome || 0).toLocaleString()}/wk
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      ~${Math.floor((deal.weeklyIncome || 0) * 4.33).toLocaleString()}/mo
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

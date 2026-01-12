@@ -132,25 +132,6 @@ export const getPropertyImage = (propertyName: string): string => {
   return propertyImages[propertyName] || oakwoodFront;
 };
 
-// Property condition categories for appropriate interior images
-const FIXER_UPPER_EXTREME = [
-  'Elmwood Bungalow',      // Fixer-Upper - major work needed
-  'Kensington Row',        // Fixer-Upper - extensive rehab
-  'Old City Brownstone',   // Fixer-Upper - historic restoration
-];
-
-const FIXER_UPPER_DATED = [
-  'Maplewood Colonial',    // Fixer-Upper - but a nice colonial, just dated
-  'Hillside Retreat',      // Fair - needs updates
-  'Riverside Ranch',       // Fair - cosmetic work
-  'South Street Twin',     // Fair - needs updating
-  'Port Richmond Duplex',  // Fair - dated interiors
-  'Queen Village Townhouse', // Fair - needs cosmetic updates
-  'Fairmount Duplex',      // Fair - dated but functional
-  'Oakwood Cottage',       // Good - minor updates
-  'Westside Manor',        // Good - light updates
-];
-
 const propertySpecificInteriors: Record<string, Array<{ type: string; label: string; url: string }>> = {
   'Elmwood Bungalow': [
     { type: 'kitchen', label: 'Kitchen', url: elmwoodKitchenPipes },

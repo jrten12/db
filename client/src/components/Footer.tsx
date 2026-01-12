@@ -9,7 +9,7 @@ export default function Footer() {
           <img
             src={signatureImage}
             alt="A Game By Infarill & LVI Properties, LLC"
-            className="h-32 sm:h-40 w-auto"
+            className="w-full max-w-md sm:max-w-lg md:max-w-xl h-auto"
           />
           
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm">

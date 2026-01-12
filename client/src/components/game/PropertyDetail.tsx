@@ -107,7 +107,7 @@ function FinancialTermInfo({ type, isKnown }: { type: keyof typeof FINANCIAL_TER
           <HelpCircle className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300" />
         </button>
       </PopoverTrigger>
-      <PopoverContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-4 z-[100]">
+      <PopoverContent side="top" align="center" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-4 z-[100]">
         <div className="space-y-2">
           <p className="font-semibold text-white">{tooltip.title}</p>
           <p className="text-gray-300 text-xs">{tooltip.definition}</p>
@@ -188,7 +188,7 @@ function DiligenceEducationTooltip({ diligenceId }: { diligenceId: string }) {
           <HelpCircle className="w-3.5 h-3.5 text-blue-400 hover:text-blue-300" />
         </button>
       </PopoverTrigger>
-      <PopoverContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4 z-[100]">
+      <PopoverContent side="bottom" align="center" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4 z-[100]">
         <div className="space-y-2">
           <p className="font-semibold text-blue-400">📚 How Real Investors Get This Data</p>
           <div>
@@ -218,7 +218,7 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
       <PopoverTrigger asChild>
         <div role="button" tabIndex={0} className="cursor-help touch-manipulation active:opacity-70">{children}</div>
       </PopoverTrigger>
-      <PopoverContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4 z-[100]">
+      <PopoverContent side="top" align="center" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4 z-[100]">
         <div className="space-y-2">
           <p className="font-semibold text-amber-400">{tooltip.title}</p>
           <p className="text-gray-300">{tooltip.explanation}</p>
@@ -541,7 +541,7 @@ export function PropertyDetail({
                         <HelpCircle className="w-4 h-4 text-amber-400 hover:text-amber-300 transition-colors" />
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent side="right" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4">
+                    <PopoverContent side="bottom" align="start" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4 z-[100]">
                       <div className="space-y-2">
                         <p className="font-semibold text-amber-400">Why These Are Estimates</p>
                         <p className="text-gray-300">These financial numbers are uncertain until you do your homework. In real estate, guessing wrong on rent, repair costs, or timeline can turn a "great deal" into a money pit.</p>

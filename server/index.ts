@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { globalLimiter, checkBlockedIP } from "./rateLimiter";
 
 const app = express();
 const httpServer = createServer(app);
@@ -11,6 +12,12 @@ declare module "http" {
     rawBody: unknown;
   }
 }
+
+app.set('trust proxy', 1);
+
+app.use(checkBlockedIP);
+
+app.use('/api', globalLimiter);
 
 app.use(
   express.json({

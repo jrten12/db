@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema, trophyTypes } from "@shared/schema";
 import { z } from "zod";
 import * as gameMechanics from "./gameMechanics";
+import { dealLimiter, ledgerLimiter, gameActionLimiter, authLimiter } from "./rateLimiter";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -91,8 +92,8 @@ export async function registerRoutes(
     }
   });
 
-  // Create deal
-  app.post("/api/deals", async (req, res) => {
+  // Create deal (rate limited - sensitive financial operation)
+  app.post("/api/deals", dealLimiter, async (req, res) => {
     try {
       const validated = insertDealSchema.parse(req.body);
       const deal = await storage.createDeal(validated);
@@ -159,8 +160,8 @@ export async function registerRoutes(
     }
   });
 
-  // Create ledger entries with cash update
-  app.post("/api/game-runs/:id/ledger", async (req, res) => {
+  // Create ledger entries with cash update (rate limited - financial operation)
+  app.post("/api/game-runs/:id/ledger", ledgerLimiter, async (req, res) => {
     try {
       const gameRunId = parseInt(req.params.id);
       const { entries, currentCash } = req.body as {
@@ -250,8 +251,8 @@ export async function registerRoutes(
     }
   });
 
-  // Advance game by one week (process income, complete deals, trigger events)
-  app.post("/api/game-runs/:id/advance-week", async (req, res) => {
+  // Advance game by one week (rate limited - game action)
+  app.post("/api/game-runs/:id/advance-week", gameActionLimiter, async (req, res) => {
     try {
       const gameRunId = parseInt(req.params.id);
       const result = await gameMechanics.advanceGameWeek(gameRunId);
@@ -262,8 +263,8 @@ export async function registerRoutes(
     }
   });
 
-  // Activate a rental property (after leasing)
-  app.post("/api/deals/:id/activate-rental", async (req, res) => {
+  // Activate a rental property (rate limited - deal action)
+  app.post("/api/deals/:id/activate-rental", dealLimiter, async (req, res) => {
     try {
       const dealId = parseInt(req.params.id);
       const { gameRunId, monthlyCashFlow } = req.body as {
@@ -296,8 +297,8 @@ export async function registerRoutes(
     }
   });
 
-  // Start flip rehab period
-  app.post("/api/deals/:id/start-rehab", async (req, res) => {
+  // Start flip rehab period (rate limited - deal action)
+  app.post("/api/deals/:id/start-rehab", dealLimiter, async (req, res) => {
     try {
       const dealId = parseInt(req.params.id);
       const { gameRunId, rehabWeeks } = req.body as {
@@ -320,8 +321,8 @@ export async function registerRoutes(
     }
   });
 
-  // Complete a flip deal manually (for testing or immediate completion)
-  app.post("/api/deals/:id/complete-flip", async (req, res) => {
+  // Complete a flip deal (rate limited - deal action)
+  app.post("/api/deals/:id/complete-flip", dealLimiter, async (req, res) => {
     try {
       const dealId = parseInt(req.params.id);
       const { gameRunId, curveball } = req.body as {

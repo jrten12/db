@@ -7,6 +7,65 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { Property } from '@shared/schema';
 
+const FINANCIAL_COLORS = {
+  rent: {
+    text: 'text-amber-400',
+    bg: 'bg-amber-500/10',
+    bgHover: 'hover:bg-amber-500/20',
+    border: 'border-amber-500/30',
+    borderHover: 'hover:border-amber-500/50',
+    glow: 'shadow-amber-500/20',
+  },
+  arv: {
+    text: 'text-violet-400',
+    bg: 'bg-violet-500/10',
+    bgHover: 'hover:bg-violet-500/20',
+    border: 'border-violet-500/30',
+    borderHover: 'hover:border-violet-500/50',
+    glow: 'shadow-violet-500/20',
+  },
+  rehab: {
+    text: 'text-emerald-400',
+    bg: 'bg-emerald-500/10',
+    bgHover: 'hover:bg-emerald-500/20',
+    border: 'border-emerald-500/30',
+    borderHover: 'hover:border-emerald-500/50',
+    glow: 'shadow-emerald-500/20',
+  },
+  timeline: {
+    text: 'text-cyan-400',
+    bg: 'bg-cyan-500/10',
+    bgHover: 'hover:bg-cyan-500/20',
+    border: 'border-cyan-500/30',
+    borderHover: 'hover:border-cyan-500/50',
+    glow: 'shadow-cyan-500/20',
+  },
+  issues: {
+    text: 'text-orange-400',
+    bg: 'bg-orange-500/10',
+    bgHover: 'hover:bg-orange-500/20',
+    border: 'border-orange-500/30',
+    borderHover: 'hover:border-orange-500/50',
+    glow: 'shadow-orange-500/20',
+  },
+  title: {
+    text: 'text-rose-400',
+    bg: 'bg-rose-500/10',
+    bgHover: 'hover:bg-rose-500/20',
+    border: 'border-rose-500/30',
+    borderHover: 'hover:border-rose-500/50',
+    glow: 'shadow-rose-500/20',
+  },
+};
+
+const DILIGENCE_COLOR_MAP: Record<string, { primary: keyof typeof FINANCIAL_COLORS; secondary?: keyof typeof FINANCIAL_COLORS }> = {
+  market_study: { primary: 'rent' },
+  appraisal: { primary: 'arv' },
+  contractor_walkthrough: { primary: 'rehab', secondary: 'timeline' },
+  inspection: { primary: 'issues' },
+  title_search: { primary: 'title' },
+};
+
 const FINANCIAL_TERM_TOOLTIPS: Record<string, { title: string; definition: string; whyItMatters: string; unknownAction?: string }> = {
   rent: {
     title: "Monthly Rent",
@@ -494,8 +553,8 @@ export function PropertyDetail({
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
                   <UnknownValueBadge type="rent" isKnown={effectiveRanges.rent.known}>
-                    <div className={`rounded-lg p-3 border ${effectiveRanges.rent.known ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
-                      <div className={`text-base font-bold font-mono ${effectiveRanges.rent.known ? 'text-emerald-400' : 'text-gray-400'}`}>
+                    <div className={`rounded-lg p-3 border ${effectiveRanges.rent.known ? `${FINANCIAL_COLORS.rent.bg} ${FINANCIAL_COLORS.rent.border}` : 'bg-gray-500/10 border-gray-500/30'}`}>
+                      <div className={`text-base font-bold font-mono ${effectiveRanges.rent.known ? FINANCIAL_COLORS.rent.text : 'text-gray-400'}`}>
                         {effectiveRanges.rent.known ? formatUnknownCurrency(effectiveRanges.rent) : '???'}<span className="text-xs font-normal">/mo</span>
                       </div>
                       <div className="text-gray-400 text-xs flex items-center gap-1">
@@ -505,8 +564,8 @@ export function PropertyDetail({
                     </div>
                   </UnknownValueBadge>
                   <UnknownValueBadge type="arv" isKnown={effectiveRanges.arv.known}>
-                    <div className={`rounded-lg p-3 border ${effectiveRanges.arv.known ? 'bg-blue-500/10 border-blue-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
-                      <div className={`text-base font-bold font-mono ${effectiveRanges.arv.known ? 'text-blue-400' : 'text-gray-400'}`}>
+                    <div className={`rounded-lg p-3 border ${effectiveRanges.arv.known ? `${FINANCIAL_COLORS.arv.bg} ${FINANCIAL_COLORS.arv.border}` : 'bg-gray-500/10 border-gray-500/30'}`}>
+                      <div className={`text-base font-bold font-mono ${effectiveRanges.arv.known ? FINANCIAL_COLORS.arv.text : 'text-gray-400'}`}>
                         {effectiveRanges.arv.known ? formatUnknownCurrency(effectiveRanges.arv) : '???'}
                       </div>
                       <div className="text-gray-400 text-xs flex items-center gap-1">
@@ -516,8 +575,8 @@ export function PropertyDetail({
                     </div>
                   </UnknownValueBadge>
                   <UnknownValueBadge type="rehab" isKnown={effectiveRanges.rehab.known}>
-                    <div className={`rounded-lg p-3 border ${effectiveRanges.rehab.known ? 'bg-amber-500/10 border-amber-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
-                      <div className={`text-base font-bold font-mono ${effectiveRanges.rehab.known ? 'text-amber-400' : 'text-gray-400'}`}>
+                    <div className={`rounded-lg p-3 border ${effectiveRanges.rehab.known ? `${FINANCIAL_COLORS.rehab.bg} ${FINANCIAL_COLORS.rehab.border}` : 'bg-gray-500/10 border-gray-500/30'}`}>
+                      <div className={`text-base font-bold font-mono ${effectiveRanges.rehab.known ? FINANCIAL_COLORS.rehab.text : 'text-gray-400'}`}>
                         {effectiveRanges.rehab.known ? formatUnknownCurrency(effectiveRanges.rehab) : '???'}
                       </div>
                       <div className="text-gray-400 text-xs flex items-center gap-1">
@@ -527,8 +586,8 @@ export function PropertyDetail({
                     </div>
                   </UnknownValueBadge>
                   <UnknownValueBadge type="timeline" isKnown={effectiveRanges.timeline.known}>
-                    <div className={`rounded-lg p-3 border ${effectiveRanges.timeline.known ? 'bg-purple-500/10 border-purple-500/30' : 'bg-gray-500/10 border-gray-500/30'}`}>
-                      <div className={`text-base font-bold font-mono ${effectiveRanges.timeline.known ? 'text-purple-400' : 'text-gray-400'}`}>
+                    <div className={`rounded-lg p-3 border ${effectiveRanges.timeline.known ? `${FINANCIAL_COLORS.timeline.bg} ${FINANCIAL_COLORS.timeline.border}` : 'bg-gray-500/10 border-gray-500/30'}`}>
+                      <div className={`text-base font-bold font-mono ${effectiveRanges.timeline.known ? FINANCIAL_COLORS.timeline.text : 'text-gray-400'}`}>
                         {effectiveRanges.timeline.known ? `${effectiveRanges.timeline.min}-${effectiveRanges.timeline.max} wks` : '???'}
                       </div>
                       <div className="text-gray-400 text-xs flex items-center gap-1">
@@ -555,6 +614,10 @@ export function PropertyDetail({
                     const isCompleted = completedDiligence.includes(option.id);
                     const canAfford = cash >= option.cost;
                     const isDisabled = isCompleted || !canAfford;
+                    const colorMapping = DILIGENCE_COLOR_MAP[option.id];
+                    const primaryColor = FINANCIAL_COLORS[colorMapping.primary];
+                    const secondaryColor = colorMapping.secondary ? FINANCIAL_COLORS[colorMapping.secondary] : null;
+                    
                     return (
                       <button
                         key={option.id}
@@ -562,23 +625,28 @@ export function PropertyDetail({
                         disabled={isDisabled}
                         className={`w-full text-left p-3 rounded-xl transition-all border ${
                           isCompleted
-                            ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+                            ? `${primaryColor.bg} ${primaryColor.border} ${primaryColor.text}`
                             : !canAfford
                             ? 'bg-slate-700/20 border-slate-700 text-gray-500 cursor-not-allowed'
-                            : 'bg-slate-700/30 border-slate-600 hover:border-emerald-500/50 text-gray-300'
+                            : `bg-slate-700/30 ${primaryColor.border} ${primaryColor.borderHover} text-gray-300`
                         }`}
                         data-testid={`button-diligence-${option.id}`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            {option.id === 'contractor_walkthrough' && <HardHat className="w-4 h-4" />}
-                            {option.id === 'inspection' && <Search className="w-4 h-4" />}
-                            {option.id === 'title_search' && <FileText className="w-4 h-4" />}
-                            <span className="font-semibold text-sm">{option.name}</span>
+                            {option.id === 'contractor_walkthrough' && <HardHat className={`w-4 h-4 ${isCompleted ? primaryColor.text : 'text-gray-400'}`} />}
+                            {option.id === 'inspection' && <Search className={`w-4 h-4 ${isCompleted ? primaryColor.text : 'text-gray-400'}`} />}
+                            {option.id === 'title_search' && <FileText className={`w-4 h-4 ${isCompleted ? primaryColor.text : 'text-gray-400'}`} />}
+                            <span className={`font-semibold text-sm ${isCompleted ? primaryColor.text : ''}`}>{option.name}</span>
                             <DiligenceEducationTooltip diligenceId={option.id} />
+                            {secondaryColor && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${secondaryColor.bg} ${secondaryColor.text} ${secondaryColor.border} border`}>
+                                +Timeline
+                              </span>
+                            )}
                           </div>
                           {isCompleted ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
+                            <Check className={`w-4 h-4 ${primaryColor.text}`} />
                           ) : (
                             <span className="text-xs text-gray-400">{formatCurrency(option.cost)} + {option.timeWeeks}w</span>
                           )}

@@ -111,7 +111,7 @@ export const api = {
     return res.json();
   },
 
-  async activateRental(dealId: number, gameRunId: number, monthlyCashFlow: number): Promise<{
+  async activateRental(dealId: number, gameRunId: number): Promise<{
     deal: Deal;
     surpriseCosts: number;
     surpriseIssues: string[];
@@ -120,7 +120,7 @@ export const api = {
     const res = await fetch(`${API_BASE}/deals/${dealId}/activate-rental`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gameRunId, monthlyCashFlow }),
+      body: JSON.stringify({ gameRunId }),
     });
     if (!res.ok) throw new Error('Failed to activate rental');
     return res.json();

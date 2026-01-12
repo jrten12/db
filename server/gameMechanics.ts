@@ -511,18 +511,69 @@ interface RentalActivationResult {
 
 export async function activateRentalProperty(
   deal: Deal,
-  gameRun: GameRun,
-  monthlyCashFlow: number
+  gameRun: GameRun
 ): Promise<RentalActivationResult> {
-  const weeklyIncome = calculateWeeklyIncome(monthlyCashFlow);
-  
-  // Get property to check for undiscovered issues
+  // Get property to access ground truth rent data
   const property = await storage.getProperty(deal.propertyId);
+  if (!property) {
+    throw new Error('Property not found');
+  }
+
+  const proFormaInputs = deal.proFormaInputs as any;
   const investigations = await storage.getPropertyInvestigations(gameRun.id);
   const completedDiligence = investigations
     .filter(inv => inv.propertyId === deal.propertyId)
     .map(inv => inv.investigationType);
-  
+
+  // Calculate ACTUAL rent from property ground truth (not player's assumption!)
+  const didMarketStudy = completedDiligence.includes('market_study');
+  let actualRent: number;
+
+  if (didMarketStudy) {
+    // WITH market study: Actual rent within known range with minimal market variance
+    const rentRange = property.rentMax - property.rentMin;
+    const baseRent = property.rentMin + (Math.random() * rentRange);
+    // Small variance ±5% for market conditions
+    const marketVariance = 0.95 + (Math.random() * 0.10);
+    actualRent = Math.round(baseRent * marketVariance);
+  } else {
+    // WITHOUT market study: Higher uncertainty - player is gambling!
+    // Reality could be quite different from their assumption
+    const rentMid = (property.rentMin + property.rentMax) / 2;
+    // Reality factor: 70% to 130% of midpoint (±30% chaos)
+    const realityFactor = 0.70 + (Math.random() * 0.60);
+    actualRent = Math.round(rentMid * realityFactor);
+  }
+
+  // Calculate ACTUAL cash flow using actual rent + player's expense assumptions
+  // (We test their rent assumption but honor their other choices)
+  const vacancyRate = proFormaInputs.vacancyRate || 8;
+  const tenantPaysUtilitiesVacancyPenalty = proFormaInputs.utilities ? 0 : 1.92;
+  const effectiveVacancyRate = vacancyRate + tenantPaysUtilitiesVacancyPenalty;
+  const effectiveRent = actualRent * (1 - effectiveVacancyRate / 100);
+
+  // Operating expenses (use player's assumptions)
+  const monthlyTaxes = (proFormaInputs.taxesAnnual || 0) / 12;
+  const monthlyInsurance = (proFormaInputs.insuranceAnnual || 0) / 12;
+  const maintenanceCost = actualRent * ((proFormaInputs.maintenancePct || 8) / 100);
+  const capExCost = actualRent * ((proFormaInputs.capExPct || 10) / 100);
+  const utilitiesCost = proFormaInputs.utilities ? (proFormaInputs.utilitiesMonthly || 150) : 0;
+  const mgmtCost = proFormaInputs.propertyManagement ? actualRent * ((proFormaInputs.propertyManagementPct || 10) / 100) : 0;
+
+  const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
+  const noiMonthly = effectiveRent - monthlyOpEx;
+
+  // Debt service (use player's financing assumptions)
+  const downPaymentPct = proFormaInputs.downPaymentPct || 25;
+  const loanAmount = property.price * (1 - downPaymentPct / 100);
+  const interestRate = proFormaInputs.interestRate || 6.5;
+  const monthlyRate = interestRate / 100 / 12;
+  const numPayments = 30 * 12;
+  const debtServiceMonthly = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+
+  const actualCashFlowMonthly = noiMonthly - debtServiceMonthly;
+  const weeklyIncome = calculateWeeklyIncome(actualCashFlowMonthly);
+
   // Check for undiscovered property issues (surprise repair costs!)
   const propertyName = property?.name || '';
   const undiscoveredIssues = getUndiscoveredIssues(propertyName, completedDiligence);

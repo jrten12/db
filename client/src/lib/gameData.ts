@@ -109,10 +109,12 @@ export const calculateProForma = (
   const interestRate = inputs.interestRate ?? 0;
   const downPaymentPct = inputs.downPaymentPct ?? 0;
   const loanOriginationPct = inputs.loanOriginationPct ?? 0;
+  const rehabWeeks = inputs.rehabWeeks ?? 4;
 
   const loanAmount = property.price * (1 - downPaymentPct / 100);
   const downPaymentAmount = property.price * (downPaymentPct / 100);
   const loanOriginationFees = loanAmount * (loanOriginationPct / 100);
+  const closingCosts = Math.round(property.price * 0.03);
 
   const monthlyRate = interestRate / 100 / 12;
   const numPayments = 30 * 12;
@@ -134,7 +136,16 @@ export const calculateProForma = (
   const noiMonthly = effectiveRent - monthlyOpEx;
   const cashFlowMonthly = noiMonthly - debtServiceMonthly;
 
-  const totalCashInvested = downPaymentAmount + loanOriginationFees + rehabBudget * (1 + contingencyPct / 100);
+  // Calculate holding costs for flips (interest + taxes + insurance during rehab)
+  const holdingCostPerWeek = Math.round((property.price * (interestRate / 100) / 52) + 
+    (taxesAnnual / 52) + (insuranceAnnual / 52));
+  const flipHoldingCosts = inputs.strategy === 'flip' ? holdingCostPerWeek * rehabWeeks : 0;
+
+  // Total cash invested = all cash out of pocket:
+  // Down payment + Closing costs + Loan fees + Holding costs (flip) + Rehab with contingency (flip)
+  const rehabWithContingency = inputs.strategy === 'flip' ? rehabBudget * (1 + contingencyPct / 100) : 0;
+  const totalCashInvested = downPaymentAmount + closingCosts + loanOriginationFees + flipHoldingCosts + rehabWithContingency;
+  
   const annualNOI = noiMonthly * 12;
   const capRate = (annualNOI / property.price) * 100;
   const cashOnCash = totalCashInvested > 0 ? ((cashFlowMonthly * 12) / totalCashInvested) * 100 : 0;

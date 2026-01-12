@@ -777,48 +777,76 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
               </div>
 
-              {/* TOTAL CASH NEEDED SUMMARY */}
+              {/* TOTAL PROJECT CASH NEEDED SUMMARY */}
               <div className="bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-emerald-500/20 backdrop-blur rounded-xl border-2 border-blue-500/50 p-4 shadow-lg">
                 <div className="flex items-center gap-2 mb-3">
                   <DollarSign className="w-5 h-5 text-blue-400" />
-                  <h4 className="text-blue-400 font-bold text-sm uppercase tracking-wider">💰 Total Cash Needed to Close</h4>
+                  <h4 className="text-blue-400 font-bold text-sm uppercase tracking-wider">💰 Total Project Cash Needed</h4>
                 </div>
-                <div className="space-y-2 mb-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-300">Down Payment ({inputs.downPaymentPct}%)</span>
-                    <span className="text-white font-mono font-semibold">{formatCurrency(liveOutputs.downPaymentAmount)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-300">+ Closing Costs</span>
-                    <span className="text-white font-mono font-semibold">{formatCurrency(closingCosts)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-300">+ Loan Fees ({n(inputs.loanOriginationPct)}%)</span>
-                    <span className="text-white font-mono font-semibold">{formatCurrency(Math.round(liveOutputs.loanAmount * n(inputs.loanOriginationPct) / 100))}</span>
-                  </div>
-                  {inputs.strategy === 'flip' && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-300">+ Holding Costs ({inputs.rehabWeeks ?? 4} weeks)</span>
-                      <span className="text-white font-mono font-semibold">{formatCurrency(holdingCostPerWeek * (inputs.rehabWeeks ?? 4))}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="border-t-2 border-blue-400/30 pt-3">
-                  {(() => {
-                    const flipHoldingCosts = holdingCostPerWeek * (inputs.rehabWeeks ?? 4);
-                    const totalCashRequired = liveOutputs.downPaymentAmount +
-                      closingCosts +
-                      Math.round(liveOutputs.loanAmount * n(inputs.loanOriginationPct) / 100) +
-                      (inputs.strategy === 'flip' ? flipHoldingCosts : 0);
-                    const canAfford = playerCash >= totalCashRequired;
-                    const cashRatio = Math.min(playerCash / totalCashRequired, 1) * 100;
-                    
-                    return (
-                      <>
+                {(() => {
+                  const loanFees = Math.round(liveOutputs.loanAmount * n(inputs.loanOriginationPct) / 100);
+                  const flipHoldingCosts = holdingCostPerWeek * (inputs.rehabWeeks ?? 4);
+                  const rehabWithContingency = inputs.strategy === 'flip' 
+                    ? Math.round(n(inputs.rehabBudget) * (inputs.contractorType === 'fast' ? 1.5 : 1.0) * (1 + n(inputs.contingencyPct) / 100))
+                    : 0;
+                  const cashAtClosing = liveOutputs.downPaymentAmount + closingCosts + loanFees;
+                  const totalProjectCash = cashAtClosing + (inputs.strategy === 'flip' ? flipHoldingCosts + rehabWithContingency : 0);
+                  const canAfford = playerCash >= totalProjectCash;
+                  const cashRatio = Math.min(playerCash / totalProjectCash, 1) * 100;
+                  
+                  return (
+                    <>
+                      <div className="space-y-2 mb-3">
+                        {/* Cash at Closing subtotal */}
+                        <div className="bg-slate-800/50 rounded-lg p-2">
+                          <div className="text-gray-400 text-xs mb-1 font-semibold">Cash at Closing</div>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400 text-xs">Down Payment ({inputs.downPaymentPct}%)</span>
+                              <span className="text-white font-mono text-xs">{formatCurrency(liveOutputs.downPaymentAmount)}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400 text-xs">+ Closing Costs (3%)</span>
+                              <span className="text-white font-mono text-xs">{formatCurrency(closingCosts)}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-400 text-xs">+ Loan Fees ({n(inputs.loanOriginationPct)}%)</span>
+                              <span className="text-white font-mono text-xs">{formatCurrency(loanFees)}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-700">
+                            <span className="text-blue-300 text-xs font-semibold">Subtotal</span>
+                            <span className="text-blue-300 font-mono text-sm font-semibold">{formatCurrency(cashAtClosing)}</span>
+                          </div>
+                        </div>
+
+                        {/* Rehab costs for flip */}
+                        {inputs.strategy === 'flip' && (
+                          <div className="bg-slate-800/50 rounded-lg p-2">
+                            <div className="text-gray-400 text-xs mb-1 font-semibold">+ Rehab & Holding</div>
+                            <div className="space-y-1 text-sm">
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-400 text-xs">Rehab Budget + Contingency</span>
+                                <span className="text-white font-mono text-xs">{formatCurrency(rehabWithContingency)}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-gray-400 text-xs">Holding Costs ({inputs.rehabWeeks ?? 4} weeks)</span>
+                                <span className="text-white font-mono text-xs">{formatCurrency(flipHoldingCosts)}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-700">
+                              <span className="text-amber-300 text-xs font-semibold">Subtotal</span>
+                              <span className="text-amber-300 font-mono text-sm font-semibold">{formatCurrency(rehabWithContingency + flipHoldingCosts)}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="border-t-2 border-blue-400/30 pt-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-blue-300 font-bold text-base">TOTAL CASH REQUIRED</span>
+                          <span className="text-blue-300 font-bold text-base">TOTAL PROJECT CASH</span>
                           <span className={`font-mono font-bold text-2xl ${canAfford ? 'text-emerald-400' : 'text-red-400'}`}>
-                            {formatCurrency(totalCashRequired)}
+                            {formatCurrency(totalProjectCash)}
                           </span>
                         </div>
                         
@@ -826,7 +854,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                           <div className="flex items-center justify-between text-xs">
                             <span className="text-gray-400">Your Cash: <span className="text-white font-mono">{formatCurrency(playerCash)}</span></span>
                             <span className={canAfford ? 'text-emerald-400' : 'text-red-400'}>
-                              {canAfford ? '✓ Can Afford' : `Need ${formatCurrency(totalCashRequired - playerCash)} more`}
+                              {canAfford ? '✓ Can Afford' : `Need ${formatCurrency(totalProjectCash - playerCash)} more`}
                             </span>
                           </div>
                           <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
@@ -839,13 +867,13 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         
                         <p className="text-gray-400 text-xs mt-2 italic">
                           {inputs.strategy === 'rent'
-                            ? 'Cash you need at closing to acquire this rental property'
-                            : 'Cash you need upfront to acquire and start renovations'}
+                            ? 'Total cash needed to acquire this rental property'
+                            : 'Total cash needed from closing through completion of rehab'}
                         </p>
-                      </>
-                    );
-                  })()}
-                </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           )}
@@ -1573,7 +1601,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             </div>
 
             <div className="bg-slate-800/50 rounded-xl p-3">
-              <div className="text-gray-400 text-xs mb-1">Total Cash Invested</div>
+              <div className="text-gray-400 text-xs mb-1">Total Project Cash</div>
               <div className="text-white font-bold font-mono text-lg">{formatCurrency(liveOutputs.totalCashInvested)}</div>
             </div>
 

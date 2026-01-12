@@ -145,7 +145,7 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
 
               <div className="flex items-center justify-between">
                 <MetricTooltip term="totalCashInvested">
-                  <span className="text-muted-foreground text-sm">Total Cash Invested</span>
+                  <span className="text-muted-foreground text-sm">Total Project Cash</span>
                 </MetricTooltip>
                 <span className="font-mono text-foreground">
                   {formatCurrency(outputs.totalCashInvested)}
@@ -159,7 +159,7 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
               {/* Cash Requirement Display */}
               <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700 mb-3">
                 <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Cash Required:</span>
+                  <span className="text-muted-foreground">Total Project Cash:</span>
                   <span className="font-mono font-bold text-warning">
                     {formatCurrency(outputs.totalCashInvested)}
                   </span>
@@ -173,7 +173,7 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
                 {playerCash < outputs.totalCashInvested && (
                   <div className="mt-2 p-2 bg-danger/20 border border-danger/30 rounded text-xs text-danger flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                    <span>Insufficient funds! Need ${(outputs.totalCashInvested - playerCash).toLocaleString()} more.</span>
+                    <span>Insufficient funds! Need ${(outputs.totalCashInvested - playerCash).toLocaleString()} more to complete this project.</span>
                   </div>
                 )}
               </div>

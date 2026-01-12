@@ -12,7 +12,7 @@ export default function Footer() {
             className="h-8 w-auto"
           />
           <span className="text-gray-400 text-sm">
-            &copy; {new Date().getFullYear()} Infarill LLC. All Rights Reserved.
+            &copy; {new Date().getFullYear()} Infarill LLC & LVI Properties, LLC. All Rights Reserved.
           </span>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
@@ -25,21 +25,38 @@ export default function Footer() {
           </Link>
         </div>
         
-        {/* Signature attribution with cursive neon blue pen effect */}
+        {/* Signature attribution with refined subtle blue neon effect */}
         <div className="mt-6 pt-5 border-t border-slate-800/30">
-          <div className="flex flex-col items-center justify-center gap-1">
-            <span className="text-gray-500 text-[10px] uppercase tracking-[0.2em]">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <span className="text-gray-500 text-[10px] uppercase tracking-[0.25em] font-medium">
               a game by
             </span>
-            <div 
-              className="text-sky-300 text-2xl sm:text-3xl"
-              style={{ 
-                fontFamily: '"Great Vibes", cursive',
-                textShadow: '0 0 4px rgba(56,189,248,0.9), 0 0 12px rgba(56,189,248,0.5), 0 0 24px rgba(56,189,248,0.25)',
-                transform: 'rotate(-1deg)',
-              }}
-            >
-              Infarill LLC <span className="text-sky-400/60 mx-1">&</span> Nancy Deephouse
+            <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3">
+              <span 
+                className="text-white/90 text-xl sm:text-2xl tracking-tight"
+                style={{ 
+                  fontFamily: '"Cormorant Garamond", Georgia, serif',
+                  fontWeight: 500,
+                  fontStyle: 'italic',
+                  textShadow: '0 0 8px rgba(96,165,250,0.4), 0 0 2px rgba(96,165,250,0.6)',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Infarill LLC
+              </span>
+              <span className="text-blue-400/50 text-lg font-light">&</span>
+              <span 
+                className="text-white/90 text-xl sm:text-2xl tracking-tight"
+                style={{ 
+                  fontFamily: '"Cormorant Garamond", Georgia, serif',
+                  fontWeight: 500,
+                  fontStyle: 'italic',
+                  textShadow: '0 0 8px rgba(96,165,250,0.4), 0 0 2px rgba(96,165,250,0.6)',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                LVI Properties, LLC
+              </span>
             </div>
           </div>
         </div>

@@ -18,8 +18,8 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-2xl font-semibold text-white mb-3">1. Introduction</h2>
               <p>
-                Infarill LLC, together with its affiliates, subsidiaries, officers, directors, employees, agents, partners,
-                licensors, and service providers (collectively, the "Infarill Parties" or "Company", "we", "our", or "us")
+                Infarill LLC and LVI Properties, LLC, together with their affiliates, subsidiaries, officers, directors, employees, agents, partners,
+                licensors, and service providers (collectively, the "Company Parties" or "Company", "we", "our", or "us")
                 respects your privacy and is committed to protecting your personal information. This Privacy Policy explains
                 how we collect, use, disclose, and safeguard your information when you use our website and services. By using
                 our service, you acknowledge that you have read, understood, and agree to be bound by this Privacy Policy.
@@ -113,9 +113,9 @@ export default function PrivacyPolicy() {
                 While we implement commercially reasonable technical and organizational security measures designed to protect
                 your personal information against unauthorized access, alteration, disclosure, or destruction, YOU ACKNOWLEDGE
                 AND AGREE THAT NO SECURITY MEASURES ARE PERFECT OR IMPENETRABLE. NO METHOD OF TRANSMISSION OVER THE INTERNET
-                OR ELECTRONIC STORAGE IS 100% SECURE, AND THE INFARILL PARTIES CANNOT AND DO NOT GUARANTEE OR WARRANT THE
+                OR ELECTRONIC STORAGE IS 100% SECURE, AND THE COMPANY PARTIES CANNOT AND DO NOT GUARANTEE OR WARRANT THE
                 SECURITY OF ANY INFORMATION YOU TRANSMIT TO OR FROM THE SERVICE. YOU TRANSMIT ALL INFORMATION AT YOUR OWN RISK.
-                THE INFARILL PARTIES DISCLAIM ALL LIABILITY FOR ANY UNAUTHORIZED ACCESS TO, USE OF, OR DISCLOSURE OF YOUR
+                THE COMPANY PARTIES DISCLAIM ALL LIABILITY FOR ANY UNAUTHORIZED ACCESS TO, USE OF, OR DISCLOSURE OF YOUR
                 PERSONAL INFORMATION, DATA BREACHES, HACKING, IDENTITY THEFT, OR ANY OTHER SECURITY-RELATED INCIDENTS. YOU ARE
                 SOLELY RESPONSIBLE FOR PROTECTING YOUR ACCOUNT CREDENTIALS AND FOR ALL ACTIVITIES THAT OCCUR UNDER YOUR ACCOUNT.
               </p>
@@ -150,7 +150,7 @@ export default function PrivacyPolicy() {
               <h2 className="text-2xl font-semibold text-white mb-3">9. Third-Party Links</h2>
               <p>
                 Our service may contain links to third-party websites or services that are not owned or controlled by
-                Infarill LLC. We are not responsible for the privacy practices of these third parties. We encourage you
+                the Company. We are not responsible for the privacy practices of these third parties. We encourage you
                 to review the privacy policies of any third-party sites you visit.
               </p>
             </section>
@@ -194,13 +194,13 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-2xl font-semibold text-white mb-3">14. Limitation of Liability</h2>
               <p>
-                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE INFARILL PARTIES SHALL NOT BE LIABLE FOR ANY DAMAGES
+                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE COMPANY PARTIES SHALL NOT BE LIABLE FOR ANY DAMAGES
                 WHATSOEVER, INCLUDING BUT NOT LIMITED TO DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR
                 PUNITIVE DAMAGES, ARISING OUT OF OR RELATING TO THIS PRIVACY POLICY, YOUR PERSONAL INFORMATION, OR OUR PRIVACY
                 PRACTICES, INCLUDING BUT NOT LIMITED TO ANY UNAUTHORIZED ACCESS TO, USE OF, OR DISCLOSURE OF YOUR PERSONAL
                 INFORMATION, DATA BREACHES, IDENTITY THEFT, OR ANY OTHER PRIVACY-RELATED HARM. YOU ACKNOWLEDGE AND AGREE THAT
-                YOUR SOLE AND EXCLUSIVE REMEDY FOR ANY DISPUTE WITH THE INFARILL PARTIES REGARDING PRIVACY MATTERS IS TO STOP
-                USING THE SERVICE. IN NO EVENT SHALL THE AGGREGATE LIABILITY OF THE INFARILL PARTIES EXCEED ONE HUNDRED DOLLARS
+                YOUR SOLE AND EXCLUSIVE REMEDY FOR ANY DISPUTE WITH THE COMPANY PARTIES REGARDING PRIVACY MATTERS IS TO STOP
+                USING THE SERVICE. IN NO EVENT SHALL THE AGGREGATE LIABILITY OF THE COMPANY PARTIES EXCEED ONE HUNDRED DOLLARS
                 ($100). SOME JURISDICTIONS DO NOT ALLOW THE LIMITATION OR EXCLUSION OF LIABILITY FOR INCIDENTAL OR CONSEQUENTIAL
                 DAMAGES, SO THE ABOVE LIMITATION OR EXCLUSION MAY NOT APPLY TO YOU.
               </p>
@@ -209,7 +209,7 @@ export default function PrivacyPolicy() {
             <section>
               <h2 className="text-2xl font-semibold text-white mb-3">15. Indemnification</h2>
               <p>
-                You agree to defend, indemnify, and hold harmless the Infarill Parties from and against any and all claims,
+                You agree to defend, indemnify, and hold harmless the Company Parties from and against any and all claims,
                 damages, obligations, losses, liabilities, costs, debt, and expenses (including but not limited to attorney's
                 fees) arising from: (a) your use of and access to the service; (b) your violation of any term of this Privacy
                 Policy; (c) your violation of any third party right, including without limitation any privacy right; or (d) any
@@ -233,7 +233,7 @@ export default function PrivacyPolicy() {
                 If you have any questions about this Privacy Policy or our privacy practices, please contact:
               </p>
               <div className="mt-2 ml-4">
-                <p className="font-semibold text-white">Infarill LLC</p>
+                <p className="font-semibold text-white">Infarill LLC & LVI Properties, LLC</p>
               </div>
             </section>
           </div>

@@ -11,7 +11,8 @@ const n = (val: number | null): number => val ?? 0;
 // Check if a field has been filled in by the player
 const isFilled = (val: number | null | boolean | string): boolean => {
   if (typeof val === 'boolean') return true; // Booleans are always "filled"
-  if (typeof val === 'string') return val.length > 0; // Strings are filled if non-empty
+  if (typeof val === 'string') return val.trim().length > 0; // Strings are filled if non-empty after trimming
+  if (typeof val === 'number') return !isNaN(val); // Numbers must be valid numbers
   return val !== null && val !== undefined;
 };
 
@@ -794,30 +795,19 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     <span className="text-white font-mono font-semibold">{formatCurrency(Math.round(liveOutputs.loanAmount * n(inputs.loanOriginationPct) / 100))}</span>
                   </div>
                   {inputs.strategy === 'flip' && (
-                    <>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-300">+ Rehab Budget Reserve</span>
-                        <span className="text-white font-mono font-semibold">{formatCurrency(n(inputs.rehabBudget))}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-300">+ Contingency ({n(inputs.contingencyPct)}%)</span>
-                        <span className="text-white font-mono font-semibold">{formatCurrency(Math.round(n(inputs.rehabBudget) * n(inputs.contingencyPct) / 100))}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-300">+ Holding Costs ({n(inputs.rehabWeeks)} weeks)</span>
-                        <span className="text-white font-mono font-semibold">{formatCurrency(holdingCostPerWeek * n(inputs.rehabWeeks))}</span>
-                      </div>
-                    </>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-300">+ Holding Costs ({inputs.rehabWeeks ?? 4} weeks)</span>
+                      <span className="text-white font-mono font-semibold">{formatCurrency(holdingCostPerWeek * (inputs.rehabWeeks ?? 4))}</span>
+                    </div>
                   )}
                 </div>
                 <div className="border-t-2 border-blue-400/30 pt-3">
                   {(() => {
-                    const rehabWithContingency = n(inputs.rehabBudget) * (1 + n(inputs.contingencyPct) / 100);
-                    const totalHoldingCosts = holdingCostPerWeek * n(inputs.rehabWeeks);
+                    const flipHoldingCosts = holdingCostPerWeek * (inputs.rehabWeeks ?? 4);
                     const totalCashRequired = liveOutputs.downPaymentAmount +
                       closingCosts +
                       Math.round(liveOutputs.loanAmount * n(inputs.loanOriginationPct) / 100) +
-                      (inputs.strategy === 'flip' ? rehabWithContingency + totalHoldingCosts : 0);
+                      (inputs.strategy === 'flip' ? flipHoldingCosts : 0);
                     const canAfford = playerCash >= totalCashRequired;
                     const cashRatio = Math.min(playerCash / totalCashRequired, 1) * 100;
                     

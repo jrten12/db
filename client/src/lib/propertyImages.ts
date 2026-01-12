@@ -114,21 +114,39 @@ export const getPropertyImage = (propertyName: string): string => {
   return propertyImages[propertyName] || oakwoodFront;
 };
 
+// Properties with Fair or Fixer-Upper condition that need interior photos
+const FIXER_UPPER_PROPERTIES = [
+  'Oakwood Cottage',       // Good condition
+  'Elmwood Bungalow',      // Fixer-Upper
+  'Hillside Retreat',      // Fair
+  'Kensington Row',        // Fixer-Upper  
+  'Old City Brownstone',   // Fixer-Upper
+  'Riverside Ranch',       // Fair
+  'South Street Twin',     // Fair
+  'Port Richmond Duplex',  // Fair
+  'Maplewood Colonial',    // Fixer-Upper
+  'Westside Manor',        // Good (needs work based on rehab)
+  'Queen Village Townhouse', // Fair
+  'Fairmount Duplex',      // Fair
+];
+
 export const getPropertyInteriorImages = (propertyName: string): Array<{ type: string; label: string; url: string }> => {
-  // Generic interior images that apply to most fixer-upper properties
-  // These help investors visualize what to look for during property walkthroughs
-  return [
-    { type: 'kitchen', label: 'Kitchen (needs updates)', url: interiorKitchen },
-    { type: 'bathroom', label: 'Bathroom (dated)', url: interiorBathroom },
-    { type: 'living', label: 'Living Room', url: interiorLivingRoom },
-    { type: 'basement', label: 'Basement/Mechanical', url: interiorBasement },
-  ];
+  // Only show fixer-upper interior images for properties that need work
+  if (FIXER_UPPER_PROPERTIES.includes(propertyName)) {
+    return [
+      { type: 'kitchen', label: 'Kitchen (needs updates)', url: interiorKitchen },
+      { type: 'bathroom', label: 'Bathroom (dated)', url: interiorBathroom },
+      { type: 'living', label: 'Living Room', url: interiorLivingRoom },
+      { type: 'basement', label: 'Basement/Mechanical', url: interiorBasement },
+    ];
+  }
+  
+  // For newer/better condition properties, no fixer-upper interior images
+  return [];
 };
 
 export const hasInteriorImages = (propertyName: string): boolean => {
-  // For now, assume interior images might exist for all properties
-  // The UI will handle displaying only loaded images
-  return true;
+  return FIXER_UPPER_PROPERTIES.includes(propertyName);
 };
 
 export const getIssueImage = (issueId: string): string | null => {

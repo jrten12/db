@@ -9,8 +9,9 @@ import type { Property } from '@shared/schema';
 const n = (val: number | null): number => val ?? 0;
 
 // Check if a field has been filled in by the player
-const isFilled = (val: number | null | boolean): boolean => {
+const isFilled = (val: number | null | boolean | string): boolean => {
   if (typeof val === 'boolean') return true; // Booleans are always "filled"
+  if (typeof val === 'string') return val.length > 0; // Strings are filled if non-empty
   return val !== null && val !== undefined;
 };
 

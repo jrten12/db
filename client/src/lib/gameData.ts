@@ -101,7 +101,10 @@ export const calculateProForma = (
   const capExPct = inputs.capExPct ?? 0;
   const utilitiesMonthly = inputs.utilitiesMonthly ?? 0;
   const propertyManagementPct = inputs.propertyManagementPct ?? 0;
-  const rehabBudget = inputs.rehabBudget ?? 0;
+  const baseRehabBudget = inputs.rehabBudget ?? 0;
+  // Fast contractor = 50% higher rehab costs
+  const contractorMultiplier = inputs.contractorType === 'fast' ? 1.5 : 1.0;
+  const rehabBudget = baseRehabBudget * contractorMultiplier;
   const contingencyPct = inputs.contingencyPct ?? 0;
   const interestRate = inputs.interestRate ?? 0;
   const downPaymentPct = inputs.downPaymentPct ?? 0;

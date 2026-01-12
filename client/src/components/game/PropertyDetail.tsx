@@ -797,27 +797,45 @@ export function PropertyDetail({
                 )}
               </div>
 
-              {/* Contractor Choice - Locked until after offer */}
-              <div className="bg-slate-800/30 backdrop-blur rounded-xl p-4 border border-slate-600 opacity-60">
-                <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <Lock className="w-4 h-4" /> Contractor Choice
-                  <span className="text-xs font-normal text-gray-500">(Available after offer accepted)</span>
+              {/* Contractor Choice - Select before making offer */}
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
+                <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <HardHat className="w-4 h-4" /> Contractor Choice
+                  <span className="text-xs font-normal text-amber-400">(Required before offer)</span>
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-700/20 border border-slate-700">
-                    <Clock className="w-6 h-6 text-gray-500" />
+                  <button
+                    onClick={() => setContractor('cheap')}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                      contractor === 'cheap'
+                        ? 'bg-blue-500/20 border-2 border-blue-400 shadow-lg shadow-blue-500/20'
+                        : 'bg-slate-700/30 border border-slate-600 hover:bg-slate-700/50'
+                    }`}
+                    type="button"
+                  >
+                    <Clock className={`w-6 h-6 ${contractor === 'cheap' ? 'text-blue-400' : 'text-gray-500'}`} />
                     <div className="text-center">
-                      <div className="font-semibold text-gray-400 text-sm">Cheap & Slow</div>
-                      <div className="text-xs text-gray-500">15% savings, +50% time</div>
+                      <div className={`font-semibold text-sm ${contractor === 'cheap' ? 'text-blue-300' : 'text-gray-400'}`}>Cheap & Slow</div>
+                      <div className="text-xs text-amber-400">-2 weeks penalty</div>
+                      <div className="text-xs text-emerald-400">Standard rehab cost</div>
                     </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-700/20 border border-slate-700">
-                    <Zap className="w-6 h-6 text-gray-500" />
+                  </button>
+                  <button
+                    onClick={() => setContractor('fast')}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                      contractor === 'fast'
+                        ? 'bg-purple-500/20 border-2 border-purple-400 shadow-lg shadow-purple-500/20'
+                        : 'bg-slate-700/30 border border-slate-600 hover:bg-slate-700/50'
+                    }`}
+                    type="button"
+                  >
+                    <Zap className={`w-6 h-6 ${contractor === 'fast' ? 'text-purple-400' : 'text-gray-500'}`} />
                     <div className="text-center">
-                      <div className="font-semibold text-gray-400 text-sm">Fast & Expensive</div>
-                      <div className="text-xs text-gray-500">30% premium, 30% faster</div>
+                      <div className={`font-semibold text-sm ${contractor === 'fast' ? 'text-purple-300' : 'text-gray-400'}`}>Fast & Expensive</div>
+                      <div className="text-xs text-emerald-400">No time penalty</div>
+                      <div className="text-xs text-red-400">+50% rehab cost</div>
                     </div>
-                  </div>
+                  </button>
                 </div>
               </div>
 

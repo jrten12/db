@@ -503,6 +503,20 @@ export default function Game() {
 
     const closingCosts = Math.round(selectedProperty.price * 0.03);
     const loanOriginationFee = Math.round((selectedProperty.price - proFormaOutputs.downPaymentAmount) * 0.01);
+    
+    // Check contractor type for penalties
+    const contractorType = proFormaInputs.contractorType ?? 'cheap';
+    const isCheapContractor = contractorType === 'cheap';
+    
+    // Apply cheap contractor time penalty (-2 weeks immediately)
+    if (isCheapContractor) {
+      const updatedGameRun = await updateGameMutation.mutateAsync({
+        id: gameRun.id,
+        updates: { weeksRemaining: gameRun.weeksRemaining - 2 }
+      });
+      setGameRun(updatedGameRun);
+      toast.warning('Cheap contractor: -2 weeks while they get started on the job.', { duration: 4000 });
+    }
 
     try {
       const newDeal = await createDealMutation.mutateAsync({

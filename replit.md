@@ -60,6 +60,11 @@ Preferred communication style: Simple, everyday language.
 
 ### Game Logic Architecture
 - Pro forma calculations handled client-side in `lib/gameData.ts`
+- **Empty Pro Forma Inputs**: Fields start empty (null) requiring players to fill them manually, reinforcing learning
+  - Completion progress banner tracks X/N fields filled
+  - Green glow styling on filled inputs for visual feedback
+  - Placeholder hints guide players on what each field means
+  - Validation helpers: `isProFormaInputsComplete()`, `getMissingFields()`
 - Property issue system for due diligence reveals in `lib/propertyIssues.ts` and `shared/propertyIssues.ts`
 - **Surprise Repair Costs**: If player skips contractor walkthrough/inspection, hidden property issues are discovered during flip completion. These surprise costs are deducted from both profit and cash (via ledger), teaching the consequences of skipping due diligence.
 - **Reality Check System**: For rentals, player assumptions are compared to market reality when the property activates:

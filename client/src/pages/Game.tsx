@@ -10,6 +10,7 @@ import { LedgerPanel } from '@/components/game/LedgerPanel';
 import { MoneyAnimation } from '@/components/game/MoneyAnimation';
 import { TimeProgressionPanel } from '@/components/game/TimeProgressionPanel';
 import { IncomeNotification, useIncomeNotifications } from '@/components/game/IncomeNotification';
+import { TenantIssuePopup, type TenantIssueEvent } from '@/components/game/TenantIssuePopup';
 import { PremiumModal } from '@/components/game/PremiumModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
@@ -22,6 +23,7 @@ import {
   convertPropertyToGameProperty
 } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
+import type { Curveball } from '@/lib/curveballs';
 import { api } from '@/lib/api';
 import type { GameRun, Property, LedgerEntry, Deal, HallOfFamePlayer } from '@shared/schema';
 import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.png';
@@ -38,6 +40,34 @@ interface DiligenceState {
 interface ProFormaCompletionState {
   [propertyId: number]: boolean;
 }
+
+const TENANT_PERSONAS = [
+  {
+    name: 'Alex',
+    trait: 'organized and concise',
+    note: 'Shares a tidy checklist and keeps updates short.',
+  },
+  {
+    name: 'Jordan',
+    trait: 'friendly and proactive',
+    note: 'Offers flexible times and appreciates quick updates.',
+  },
+  {
+    name: 'Riley',
+    trait: 'detail-oriented and calm',
+    note: 'Sends clear photos and a calm summary of the issue.',
+  },
+  {
+    name: 'Casey',
+    trait: 'straightforward and punctual',
+    note: 'Prefers quick resolutions and clear timelines.',
+  },
+  {
+    name: 'Taylor',
+    trait: 'thoughtful and patient',
+    note: 'Checks in politely and values transparency.',
+  },
+];
 
 export default function Game() {
   const queryClient = useQueryClient();
@@ -58,11 +88,15 @@ export default function Game() {
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<HallOfFamePlayer | null>(null);
   const [showNameEntry, setShowNameEntry] = useState(true);
+  const [tenantIssues, setTenantIssues] = useState<TenantIssueEvent[]>([]);
 
   const STARTING_CASH = 50000;
 
   // Income notifications
   const { events: incomeEvents, dismissEvent, addRentalPayment, addFlipProceeds, addCurveballBonus } = useIncomeNotifications();
+  const dismissTenantIssue = useCallback(() => {
+    setTenantIssues(prev => prev.slice(1));
+  }, []);
 
   const [gameRun, setGameRun] = useState<GameRun | null>(null);
   const [isLoadingGame, setIsLoadingGame] = useState(true);
@@ -166,6 +200,8 @@ export default function Game() {
     queryFn: () => api.getDeals(gameRun!.id),
     enabled: !!gameRun?.id,
   });
+
+  const activeTenantIssue = tenantIssues[0] ?? null;
 
   const createLedgerMutation = useMutation({
     mutationFn: ({ gameRunId, entries, currentCash }: {
@@ -483,6 +519,30 @@ export default function Game() {
         }
       });
 
+      const tenantCurveballs = (result.curveballs || []).filter(
+        (curveball: Curveball) => curveball.tenantIssue
+      );
+      if (tenantCurveballs.length && deals.some(deal => deal.status === 'active_rental')) {
+        setTenantIssues(prev => [
+          ...prev,
+          ...tenantCurveballs.map((curveball: Curveball) => {
+            const persona = TENANT_PERSONAS[Math.floor(Math.random() * TENANT_PERSONAS.length)];
+            return {
+              id: `${Date.now()}-${Math.random()}`,
+              title: curveball.name,
+              description: curveball.description,
+              cashImpact: curveball.cashImpact,
+              rentMultiplier: curveball.rentMultiplier,
+              timeImpact: curveball.timeImpact,
+              emoji: curveball.emoji,
+              tenantName: persona.name,
+              tenantTrait: persona.trait,
+              tenantNote: persona.note,
+            };
+          }),
+        ]);
+      }
+
       // Refresh game run state and other data
       const updatedGameRun = await api.getGameRun(gameRun.id);
       setGameRun(updatedGameRun);
@@ -769,6 +829,8 @@ export default function Game() {
 
         {/* Income Notifications */}
         <IncomeNotification events={incomeEvents} onDismiss={dismissEvent} />
+
+        <TenantIssuePopup issue={activeTenantIssue} onClose={dismissTenantIssue} />
 
         {/* Bankruptcy Modal */}
         {isBankrupt && (

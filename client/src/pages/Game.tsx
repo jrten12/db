@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { StatusBar } from '@/components/game/StatusBar';
 import { ProFormaPanel } from '@/components/game/ProFormaPanel';
@@ -14,6 +14,7 @@ import { PremiumModal } from '@/components/game/PremiumModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
 import { BankruptModal } from '@/components/game/BankruptModal';
+import { SaveIndicator } from '@/components/game/SaveIndicator';
 import {
   ProFormaInputs,
   ProFormaOutputs,
@@ -23,6 +24,7 @@ import {
 } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
 import { api } from '@/lib/api';
+import { saveGame, loadGame, getSaveInfo, clearSave } from '@/lib/saveGame';
 import type { GameRun, Property, LedgerEntry, Deal, HallOfFamePlayer } from '@shared/schema';
 import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.png';
 import Footer from '@/components/Footer';
@@ -79,6 +81,8 @@ export default function Game() {
   const [gameRun, setGameRun] = useState<GameRun | null>(null);
   const [isLoadingGame, setIsLoadingGame] = useState(true);
   const [gameError, setGameError] = useState<Error | null>(null);
+  const [savedGameInfo, setSavedGameInfo] = useState<ReturnType<typeof getSaveInfo>>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     try {
@@ -89,6 +93,9 @@ export default function Game() {
   useEffect(() => {
     const checkActiveGame = async () => {
       try {
+        const savedInfo = getSaveInfo();
+        setSavedGameInfo(savedInfo);
+        
         const sessionGameId = sessionStorage.getItem('currentGameRunId');
         if (sessionGameId) {
           const activeRun = await api.getActiveGameRun();
@@ -138,12 +145,69 @@ export default function Game() {
       setSkippedDiligenceDeals(new Set());
       setGameRun(newRun);
       setShowNameEntry(false);
+      clearSave();
     } catch (err) {
       setGameError(err as Error);
     } finally {
       setIsLoadingGame(false);
     }
   }, []);
+
+  const continueSavedGame = useCallback(async () => {
+    const saved = loadGame();
+    if (!saved) {
+      toast.error('No saved game found');
+      return;
+    }
+    
+    setIsLoadingGame(true);
+    try {
+      const player = await api.getOrCreatePlayer(saved.gameRun.playerName);
+      setCurrentPlayer(player);
+      
+      const restoredRun = await api.createGameRun({
+        playerName: saved.gameRun.playerName,
+        difficulty: saved.gameRun.difficulty,
+        cash: saved.gameRun.cash,
+        weeksRemaining: saved.gameRun.weeksRemaining,
+        profitableDeals: saved.gameRun.profitableDeals,
+        goalDeals: saved.gameRun.goalDeals,
+        status: 'active',
+      });
+      
+      if (!restoredRun) {
+        throw new Error('Failed to restore game');
+      }
+      
+      // Restore all game data to the database
+      if (saved.deals.length > 0 || saved.investigations.length > 0 || saved.ledgerEntries.length > 0) {
+        await api.restoreGameRunData(restoredRun.id, {
+          deals: saved.deals,
+          investigations: saved.investigations,
+          ledgerEntries: saved.ledgerEntries,
+        });
+      }
+      
+      sessionStorage.setItem('currentGameRunId', String(restoredRun.id));
+      setGameRun(restoredRun);
+      setPlayerName(restoredRun.playerName);
+      setProFormaCompletions(saved.proFormaCompletions);
+      setSkippedDiligenceDeals(new Set(saved.skippedDiligenceDeals));
+      setShowNameEntry(false);
+      
+      // Invalidate queries to fetch the restored data
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
+      queryClient.invalidateQueries({ queryKey: ['investigations'] });
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+      
+      toast.success('Game restored!');
+    } catch (err) {
+      console.error('Failed to restore game:', err);
+      toast.error('Failed to restore saved game');
+    } finally {
+      setIsLoadingGame(false);
+    }
+  }, [queryClient]);
 
   const { data: properties = [], isLoading: isLoadingProps } = useQuery({
     queryKey: ['properties'],
@@ -190,6 +254,32 @@ export default function Game() {
     queryFn: () => api.getDeals(gameRun!.id),
     enabled: !!gameRun?.id,
   });
+
+  useEffect(() => {
+    if (!gameRun || gameRun.status !== 'active') return;
+    
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(() => {
+      saveGame({
+        gameRun,
+        deals,
+        ledgerEntries,
+        investigations,
+        completedDiligence,
+        proFormaCompletions,
+        skippedDiligenceDeals: Array.from(skippedDiligenceDeals),
+      });
+    }, 1000);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [gameRun, deals, ledgerEntries, investigations, completedDiligence, proFormaCompletions, skippedDiligenceDeals]);
 
   const createLedgerMutation = useMutation({
     mutationFn: ({ gameRunId, entries, currentCash }: {
@@ -657,6 +747,8 @@ export default function Game() {
             isOpen={showNameEntry && !showHallOfFame}
             onSubmit={startNewGame}
             onViewHallOfFame={() => setShowHallOfFame(true)}
+            savedGameInfo={savedGameInfo}
+            onContinueSavedGame={continueSavedGame}
           />
           <HallOfFameModal
             isOpen={showHallOfFame}
@@ -713,7 +805,8 @@ export default function Game() {
           onOpenPremium={() => setShowPremiumModal(true)}
           onOpenHallOfFame={() => setShowHallOfFame(true)}
         />
-
+        
+        <SaveIndicator />
 
         <main className="max-w-7xl mx-auto px-4 py-6 md:py-8">
           {currentScreen === 'market' && (

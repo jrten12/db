@@ -1,7 +1,7 @@
-import type { GameRun, Deal, LedgerEntry } from '@shared/schema';
+import type { GameRun, Deal, LedgerEntry, PropertyInvestigation } from '@shared/schema';
 
 const SAVE_KEY = 'dealbreak_saved_game';
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 2;
 
 export interface SavedGameState {
   version: number;
@@ -9,6 +9,7 @@ export interface SavedGameState {
   gameRun: GameRun;
   deals: Deal[];
   ledgerEntries: LedgerEntry[];
+  investigations: PropertyInvestigation[];
   completedDiligence: Record<number, string[]>;
   proFormaCompletions: Record<number, boolean>;
   skippedDiligenceDeals: number[];

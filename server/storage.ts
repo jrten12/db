@@ -653,6 +653,47 @@ export class DBStorage implements IStorage {
     return { entries: createdEntries, newCash: runningBalance };
   }
 
+  // Restore methods for save game feature
+  async restoreGameRunData(
+    gameRunId: number,
+    savedDeals: Array<Omit<InsertDeal, 'gameRunId'>>,
+    savedInvestigations: Array<Omit<InsertPropertyInvestigation, 'gameRunId'>>,
+    savedLedgerEntries: Array<Omit<InsertLedgerEntry, 'gameRunId'>>
+  ): Promise<{ deals: Deal[]; investigations: PropertyInvestigation[]; ledgerEntries: LedgerEntry[] }> {
+    const restoredDeals: Deal[] = [];
+    const restoredInvestigations: PropertyInvestigation[] = [];
+    const restoredLedgerEntries: LedgerEntry[] = [];
+
+    // Restore investigations first
+    for (const inv of savedInvestigations) {
+      const [restored] = await db
+        .insert(schema.propertyInvestigations)
+        .values({ ...inv, gameRunId })
+        .returning();
+      restoredInvestigations.push(restored);
+    }
+
+    // Restore deals
+    for (const deal of savedDeals) {
+      const [restored] = await db
+        .insert(schema.deals)
+        .values({ ...deal, gameRunId })
+        .returning();
+      restoredDeals.push(restored);
+    }
+
+    // Restore ledger entries (without updating cash since game run already has correct cash)
+    for (const entry of savedLedgerEntries) {
+      const [restored] = await db
+        .insert(schema.ledgerEntries)
+        .values({ ...entry, gameRunId })
+        .returning();
+      restoredLedgerEntries.push(restored);
+    }
+
+    return { deals: restoredDeals, investigations: restoredInvestigations, ledgerEntries: restoredLedgerEntries };
+  }
+
   // Hall of Fame methods
   async getOrCreatePlayer(playerName: string): Promise<HallOfFamePlayer> {
     const [existing] = await db

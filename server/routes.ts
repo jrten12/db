@@ -194,6 +194,62 @@ export async function registerRoutes(
     }
   });
 
+  // Restore game run data from saved game
+  app.post("/api/game-runs/:id/restore", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const { deals, investigations, ledgerEntries } = req.body as {
+        deals: any[];
+        investigations: any[];
+        ledgerEntries: any[];
+      };
+
+      // Strip out IDs and timestamps from saved data before restoring
+      const cleanDeals = deals.map(d => ({
+        propertyId: d.propertyId,
+        strategy: d.strategy,
+        proFormaInputs: d.proFormaInputs,
+        proFormaOutputs: d.proFormaOutputs,
+        actualProfit: d.actualProfit,
+        status: d.status,
+        weeksSpent: d.weeksSpent,
+        weeksUntilCompletion: d.weeksUntilCompletion,
+        weeklyIncome: d.weeklyIncome,
+        lastIncomePaymentWeek: d.lastIncomePaymentWeek,
+      }));
+
+      const cleanInvestigations = investigations.map(i => ({
+        propertyId: i.propertyId,
+        investigationType: i.investigationType,
+        revealedData: i.revealedData,
+        cost: i.cost,
+        weeksUsed: i.weeksUsed,
+      }));
+
+      const cleanLedgerEntries = ledgerEntries.map(l => ({
+        direction: l.direction,
+        category: l.category,
+        amount: l.amount,
+        description: l.description,
+        balanceAfter: l.balanceAfter,
+        propertyId: l.propertyId,
+        dealId: l.dealId,
+      }));
+
+      const result = await storage.restoreGameRunData(
+        gameRunId,
+        cleanDeals,
+        cleanInvestigations,
+        cleanLedgerEntries
+      );
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error restoring game run data:", error);
+      res.status(500).json({ error: "Failed to restore game run data" });
+    }
+  });
+
   // Advance game by one week (process income, complete deals, trigger events)
   app.post("/api/game-runs/:id/advance-week", async (req, res) => {
     try {

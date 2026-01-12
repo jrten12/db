@@ -1,13 +1,22 @@
 import { useState } from 'react';
-import { X, User, Trophy } from 'lucide-react';
+import { User, Trophy, Save } from 'lucide-react';
+
+interface SaveInfo {
+  playerName: string;
+  savedAt: Date;
+  cash: number;
+  weeksRemaining: number;
+}
 
 interface PlayerNameModalProps {
   isOpen: boolean;
   onSubmit: (playerName: string) => void;
   onViewHallOfFame: () => void;
+  savedGameInfo?: SaveInfo | null;
+  onContinueSavedGame?: () => void;
 }
 
-export function PlayerNameModal({ isOpen, onSubmit, onViewHallOfFame }: PlayerNameModalProps) {
+export function PlayerNameModal({ isOpen, onSubmit, onViewHallOfFame, savedGameInfo, onContinueSavedGame }: PlayerNameModalProps) {
   const [playerName, setPlayerName] = useState('');
   const [error, setError] = useState('');
 
@@ -66,6 +75,27 @@ export function PlayerNameModal({ isOpen, onSubmit, onViewHallOfFame }: PlayerNa
               Start Game
             </button>
           </form>
+
+          {savedGameInfo && onContinueSavedGame && (
+            <div className="mt-6 pt-6 border-t border-white/10">
+              <button
+                onClick={onContinueSavedGame}
+                className="w-full py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold text-lg rounded-xl hover:from-emerald-500 hover:to-emerald-600 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                data-testid="button-continue-saved-game"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Save className="w-5 h-5" />
+                  Continue as {savedGameInfo.playerName}
+                </div>
+                <div className="text-sm font-normal opacity-80 mt-1">
+                  ${savedGameInfo.cash.toLocaleString()} • {savedGameInfo.weeksRemaining} weeks left
+                </div>
+              </button>
+              <p className="text-xs text-gray-500 text-center mt-2">
+                Your cash and progress are saved. Active deals start fresh.
+              </p>
+            </div>
+          )}
 
           <div className="mt-6 pt-6 border-t border-white/10">
             <button

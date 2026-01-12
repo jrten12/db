@@ -43,6 +43,20 @@ export const api = {
     return res.json();
   },
 
+  async restoreGameRunData(gameRunId: number, data: {
+    deals: Deal[];
+    investigations: PropertyInvestigation[];
+    ledgerEntries: LedgerEntry[];
+  }): Promise<{ deals: Deal[]; investigations: PropertyInvestigation[]; ledgerEntries: LedgerEntry[] }> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/restore`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to restore game run data');
+    return res.json();
+  },
+
   // Deals
   async createDeal(data: InsertDeal): Promise<Deal> {
     const res = await fetch(`${API_BASE}/deals`, {

@@ -455,16 +455,23 @@ export default function Game() {
       });
 
       if (proFormaInputs.strategy === 'flip') {
-        const allInBasis = selectedProperty.price + closingCosts + proFormaInputs.rehabBudget * (1 + proFormaInputs.contingencyPct / 100);
-        const holdingCostPerWeek = Math.round((selectedProperty.price * (proFormaInputs.interestRate / 100) / 52) +
-          (proFormaInputs.taxesAnnual / 52) + (proFormaInputs.insuranceAnnual / 52));
+        const rehabBudget = proFormaInputs.rehabBudget ?? 0;
+        const contingencyPct = proFormaInputs.contingencyPct ?? 0;
+        const interestRate = proFormaInputs.interestRate ?? 0;
+        const taxesAnnual = proFormaInputs.taxesAnnual ?? 0;
+        const insuranceAnnual = proFormaInputs.insuranceAnnual ?? 0;
+        const rehabWeeks = proFormaInputs.rehabWeeks ?? 0;
+        
+        const allInBasis = selectedProperty.price + closingCosts + rehabBudget * (1 + contingencyPct / 100);
+        const holdingCostPerWeek = Math.round((selectedProperty.price * (interestRate / 100) / 52) +
+          (taxesAnnual / 52) + (insuranceAnnual / 52));
         const arvMid = (selectedProperty.arvMin + selectedProperty.arvMax) / 2;
-        const profit = arvMid - allInBasis - (holdingCostPerWeek * proFormaInputs.rehabWeeks);
+        const profit = arvMid - allInBasis - (holdingCostPerWeek * rehabWeeks);
         const roi = proFormaOutputs.totalCashInvested > 0 ? (profit / proFormaOutputs.totalCashInvested) * 100 : 0;
-        setFlipMetrics({ profit, roi, holdWeeks: proFormaInputs.rehabWeeks });
+        setFlipMetrics({ profit, roi, holdWeeks: rehabWeeks });
 
         // Start flip rehab period
-        await api.startFlipRehab(newDeal.id, gameRun.id, proFormaInputs.rehabWeeks);
+        await api.startFlipRehab(newDeal.id, gameRun.id, rehabWeeks);
         toast.success('Flip started! Check Time & Income panel to track progress.');
       } else {
         // Activate rental property

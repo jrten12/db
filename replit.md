@@ -75,7 +75,12 @@ Preferred communication style: Simple, everyday language.
 - **Dual-Path Due Diligence Gating**: Players can return to property detail (recommended) or proceed without full diligence (not recommended), with consequences tracked
 - **Utilities Trade-off**: Tenant pays utilities = saves money but +1 week vacancy to find tenants
 - Strategy options: Rent vs Flip with different financial models
-- Financing options: Bank vs Hard Money with different terms
+- **LTV-Based Financing**: Single LTV slider (50-90%) drives all financing terms
+  - Interest rate: 5% at 50% LTV, 12% at 90% LTV (curved risk premium formula)
+  - Loan fees: 1% at 50% LTV, 4% at 90% LTV (linear)
+  - Down payment: Automatically calculated as 100% - LTV
+  - Helper functions: `getInterestRateFromLTV()`, `getLoanFeesFromLTV()`, `getDownPaymentFromLTV()`
+  - Educational messaging shows leverage-risk tradeoffs
 - Contractor options: Cheap vs Fast affecting timeline and costs
 
 ## External Dependencies

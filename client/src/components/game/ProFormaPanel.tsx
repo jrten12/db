@@ -14,6 +14,34 @@ const isFilled = (val: number | null | boolean): boolean => {
   return val !== null && val !== undefined;
 };
 
+// Generate input class with green glow when filled
+const getInputClass = (filled: boolean, baseClass: string = '') => {
+  const base = `${baseClass} transition-all duration-200`;
+  if (filled) {
+    return `${base} border-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.3)]`;
+  }
+  return `${base} border-slate-700`;
+};
+
+// Field hints for guidance
+const FIELD_HINTS: Record<string, string> = {
+  expectedRent: "What monthly rent will you charge?",
+  vacancyRate: "% of time property is empty",
+  taxesAnnual: "Property taxes per year",
+  insuranceAnnual: "Insurance cost per year",
+  maintenancePct: "% of rent for repairs",
+  capExPct: "% of rent for big repairs",
+  propertyManagementPct: "% of rent for manager",
+  utilitiesMonthly: "Monthly utility costs",
+  rehabBudget: "Total renovation cost",
+  rehabWeeks: "How long to complete work",
+  contingencyPct: "% buffer for surprises",
+  sellingCostsPct: "Realtor fees + closing costs",
+  downPaymentPct: "% of price you pay upfront",
+  interestRate: "Annual loan interest %",
+  loanOriginationPct: "Loan fees %",
+};
+
 const TERM_DEFINITIONS: Record<string, string> = {
   purchasePrice: "The price you're paying to buy the property. This is your starting point for all calculations.",
   closingCosts: "Fees paid when the sale is finalized - includes lender's title insurance (required), attorney fees, recording fees, transfer taxes, etc. Typically 2-4% of purchase price.",
@@ -168,7 +196,9 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
   const handleNumberFocus = (key: keyof ProFormaInputs) => {
     setEditingField(key);
-    setEditingValue(String(inputs[key]));
+    // Show empty string for null values, not "null"
+    const val = inputs[key];
+    setEditingValue(val === null || val === undefined ? '' : String(val));
   };
   
   const handleNumberChangeFor = (key: keyof ProFormaInputs, rawValue: string) => {
@@ -178,14 +208,17 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
       if (!isNaN(parsed)) {
         handleChange(key, parsed as ProFormaInputs[typeof key]);
       }
+    } else if (rawValue === '') {
+      // Allow clearing the field - set to null
+      handleChange(key, null as ProFormaInputs[typeof key]);
     }
   };
   
   const handleNumberBlur = (key: keyof ProFormaInputs, min?: number, max?: number) => {
     setEditingField(null);
+    // If empty, keep null - don't auto-fill (forces player to provide input)
     if (editingValue === '' || editingValue === '-') {
-      const defaultValue = min ?? 0;
-      handleChange(key, defaultValue as ProFormaInputs[typeof key]);
+      handleChange(key, null as ProFormaInputs[typeof key]);
       return;
     }
     const parsed = parseFloat(editingValue);
@@ -201,7 +234,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     if (editingField === key) {
       return editingValue;
     }
-    return String(inputs[key]);
+    const val = inputs[key];
+    // Return empty string for null values so placeholder shows
+    if (val === null || val === undefined) {
+      return '';
+    }
+    return String(val);
   };
 
   // Check for risky assumptions (only check if fields are filled)
@@ -284,9 +322,53 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  // Check completion status for pro forma inputs
+  const isComplete = isProFormaInputsComplete(inputs);
+  const missingFields = getMissingFields(inputs);
+  const requiredFields = inputs.strategy === 'rent' ? requiredRentFields : requiredFlipFields;
+  const filledCount = requiredFields.filter(field => isFilled(inputs[field as keyof ProFormaInputs])).length;
+  const completionPct = Math.round((filledCount / requiredFields.length) * 100);
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-4" data-testid="pro-forma-panel">
       <div className="xl:col-span-2 space-y-4">
+        {/* COMPLETION PROGRESS BANNER */}
+        <div className={`backdrop-blur rounded-xl border p-4 transition-all ${
+          isComplete 
+            ? 'bg-emerald-500/10 border-emerald-500/50' 
+            : 'bg-slate-900/90 border-slate-700'
+        }`}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              {isComplete ? (
+                <CheckCircle className="w-5 h-5 text-emerald-400" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 text-amber-400" />
+              )}
+              <span className={`font-semibold text-sm ${isComplete ? 'text-emerald-400' : 'text-white'}`}>
+                {isComplete ? 'Pro Forma Complete!' : 'Complete Your Analysis'}
+              </span>
+            </div>
+            <span className={`text-sm font-mono ${isComplete ? 'text-emerald-400' : 'text-gray-400'}`}>
+              {filledCount}/{requiredFields.length} fields
+            </span>
+          </div>
+          
+          {/* Progress bar */}
+          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div 
+              className={`h-full transition-all duration-500 ${isComplete ? 'bg-emerald-500' : 'bg-blue-500'}`}
+              style={{ width: `${completionPct}%` }}
+            />
+          </div>
+          
+          {!isComplete && missingFields.length > 0 && (
+            <p className="text-gray-400 text-xs mt-2">
+              Missing: {missingFields.slice(0, 3).join(', ')}{missingFields.length > 3 ? ` +${missingFields.length - 3} more` : ''}
+            </p>
+          )}
+        </div>
+
         {/* FORMULA VIEW TOGGLE */}
         <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur rounded-xl border border-blue-500/30 p-4">
           <div className="flex items-center justify-between">
@@ -810,10 +892,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                             type="text"
                             inputMode="numeric"
                             value={getInputValue('expectedRent')}
+                            placeholder={FIELD_HINTS.expectedRent}
                             onFocus={() => handleNumberFocus('expectedRent')}
                             onChange={(e) => handleNumberChangeFor('expectedRent', e.target.value)}
                             onBlur={() => handleNumberBlur('expectedRent', effectiveRanges.rent.min, effectiveRanges.rent.max)}
-                            className="w-full pl-7 pr-12 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-emerald-500"
+                            className={`w-full pl-7 pr-12 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-emerald-500 ${getInputClass(isFilled(inputs.expectedRent))}`}
                             data-testid="input-expected-rent-number"
                           />
                           <span className="absolute right-3 top-2.5 text-gray-500 text-xs">/mo</span>
@@ -887,7 +970,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <div className="flex items-center gap-2">
                     <div className="w-24 text-xs text-gray-400">- Expenses</div>
                     <div className="flex-1 h-4 bg-amber-500/30 rounded overflow-hidden">
-                      <div className="h-full bg-amber-500" style={{ width: `${(monthlyExpenses / n(inputs.expectedRent)) * 100}%` }} />
+                      <div className="h-full bg-amber-500" style={{ width: `${n(inputs.expectedRent) > 0 ? (monthlyExpenses / n(inputs.expectedRent)) * 100 : 0}%` }} />
                     </div>
                     <div className="w-20 text-right text-xs text-amber-400 font-mono">-{formatCurrency(monthlyExpenses)}</div>
                   </div>
@@ -895,7 +978,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     <div className="w-24 text-xs text-white font-semibold">= NOI</div>
                     <div className="flex-1 h-5 bg-blue-500/30 rounded overflow-hidden">
                       <div className={`h-full ${liveOutputs.noiMonthly > 0 ? 'bg-blue-500' : 'bg-red-500'}`} 
-                        style={{ width: `${Math.min(100, Math.max(0, (liveOutputs.noiMonthly / n(inputs.expectedRent)) * 100))}%` }} />
+                        style={{ width: `${n(inputs.expectedRent) > 0 ? Math.min(100, Math.max(0, (liveOutputs.noiMonthly / n(inputs.expectedRent)) * 100)) : 0}%` }} />
                     </div>
                     <div className={`w-20 text-right text-sm font-bold font-mono ${liveOutputs.noiMonthly > 0 ? 'text-blue-400' : 'text-red-400'}`}>
                       {formatCurrency(liveOutputs.noiMonthly)}
@@ -911,10 +994,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     type="text"
                     inputMode="numeric"
                     value={getInputValue('taxesAnnual')}
+                    placeholder={FIELD_HINTS.taxesAnnual}
                     onFocus={() => handleNumberFocus('taxesAnnual')}
                     onChange={(e) => handleNumberChangeFor('taxesAnnual', e.target.value)}
                     onBlur={() => handleNumberBlur('taxesAnnual', 0)}
-                    className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500"
+                    className={`w-full mt-1 px-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500 ${getInputClass(isFilled(inputs.taxesAnnual))}`}
                     data-testid="input-taxes"
                   />
                 </div>
@@ -924,10 +1008,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     type="text"
                     inputMode="numeric"
                     value={getInputValue('insuranceAnnual')}
+                    placeholder={FIELD_HINTS.insuranceAnnual}
                     onFocus={() => handleNumberFocus('insuranceAnnual')}
                     onChange={(e) => handleNumberChangeFor('insuranceAnnual', e.target.value)}
                     onBlur={() => handleNumberBlur('insuranceAnnual', 0)}
-                    className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500"
+                    className={`w-full mt-1 px-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500 ${getInputClass(isFilled(inputs.insuranceAnnual))}`}
                     data-testid="input-insurance"
                   />
                 </div>
@@ -937,10 +1022,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     type="text"
                     inputMode="numeric"
                     value={getInputValue('maintenancePct')}
+                    placeholder={FIELD_HINTS.maintenancePct}
                     onFocus={() => handleNumberFocus('maintenancePct')}
                     onChange={(e) => handleNumberChangeFor('maintenancePct', e.target.value)}
                     onBlur={() => handleNumberBlur('maintenancePct', 0, 50)}
-                    className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500"
+                    className={`w-full mt-1 px-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500 ${getInputClass(isFilled(inputs.maintenancePct))}`}
                     data-testid="input-maintenance"
                   />
                 </div>
@@ -950,10 +1036,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     type="text"
                     inputMode="numeric"
                     value={getInputValue('capExPct')}
+                    placeholder={FIELD_HINTS.capExPct}
                     onFocus={() => handleNumberFocus('capExPct')}
                     onChange={(e) => handleNumberChangeFor('capExPct', e.target.value)}
                     onBlur={() => handleNumberBlur('capExPct', 0, 50)}
-                    className="w-full mt-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500"
+                    className={`w-full mt-1 px-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-blue-500 ${getInputClass(isFilled(inputs.capExPct))}`}
                     data-testid="input-capex"
                   />
                 </div>
@@ -1036,10 +1123,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                             type="text"
                             inputMode="numeric"
                             value={getInputValue('rehabBudget')}
+                            placeholder={FIELD_HINTS.rehabBudget}
                             onFocus={() => handleNumberFocus('rehabBudget')}
                             onChange={(e) => handleNumberChangeFor('rehabBudget', e.target.value)}
                             onBlur={() => handleNumberBlur('rehabBudget', effectiveRanges.rehab.min, effectiveRanges.rehab.max)}
-                            className="w-full pl-7 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-amber-500"
+                            className={`w-full pl-7 pr-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-amber-500 ${getInputClass(isFilled(inputs.rehabBudget))}`}
                             data-testid="input-rehab-budget-number"
                           />
                         </div>

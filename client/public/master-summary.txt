@@ -1,0 +1,112 @@
+Below are answers grounded in the current codebase (client-side React app). I’ve included direct code citations and a short list of commands I used.
+
+---
+
+# 1) Core “Thin Wrapper” Test (Most Important)
+
+1. If this web app were embedded in a WKWebView as-is, would Apple likely classify it as a “thin wrapper”? Why or why not?
+Yes—based on the current code, it looks like a standard SPA with web routing, web UI components, and network fetch calls for core gameplay data, with only minimal browser storage usage. There are no native integrations or device-specific features surfaced in the code, so Apple would likely see it as a wrapped website. The app routes purely via a web router and renders web pages (Landing, Game, Terms, Privacy).【F:client/src/App.tsx†L1-L35】 Core game state and data (properties, deals, ledger, week progression, purchases, hall of fame) are fetched over HTTP via /api endpoints using fetch, which is standard web behavior rather than native app integration.【F:client/src/lib/api.ts†L1-L235】 The only client-side persistence shown is sessionStorage for a game run ID and skipped diligence flags, which is a typical browser feature, not a native capability.【F:client/src/pages/Game.tsx†L51-L140】
+
+2. Which parts of the current web app would feel indistinguishable from Safari inside an iOS container?
+The entire UI is built as web pages and web modals with Tailwind-style classes and wouter routing. The landing page, player name modal, premium modal, and menu overlay are all standard web UI patterns (buttons, modals, overlays, client-side routing).【F:client/src/pages/Landing.tsx†L6-L89】【F:client/src/components/game/PlayerNameModal.tsx†L10-L84】【F:client/src/components/game/PremiumModal.tsx†L105-L245】【F:client/src/components/game/StatusBar.tsx†L98-L260】 This would render and behave the same inside Safari or a WKWebView.
+
+3. What minimum native features would be required to make this app clearly not just a website?
+At minimum, you’d want one or more of:
+- Offline/local save + resume implemented with native storage (e.g., Core Data) rather than sessionStorage.
+- Native onboarding (e.g., native screens, Apple sign-in, permissions).
+- Native gestures/haptics tied to game actions (e.g., haptic on deal commit, system-level gesture nav).
+- Background notifications (e.g., “rent payment posted” or “week advanced” reminders).
+These would be distinct from the current web-only pattern of fetch calls + browser storage.【F:client/src/lib/api.ts†L1-L235】【F:client/src/pages/Game.tsx†L51-L206】
+
+---
+
+# 2) Native Value Mapping (Critical for Approval)
+
+4. Which current web features can be reasonably mapped to native iOS equivalents?
+- Session storage state (current game run ID, skipped diligence) maps to UserDefaults or a local persistence layer for lightweight session data.【F:client/src/pages/Game.tsx†L51-L140】
+- Modal overlays (player name entry, premium boosts, menu overlay) map to native sheets / fullscreen modals.【F:client/src/components/game/PlayerNameModal.tsx†L10-L84】【F:client/src/components/game/PremiumModal.tsx†L105-L245】【F:client/src/components/game/StatusBar.tsx†L220-L260】
+- Toasts / alerts could map to native banners (though currently implemented via web UI). The Game page uses toast notifications for events and errors, which in a native app could be system banners or custom overlays.【F:client/src/pages/Game.tsx†L161-L206】
+
+5. Does the app have a natural place to add native settings/onboarding/menus without breaking the product?
+Yes:
+- Onboarding: The player name modal is already a forced entry point, which could be replaced/extended by a native onboarding flow.【F:client/src/components/game/PlayerNameModal.tsx†L10-L84】【F:client/src/pages/Game.tsx†L649-L671】
+- Menus/Overlays: The status bar menu overlay is a natural place to swap in a native menu or settings sheet.【F:client/src/components/game/StatusBar.tsx†L220-L260】
+- Settings: The main menu overlay includes items like Hall of Fame and Premium Boosts; adding a “Settings” entry here would be consistent with existing UX patterns.【F:client/src/components/game/StatusBar.tsx†L244-L260】
+
+6. Can the game maintain meaningful state locally (save progress, preferences, game state) without relying solely on server calls?
+Not currently. The core game loop relies on server APIs for properties, deals, investigations, ledger, week advancement, and purchases—meaning gameplay and progress are server-driven, not local-first.【F:client/src/lib/api.ts†L7-L186】 The only local persistence is sessionStorage for a game run ID and skipped diligence, which is ephemeral and not full game state.【F:client/src/pages/Game.tsx†L51-L140】
+
+---
+
+# 3) Offline / Resilience Expectations
+
+7. What currently happens if the app is opened without an internet connection?
+Given that core data is fetched from /api endpoints, the app would fail to load game content when offline. The Game page shows a loading spinner while data is fetched, and if errors are set, it displays a generic “Failed to load game” state with a “Try Again” button (which would still fail offline).【F:client/src/pages/Game.tsx†L636-L689】【F:client/src/lib/api.ts†L7-L186】
+
+8. Could the app display an offline screen / cached state / resume last session without major changes?
+Not as-is. There’s no service worker, caching layer, or local persistence for game state; the data flow depends on live API calls for game runs, deals, ledger entries, and property data. Implementing offline mode or cached resume would require adding local persistence and/or caching strategies to replace or supplement server calls.【F:client/src/lib/api.ts†L7-L186】【F:client/src/pages/Game.tsx†L148-L206】
+
+---
+
+# 4) App Completeness Signals (Apple Review Guideline 2.1)
+
+9. Are there placeholders, dead buttons, “coming soon” sections, or feature stubs?
+Yes. The Premium Boosts modal has disabled purchase buttons labeled “Coming Soon,” along with explicit copy that premium purchases are not yet integrated.【F:client/src/components/game/PremiumModal.tsx†L27-L245】 The 404 page includes a developer-facing message (“Did you forget to add the page to the router?”), which can read as non-production placeholder messaging.【F:client/src/pages/not-found.tsx†L4-L19】
+
+10. Does the app feel complete and intentional, or like an MVP expecting rapid iteration?
+The gameplay flow and UI look substantial, but the presence of “Coming Soon” premium purchase UI and developer-facing 404 messaging suggests parts of the product are still in a pre-release or MVP stage.【F:client/src/components/game/PremiumModal.tsx†L27-L245】【F:client/src/pages/not-found.tsx†L4-L19】
+
+---
+
+# 5) Game-Specific Review Risks (Very Relevant)
+
+11. Is the core game loop fully playable without ads, purchases, or accounts?
+Yes. The game can start after entering a player name; there are no ads in the UI and premium purchases are disabled (coming soon).【F:client/src/components/game/PlayerNameModal.tsx†L10-L84】【F:client/src/components/game/PremiumModal.tsx†L224-L240】
+
+12. Does the app require login before anything meaningful happens?
+It requires entering a player name before starting, but this is not an account/login system—it’s a lightweight name entry used for Hall of Fame tracking.【F:client/src/components/game/PlayerNameModal.tsx†L10-L84】【F:client/src/pages/Game.tsx†L649-L671】
+
+13. Are there any mechanics that could be interpreted as gambling / real-money incentives / pay-to-win / rewarded ads?
+There are no ads or gambling mechanics shown, but the Premium Boosts offering explicitly sells cash and extra weeks, which directly improves outcomes and can be interpreted as pay-to-win if/when enabled.【F:client/src/components/game/PremiumModal.tsx†L27-L240】 The backend API also defines purchase endpoints for these boosts, indicating intended monetization for gameplay advantage.【F:client/src/lib/api.ts†L157-L185】
+
+---
+
+# 6) UX & Platform Fit
+
+14. Does the current UI assume mouse hover, keyboard shortcuts, or desktop width?
+- Hover: Many buttons and UI elements use hover: classes and hover-based animations (e.g., landing CTA, premium cards, menu buttons), which are not primary on iOS and can feel “desktop-first.”【F:client/src/pages/Landing.tsx†L16-L47】【F:client/src/components/game/PremiumModal.tsx†L171-L230】【F:client/src/components/game/StatusBar.tsx†L220-L260】
+- Desktop width: The landing page and game layout use multi-column grids on larger breakpoints (lg:grid-cols-2, lg:grid-cols-3, etc.), suggesting a desktop-first layout that collapses on mobile; this is responsive but could still feel dense on iPhone screens.【F:client/src/pages/Landing.tsx†L23-L59】【F:client/src/pages/Game.tsx†L718-L740】
+- Keyboard shortcuts: I did not see keyboard shortcuts in the core game/landing components; interactions are primarily button taps and a single text input (player name).【F:client/src/components/game/PlayerNameModal.tsx†L42-L68】
+
+15. Are touch interactions already first-class, or would they need redesign?
+The UI is clickable/tappable (buttons, cards, modals), and there is a mobile-specific status bar layout, so it’s responsive to smaller screens. However, there are no explicit touch-first affordances like swipe gestures, haptics, or native-like navigation, so it would likely need refinement for iOS-native feel rather than full redesign.【F:client/src/components/game/StatusBar.tsx†L161-L216】【F:client/src/pages/Landing.tsx†L23-L59】
+
+---
+
+# 7) App Store Reviewer Reality Check
+
+16. If an Apple reviewer asked, “Why should this be an app instead of a website?” — what is the one-sentence answer today?
+Today’s code doesn’t show a strong native-only justification; it behaves as a web-based real estate simulator with web routing and server calls, which would look the same in Safari.【F:client/src/App.tsx†L1-L35】【F:client/src/lib/api.ts†L7-L186】
+
+17. If there is no strong answer, what is the smallest possible feature that would create one?
+The smallest feature that would clearly justify an app is offline save + resume (local caching of game state with a “Resume last session” entry), because it uses device-local persistence and provides value unavailable in a plain website. This would build on the existing game session logic and move it from sessionStorage/server-only to native storage.【F:client/src/pages/Game.tsx†L51-L140】【F:client/src/lib/api.ts†L7-L186】
+
+---
+
+Commands used (for transparency)
+- ls
+- find .. -name AGENTS.md -print
+- ls client
+- ls client/src
+- ls client/src/pages
+- sed -n '1,200p' client/src/pages/Game.tsx
+- sed -n '1,200p' client/src/lib/api.ts
+- rg -n "localStorage|sessionStorage" client/src
+- rg -n "service worker|serviceworker|sw.js|offline" client/src
+- rg -n "keydown|keyup|keypress" client/src
+- sed -n '1,240p' client/src/components/game/PremiumModal.tsx
+- sed -n '1,200p' client/src/pages/Landing.tsx
+- sed -n '1,200p' client/src/components/game/StatusBar.tsx
+- sed -n '1,200p' client/src/components/game/PlayerNameModal.tsx
+- sed -n '1,200p' client/src/pages/not-found.tsx
+- nl -ba client/src/... (for line numbers in citations)

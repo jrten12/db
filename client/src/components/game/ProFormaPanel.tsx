@@ -777,11 +777,13 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
               </div>
 
-              {/* TOTAL PROJECT CASH NEEDED SUMMARY */}
+              {/* TOTAL CASH NEEDED SUMMARY */}
               <div className="bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-emerald-500/20 backdrop-blur rounded-xl border-2 border-blue-500/50 p-4 shadow-lg">
                 <div className="flex items-center gap-2 mb-3">
                   <DollarSign className="w-5 h-5 text-blue-400" />
-                  <h4 className="text-blue-400 font-bold text-sm uppercase tracking-wider">💰 Total Project Cash Needed</h4>
+                  <h4 className="text-blue-400 font-bold text-sm uppercase tracking-wider">
+                    {inputs.strategy === 'rent' ? '💰 Cash Needed to Close' : '💰 Total Project Cash'}
+                  </h4>
                 </div>
                 {(() => {
                   const loanFees = Math.round(liveOutputs.loanAmount * n(inputs.loanOriginationPct) / 100);
@@ -790,7 +792,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     ? Math.round(n(inputs.rehabBudget) * (inputs.contractorType === 'fast' ? 1.5 : 1.0) * (1 + n(inputs.contingencyPct) / 100))
                     : 0;
                   const cashAtClosing = liveOutputs.downPaymentAmount + closingCosts + loanFees;
-                  const totalProjectCash = cashAtClosing + (inputs.strategy === 'flip' ? flipHoldingCosts + rehabWithContingency : 0);
+                  // Use liveOutputs.totalCashInvested as the single source of truth
+                  const totalProjectCash = liveOutputs.totalCashInvested;
                   const canAfford = playerCash >= totalProjectCash;
                   const cashRatio = Math.min(playerCash / totalProjectCash, 1) * 100;
                   
@@ -814,10 +817,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                               <span className="text-white font-mono text-xs">{formatCurrency(loanFees)}</span>
                             </div>
                           </div>
-                          <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-700">
-                            <span className="text-blue-300 text-xs font-semibold">Subtotal</span>
-                            <span className="text-blue-300 font-mono text-sm font-semibold">{formatCurrency(cashAtClosing)}</span>
-                          </div>
+                          {inputs.strategy === 'rent' && (
+                            <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-700">
+                              <span className="text-blue-300 text-xs font-semibold">Total</span>
+                              <span className="text-blue-300 font-mono text-sm font-semibold">{formatCurrency(cashAtClosing)}</span>
+                            </div>
+                          )}
                         </div>
 
                         {/* Rehab costs for flip */}
@@ -834,17 +839,15 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                                 <span className="text-white font-mono text-xs">{formatCurrency(flipHoldingCosts)}</span>
                               </div>
                             </div>
-                            <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-700">
-                              <span className="text-amber-300 text-xs font-semibold">Subtotal</span>
-                              <span className="text-amber-300 font-mono text-sm font-semibold">{formatCurrency(rehabWithContingency + flipHoldingCosts)}</span>
-                            </div>
                           </div>
                         )}
                       </div>
 
                       <div className="border-t-2 border-blue-400/30 pt-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-blue-300 font-bold text-base">TOTAL PROJECT CASH</span>
+                          <span className="text-blue-300 font-bold text-base">
+                            {inputs.strategy === 'rent' ? 'TOTAL AT CLOSING' : 'TOTAL PROJECT CASH'}
+                          </span>
                           <span className={`font-mono font-bold text-2xl ${canAfford ? 'text-emerald-400' : 'text-red-400'}`}>
                             {formatCurrency(totalProjectCash)}
                           </span>
@@ -867,8 +870,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         
                         <p className="text-gray-400 text-xs mt-2 italic">
                           {inputs.strategy === 'rent'
-                            ? 'Total cash needed to acquire this rental property'
-                            : 'Total cash needed from closing through completion of rehab'}
+                            ? 'Cash you need at closing to acquire this rental'
+                            : 'Total cash needed to complete this project (including carrying costs during rehab)'}
                         </p>
                       </div>
                     </>

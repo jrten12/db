@@ -179,14 +179,15 @@ function DiligenceEducationTooltip({ diligenceId }: { diligenceId: string }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="p-1 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70"
+        <span
+          className="p-1 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70 cursor-help inline-flex items-center justify-center"
           onClick={(e) => e.stopPropagation()}
           aria-label="Learn about real-world data sources"
+          role="button"
+          tabIndex={0}
         >
           <HelpCircle className="w-3.5 h-3.5 text-blue-400 hover:text-blue-300" />
-        </button>
+        </span>
       </PopoverTrigger>
       <PopoverContent side="bottom" align="center" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4 z-[100]">
         <div className="space-y-2">

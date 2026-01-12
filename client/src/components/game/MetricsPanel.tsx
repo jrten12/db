@@ -173,7 +173,7 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
                 {playerCash < outputs.totalCashInvested && (
                   <div className="mt-2 p-2 bg-danger/20 border border-danger/30 rounded text-xs text-danger flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                    <span>Insufficient funds! Need ${(outputs.totalCashInvested - playerCash).toLocaleString()} more to complete this project.</span>
+                    <span>Need ${(outputs.totalCashInvested - playerCash).toLocaleString()} more to fund this project.</span>
                   </div>
                 )}
               </div>

@@ -298,37 +298,32 @@ export default function Game() {
     setCurrentScreen('market');
   }, []);
 
-  const handleOpenProForma = useCallback((strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money', contractor: 'cheap' | 'fast') => {
+  const handleOpenProForma = useCallback(() => {
     if (!selectedProperty) return;
-    
+
     const diligenceForProperty = completedDiligence[selectedProperty.id] || [];
     const effectiveRanges = getEffectiveRanges(
       convertPropertyToGameProperty(selectedProperty),
       diligenceForProperty
     );
-    
+
     const hasMarketStudy = diligenceForProperty.includes('market_study');
     const hasContractorWalkthrough = diligenceForProperty.includes('contractor_walkthrough');
-    
-    const rentEstimate = hasMarketStudy 
+
+    const rentEstimate = hasMarketStudy
       ? Math.round((effectiveRanges.rent.min + effectiveRanges.rent.max) / 2)
       : 0;
-    
+
     const rehabEstimate = hasContractorWalkthrough
       ? Math.round((effectiveRanges.rehab.min + effectiveRanges.rehab.max) / 2)
       : 0;
-    
+
     const timelineEstimate = hasContractorWalkthrough
       ? Math.round((effectiveRanges.timeline.min + effectiveRanges.timeline.max) / 2)
       : 8;
-    
+
     setProFormaInputs(prev => ({
       ...prev,
-      strategy,
-      financingType: financing,
-      interestRate: financing === 'bank' ? 6.5 : 12,
-      downPaymentPct: financing === 'bank' ? 25 : 10,
-      contractorType: contractor,
       expectedRent: rentEstimate,
       rehabBudget: rehabEstimate,
       rehabWeeks: timelineEstimate,

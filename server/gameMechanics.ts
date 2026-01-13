@@ -710,16 +710,20 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
       const weeksLeft = deal.weeksUntilCompletion - 1;
 
       if (weeksLeft <= 0) {
-        // Flip is complete! Time to sell
-        // Roll for curveball events (flip_at_sale trigger)
-        const curveball = rollForCurveball('flip_at_sale');
-
-        const result = await completeFlipDeal(deal, gameRun, curveball || undefined);
-        completedFlips.push(result);
-
-        if (curveball) {
-          curveballs.push(curveball);
-        }
+        // Flip rehab is complete! Property is ready to list for sale
+        // Player must manually trigger the sale from TimeProgressionPanel
+        await storage.updateDeal(deal.id, {
+          status: 'ready_to_list',
+          weeksUntilCompletion: 0,
+        });
+        
+        // Add to completedFlips with a marker that it's ready to list (not sold yet)
+        completedFlips.push({
+          dealId: deal.id,
+          salePrice: 0,
+          profit: 0,
+          readyToList: true, // New flag indicating ready to sell
+        } as any);
       } else {
         // Update weeks remaining
         await storage.updateDeal(deal.id, {

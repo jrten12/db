@@ -253,8 +253,9 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     if (isFilled(inputs.capExPct) && n(inputs.capExPct) < 8) risks.push({ field: 'capex', message: 'CapEx under 8% leaves no buffer for big replacements', severity: 'high' });
     if (isFilled(inputs.contingencyPct) && n(inputs.contingencyPct) < 10) risks.push({ field: 'contingency', message: 'Contingency under 10% leaves no buffer', severity: 'medium' });
     if (isFilled(inputs.sellingCostsPct) && n(inputs.sellingCostsPct) < 7.5 && inputs.strategy === 'flip') risks.push({ field: 'selling', message: 'Selling costs under 7.5% is optimistic', severity: 'medium' });
-    if (isFilled(inputs.expectedRent) && n(inputs.expectedRent) > effectiveRanges.rent.max * 0.9 && effectiveRanges.rent.known) {
-      risks.push({ field: 'rent', message: 'Rent assumption near top of range', severity: 'medium' });
+    // Only warn about rent if player is guessing without market study
+    if (isFilled(inputs.expectedRent) && !effectiveRanges.rent.known) {
+      risks.push({ field: 'rent', message: 'Guessing rent without market study - high risk', severity: 'high' });
     }
     if (isFilled(inputs.rehabBudget) && n(inputs.rehabBudget) < effectiveRanges.rehab.min * 1.1 && effectiveRanges.rehab.known) {
       risks.push({ field: 'rehab', message: 'Rehab budget at minimum - likely underestimated', severity: 'medium' });
@@ -916,6 +917,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
                 {effectiveRanges.rent.known ? (
                   <>
+                    {/* With market study: constrained slider + text input */}
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
                         <div className="relative">
@@ -951,11 +953,39 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       <span>Conservative: {formatCurrency(effectiveRanges.rent.min)}</span>
                       <span>Optimistic: {formatCurrency(effectiveRanges.rent.max)}</span>
                     </div>
+                    <div className="mt-2 text-xs text-emerald-400 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" /> Based on market study data
+                    </div>
                   </>
                 ) : (
-                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-center">
-                    <p className="text-amber-400 text-xs">Complete a Market Rent Study to unlock rent estimates</p>
-                  </div>
+                  <>
+                    {/* Without market study: free text input (player is guessing blind) */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <div className="relative">
+                          <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={getInputValue('expectedRent')}
+                            placeholder="Enter your rent estimate..."
+                            onFocus={() => handleNumberFocus('expectedRent')}
+                            onChange={(e) => handleNumberChangeFor('expectedRent', e.target.value)}
+                            onBlur={() => handleNumberBlur('expectedRent', 0)} // No max constraint
+                            className={`w-full pl-7 pr-12 py-2 bg-slate-800 border border-amber-500/50 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-amber-500 ${getInputClass(isFilled(inputs.expectedRent), 'border-amber-500/50')}`}
+                            data-testid="input-expected-rent-freeform"
+                          />
+                          <span className="absolute right-3 top-2.5 text-gray-500 text-xs">/mo</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-2 bg-amber-500/10 border border-amber-500/30 rounded-lg p-2">
+                      <p className="text-amber-400 text-xs flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        <span>Guessing blind! Market study reveals the true rent range.</span>
+                      </p>
+                    </div>
+                  </>
                 )}
               </div>
 

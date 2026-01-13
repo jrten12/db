@@ -109,49 +109,80 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
         <>
           <div className="metric-card" data-testid="card-real-time-metrics">
             <h3 className="font-display text-foreground text-base font-semibold mb-4">
-              Real-Time Metrics
+              {strategy === 'flip' ? 'Flip Breakdown' : 'Rental Metrics'}
             </h3>
             
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <MetricTooltip term="cashFlow">
-                  <span className="text-muted-foreground text-sm">Monthly Cash Flow</span>
-                </MetricTooltip>
-                <span className={`font-mono font-bold ${cashFlowNegative ? 'text-danger' : 'text-success'}`}>
-                  {formatCurrency(outputs.cashFlowMonthly)}/mo
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {cashOnCashNegative && <AlertTriangle className="w-4 h-4 text-warning" />}
-                  <MetricTooltip term="cashOnCash">
-                    <span className="text-muted-foreground text-sm">Cash-on-Cash (CoC)</span>
+            {strategy === 'rent' ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <MetricTooltip term="cashFlow">
+                    <span className="text-muted-foreground text-sm">Monthly Cash Flow</span>
                   </MetricTooltip>
+                  <span className={`font-mono font-bold ${cashFlowNegative ? 'text-danger' : 'text-success'}`}>
+                    {formatCurrency(outputs.cashFlowMonthly)}/mo
+                  </span>
                 </div>
-                <span className={`font-mono font-bold ${cashOnCashNegative ? 'text-danger' : 'text-success'}`}>
-                  {formatPercent(outputs.cashOnCash)}
-                </span>
-              </div>
 
-              <div className="flex items-center justify-between">
-                <MetricTooltip term="capRate">
-                  <span className="text-muted-foreground text-sm">Cap Rate</span>
-                </MetricTooltip>
-                <span className="font-mono text-foreground">
-                  {formatPercent(outputs.capRate)}
-                </span>
-              </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {cashOnCashNegative && <AlertTriangle className="w-4 h-4 text-warning" />}
+                    <MetricTooltip term="cashOnCash">
+                      <span className="text-muted-foreground text-sm">Cash-on-Cash (CoC)</span>
+                    </MetricTooltip>
+                  </div>
+                  <span className={`font-mono font-bold ${cashOnCashNegative ? 'text-danger' : 'text-success'}`}>
+                    {formatPercent(outputs.cashOnCash)}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-between">
-                <MetricTooltip term="totalCashInvested">
-                  <span className="text-muted-foreground text-sm">Total Project Cash</span>
-                </MetricTooltip>
-                <span className="font-mono text-foreground">
-                  {formatCurrency(outputs.totalCashInvested)}
-                </span>
+                <div className="flex items-center justify-between">
+                  <MetricTooltip term="capRate">
+                    <span className="text-muted-foreground text-sm">Cap Rate</span>
+                  </MetricTooltip>
+                  <span className="font-mono text-foreground">
+                    {formatPercent(outputs.capRate)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <MetricTooltip term="totalCashInvested">
+                    <span className="text-muted-foreground text-sm">Total Project Cash</span>
+                  </MetricTooltip>
+                  <span className="font-mono text-foreground">
+                    {formatCurrency(outputs.totalCashInvested)}
+                  </span>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <MetricTooltip term="totalCashInvested">
+                    <span className="text-muted-foreground text-sm">Your Cash In</span>
+                  </MetricTooltip>
+                  <span className="font-mono text-foreground">
+                    {formatCurrency(outputs.totalCashInvested)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <MetricTooltip term="roi">
+                    <span className="text-muted-foreground text-sm">Projected Profit</span>
+                  </MetricTooltip>
+                  <span className={`font-mono font-bold ${flipProfit >= 0 ? 'text-success' : 'text-danger'}`}>
+                    {formatCurrency(flipProfit)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <MetricTooltip term="roi">
+                    <span className="text-muted-foreground text-sm">Return on Investment</span>
+                  </MetricTooltip>
+                  <span className={`font-mono font-bold ${flipROI >= STRATEGY_THRESHOLDS.flip.roi ? 'text-success' : 'text-warning'}`}>
+                    {flipROI.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {onCommitDeal && outputs && (

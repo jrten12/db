@@ -76,6 +76,7 @@ export default function Game() {
   const [proFormaInputs, setProFormaInputs] = useState<ProFormaInputs>(defaultProForma);
   const [proFormaOutputs, setProFormaOutputs] = useState<ProFormaOutputs | null>(null);
   const [isProFormaComplete, setIsProFormaComplete] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Set<keyof ProFormaInputs>>(new Set());
   const [completedDiligence, setCompletedDiligence] = useState<DiligenceState>({});
   const [proFormaCompletions, setProFormaCompletions] = useState<ProFormaCompletionState>({});
   const [skippedDiligenceDeals, setSkippedDiligenceDeals] = useState<Set<number>>(() => {
@@ -332,6 +333,9 @@ export default function Game() {
       rehabBudget: rehabEstimate,
       rehabWeeks: timelineEstimate,
     }));
+    // Reset touched fields - user must interact with all fields
+    // Mark only the fields chosen by buttons (strategy, financing, contractor) as touched
+    setTouchedFields(new Set(['strategy', 'financingType', 'contractorType']));
     setIsProFormaComplete(false);
     setProFormaOutputs(null);
     setCurrentScreen('proforma');
@@ -406,8 +410,7 @@ export default function Game() {
 
   const handleBackToMarket = useCallback(() => {
     setCurrentScreen('market');
-    setIsProFormaComplete(false);
-    setProFormaOutputs(null);
+    // Don't reset pro forma state - preserve user's work when going back
   }, []);
 
   const handleReturnToProperty = useCallback(() => {
@@ -430,6 +433,14 @@ export default function Game() {
       setProFormaOutputs(calculateProForma(inputs, selectedProperty));
     }
   }, [isProFormaComplete, selectedProperty]);
+
+  const handleFieldTouch = useCallback((fieldKey: keyof ProFormaInputs) => {
+    setTouchedFields(prev => {
+      const newSet = new Set(prev);
+      newSet.add(fieldKey);
+      return newSet;
+    });
+  }, []);
 
   const handleCalculate = useCallback(() => {
     if (selectedProperty) {
@@ -808,6 +819,8 @@ export default function Game() {
                     onReturnToProperty={handleReturnToProperty}
                     onProceedWithoutDiligence={handleProceedWithoutDiligence}
                     skippedDiligence={skippedDiligenceDeals.has(selectedProperty.id)}
+                    touchedFields={touchedFields}
+                    onFieldTouch={handleFieldTouch}
                   />
                 </div>
 

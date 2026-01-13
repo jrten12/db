@@ -399,28 +399,6 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           </div>
         </div>
 
-        {/* RISKY ASSUMPTIONS WARNING */}
-        {riskyAssumptions.length > 0 && (
-          <div className="bg-amber-500/10 backdrop-blur rounded-xl border border-amber-500/50 p-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 mt-0.5 text-amber-400" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-sm text-amber-400">⚠️ Risky Assumptions Detected</h3>
-                <p className="text-gray-300 text-xs mt-1">Your proforma contains assumptions that may be too optimistic:</p>
-                <ul className="mt-2 space-y-1">
-                  {riskyAssumptions.map((risk, i) => (
-                    <li key={i} className="text-xs text-gray-300 flex items-center gap-2">
-                      <span className={`w-1.5 h-1.5 rounded-full ${risk.severity === 'high' ? 'bg-red-400' : 'bg-amber-400'}`} />
-                      {risk.message}
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-emerald-400 text-xs mt-2">💡 Conservative assumptions protect you from surprises</p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* STRATEGY SELECTOR */}
         <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-4">
           <div className="flex items-center justify-between mb-3">
@@ -461,33 +439,34 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           </div>
         </div>
 
-        {/* DILIGENCE RISK WARNING */}
-        {diligenceRiskLevel > 0 && (
+        {/* UNIFIED RISK WARNING - combines risky assumptions and missing diligence */}
+        {(riskyAssumptions.length > 0 || diligenceRiskLevel > 0) && (
           <div className={`rounded-xl border p-4 ${
-            diligenceRiskLevel >= 3 ? 'bg-red-500/10 border-red-500/50' :
-            diligenceRiskLevel >= 2 ? 'bg-amber-500/10 border-amber-500/50' :
+            riskyAssumptions.some(r => r.severity === 'high') || diligenceRiskLevel >= 3 ? 'bg-red-500/10 border-red-500/50' :
+            riskyAssumptions.length > 0 || diligenceRiskLevel >= 2 ? 'bg-amber-500/10 border-amber-500/50' :
             'bg-yellow-500/10 border-yellow-500/50'
-          }`} data-testid="diligence-warning">
+          }`} data-testid="risk-warning">
             <div className="flex items-start gap-3">
               <AlertTriangle className={`w-5 h-5 mt-0.5 ${
-                diligenceRiskLevel >= 3 ? 'text-red-400' :
-                diligenceRiskLevel >= 2 ? 'text-amber-400' :
+                riskyAssumptions.some(r => r.severity === 'high') || diligenceRiskLevel >= 3 ? 'text-red-400' :
+                riskyAssumptions.length > 0 || diligenceRiskLevel >= 2 ? 'text-amber-400' :
                 'text-yellow-400'
               }`} />
-              <div>
+              <div className="flex-1">
                 <h3 className={`font-semibold text-sm ${
-                  diligenceRiskLevel >= 3 ? 'text-red-400' :
-                  diligenceRiskLevel >= 2 ? 'text-amber-400' :
+                  riskyAssumptions.some(r => r.severity === 'high') || diligenceRiskLevel >= 3 ? 'text-red-400' :
+                  riskyAssumptions.length > 0 || diligenceRiskLevel >= 2 ? 'text-amber-400' :
                   'text-yellow-400'
                 }`}>
-                  {diligenceRiskLevel >= 3 ? 'High Risk: Limited Data' :
-                   diligenceRiskLevel >= 2 ? 'Elevated Risk: Missing Key Data' :
-                   'Caution: Unverified Assumptions'}
+                  ⚠️ Caution: Review Before Committing
                 </h3>
-                <p className="text-gray-400 text-xs mt-1">
-                  Your pro forma contains unverified assumptions. Consider completing due diligence:
-                </p>
                 <ul className="mt-2 space-y-1">
+                  {riskyAssumptions.map((risk, i) => (
+                    <li key={`risk-${i}`} className="text-xs text-gray-300 flex items-center gap-2">
+                      <span className={`w-1.5 h-1.5 rounded-full ${risk.severity === 'high' ? 'bg-red-400' : 'bg-amber-400'}`} />
+                      {risk.message}
+                    </li>
+                  ))}
                   {missingDiligence.rent && inputs.strategy === 'rent' && (
                     <li className="text-xs text-gray-300 flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
@@ -513,6 +492,9 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     </li>
                   )}
                 </ul>
+                {riskyAssumptions.length > 0 && (
+                  <p className="text-emerald-400 text-xs mt-2">💡 Conservative assumptions protect you from surprises</p>
+                )}
               </div>
             </div>
           </div>

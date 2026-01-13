@@ -82,6 +82,7 @@ Preferred communication style: Simple, everyday language.
   - Helper functions: `getInterestRateFromLTV()`, `getLoanFeesFromLTV()`, `getDownPaymentFromLTV()`
   - Educational messaging shows leverage-risk tradeoffs
 - Contractor options: Cheap vs Fast affecting timeline and costs
+- **First Purchase Protection**: Players cannot go bankrupt on their very first property purchase - transaction is blocked if insufficient funds. Subsequent purchases allow overdraft, triggering bankruptcy if cash goes negative.
 - **Rental Property Selling**: Players can sell active rental properties to convert equity back to cash
   - Sale price: Random -10% to +15% of original purchase price (market volatility simulation)
   - Time cost: 2 weeks to complete sale

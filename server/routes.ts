@@ -189,13 +189,35 @@ export async function registerRoutes(
       const gameRun = await storage.getGameRun(gameRunId);
       const actualCash = gameRun?.cash ?? currentCash;
       
-      // Prevent purchases that would put player in debt
-      if (totalDebits > actualCash) {
-        res.status(400).json({ 
-          error: "Insufficient funds", 
-          message: `You need $${totalDebits.toLocaleString()} but only have $${actualCash.toLocaleString()} available.`
-        });
-        return;
+      // Check if this is a property purchase transaction
+      // Purchase transactions have categories: down_payment, closing_cost, loan_fee
+      const purchaseCategories = ['down_payment', 'closing_cost', 'loan_fee'];
+      const isPurchaseTransaction = entries.some(e => purchaseCategories.includes(e.category));
+      
+      if (isPurchaseTransaction) {
+        // First purchase: block if insufficient funds (can't go bankrupt on first deal)
+        // Subsequent purchases: allow negative cash (bankruptcy possible)
+        // 
+        // Logic: Count all deals in the game that have been successfully funded.
+        // A deal is "funded" if it has status indicating purchase completed (active_rental, in_rehab, completed, sold_rental)
+        // If there are 0 or 1 funded deals, this is the first purchase being finalized - block overdraft.
+        // If there are 2+ funded deals, player already has property equity - bankruptcy is allowed.
+        const existingDeals = await storage.getDealsByGameRun(gameRunId);
+        const fundedDealCount = existingDeals.filter(d => 
+          ['active_rental', 'in_rehab', 'completed', 'sold_rental'].includes(d.status)
+        ).length;
+        
+        // 0 funded deals means this is the very first purchase
+        // Block overdraft only for the inaugural acquisition
+        const isFirstPurchase = fundedDealCount === 0;
+        
+        if (isFirstPurchase && totalDebits > actualCash) {
+          res.status(400).json({ 
+            error: "Insufficient funds", 
+            message: `You need $${totalDebits.toLocaleString()} but only have $${actualCash.toLocaleString()} available.`
+          });
+          return;
+        }
       }
 
       const result = await storage.createLedgerEntriesWithCashUpdate(gameRunId, entries, actualCash);

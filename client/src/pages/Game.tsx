@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { StatusBar } from '@/components/game/StatusBar';
 import { ProFormaPanel } from '@/components/game/ProFormaPanel';
 import { MetricsPanel } from '@/components/game/MetricsPanel';
-import { PropertySelector, type LocationFilter } from '@/components/game/PropertySelector';
+import { PropertySelector, type LocationFilter, type PropertyDealInfo } from '@/components/game/PropertySelector';
 import { PropertyDetail } from '@/components/game/PropertyDetail';
 import { ResultsPanel } from '@/components/game/ResultsPanel';
 import { LedgerPanel } from '@/components/game/LedgerPanel';
@@ -14,6 +14,7 @@ import { IncomeNotification, useIncomeNotifications } from '@/components/game/In
 import { PremiumModal } from '@/components/game/PremiumModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
+import { TrophyNotificationManager, useTrophyNotifications } from '@/components/game/TrophyUnlockNotification';
 import { BankruptModal } from '@/components/game/BankruptModal';
 import { SaveIndicator } from '@/components/game/SaveIndicator';
 import {
@@ -80,6 +81,9 @@ export default function Game() {
 
   // Income notifications
   const { events: incomeEvents, dismissEvent, addRentalPayment, addFlipProceeds, addCurveballBonus } = useIncomeNotifications();
+  
+  // Trophy notifications
+  const { pendingTrophies, addTrophies, clearTrophies } = useTrophyNotifications();
 
   const [gameRun, setGameRun] = useState<GameRun | null>(null);
   const [isLoadingGame, setIsLoadingGame] = useState(true);
@@ -637,6 +641,11 @@ export default function Game() {
         setGameRun(updatedGameRun);
         
         toast.success('Rental activated! You will receive weekly income.');
+        
+        // Show trophy notifications if any were awarded
+        if (rentalResult.awardedTrophies && rentalResult.awardedTrophies.length > 0) {
+          addTrophies(rentalResult.awardedTrophies);
+        }
       }
 
       // Store deal outcome for animation - this triggers the DealTransactionAnimation
@@ -777,12 +786,17 @@ export default function Game() {
         { duration: 5000 }
       );
       
+      // Show trophy notifications if any were awarded
+      if (result.awardedTrophies && result.awardedTrophies.length > 0) {
+        addTrophies(result.awardedTrophies);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['deals'] });
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
     } catch (error: any) {
       toast.error(error.message || 'Failed to sell flip property');
     }
-  }, [gameRun, deals, properties, queryClient]);
+  }, [gameRun, deals, properties, queryClient, addTrophies]);
 
   const handleContinueFromResults = useCallback(() => {
     setCurrentScreen('market');
@@ -958,7 +972,7 @@ export default function Game() {
                   locationFilter={locationFilter}
                   onLocationFilterChange={setLocationFilter}
                   propertiesWithInvestigations={new Set(investigations.map(inv => inv.propertyId))}
-                  soldPropertyIds={new Set(deals.filter(d => d.status !== 'planned').map(d => d.propertyId))}
+                  propertyDeals={deals.map(d => ({ propertyId: d.propertyId, strategy: d.strategy as 'rent' | 'flip', status: d.status }))}
                 />
               </div>
               <div className="lg:col-span-1">
@@ -1100,6 +1114,12 @@ export default function Game() {
 
         {/* Income Notifications */}
         <IncomeNotification events={incomeEvents} onDismiss={dismissEvent} />
+
+        {/* Trophy Unlock Notifications */}
+        <TrophyNotificationManager 
+          awardedTrophies={pendingTrophies} 
+          onAllDismissed={clearTrophies} 
+        />
 
         {/* Bankruptcy Modal */}
         {isBankrupt && (

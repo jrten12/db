@@ -323,7 +323,20 @@ export async function registerRoutes(
         gameRun,
         monthlyCashFlow
       );
-      res.json(result);
+      
+      // Award trophies for rental activation
+      let awardedTrophies: string[] = [];
+      try {
+        const player = await storage.getOrCreatePlayer(gameRun.playerName);
+        awardedTrophies = await gameMechanics.checkAndAwardTrophies(player.id, gameRunId, {
+          dealCompleted: true,
+          dealStrategy: 'rental',
+        });
+      } catch (trophyErr) {
+        console.error('Error awarding trophies:', trophyErr);
+      }
+      
+      res.json({ ...result, awardedTrophies });
     } catch (error: any) {
       console.error("Error activating rental:", error);
       res.status(500).json({ error: error.message || "Failed to activate rental" });
@@ -698,7 +711,21 @@ export async function registerRoutes(
       }
 
       const result = await storage.sellFlipProperty(dealId, gameRunId);
-      res.json(result);
+      
+      // Award trophies for flip completion
+      let awardedTrophies: string[] = [];
+      try {
+        const player = await storage.getOrCreatePlayer(gameRun.playerName);
+        awardedTrophies = await gameMechanics.checkAndAwardTrophies(player.id, gameRunId, {
+          dealCompleted: true,
+          dealProfit: result.saleProfit,
+          dealStrategy: 'flip',
+        });
+      } catch (trophyErr) {
+        console.error('Error awarding trophies:', trophyErr);
+      }
+      
+      res.json({ ...result, awardedTrophies });
     } catch (error: any) {
       console.error("Error selling flip:", error);
       res.status(500).json({ error: error.message || "Failed to sell flip property" });

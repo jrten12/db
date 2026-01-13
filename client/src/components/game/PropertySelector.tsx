@@ -1,9 +1,15 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, CheckCircle2 } from 'lucide-react';
+import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home } from 'lucide-react';
 import type { Property } from '@shared/schema';
 
 export type LocationFilter = 'all' | 'urban' | 'suburban';
+
+export interface PropertyDealInfo {
+  propertyId: number;
+  strategy: 'rent' | 'flip';
+  status: string;
+}
 
 interface PropertySelectorProps {
   properties: Property[];
@@ -12,7 +18,7 @@ interface PropertySelectorProps {
   locationFilter: LocationFilter;
   onLocationFilterChange: (filter: LocationFilter) => void;
   propertiesWithInvestigations?: Set<number>;
-  soldPropertyIds?: Set<number>;
+  propertyDeals?: PropertyDealInfo[];
 }
 
 const getConditionBadge = (conditionTag: string) => {
@@ -30,7 +36,7 @@ const getConditionBadge = (conditionTag: string) => {
   }
 };
 
-export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), soldPropertyIds = new Set() }: PropertySelectorProps) {
+export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), propertyDeals = [] }: PropertySelectorProps) {
   const urbanCount = properties.filter(p => p.locationType === 'urban').length;
   const suburbanCount = properties.filter(p => p.locationType === 'suburban').length;
   
@@ -112,15 +118,33 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
           const conditionBadge = getConditionBadge(property.conditionTag);
           const isSelected = selectedId === property.id;
           const hasInvestigations = propertiesWithInvestigations.has(property.id);
-          const isSold = soldPropertyIds.has(property.id);
+          const dealInfo = propertyDeals.find(d => d.propertyId === property.id);
+          const isUnavailable = !!dealInfo && dealInfo.status !== 'planned';
+          
+          const getStatusBadge = () => {
+            if (!dealInfo || dealInfo.status === 'planned') return null;
+            
+            if (dealInfo.strategy === 'rent' && dealInfo.status === 'active_rental') {
+              return { label: 'RENTED OUT', color: 'bg-blue-600 border-blue-400', icon: Home };
+            } else if (dealInfo.strategy === 'flip' && (dealInfo.status === 'in_rehab' || dealInfo.status === 'ready_to_list')) {
+              return { label: 'YOU OWN THIS', color: 'bg-emerald-600 border-emerald-400', icon: Wrench };
+            } else if (dealInfo.status === 'sold_rental') {
+              return { label: 'OFF MARKET', color: 'bg-gray-600 border-gray-400', icon: Lock };
+            } else if (dealInfo.status === 'completed') {
+              return { label: 'OFF MARKET', color: 'bg-gray-600 border-gray-400', icon: Lock };
+            }
+            return { label: 'OFF MARKET', color: 'bg-gray-600 border-gray-400', icon: Lock };
+          };
+          
+          const statusBadge = getStatusBadge();
           
           return (
             <button
               key={property.id}
-              onClick={() => !isSold && onSelect(property.id)}
-              disabled={isSold}
+              onClick={() => !isUnavailable && onSelect(property.id)}
+              disabled={isUnavailable}
               className={`group relative rounded-2xl overflow-hidden transition-all duration-300 text-left ${
-                isSold
+                isUnavailable
                   ? 'opacity-60 cursor-not-allowed grayscale'
                   : isSelected
                     ? 'ring-2 ring-gold scale-[1.02] shadow-xl shadow-gold/20'
@@ -159,18 +183,18 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                   </div>
                 </div>
 
-                {/* SOLD Badge */}
-                {isSold && (
+                {/* Status Badge */}
+                {statusBadge && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-600 rounded-lg border-2 border-emerald-400 shadow-lg transform -rotate-12">
-                      <CheckCircle2 className="w-5 h-5 text-white" />
-                      <span className="text-lg font-bold text-white uppercase tracking-wider">SOLD</span>
+                    <div className={`flex items-center gap-2 px-4 py-2 ${statusBadge.color} rounded-lg border-2 shadow-lg transform -rotate-12`}>
+                      <statusBadge.icon className="w-5 h-5 text-white" />
+                      <span className="text-lg font-bold text-white uppercase tracking-wider">{statusBadge.label}</span>
                     </div>
                   </div>
                 )}
 
                 {/* Work in Progress Badge */}
-                {hasInvestigations && !isSold && (
+                {hasInvestigations && !isUnavailable && (
                   <div className="absolute bottom-3 left-3">
                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/90 backdrop-blur-md rounded-lg border border-amber-400/50 animate-pulse">
                       <Wrench className="w-4 h-4 text-white" />
@@ -180,7 +204,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                 )}
 
                 {/* Question mark overlay - invites investigation */}
-                {!isSold && (
+                {!isUnavailable && (
                   <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 cursor-help" title="Click to investigate this property and reveal hidden financial information">
                       <HelpCircle className="w-4 h-4 text-amber-400" />

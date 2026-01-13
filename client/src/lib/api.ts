@@ -142,6 +142,7 @@ export const api = {
       explanation: string;
       wasOptimistic: boolean;
     };
+    awardedTrophies?: string[];
   }> {
     const res = await fetch(`${API_BASE}/deals/${dealId}/activate-rental`, {
       method: 'POST',
@@ -197,6 +198,7 @@ export const api = {
     saleProfit: number;
     salePrice: number;
     purchasePrice: number;
+    awardedTrophies?: string[];
   }> {
     const res = await fetch(`${API_BASE}/deals/${dealId}/sell-flip`, {
       method: 'POST',

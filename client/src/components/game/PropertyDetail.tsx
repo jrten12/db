@@ -173,7 +173,7 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
 interface PropertyDetailProps {
   property: Property;
   onClose: () => void;
-  onOpenProForma: (strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money', contractor: 'cheap' | 'fast') => void;
+  onOpenProForma: () => void;
   onPass: () => void;
   isProFormaComplete?: boolean;
   completedDiligence?: string[];
@@ -191,9 +191,6 @@ export function PropertyDetail({
   onDiligencePurchase,
   cash = 30000,
 }: PropertyDetailProps) {
-  const [strategy, setStrategy] = useState<'rent' | 'flip'>('rent');
-  const [financing, setFinancing] = useState<'bank' | 'hard-money'>('bank');
-  const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
   const [pendingDiligence, setPendingDiligence] = useState<DiligenceOption | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
@@ -640,71 +637,8 @@ export function PropertyDetail({
               )}
             </div>
 
-            {/* Right Column - Strategy & Financing (7 cols) */}
+            {/* Right Column - Analysis & Actions (7 cols) */}
             <div className="lg:col-span-7 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Strategy */}
-                <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
-                  <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">Choose Your Strategy</h3>
-                  <div className="space-y-2">
-                    <button onClick={() => setStrategy('rent')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${strategy === 'rent' ? 'bg-emerald-500/20 border-2 border-emerald-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
-                      data-testid="button-strategy-rent">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${strategy === 'rent' ? 'bg-emerald-500' : 'bg-slate-600'}`}>
-                        {strategy === 'rent' && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Rental</div>
-                        <div className="text-xs text-gray-400">Calculate your cash flow</div>
-                      </div>
-                      <Home className={`w-5 h-5 ${strategy === 'rent' ? 'text-emerald-400' : 'text-gray-500'}`} />
-                    </button>
-                    <button onClick={() => setStrategy('flip')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${strategy === 'flip' ? 'bg-emerald-500/20 border-2 border-emerald-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
-                      data-testid="button-strategy-flip">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${strategy === 'flip' ? 'bg-emerald-500' : 'bg-slate-600'}`}>
-                        {strategy === 'flip' && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Flip</div>
-                        <div className="text-xs text-gray-400">Calculate your profit</div>
-                      </div>
-                      <DollarSign className={`w-5 h-5 ${strategy === 'flip' ? 'text-emerald-400' : 'text-gray-500'}`} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Financing */}
-                <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
-                  <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">Financing Options</h3>
-                  <div className="space-y-2">
-                    <button onClick={() => setFinancing('hard-money')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${financing === 'hard-money' ? 'bg-amber-500/20 border-2 border-amber-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
-                      data-testid="button-financing-hard-money">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${financing === 'hard-money' ? 'bg-amber-500' : 'bg-slate-600'}`}>
-                        {financing === 'hard-money' && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Hard Money Loan</div>
-                        <div className="text-xs text-gray-400">10% Down, 12% Interest</div>
-                      </div>
-                      <Zap className={`w-5 h-5 ${financing === 'hard-money' ? 'text-amber-400' : 'text-gray-500'}`} />
-                    </button>
-                    <button onClick={() => setFinancing('bank')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${financing === 'bank' ? 'bg-emerald-500/20 border-2 border-emerald-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
-                      data-testid="button-financing-bank">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${financing === 'bank' ? 'bg-emerald-500' : 'bg-slate-600'}`}>
-                        {financing === 'bank' && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Bank Loan</div>
-                        <div className="text-xs text-gray-400">25% Down, 5% Interest</div>
-                      </div>
-                      <Shield className={`w-5 h-5 ${financing === 'bank' ? 'text-emerald-400' : 'text-gray-500'}`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
 
               {/* Timeline Risk Explanation */}
               <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
@@ -727,30 +661,6 @@ export function PropertyDetail({
                     </div>
                   </div>
                 )}
-              </div>
-
-              {/* Contractor Choice - Locked until after offer */}
-              <div className="bg-slate-800/30 backdrop-blur rounded-xl p-4 border border-slate-600 opacity-60">
-                <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <Lock className="w-4 h-4" /> Contractor Choice
-                  <span className="text-xs font-normal text-gray-500">(Available after offer accepted)</span>
-                </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-700/20 border border-slate-700">
-                    <Clock className="w-6 h-6 text-gray-500" />
-                    <div className="text-center">
-                      <div className="font-semibold text-gray-400 text-sm">Cheap & Slow</div>
-                      <div className="text-xs text-gray-500">15% savings, +50% time</div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-700/20 border border-slate-700">
-                    <Zap className="w-6 h-6 text-gray-500" />
-                    <div className="text-center">
-                      <div className="font-semibold text-gray-400 text-sm">Fast & Expensive</div>
-                      <div className="text-xs text-gray-500">30% premium, 30% faster</div>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Deal Outcome Unknown */}
@@ -779,8 +689,8 @@ export function PropertyDetail({
               {/* Action Buttons - PRO FORMA REQUIRED BEFORE OFFER */}
               <div className="space-y-3">
                 {/* PRIMARY: View Pro Forma */}
-                <button 
-                  onClick={() => onOpenProForma(strategy, financing, contractor)}
+                <button
+                  onClick={onOpenProForma}
                   className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-xl font-bold text-base transition-all shadow-lg shadow-emerald-500/30"
                   data-testid="button-pro-forma"
                 >

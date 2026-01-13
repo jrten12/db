@@ -693,6 +693,16 @@ export default function Game() {
       result.completedFlips.forEach((flip: any) => {
         const deal = deals.find(d => d.id === flip.dealId);
         const property = properties.find(p => p.id === deal?.propertyId);
+        
+        // If this flip is ready to list (not sold yet), show a different notification
+        if (flip.readyToList) {
+          toast.success(
+            `🏠 ${property?.name || 'Property'} rehab complete! Ready to sell. Check the Time & Income panel.`,
+            { duration: 5000 }
+          );
+          return; // Don't show flip proceeds for ready_to_list flips
+        }
+        
         addFlipProceeds(flip.salePrice, flip.profit, property?.name);
         
         // Show title issue warning if skipped title search
@@ -745,6 +755,32 @@ export default function Game() {
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
     } catch (error: any) {
       toast.error(error.message || 'Failed to sell property');
+    }
+  }, [gameRun, deals, properties, queryClient]);
+
+  const handleSellFlip = useCallback(async (dealId: number) => {
+    if (!gameRun) return;
+    
+    try {
+      const result = await api.sellFlip(dealId, gameRun.id);
+      
+      // Update game state with new cash and weeks
+      setGameRun(result.gameRun);
+      
+      // Find property name for toast
+      const deal = deals.find(d => d.id === dealId);
+      const property = properties.find(p => p.id === deal?.propertyId);
+      
+      const profitSign = result.saleProfit >= 0 ? '+' : '';
+      toast.success(
+        `Flipped ${property?.name || 'property'} for $${result.salePrice.toLocaleString()} (${profitSign}$${result.saleProfit.toLocaleString()})`,
+        { duration: 5000 }
+      );
+      
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to sell flip property');
     }
   }, [gameRun, deals, properties, queryClient]);
 
@@ -932,6 +968,7 @@ export default function Game() {
                   properties={properties}
                   onAdvanceWeek={handleAdvanceWeek}
                   onSellRental={handleSellRental}
+                  onSellFlip={handleSellFlip}
                 />
               </div>
             </div>

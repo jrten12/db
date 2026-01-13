@@ -19,6 +19,7 @@ interface TimeProgressionPanelProps {
   properties: Property[];
   onAdvanceWeek: () => Promise<void>;
   onSellRental?: (dealId: number) => Promise<void>;
+  onSellFlip?: (dealId: number) => Promise<void>;
 }
 
 export function TimeProgressionPanel({
@@ -27,6 +28,7 @@ export function TimeProgressionPanel({
   properties,
   onAdvanceWeek,
   onSellRental,
+  onSellFlip,
 }: TimeProgressionPanelProps) {
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [sellingDealId, setSellingDealId] = useState<number | null>(null);
@@ -41,9 +43,20 @@ export function TimeProgressionPanel({
     }
   };
 
+  const handleSellFlip = async (dealId: number) => {
+    if (!onSellFlip) return;
+    setSellingDealId(dealId);
+    try {
+      await onSellFlip(dealId);
+    } finally {
+      setSellingDealId(null);
+    }
+  };
+
   // Filter active deals
   const activeRentals = deals.filter(d => d.status === 'active_rental');
   const flipsInRehab = deals.filter(d => d.status === 'in_rehab');
+  const flipsReadyToList = deals.filter(d => d.status === 'ready_to_list');
 
   // Calculate total weekly income
   const totalWeeklyIncome = activeRentals.reduce((sum, deal) => sum + (deal.weeklyIncome || 0), 0);
@@ -63,7 +76,7 @@ export function TimeProgressionPanel({
     return property?.name || `Property #${propertyId}`;
   };
 
-  const hasActiveProperties = activeRentals.length > 0 || flipsInRehab.length > 0;
+  const hasActiveProperties = activeRentals.length > 0 || flipsInRehab.length > 0 || flipsReadyToList.length > 0;
 
   return (
     <Card className="border-2 border-blue-200 bg-blue-50/50">
@@ -197,7 +210,11 @@ export function TimeProgressionPanel({
                 const progress = totalWeeks > 0 ? ((totalWeeks - weeksLeft) / totalWeeks) * 100 : 0;
 
                 return (
-                  <div key={deal.id} className="bg-white border rounded-lg p-3">
+                  <div key={deal.id} className="relative bg-white border-2 border-amber-300 rounded-lg p-3 overflow-hidden">
+                    {/* Owner overlay */}
+                    <div className="absolute top-0 right-0 bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-bl font-bold uppercase">
+                      You Own This
+                    </div>
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-medium text-sm">{getPropertyName(deal.propertyId)}</p>
                       <Badge variant={weeksLeft <= 2 ? 'default' : 'secondary'}>
@@ -208,6 +225,70 @@ export function TimeProgressionPanel({
                     <p className="text-xs text-gray-600 mt-1">
                       Projected profit: ${((deal.proFormaOutputs as any)?.profit || 0).toLocaleString()}
                     </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Flips Ready to Sell */}
+        {flipsReadyToList.length > 0 && (
+          <div>
+            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-emerald-600" />
+              Ready to Sell ({flipsReadyToList.length})
+            </h4>
+            <div className="space-y-2">
+              {flipsReadyToList.map((deal) => {
+                const purchasePrice = deal.purchasePrice || 0;
+                const estimatedSaleMin = Math.round(purchasePrice * 0.90);
+                const estimatedSaleMax = Math.round(purchasePrice * 1.15);
+                const canSell = gameRun.weeksRemaining >= 2 && onSellFlip;
+                
+                return (
+                  <div
+                    key={deal.id}
+                    className="relative bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-400 rounded-lg p-3 overflow-hidden shadow-lg"
+                    data-testid={`flip-deal-${deal.id}`}
+                  >
+                    {/* Owner overlay */}
+                    <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded-bl font-bold uppercase">
+                      You Own This
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-sm">{getPropertyName(deal.propertyId)}</p>
+                        <p className="text-xs text-emerald-700 font-semibold">
+                          Rehab Complete! Ready to flip
+                        </p>
+                      </div>
+                      <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300">
+                        READY
+                      </Badge>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-emerald-200 flex items-center justify-between">
+                      <div className="text-xs text-gray-600">
+                        <p className="font-semibold text-emerald-800">
+                          Sale estimate: ${estimatedSaleMin.toLocaleString()} - ${estimatedSaleMax.toLocaleString()}
+                        </p>
+                        <p className="text-amber-600">Selling costs 2 weeks</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+                        disabled={!canSell || sellingDealId === deal.id}
+                        onClick={() => handleSellFlip(deal.id)}
+                        data-testid={`button-sell-flip-${deal.id}`}
+                      >
+                        {sellingDealId === deal.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                        ) : (
+                          <DollarSign className="w-3 h-3 mr-1" />
+                        )}
+                        Sell Now!
+                      </Button>
+                    </div>
                   </div>
                 );
               })}

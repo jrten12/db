@@ -191,6 +191,25 @@ export const api = {
     return res.json();
   },
 
+  async sellFlip(dealId: number, gameRunId: number): Promise<{
+    deal: Deal;
+    gameRun: GameRun;
+    saleProfit: number;
+    salePrice: number;
+    purchasePrice: number;
+  }> {
+    const res = await fetch(`${API_BASE}/deals/${dealId}/sell-flip`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameRunId }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to sell flip property');
+    }
+    return res.json();
+  },
+
   // Premium Purchases
   async purchaseCash(gameRunId: number, amount: number): Promise<GameRun> {
     const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase-cash`, {

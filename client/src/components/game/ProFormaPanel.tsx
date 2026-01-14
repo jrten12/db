@@ -1624,10 +1624,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     <AlertTriangle className={`w-4 h-4 mt-0.5 ${fragility === 'high' || !isViable ? 'text-red-400' : 'text-amber-400'}`} />
                     <div>
                       <div className={`text-xs font-semibold ${fragility === 'high' || !isViable ? 'text-red-400' : 'text-amber-400'}`}>
-                        {!isViable ? 'Deal Fails' : 'Fragility Warning'}
+                        {!isViable ? 'Risky Deal' : 'Fragility Warning'}
                       </div>
                       <div className="text-gray-400 text-xs mt-1">
-                        {!isViable && inputs.strategy === 'rent' && 'Expenses exceed income. Adjust assumptions.'}
+                        {!isViable && inputs.strategy === 'rent' && 'Expenses exceed income. You will lose money each month.'}
                         {!isViable && inputs.strategy === 'flip' && 'Total project cost exceeds ARV. This deal loses money.'}
                         {isViable && fragility === 'high' && n(inputs.vacancyRate) < 5 && inputs.strategy === 'rent' && 'Low vacancy assumption. One bad tenant breaks this deal.'}
                         {isViable && fragility === 'high' && n(inputs.contingencyPct) < 10 && 'Low contingency. Unexpected repairs will hurt.'}
@@ -1658,12 +1658,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 className={`w-full px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
                   isViable
                     ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                    : 'bg-slate-700 text-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white shadow-lg shadow-red-500/30'
                 }`}
-                disabled={!isViable}
                 data-testid="button-calculate"
               >
-                {isViable ? 'Lock In Pro Forma' : 'Fix Issues First'}
+                {isViable ? 'Lock In Pro Forma' : 'Lock In Pro Forma (Losing Deal)'}
               </button>
             ) : (
               <div className="w-full rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/50 p-4">

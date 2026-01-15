@@ -563,41 +563,63 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       <div className="text-white text-lg font-bold font-mono">{formatCurrency(property.price)}</div>
                       <div className="text-gray-500 text-xs">Your acquisition cost</div>
                     </div>
-                    <div className="bg-amber-500/10 rounded-xl p-3 border border-amber-500/30">
-                      <div className="text-amber-400 text-xs mb-1 flex items-center">ARV (After Repair Value)<InfoTooltip term="arv" /></div>
-                      <div className="text-amber-300 text-lg font-bold font-mono">
-                        {formatCurrency(property.arvMin)} - {formatCurrency(property.arvMax)}
+                    {hasAppraisal ? (
+                      <div className="bg-emerald-500/10 rounded-xl p-3 border border-emerald-500/30">
+                        <div className="text-emerald-400 text-xs mb-1 flex items-center">ARV (After Repair Value)<InfoTooltip term="arv" /></div>
+                        <div className="text-emerald-300 text-lg font-bold font-mono">
+                          {formatCurrency(property.arvMin)} - {formatCurrency(property.arvMax)}
+                        </div>
+                        <div className="text-emerald-500/70 text-xs">Final sale price will vary</div>
                       </div>
-                      <div className="text-amber-500/70 text-xs">Expected sale price</div>
-                    </div>
+                    ) : (
+                      <div className="bg-amber-500/10 rounded-xl p-3 border border-amber-500/30">
+                        <div className="text-amber-400 text-xs mb-1 flex items-center">ARV (After Repair Value)<InfoTooltip term="unknownArv" /></div>
+                        <div className="text-amber-300 text-lg font-bold font-mono flex items-center gap-1">
+                          <Lock className="w-4 h-4" /> Unknown
+                        </div>
+                        <div className="text-amber-500/70 text-xs">Do Comp Analysis first</div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-400 text-xs flex items-center">Selling Costs<InfoTooltip term="sellingCosts" /></span>
-                      <span className="text-white font-mono text-sm">{inputs.sellingCostsPct}% of ARV</span>
+                  {hasAppraisal ? (
+                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-400 text-xs flex items-center">Selling Costs<InfoTooltip term="sellingCosts" /></span>
+                        <span className="text-white font-mono text-sm">{inputs.sellingCostsPct}% of ARV</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="6"
+                        max="12"
+                        step="0.5"
+                        value={inputs.sellingCostsPct ?? 8}
+                        onChange={(e) => handleChange('sellingCostsPct', Number(e.target.value))}
+                        className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, #10b981 0%, #10b981 ${((n(inputs.sellingCostsPct) - 6) / 6) * 100}%, #334155 ${((n(inputs.sellingCostsPct) - 6) / 6) * 100}%, #334155 100%)`
+                        }}
+                        data-testid="input-selling-costs"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>6% (optimistic)</span>
+                        <span>12% (conservative)</span>
+                      </div>
+                      <div className="text-center mt-2">
+                        <span className="text-red-400 font-mono text-sm">= {formatCurrency(sellingCosts)}</span>
+                      </div>
                     </div>
-                    <input
-                      type="range"
-                      min="6"
-                      max="12"
-                      step="0.5"
-                      value={inputs.sellingCostsPct ?? 8}
-                      onChange={(e) => handleChange('sellingCostsPct', Number(e.target.value))}
-                      className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                      style={{
-                        background: `linear-gradient(to right, #10b981 0%, #10b981 ${((n(inputs.sellingCostsPct) - 6) / 6) * 100}%, #334155 ${((n(inputs.sellingCostsPct) - 6) / 6) * 100}%, #334155 100%)`
-                      }}
-                      data-testid="input-selling-costs"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>6% (optimistic)</span>
-                      <span>12% (conservative)</span>
+                  ) : (
+                    <div className="bg-amber-500/10 rounded-xl p-3 border border-amber-500/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lock className="w-4 h-4 text-amber-400" />
+                        <span className="text-amber-400 text-xs font-semibold">Selling Costs Unknown</span>
+                      </div>
+                      <p className="text-gray-400 text-xs">
+                        Complete a Comp Analysis to see what similar homes sold for. Then you can estimate selling costs.
+                      </p>
                     </div>
-                    <div className="text-center mt-2">
-                      <span className="text-red-400 font-mono text-sm">= {formatCurrency(sellingCosts)}</span>
-                    </div>
-                  </div>
+                  )}
 
                   <div className="grid grid-cols-3 gap-3">
                     <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
@@ -623,13 +645,23 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       <div className="text-white text-xl font-bold font-mono mt-1">{formatCurrency(allInBasis)}</div>
                       <div className="text-gray-500 text-xs mt-1">Total cost to acquire & fix</div>
                     </div>
-                    <div className={`bg-gradient-to-r rounded-xl p-4 border ${flipProfit > 0 ? 'from-emerald-500/20 to-slate-800/50 border-emerald-500/30' : 'from-red-500/20 to-slate-800/50 border-red-500/30'}`}>
-                      <div className={`text-xs font-semibold uppercase tracking-wider ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>Projected Profit</div>
-                      <div className={`text-xl font-bold font-mono mt-1 ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {flipProfit > 0 ? '' : '-'}{formatCurrency(Math.abs(flipProfit))}
+                    {hasAppraisal ? (
+                      <div className={`bg-gradient-to-r rounded-xl p-4 border ${flipProfit > 0 ? 'from-emerald-500/20 to-slate-800/50 border-emerald-500/30' : 'from-red-500/20 to-slate-800/50 border-red-500/30'}`}>
+                        <div className={`text-xs font-semibold uppercase tracking-wider ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>Projected Profit</div>
+                        <div className={`text-xl font-bold font-mono mt-1 ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {flipProfit > 0 ? '' : '-'}{formatCurrency(Math.abs(flipProfit))}
+                        </div>
+                        <div className="text-gray-500 text-xs mt-1">Varies with final sale price</div>
                       </div>
-                      <div className="text-gray-500 text-xs mt-1">ARV mid - Total cost - Holding</div>
-                    </div>
+                    ) : (
+                      <div className="bg-gradient-to-r from-amber-500/20 to-slate-800/50 rounded-xl p-4 border border-amber-500/30">
+                        <div className="text-amber-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> Projected Profit
+                        </div>
+                        <div className="text-amber-300 text-xl font-bold font-mono mt-1">???</div>
+                        <div className="text-gray-500 text-xs mt-1">Complete Comp Analysis first</div>
+                      </div>
+                    )}
                   </div>
                 </>
               )}

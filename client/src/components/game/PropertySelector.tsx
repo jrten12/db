@@ -128,15 +128,20 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
             if (!dealInfo || dealInfo.status === 'planned') return null;
             
             if (dealInfo.strategy === 'rent' && dealInfo.status === 'active_rental') {
-              return { label: 'RENTED OUT', color: 'bg-blue-600 border-blue-400', icon: Home };
+              // Player owns this property and is collecting rent
+              return { label: 'YOUR RENTAL', color: 'bg-blue-600 border-blue-400', icon: Home };
             } else if (dealInfo.strategy === 'flip' && dealInfo.status === 'in_rehab') {
-              return { label: 'REHAB IN PROGRESS', color: 'bg-orange-600 border-orange-400', icon: Wrench };
+              // Player owns this, renovation in progress
+              return { label: 'YOUR FLIP • RENOVATING', color: 'bg-orange-600 border-orange-400', icon: Wrench };
             } else if (dealInfo.strategy === 'flip' && dealInfo.status === 'ready_to_list') {
-              return { label: 'READY TO SELL', color: 'bg-emerald-600 border-emerald-400', icon: Home };
+              // Flip renovation complete, ready to list for sale
+              return { label: 'YOUR FLIP • READY', color: 'bg-emerald-600 border-emerald-400', icon: Home };
             } else if (dealInfo.status === 'sold_rental') {
-              return { label: 'SOLD', color: 'bg-gray-600 border-gray-400', icon: Lock };
+              // Player sold their rental - off market permanently
+              return { label: 'YOU SOLD THIS', color: 'bg-gray-600 border-gray-400', icon: Lock };
             } else if (dealInfo.status === 'completed') {
-              return { label: 'SOLD', color: 'bg-gray-600 border-gray-400', icon: Lock };
+              // Flip sale completed - off market permanently
+              return { label: 'FLIP SOLD ✓', color: 'bg-gray-600 border-gray-400', icon: Lock };
             }
             return { label: 'OFF MARKET', color: 'bg-gray-600 border-gray-400', icon: Lock };
           };

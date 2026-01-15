@@ -441,25 +441,54 @@ export async function processRentalIncome(
   let realityAdjustmentMonthly = proFormaOutputs?.realityAdjustmentMonthly || 0;
   
   // Handle legacy rentals: if stored fields are missing, derive from stored inputs
-  if (monthlyGrossRent === 0 && storedWeeklyIncome) {
-    // Fallback: reconstruct from stored pro forma inputs
+  // First try proFormaInputs.expectedRent, then fall back to cashFlowMonthly-based reconstruction
+  if (monthlyGrossRent === 0) {
+    // Try to get rent from proFormaInputs (the player's rent assumption)
     monthlyGrossRent = proFormaInputs?.expectedRent || proFormaInputs?.monthlyRent || 0;
-    monthlyDebtService = proFormaOutputs?.debtServiceMonthly || 0;
     
-    // Calculate vacancy from stored inputs (not hardcoded)
-    const playerVacancy = proFormaInputs?.vacancyRate || 5;
-    const landlordPays = proFormaInputs?.utilities === true;
-    const vacancyPenalty = landlordPays ? 0 : 1.92; // tenant pays = +1 week
-    const effectiveVacancy = playerVacancy + vacancyPenalty;
-    monthlyVacancyLoss = monthlyGrossRent * (effectiveVacancy / 100);
-    
-    // Derive operating expenses to maintain original cash flow
-    // cashFlow = grossRent - vacancy - opex - debtService
-    // So: opex = grossRent - vacancy - debtService - cashFlow
-    const playerCashFlowMonthly = proFormaOutputs?.cashFlowMonthly || 0;
-    monthlyOperatingExpenses = Math.max(0, monthlyGrossRent - monthlyVacancyLoss - monthlyDebtService - playerCashFlowMonthly);
-    
-    // Get reality adjustment from stored reality check data
+    if (monthlyGrossRent > 0) {
+      // We have rent from inputs - calculate expenses from input breakdown
+      const playerVacancy = proFormaInputs?.vacancyRate || 5;
+      const landlordPays = proFormaInputs?.utilities === true;
+      const vacancyPenalty = landlordPays ? 0 : 1.92; // tenant pays = +1 week vacancy penalty
+      const effectiveVacancy = playerVacancy + vacancyPenalty;
+      monthlyVacancyLoss = monthlyGrossRent * (effectiveVacancy / 100);
+      
+      // Calculate operating expenses from detailed inputs if available
+      const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
+      const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
+      const maintenancePct = proFormaInputs?.maintenancePct || 5;
+      const capexPct = proFormaInputs?.capexPct || 5;
+      const hasPropertyMgmt = proFormaInputs?.propertyManagement || false;
+      const propertyManagementPct = proFormaInputs?.propertyManagementPct || 10;
+      const landlordPaysUtilities = proFormaInputs?.utilities || false;
+      const utilitiesMonthly = proFormaInputs?.utilitiesMonthly || 150;
+      
+      const monthlyTaxes = taxesAnnual / 12;
+      const monthlyInsurance = insuranceAnnual / 12;
+      const monthlyMaintenance = monthlyGrossRent * (maintenancePct / 100);
+      const monthlyCapex = monthlyGrossRent * (capexPct / 100);
+      const monthlyMgmt = hasPropertyMgmt ? monthlyGrossRent * (propertyManagementPct / 100) : 0;
+      const monthlyUtilitiesCost = landlordPaysUtilities ? utilitiesMonthly : 0;
+      
+      monthlyOperatingExpenses = monthlyTaxes + monthlyInsurance + monthlyMaintenance + 
+        monthlyCapex + monthlyMgmt + monthlyUtilitiesCost;
+    } else if (storedWeeklyIncome !== 0) {
+      // LEGACY FALLBACK: No rent data available, reconstruct from storedWeeklyIncome
+      // Use cashFlowMonthly to back-calculate expenses
+      monthlyDebtService = proFormaOutputs?.debtServiceMonthly || 0;
+      const playerCashFlowMonthly = proFormaOutputs?.cashFlowMonthly || (storedWeeklyIncome * 4.33);
+      
+      // We can't know gross rent, so estimate based on cashFlowMonthly + debt service
+      // This is imprecise but maintains the correct net payout
+      monthlyGrossRent = Math.max(0, playerCashFlowMonthly + monthlyDebtService) * 1.15; // Estimate ~15% for expenses/vacancy
+      monthlyVacancyLoss = monthlyGrossRent * 0.05; // Assume 5% vacancy
+      monthlyOperatingExpenses = Math.max(0, monthlyGrossRent - monthlyVacancyLoss - monthlyDebtService - playerCashFlowMonthly);
+    }
+  }
+  
+  // Get reality adjustment from stored reality check data if not already set
+  if (realityAdjustmentMonthly === 0) {
     const storedRealityCheck = proFormaOutputs?.realityCheck;
     if (storedRealityCheck) {
       realityAdjustmentMonthly = (storedRealityCheck.actualCashFlow || 0) - (storedRealityCheck.projectedCashFlow || 0);

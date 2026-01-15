@@ -129,15 +129,19 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
             
             if (dealInfo.strategy === 'rent' && dealInfo.status === 'active_rental') {
               return { label: 'RENTED OUT', color: 'bg-blue-600 border-blue-400', icon: Home };
-            } else if (dealInfo.strategy === 'flip' && (dealInfo.status === 'in_rehab' || dealInfo.status === 'ready_to_list')) {
-              return { label: 'YOU OWN THIS', color: 'bg-emerald-600 border-emerald-400', icon: Wrench };
+            } else if (dealInfo.strategy === 'flip' && dealInfo.status === 'in_rehab') {
+              return { label: 'REHAB IN PROGRESS', color: 'bg-orange-600 border-orange-400', icon: Wrench };
+            } else if (dealInfo.strategy === 'flip' && dealInfo.status === 'ready_to_list') {
+              return { label: 'READY TO SELL', color: 'bg-emerald-600 border-emerald-400', icon: Home };
             } else if (dealInfo.status === 'sold_rental') {
-              return { label: 'OFF MARKET', color: 'bg-gray-600 border-gray-400', icon: Lock };
+              return { label: 'SOLD', color: 'bg-gray-600 border-gray-400', icon: Lock };
             } else if (dealInfo.status === 'completed') {
-              return { label: 'OFF MARKET', color: 'bg-gray-600 border-gray-400', icon: Lock };
+              return { label: 'SOLD', color: 'bg-gray-600 border-gray-400', icon: Lock };
             }
             return { label: 'OFF MARKET', color: 'bg-gray-600 border-gray-400', icon: Lock };
           };
+          
+          const isInRehab = dealInfo?.status === 'in_rehab';
           
           const statusBadge = getStatusBadge();
           
@@ -163,6 +167,15 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
             >
               {/* Card Background */}
               <div className="absolute inset-0 bg-gradient-to-b from-slate-800/90 to-slate-900/95 backdrop-blur" />
+              
+              {/* Corner Ribbon for Rehab In Progress */}
+              {isInRehab && (
+                <div className="absolute top-0 right-0 z-20 overflow-hidden w-24 h-24">
+                  <div className="absolute top-3 -right-8 w-32 bg-orange-500 text-white text-[10px] font-bold py-1 text-center transform rotate-45 shadow-lg">
+                    RENOVATING
+                  </div>
+                </div>
+              )}
               
               {/* Property Image */}
               <div className="relative h-32 md:h-36 overflow-hidden">

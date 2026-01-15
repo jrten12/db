@@ -1619,10 +1619,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             {canShowViability ? (
               <button
                 onClick={onCalculate}
-                className="w-full px-5 py-4 rounded-xl font-bold text-base transition-all bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-400 hover:via-purple-400 hover:to-pink-400 text-white shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60 hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full px-5 py-4 rounded-xl font-bold text-lg transition-all bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/40 hover:shadow-emerald-500/60 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
                 data-testid="button-calculate"
               >
-                Lock In Pro Forma
+                <span>✓</span> Ready to Buy
               </button>
             ) : (
               <div className="w-full rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/50 p-4">

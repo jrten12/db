@@ -63,23 +63,19 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
     ? outputs && outputs.cashOnCash >= STRATEGY_THRESHOLDS.rent.cashOnCash && outputs.cashFlowMonthly >= 0
     : flipROI >= STRATEGY_THRESHOLDS.flip.roi && flipProfit >= STRATEGY_THRESHOLDS.flip.profitMin;
 
+  // Don't render anything until the pro forma is unlocked
+  if (!isUnlocked) {
+    return null;
+  }
+
   return (
     <div className="space-y-4" data-testid="metrics-panel">
       <div className="metric-card" data-testid="card-strategy-outcome">
         <h3 className="font-display text-foreground text-lg font-semibold mb-4 text-center">
-          Strategy Outcome
+          Your Deal Summary
         </h3>
         
-        {!isUnlocked ? (
-          <div className="flex flex-col items-center gap-3 py-4">
-            <div className="w-12 h-12 rounded-full bg-danger/20 flex items-center justify-center">
-              <Lock className="w-6 h-6 text-danger" />
-            </div>
-            <p className="text-muted-foreground text-sm text-center">
-              Complete Pro Forma to Unlock
-            </p>
-          </div>
-        ) : strategy === 'rent' ? (
+        {strategy === 'rent' ? (
           <div className="space-y-4">
             <div className="text-center">
               <div className={`text-3xl font-bold font-mono ${cashFlowNegative ? 'text-danger' : 'text-success'}`}>

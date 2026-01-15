@@ -17,6 +17,9 @@ import { HallOfFameModal } from '@/components/game/HallOfFameModal';
 import { TrophyNotificationManager, useTrophyNotifications } from '@/components/game/TrophyUnlockNotification';
 import { BankruptModal } from '@/components/game/BankruptModal';
 import { SaveIndicator } from '@/components/game/SaveIndicator';
+import { TutorialOverlay } from '@/components/game/TutorialOverlay';
+import { TutorialPrompt } from '@/components/game/TutorialPrompt';
+import { useTutorial } from '@/contexts/TutorialContext';
 import {
   ProFormaInputs,
   ProFormaOutputs,
@@ -84,6 +87,9 @@ export default function Game() {
   
   // Trophy notifications
   const { pendingTrophies, addTrophies, clearTrophies } = useTrophyNotifications();
+
+  // Tutorial
+  const { completeAction } = useTutorial();
 
   const [gameRun, setGameRun] = useState<GameRun | null>(null);
   const [isLoadingGame, setIsLoadingGame] = useState(true);
@@ -352,7 +358,8 @@ export default function Game() {
   const handlePropertyClick = useCallback((id: number) => {
     setSelectedPropertyId(id);
     setCurrentScreen('detail');
-  }, []);
+    completeAction('select_property');
+  }, [completeAction]);
 
   const handleCloseDetail = useCallback(() => {
     setCurrentScreen('market');
@@ -498,9 +505,10 @@ export default function Game() {
         ...prev,
         [selectedProperty.id]: true,
       }));
+      completeAction('lock_proforma');
       toast.success('Pro forma calculated!');
     }
-  }, [proFormaInputs, selectedProperty]);
+  }, [proFormaInputs, selectedProperty, completeAction]);
 
   const [isCommittingDeal, setIsCommittingDeal] = useState(false);
   const [dealOutcome, setDealOutcome] = useState<{
@@ -1130,6 +1138,10 @@ export default function Game() {
             onTryAgain={handleBankruptTryAgain}
           />
         )}
+
+        {/* Tutorial System */}
+        <TutorialOverlay />
+        <TutorialPrompt />
       </div>
     </div>
   );

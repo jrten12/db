@@ -79,7 +79,7 @@ export function TimeProgressionPanel({
   const hasActiveProperties = activeRentals.length > 0 || flipsInRehab.length > 0 || flipsReadyToList.length > 0;
 
   return (
-    <Card className="border-2 border-blue-200 bg-blue-50/50">
+    <Card className="border-2 border-blue-200 bg-blue-50/50" data-testid="time-progression-panel">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
@@ -132,7 +132,7 @@ export function TimeProgressionPanel({
 
         {/* Active Rentals */}
         {activeRentals.length > 0 && (
-          <div>
+          <div data-testid="active-deals-section">
             <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
               <Home className="w-4 h-4" />
               Active Rentals ({activeRentals.length})

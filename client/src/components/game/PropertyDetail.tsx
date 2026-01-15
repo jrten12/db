@@ -605,7 +605,7 @@ export function PropertyDetail({
               </div>
 
               {/* Due Diligence Section */}
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700" data-testid="due-diligence-section">
                 <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
                   <Search className="w-4 h-4" /> Due Diligence Options
                 </h3>

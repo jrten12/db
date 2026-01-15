@@ -69,29 +69,48 @@ function markPromptSeen(): void {
 }
 
 export function TutorialProvider({ children }: { children: React.ReactNode }) {
-  const [isActive, setIsActive] = useState(false);
-  const [currentStep, setCurrentStep] = useState<TutorialStep | null>(null);
   const [state, setState] = useState<TutorialState>(loadTutorialState);
   const [showTutorialPrompt, setShowTutorialPrompt] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
 
+  const [isActive, setIsActive] = useState(() => {
+    const stored = loadTutorialState();
+    return !stored.hasCompletedTutorial && stored.currentStepId !== null;
+  });
+
+  const [currentStep, setCurrentStep] = useState<TutorialStep | null>(() => {
+    const stored = loadTutorialState();
+    if (!stored.hasCompletedTutorial && stored.currentStepId) {
+      return tutorialSteps.find(s => s.id === stored.currentStepId) || null;
+    }
+    return null;
+  });
+
   useEffect(() => {
-    if (!state.hasCompletedTutorial && !hasSeenPrompt()) {
+    if (!state.hasCompletedTutorial && !hasSeenPrompt() && !isActive) {
       const timer = setTimeout(() => setShowTutorialPrompt(true), 500);
       return () => clearTimeout(timer);
     }
-  }, [state.hasCompletedTutorial]);
+  }, [state.hasCompletedTutorial, isActive]);
 
   const stepIndex = currentStep 
     ? tutorialSteps.findIndex(s => s.id === currentStep.id) + 1 
     : 0;
 
   const startTutorial = useCallback(() => {
+    const firstStep = tutorialSteps[0];
     setIsActive(true);
-    setCurrentStep(tutorialSteps[0]);
+    setCurrentStep(firstStep);
     setShowTutorialPrompt(false);
     markPromptSeen();
-  }, []);
+    const newState = {
+      ...state,
+      currentStepId: firstStep.id,
+      completedSteps: [],
+    };
+    setState(newState);
+    saveTutorialState(newState);
+  }, [state]);
 
   const endTutorial = useCallback(() => {
     setIsActive(false);
@@ -148,23 +167,29 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const completeAction = useCallback((action: string) => {
+    let newState = state;
     if (!state.completedSteps.includes(action)) {
-      const newState = {
+      newState = {
         ...state,
         completedSteps: [...state.completedSteps, action],
       };
       setState(newState);
       saveTutorialState(newState);
     }
-    if (pendingAction === action) {
+    if (pendingAction === action && currentStep) {
       setPendingAction(null);
-      if (currentStep) {
-        const next = getNextStep(currentStep.id);
-        if (next) {
-          setTimeout(() => {
-            setCurrentStep(next);
-          }, 300);
-        }
+      const next = getNextStep(currentStep.id);
+      if (next) {
+        setTimeout(() => {
+          setCurrentStep(next);
+          const advancedState = {
+            ...newState,
+            completedSteps: [...newState.completedSteps, currentStep.id],
+            currentStepId: next.id,
+          };
+          setState(advancedState);
+          saveTutorialState(advancedState);
+        }, 300);
       }
     }
   }, [state, pendingAction, currentStep]);

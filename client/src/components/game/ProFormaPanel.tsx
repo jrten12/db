@@ -400,7 +400,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
         </div>
 
         {/* STRATEGY SELECTOR */}
-        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-4">
+        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-4" data-testid="strategy-tabs">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-white font-semibold">{property.name}</h2>
             <span className="text-gray-400 text-sm">{formatCurrency(property.price)}</span>
@@ -658,7 +658,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           {expandedSections.capital && (
             <div className="px-4 pb-4 space-y-4">
               {/* LTV Slider - drives all financing terms */}
-              <div className="space-y-3">
+              <div className="space-y-3" data-testid="ltv-slider">
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-gray-400 text-xs flex items-center">Loan-to-Value (LTV)<InfoTooltip term="leverage" /></span>
@@ -1452,7 +1452,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
 
                 {/* Step 4: Cash Flow */}
-                <div className={`rounded-xl p-4 border ${canShowViability ? (isViable ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-red-500/20 border-red-500/50') : 'bg-slate-800/50 border-slate-700'}`}>
+                <div className={`rounded-xl p-4 border ${canShowViability ? (isViable ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-red-500/20 border-red-500/50') : 'bg-slate-800/50 border-slate-700'}`} data-testid="cash-flow-display">
                   <div className={`text-xs uppercase tracking-wider font-semibold mb-1 ${canShowViability ? (isViable ? 'text-emerald-400' : 'text-red-400') : 'text-gray-400'}`}>
                     Step 4: Monthly Cash Flow
                   </div>

@@ -46,7 +46,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="property-list">
       {/* Header - Provocative framing */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>

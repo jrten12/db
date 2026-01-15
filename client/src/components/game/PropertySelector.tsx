@@ -202,11 +202,11 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                           e.stopPropagation();
                           onSellProperty(dealInfo.dealId, dealInfo.strategy);
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gold hover:bg-amber-400 text-slate-900 font-semibold text-sm rounded-md shadow-lg transition-all hover:scale-105"
+                        className="group/sell flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 via-gold to-amber-500 bg-[length:200%_100%] animate-[shimmer_2s_ease-in-out_infinite] text-slate-900 font-bold text-sm rounded-lg shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all duration-300 hover:scale-110 border border-amber-300/50"
                         data-testid={`button-sell-${property.id}`}
                       >
-                        <DollarSign className="w-4 h-4" />
-                        <span>Sell</span>
+                        <DollarSign className="w-5 h-5 group-hover/sell:animate-bounce" />
+                        <span className="tracking-wide">Sell Property</span>
                       </button>
                     )}
                   </div>

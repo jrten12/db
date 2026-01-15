@@ -141,17 +141,23 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
           
           const statusBadge = getStatusBadge();
           
+          const canSell = onSellProperty && dealInfo && 
+            (dealInfo.status === 'active_rental' || dealInfo.status === 'in_rehab' || dealInfo.status === 'ready_to_list');
+          
           return (
-            <button
+            <div
               key={property.id}
-              onClick={() => !isUnavailable && onSelect(property.id)}
-              disabled={isUnavailable}
+              onClick={() => !isUnavailable && !canSell && onSelect(property.id)}
+              role={isUnavailable ? undefined : "button"}
+              tabIndex={isUnavailable ? undefined : 0}
               className={`group relative rounded-2xl overflow-hidden transition-all duration-300 text-left ${
                 isUnavailable
                   ? 'opacity-60 cursor-not-allowed grayscale'
-                  : isSelected
-                    ? 'ring-2 ring-gold scale-[1.02] shadow-xl shadow-gold/20'
-                    : 'hover:scale-[1.02] hover:shadow-xl hover:shadow-black/40'
+                  : canSell
+                    ? 'opacity-90'
+                    : isSelected
+                      ? 'ring-2 ring-gold scale-[1.02] shadow-xl shadow-gold/20 cursor-pointer'
+                      : 'hover:scale-[1.02] hover:shadow-xl hover:shadow-black/40 cursor-pointer'
               }`}
               data-testid={`property-card-${property.id}`}
             >
@@ -277,7 +283,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
               {isSelected && (
                 <div className="absolute inset-0 pointer-events-none border-2 border-gold rounded-2xl" />
               )}
-            </button>
+            </div>
           );
         })}
       </div>

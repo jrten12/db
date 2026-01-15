@@ -79,6 +79,16 @@ export default function Game() {
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<HallOfFamePlayer | null>(null);
   const [showNameEntry, setShowNameEntry] = useState(true);
+  
+  // Sale confirmation dialog state
+  const [pendingSale, setPendingSale] = useState<{
+    dealId: number;
+    strategy: 'rent' | 'flip';
+    propertyName: string;
+    purchasePrice: number;
+    minSale: number;
+    maxSale: number;
+  } | null>(null);
 
   const STARTING_CASH = 50000;
 
@@ -810,13 +820,44 @@ export default function Game() {
     }
   }, [gameRun, deals, properties, queryClient, addTrophies]);
 
+  // Show confirmation dialog before selling
   const handleSellProperty = useCallback((dealId: number, strategy: 'rent' | 'flip') => {
-    if (strategy === 'rent') {
-      handleSellRental(dealId);
+    const deal = deals.find(d => d.id === dealId);
+    if (!deal) return;
+    
+    const property = properties.find(p => p.id === deal.propertyId);
+    const purchasePrice = deal.purchasePrice || property?.price || 0;
+    
+    // Sale price range: -10% to +15% of purchase price
+    const minSale = Math.round(purchasePrice * 0.90);
+    const maxSale = Math.round(purchasePrice * 1.15);
+    
+    setPendingSale({
+      dealId,
+      strategy,
+      propertyName: property?.name || 'Property',
+      purchasePrice,
+      minSale,
+      maxSale,
+    });
+  }, [deals, properties]);
+  
+  // Actually execute the sale after confirmation
+  const confirmSale = useCallback(() => {
+    if (!pendingSale) return;
+    
+    if (pendingSale.strategy === 'rent') {
+      handleSellRental(pendingSale.dealId);
     } else {
-      handleSellFlip(dealId);
+      handleSellFlip(pendingSale.dealId);
     }
-  }, [handleSellRental, handleSellFlip]);
+    
+    setPendingSale(null);
+  }, [pendingSale, handleSellRental, handleSellFlip]);
+  
+  const cancelSale = useCallback(() => {
+    setPendingSale(null);
+  }, []);
 
   const handleContinueFromResults = useCallback(() => {
     setCurrentScreen('market');
@@ -1124,6 +1165,67 @@ export default function Game() {
             startingCash={STARTING_CASH}
             onClose={() => setShowLedger(false)}
           />
+        )}
+        
+        {/* Sale Confirmation Dialog */}
+        {pendingSale && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" data-testid="sale-confirmation-dialog">
+            <div className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span>💰</span> Sell {pendingSale.propertyName}?
+              </h2>
+              
+              <div className="bg-slate-800/50 rounded-xl p-4 mb-4 border border-slate-700">
+                <p className="text-gray-300 mb-3">
+                  {pendingSale.strategy === 'rent' 
+                    ? "You're about to sell your rental property. This will end your rental income stream."
+                    : "You're about to list your flip for sale. The final price depends on market conditions."}
+                </p>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">You paid:</span>
+                    <span className="text-white font-mono">${pendingSale.purchasePrice.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-400">Possible sale price:</span>
+                    <span className="text-amber-400 font-mono">
+                      ${pendingSale.minSale.toLocaleString()} – ${pendingSale.maxSale.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t border-slate-600 pt-2 mt-2">
+                    <span className="text-gray-400">Potential outcome:</span>
+                    <span className="text-xs">
+                      <span className="text-red-400">-${(pendingSale.purchasePrice - pendingSale.minSale).toLocaleString()}</span>
+                      <span className="text-gray-500"> to </span>
+                      <span className="text-emerald-400">+${(pendingSale.maxSale - pendingSale.purchasePrice).toLocaleString()}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <p className="text-xs text-gray-500 mb-4">
+                ⚠️ Sale takes 2 weeks. The final price is random — you could make or lose money!
+              </p>
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={cancelSale}
+                  className="flex-1 px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-medium transition-colors"
+                  data-testid="button-cancel-sale"
+                >
+                  Keep Property
+                </button>
+                <button
+                  onClick={confirmSale}
+                  className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-colors"
+                  data-testid="button-confirm-sale"
+                >
+                  Sell Now
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Premium Modal */}

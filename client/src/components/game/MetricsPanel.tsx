@@ -70,116 +70,27 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
 
   return (
     <div className="space-y-4" data-testid="metrics-panel">
+      {/* Investment Decision Section - No calculated metrics shown before purchase */}
       <div className="metric-card" data-testid="card-strategy-outcome">
         <h3 className="font-display text-foreground text-lg font-semibold mb-4 text-center">
-          Your Deal Summary
+          Ready to Invest?
         </h3>
         
-        {strategy === 'rent' ? (
-          <div className="space-y-4">
-            <div className="text-center">
-              <div className={`text-3xl font-bold font-mono ${cashFlowNegative ? 'text-danger' : 'text-success'}`}>
-                {outputs ? formatCurrency(outputs.cashFlowMonthly) : '$0'}/mo
-              </div>
-              <div className="text-muted-foreground text-sm mt-1">Monthly Cash Flow</div>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="text-center">
-              <div className={`text-3xl font-bold font-mono ${flipProfit < 0 ? 'text-danger' : 'text-success'}`}>
-                {formatCurrency(flipProfit)}
-              </div>
-              <div className="text-muted-foreground text-sm mt-1">Flip Profit</div>
-            </div>
-            <div className="text-center">
-              <div className={`text-xl font-bold font-mono ${flipROI < STRATEGY_THRESHOLDS.flip.roi ? 'text-warning' : 'text-success'}`}>
-                {flipROI.toFixed(1)}% ROI
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="text-center p-4 bg-slate-800/50 rounded-lg border border-slate-700 mb-4">
+          <p className="text-muted-foreground text-sm mb-2">
+            {strategy === 'rent' 
+              ? "Review your pro forma assumptions. Does this deal cash flow?"
+              : "Review your rehab budget and timeline. Will you profit after selling?"
+            }
+          </p>
+          <p className="text-amber-400 text-xs">
+            You'll learn the true outcome after you buy!
+          </p>
+        </div>
       </div>
 
       {isUnlocked && outputs && (
         <>
-          <div className="metric-card" data-testid="card-real-time-metrics">
-            <h3 className="font-display text-foreground text-base font-semibold mb-4">
-              {strategy === 'flip' ? 'Flip Breakdown' : 'Rental Metrics'}
-            </h3>
-            
-            {strategy === 'rent' ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <MetricTooltip term="cashFlow">
-                    <span className="text-muted-foreground text-sm">Monthly Cash Flow</span>
-                  </MetricTooltip>
-                  <span className={`font-mono font-bold ${cashFlowNegative ? 'text-danger' : 'text-success'}`}>
-                    {formatCurrency(outputs.cashFlowMonthly)}/mo
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {cashOnCashNegative && <AlertTriangle className="w-4 h-4 text-warning" />}
-                    <MetricTooltip term="cashOnCash">
-                      <span className="text-muted-foreground text-sm">Cash-on-Cash (CoC)</span>
-                    </MetricTooltip>
-                  </div>
-                  <span className={`font-mono font-bold ${cashOnCashNegative ? 'text-danger' : 'text-success'}`}>
-                    {formatPercent(outputs.cashOnCash)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <MetricTooltip term="capRate">
-                    <span className="text-muted-foreground text-sm">Cap Rate</span>
-                  </MetricTooltip>
-                  <span className="font-mono text-foreground">
-                    {formatPercent(outputs.capRate)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <MetricTooltip term="totalCashInvested">
-                    <span className="text-muted-foreground text-sm">Total Project Cash</span>
-                  </MetricTooltip>
-                  <span className="font-mono text-foreground">
-                    {formatCurrency(outputs.totalCashInvested)}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <MetricTooltip term="totalCashInvested">
-                    <span className="text-muted-foreground text-sm">Your Cash In</span>
-                  </MetricTooltip>
-                  <span className="font-mono text-foreground">
-                    {formatCurrency(outputs.totalCashInvested)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <MetricTooltip term="roi">
-                    <span className="text-muted-foreground text-sm">Projected Profit</span>
-                  </MetricTooltip>
-                  <span className={`font-mono font-bold ${flipProfit >= 0 ? 'text-success' : 'text-danger'}`}>
-                    {formatCurrency(flipProfit)}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <MetricTooltip term="roi">
-                    <span className="text-muted-foreground text-sm">Return on Investment</span>
-                  </MetricTooltip>
-                  <span className={`font-mono font-bold ${flipROI >= STRATEGY_THRESHOLDS.flip.roi ? 'text-success' : 'text-warning'}`}>
-                    {flipROI.toFixed(1)}%
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
 
           {onCommitDeal && outputs && (
             <>

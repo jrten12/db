@@ -511,6 +511,7 @@ export default function Game() {
   }, [proFormaInputs, selectedProperty, completeAction]);
 
   const [isCommittingDeal, setIsCommittingDeal] = useState(false);
+  const [isAdvancingWeek, setIsAdvancingWeek] = useState(false);
   const [dealOutcome, setDealOutcome] = useState<{
     property: Property;
     totalCashRequired: number;
@@ -692,6 +693,7 @@ export default function Game() {
   const handleAdvanceWeek = useCallback(async () => {
     if (!gameRun) return;
 
+    setIsAdvancingWeek(true);
     try {
       const result = await api.advanceGameWeek(gameRun.id);
 
@@ -746,6 +748,8 @@ export default function Game() {
       toast.success(`Week ${result.newWeek} complete!`);
     } catch (error: any) {
       toast.error(error.message || 'Failed to advance week');
+    } finally {
+      setIsAdvancingWeek(false);
     }
   }, [gameRun, queryClient, addRentalPayment, addFlipProceeds, properties, deals]);
 
@@ -973,6 +977,8 @@ export default function Game() {
           onOpenLedger={() => setShowLedger(true)}
           onOpenPremium={() => setShowPremiumModal(true)}
           onOpenHallOfFame={() => setShowHallOfFame(true)}
+          onAdvanceWeek={handleAdvanceWeek}
+          isAdvancingWeek={isAdvancingWeek}
         />
         
         <SaveIndicator />

@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
-import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy } from 'lucide-react';
+import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy, Play, Loader2 } from 'lucide-react';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 
@@ -12,6 +12,8 @@ interface StatusBarProps {
   onOpenLedger?: () => void;
   onOpenPremium?: () => void;
   onOpenHallOfFame?: () => void;
+  onAdvanceWeek?: () => void;
+  isAdvancingWeek?: boolean;
 }
 
 function AnimatedNumber({ value, prefix = '', suffix = '', className = '' }: { 
@@ -95,14 +97,14 @@ function StatCard({
   );
 }
 
-export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame }: StatusBarProps) {
+export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onAdvanceWeek, isAdvancingWeek }: StatusBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const cashDisplay = Math.floor(cash).toLocaleString();
 
   return (
     <>
-      <div className="modern-status-bar safe-area-top" data-testid="status-bar">
+      <div className="modern-status-bar safe-area-top sticky top-0 z-40" data-testid="status-bar">
         <div className="max-w-7xl mx-auto px-4 py-3">
           {/* Desktop Layout */}
           <div className="hidden md:flex items-center gap-6">
@@ -148,6 +150,28 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               </StatCard>
             </div>
 
+            {/* Advance Week Button */}
+            {onAdvanceWeek && (
+              <button
+                onClick={onAdvanceWeek}
+                disabled={isAdvancingWeek || weeksRemaining <= 0}
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow-lg transition-all hover:scale-105 disabled:hover:scale-100"
+                data-testid="button-advance-week"
+              >
+                {isAdvancingWeek ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Advancing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    <span>Next Week</span>
+                  </>
+                )}
+              </button>
+            )}
+
             {/* Menu Button */}
             <button
               onClick={() => setMenuOpen(true)}
@@ -185,7 +209,23 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 </div>
               </Link>
               
-              <div className="w-9" />
+              {/* Advance Week Button - Mobile */}
+              {onAdvanceWeek ? (
+                <button
+                  onClick={onAdvanceWeek}
+                  disabled={isAdvancingWeek || weeksRemaining <= 0}
+                  className="flex items-center justify-center w-9 h-9 bg-blue-500 hover:bg-blue-400 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all"
+                  data-testid="button-advance-week-mobile"
+                >
+                  {isAdvancingWeek ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  ) : (
+                    <Play className="w-4 h-4 text-white" />
+                  )}
+                </button>
+              ) : (
+                <div className="w-9" />
+              )}
             </div>
             
             {/* Mobile Stats */}

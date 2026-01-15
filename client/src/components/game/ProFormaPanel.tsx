@@ -1616,53 +1616,13 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               <div className="text-white font-bold font-mono text-lg">{formatCurrency(liveOutputs.totalCashInvested)}</div>
             </div>
 
-            {/* Fragility Warnings */}
-            {canShowFragility ? (
-              (fragility !== 'low' || !isViable) && (
-                <div className={`rounded-xl p-3 ${fragility === 'high' || !isViable ? 'bg-red-500/20 border border-red-500/30' : 'bg-amber-500/20 border border-amber-500/30'}`}>
-                  <div className="flex items-start gap-2">
-                    <AlertTriangle className={`w-4 h-4 mt-0.5 ${fragility === 'high' || !isViable ? 'text-red-400' : 'text-amber-400'}`} />
-                    <div>
-                      <div className={`text-xs font-semibold ${fragility === 'high' || !isViable ? 'text-red-400' : 'text-amber-400'}`}>
-                        {!isViable ? 'Risky Deal' : 'Fragility Warning'}
-                      </div>
-                      <div className="text-gray-400 text-xs mt-1">
-                        {!isViable && inputs.strategy === 'rent' && 'Expenses exceed income. You will lose money each month.'}
-                        {!isViable && inputs.strategy === 'flip' && 'Total project cost exceeds ARV. This deal loses money.'}
-                        {isViable && fragility === 'high' && n(inputs.vacancyRate) < 5 && inputs.strategy === 'rent' && 'Low vacancy assumption. One bad tenant breaks this deal.'}
-                        {isViable && fragility === 'high' && n(inputs.contingencyPct) < 10 && 'Low contingency. Unexpected repairs will hurt.'}
-                        {isViable && fragility === 'moderate' && inputs.strategy === 'rent' && `A rent miss of ${formatCurrency(150)} flips the outcome.`}
-                        {isViable && fragility === 'moderate' && inputs.strategy === 'flip' && 'Timeline delays add holding costs. Budget extra time.'}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            ) : (
-              <div className="rounded-xl p-3 bg-slate-800/50 border border-slate-700">
-                <div className="flex items-start gap-2">
-                  <Lock className="w-4 h-4 mt-0.5 text-gray-500" />
-                  <div>
-                    <div className="text-xs font-semibold text-gray-400">Risk Assessment Locked</div>
-                    <div className="text-gray-500 text-xs mt-1">
-                      Complete at least 1 due diligence item to see deal fragility analysis
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {canShowViability ? (
               <button
                 onClick={onCalculate}
-                className={`w-full px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
-                  isViable
-                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-                    : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white shadow-lg shadow-red-500/30'
-                }`}
+                className="w-full px-5 py-4 rounded-xl font-bold text-base transition-all bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-400 hover:via-purple-400 hover:to-pink-400 text-white shadow-lg shadow-purple-500/40 hover:shadow-purple-500/60 hover:scale-[1.02] active:scale-[0.98]"
                 data-testid="button-calculate"
               >
-                {isViable ? 'Lock In Pro Forma' : 'Lock In Pro Forma (Losing Deal)'}
+                Lock In Pro Forma
               </button>
             ) : (
               <div className="w-full rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/50 p-4">

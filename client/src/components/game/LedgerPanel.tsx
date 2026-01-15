@@ -31,12 +31,18 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export function LedgerPanel({ entries, startingCash, onClose }: LedgerPanelProps) {
-  const sortedEntries = [...entries].sort((a, b) => 
+  // Ascending order for balance calculations
+  const sortedEntriesAsc = [...entries].sort((a, b) => 
     new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
+  
+  // Descending order for display (most recent first)
+  const sortedEntries = [...entries].sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 
-  const firstEntry = sortedEntries[0];
-  const lastEntry = sortedEntries[sortedEntries.length - 1];
+  const firstEntry = sortedEntriesAsc[0];
+  const lastEntry = sortedEntriesAsc[sortedEntriesAsc.length - 1];
   
   const computedStartingBalance = firstEntry 
     ? firstEntry.balanceAfter + (firstEntry.direction === 'debit' ? firstEntry.amount : -firstEntry.amount)

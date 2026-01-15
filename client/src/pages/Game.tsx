@@ -806,6 +806,14 @@ export default function Game() {
     }
   }, [gameRun, deals, properties, queryClient, addTrophies]);
 
+  const handleSellProperty = useCallback((dealId: number, strategy: 'rent' | 'flip') => {
+    if (strategy === 'rent') {
+      handleSellRental(dealId);
+    } else {
+      handleSellFlip(dealId);
+    }
+  }, [handleSellRental, handleSellFlip]);
+
   const handleContinueFromResults = useCallback(() => {
     setCurrentScreen('market');
     setIsProFormaComplete(false);
@@ -980,7 +988,14 @@ export default function Game() {
                   locationFilter={locationFilter}
                   onLocationFilterChange={setLocationFilter}
                   propertiesWithInvestigations={new Set(investigations.map(inv => inv.propertyId))}
-                  propertyDeals={deals.map(d => ({ propertyId: d.propertyId, strategy: d.strategy as 'rent' | 'flip', status: d.status }))}
+                  propertyDeals={deals.map(d => ({ 
+                    dealId: d.id,
+                    propertyId: d.propertyId, 
+                    strategy: d.strategy as 'rent' | 'flip', 
+                    status: d.status,
+                    purchasePrice: d.purchasePrice || undefined
+                  }))}
+                  onSellProperty={handleSellProperty}
                 />
               </div>
               <div className="lg:col-span-1">

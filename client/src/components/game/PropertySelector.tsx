@@ -1,14 +1,16 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home } from 'lucide-react';
+import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home, DollarSign } from 'lucide-react';
 import type { Property } from '@shared/schema';
 
 export type LocationFilter = 'all' | 'urban' | 'suburban';
 
 export interface PropertyDealInfo {
+  dealId: number;
   propertyId: number;
   strategy: 'rent' | 'flip';
   status: string;
+  purchasePrice?: number;
 }
 
 interface PropertySelectorProps {
@@ -19,6 +21,7 @@ interface PropertySelectorProps {
   onLocationFilterChange: (filter: LocationFilter) => void;
   propertiesWithInvestigations?: Set<number>;
   propertyDeals?: PropertyDealInfo[];
+  onSellProperty?: (dealId: number, strategy: 'rent' | 'flip') => void;
 }
 
 const getConditionBadge = (conditionTag: string) => {
@@ -36,7 +39,7 @@ const getConditionBadge = (conditionTag: string) => {
   }
 };
 
-export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), propertyDeals = [] }: PropertySelectorProps) {
+export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), propertyDeals = [], onSellProperty }: PropertySelectorProps) {
   const urbanCount = properties.filter(p => p.locationType === 'urban').length;
   const suburbanCount = properties.filter(p => p.locationType === 'suburban').length;
   
@@ -185,11 +188,27 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
 
                 {/* Status Badge */}
                 {statusBadge && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 z-10 gap-3">
                     <div className={`flex items-center gap-2 px-4 py-2 ${statusBadge.color} rounded-lg border-2 shadow-lg transform -rotate-12`}>
                       <statusBadge.icon className="w-5 h-5 text-white" />
                       <span className="text-lg font-bold text-white uppercase tracking-wider">{statusBadge.label}</span>
                     </div>
+                    {/* Sell Button for owned properties */}
+                    {onSellProperty && dealInfo && (
+                      (dealInfo.status === 'active_rental' || dealInfo.status === 'in_rehab' || dealInfo.status === 'ready_to_list')
+                    ) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSellProperty(dealInfo.dealId, dealInfo.strategy);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold rounded-lg shadow-lg transform rotate-0 transition-all hover:scale-105 border-2 border-green-400"
+                        data-testid={`button-sell-${property.id}`}
+                      >
+                        <DollarSign className="w-5 h-5" />
+                        <span>Sell Property</span>
+                      </button>
+                    )}
                   </div>
                 )}
 

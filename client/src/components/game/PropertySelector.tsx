@@ -142,7 +142,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
           const statusBadge = getStatusBadge();
           
           const canSell = onSellProperty && dealInfo && 
-            (dealInfo.status === 'active_rental' || dealInfo.status === 'in_rehab' || dealInfo.status === 'ready_to_list');
+            (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list');
           
           return (
             <div
@@ -201,18 +201,19 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                     </div>
                     {/* Sell Button for owned properties */}
                     {onSellProperty && dealInfo && (
-                      (dealInfo.status === 'active_rental' || dealInfo.status === 'in_rehab' || dealInfo.status === 'ready_to_list')
+                      (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list')
                     ) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          e.preventDefault();
                           onSellProperty(dealInfo.dealId, dealInfo.strategy);
                         }}
-                        className="group/sell flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 via-gold to-amber-500 bg-[length:200%_100%] animate-[shimmer_2s_ease-in-out_infinite] text-slate-900 font-bold text-sm rounded-lg shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all duration-300 hover:scale-110 border border-amber-300/50"
+                        className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-base rounded-xl shadow-lg shadow-emerald-500/40 hover:shadow-emerald-400/60 transition-all duration-200 hover:scale-105 border-2 border-emerald-300"
                         data-testid={`button-sell-${property.id}`}
                       >
-                        <DollarSign className="w-5 h-5 group-hover/sell:animate-bounce" />
-                        <span className="tracking-wide">Sell Property</span>
+                        <DollarSign className="w-6 h-6" />
+                        <span>SELL NOW</span>
                       </button>
                     )}
                   </div>

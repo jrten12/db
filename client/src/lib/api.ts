@@ -227,6 +227,26 @@ export const api = {
     return res.json();
   },
 
+  async refinanceRental(dealId: number, gameRunId: number): Promise<{
+    deal: Deal;
+    gameRun: GameRun;
+    cashOut: number;
+    newLoanBalance: number;
+    oldLoanBalance: number;
+    refinanceFees: number;
+  }> {
+    const res = await fetch(`${API_BASE}/deals/${dealId}/refinance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameRunId }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to refinance property');
+    }
+    return res.json();
+  },
+
   // Premium Purchases
   async purchaseCash(gameRunId: number, amount: number): Promise<GameRun> {
     const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase-cash`, {

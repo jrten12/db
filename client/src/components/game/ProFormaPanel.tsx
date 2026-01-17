@@ -767,6 +767,36 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     <>Conservative leverage = lower interest rate + fees. More cash down, but safer.</>
                   )}
                 </div>
+
+                {/* Finance Rehab Toggle - only for flips */}
+                {inputs.strategy === 'flip' && (
+                  <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="text-white text-sm font-medium">Include Rehab in Loan</div>
+                        <div className="text-gray-500 text-xs">
+                          Finance purchase + rehab together (higher loan, less cash needed upfront)
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleChange('financeRehab', !inputs.financeRehab)}
+                        className={`relative w-12 h-6 rounded-full transition-colors ${
+                          inputs.financeRehab ? 'bg-emerald-500' : 'bg-slate-600'
+                        }`}
+                        data-testid="toggle-finance-rehab"
+                      >
+                        <div className={`absolute w-5 h-5 bg-white rounded-full top-0.5 transition-transform ${
+                          inputs.financeRehab ? 'translate-x-6' : 'translate-x-0.5'
+                        }`} />
+                      </button>
+                    </div>
+                    {inputs.financeRehab && (
+                      <div className="mt-2 text-xs text-amber-400 bg-amber-500/10 rounded-lg p-2 border border-amber-500/30">
+                        Construction loan active: Rehab costs included in financing. Higher monthly payments, but less cash out of pocket.
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700">
@@ -1668,13 +1698,28 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             </div>
 
             {canShowViability ? (
-              <button
-                onClick={onCalculate}
-                className="w-full px-5 py-4 rounded-xl font-bold text-lg transition-all bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/40 hover:shadow-emerald-500/60 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
-                data-testid="button-calculate"
-              >
-                <span>✓</span> Ready to Buy
-              </button>
+              isComplete ? (
+                <button
+                  onClick={onCalculate}
+                  className="w-full px-5 py-4 rounded-xl font-bold text-lg transition-all bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/40 hover:shadow-emerald-500/60 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                  data-testid="button-calculate"
+                >
+                  <span>✓</span> Ready to Buy
+                </button>
+              ) : (
+                <div className="w-full rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/50 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-amber-400" />
+                    <span className="text-amber-400 font-bold text-sm">Fill All Required Fields</span>
+                  </div>
+                  <p className="text-gray-300 text-sm mb-2">
+                    Complete your pro forma by setting values for: {missingFields.map(f => f.replace(/([A-Z])/g, ' $1').trim()).join(', ')}
+                  </p>
+                  <div className="text-gray-500 text-xs">
+                    Use the sliders above to enter your assumptions
+                  </div>
+                </div>
+              )
             ) : (
               <div className="w-full rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/50 p-4">
                 <div className="flex items-center gap-2 mb-3">

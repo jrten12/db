@@ -24,6 +24,7 @@ interface TimeProgressionPanelProps {
   onAdvanceWeek: () => Promise<void>;
   onSellRental?: (dealId: number) => Promise<void>;
   onSellFlip?: (dealId: number) => Promise<void>;
+  onRefinanceRental?: (dealId: number) => Promise<void>;
 }
 
 function RentalFinancialDetails({ deal, propertyName }: { deal: Deal; propertyName: string }) {
@@ -170,9 +171,23 @@ export function TimeProgressionPanel({
   onAdvanceWeek,
   onSellRental,
   onSellFlip,
+  onRefinanceRental,
 }: TimeProgressionPanelProps) {
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [sellingDealId, setSellingDealId] = useState<number | null>(null);
+  const [refinancingDealId, setRefinancingDealId] = useState<number | null>(null);
+
+  const SEASONING_WEEKS = 8; // Must match server
+
+  const handleRefinanceRental = async (dealId: number) => {
+    if (!onRefinanceRental) return;
+    setRefinancingDealId(dealId);
+    try {
+      await onRefinanceRental(dealId);
+    } finally {
+      setRefinancingDealId(null);
+    }
+  };
 
   const handleSellRental = async (dealId: number) => {
     if (!onSellRental) return;
@@ -272,6 +287,13 @@ export function TimeProgressionPanel({
             const canSell = gameRun.weeksRemaining >= 2 && onSellRental;
             const propertyName = getPropertyName(deal.propertyId);
             
+            // Refinancing check - use gameRun.currentWeek for consistency with server
+            const currentWeek = gameRun.currentWeek;
+            const purchaseWeek = (deal as any).purchaseWeek ?? 0;
+            const weeksHeld = currentWeek - purchaseWeek;
+            const canRefinance = weeksHeld >= SEASONING_WEEKS && onRefinanceRental && ((deal as any).refinanceCount ?? 0) === 0;
+            const weeksUntilRefinance = Math.max(0, SEASONING_WEEKS - weeksHeld);
+            
             return (
               <div
                 key={deal.id}
@@ -293,7 +315,38 @@ export function TimeProgressionPanel({
                     <RentalFinancialDetails deal={deal} propertyName={propertyName} />
                   </PopoverContent>
                 </Popover>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {/* Refinance button */}
+                  {onRefinanceRental && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className={`h-6 px-2 text-xs ${canRefinance ? 'bg-blue-500/20 border-blue-500/50 text-blue-300 hover:bg-blue-500/30' : 'bg-gray-500/10 border-gray-500/30 text-gray-500'}`}
+                          disabled={!canRefinance || refinancingDealId === deal.id}
+                          onClick={(e) => {
+                            if (canRefinance) {
+                              e.preventDefault();
+                              handleRefinanceRental(deal.id);
+                            }
+                          }}
+                          data-testid={`button-refinance-rental-${deal.id}`}
+                        >
+                          {refinancingDealId === deal.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            'Refi'
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      {!canRefinance && weeksUntilRefinance > 0 && (
+                        <PopoverContent className="w-48 bg-slate-900 border-slate-700 text-white text-xs p-2">
+                          Seasoning period: {weeksUntilRefinance} weeks until you can refinance
+                        </PopoverContent>
+                      )}
+                    </Popover>
+                  )}
                   <span className="text-[10px] text-gray-500 hidden sm:inline">
                     ${estimatedSaleMin.toLocaleString()}-${estimatedSaleMax.toLocaleString()}
                   </span>

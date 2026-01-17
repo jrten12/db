@@ -15,6 +15,8 @@ interface TutorialContextType {
   hasCompletedTutorial: boolean;
   showTutorialPrompt: boolean;
   dismissPrompt: () => void;
+  pendingAction: string | null;
+  isActionRequired: boolean;
 }
 
 const TutorialContext = createContext<TutorialContextType | undefined>(undefined);
@@ -199,6 +201,8 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     markPromptSeen();
   }, []);
 
+  const isActionRequired = !!(currentStep?.requiresAction && !state.completedSteps.includes(currentStep.requiresAction));
+
   return (
     <TutorialContext.Provider
       value={{
@@ -215,6 +219,8 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
         hasCompletedTutorial: state.hasCompletedTutorial,
         showTutorialPrompt,
         dismissPrompt,
+        pendingAction,
+        isActionRequired,
       }}
     >
       {children}

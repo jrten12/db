@@ -82,6 +82,11 @@ export const deals = pgTable("deals", {
   purchasePrice: integer("purchase_price"), // Original purchase price (for calculating sale proceeds)
   salePrice: integer("sale_price"), // Final sale price when rental is sold
   saleMultiplier: real("sale_multiplier"), // The random multiplier used (0.90 to 1.15)
+  // Refinancing fields
+  purchaseWeek: integer("purchase_week"), // Week when rental was purchased (for seasoning period)
+  refinanceCount: integer("refinance_count").default(0), // How many times this property has been refinanced
+  currentLoanBalance: integer("current_loan_balance"), // Current loan balance (updated after refinance)
+  lastRefinanceWeek: integer("last_refinance_week"), // Week of last refinance
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
 });

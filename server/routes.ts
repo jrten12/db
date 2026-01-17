@@ -766,5 +766,35 @@ export async function registerRoutes(
     }
   });
 
+  // Refinance rental property (cash-out refinance)
+  app.post("/api/deals/:id/refinance", dealLimiter, async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { gameRunId } = req.body as { gameRunId: number };
+
+      const deal = await storage.getDeal(dealId);
+      if (!deal) {
+        res.status(404).json({ error: "Deal not found" });
+        return;
+      }
+      if (deal.status !== 'active_rental') {
+        res.status(400).json({ error: "Can only refinance active rental properties" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const result = await storage.refinanceRentalProperty(dealId, gameRunId);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error refinancing property:", error);
+      res.status(400).json({ error: error.message || "Failed to refinance property" });
+    }
+  });
+
   return httpServer;
 }

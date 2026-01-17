@@ -58,6 +58,7 @@ export interface IStorage {
   updateDeal(id: number, updates: Partial<InsertDeal>): Promise<Deal | undefined>;
   sellRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number; mortgagePayoff: number; netProceeds: number }>;
   sellFlipProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number }>;
+  refinanceRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; cashOut: number; newLoanBalance: number; oldLoanBalance: number; refinanceFees: number }>;
 
   // Property Investigation methods
   createPropertyInvestigation(investigation: InsertPropertyInvestigation): Promise<PropertyInvestigation>;
@@ -858,6 +859,134 @@ export class DBStorage implements IStorage {
       saleProfit,
       salePrice,
       purchasePrice,
+    };
+  }
+
+  async refinanceRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; cashOut: number; newLoanBalance: number; oldLoanBalance: number; refinanceFees: number }> {
+    const SEASONING_WEEKS = 8; // Minimum weeks to hold before refinancing
+    const REFINANCE_FEE_PCT = 0.02; // 2% refinance fees
+    const MAX_REFINANCE_LTV = 0.75; // 75% max LTV on refinance
+    
+    const [deal] = await db
+      .select()
+      .from(schema.deals)
+      .where(and(eq(schema.deals.id, dealId), eq(schema.deals.gameRunId, gameRunId)))
+      .limit(1);
+    
+    if (!deal) {
+      throw new Error('Deal not found');
+    }
+    
+    if (deal.status !== 'active_rental') {
+      throw new Error('Can only refinance active rental properties');
+    }
+    
+    const [gameRun] = await db
+      .select()
+      .from(schema.gameRuns)
+      .where(eq(schema.gameRuns.id, gameRunId))
+      .limit(1);
+    
+    if (!gameRun) {
+      throw new Error('Game run not found');
+    }
+    
+    // Check seasoning period - use gameRun.currentWeek for consistency
+    const purchaseWeek = deal.purchaseWeek ?? 0;
+    const currentWeek = gameRun.currentWeek;
+    const weeksHeld = currentWeek - purchaseWeek;
+    
+    if (weeksHeld < SEASONING_WEEKS) {
+      throw new Error(`Must hold property for ${SEASONING_WEEKS} weeks before refinancing (${SEASONING_WEEKS - weeksHeld} weeks remaining)`);
+    }
+    
+    // Get property value for new appraisal
+    const [property] = await db
+      .select()
+      .from(schema.properties)
+      .where(eq(schema.properties.id, deal.propertyId))
+      .limit(1);
+    
+    if (!property) {
+      throw new Error('Property not found');
+    }
+    
+    // Current property value = original price + 5-15% appreciation
+    const appreciationMultiplier = 1.05 + Math.random() * 0.10;
+    const currentPropertyValue = Math.round(property.price * appreciationMultiplier);
+    
+    // Calculate old loan balance from pro forma
+    const proFormaOutputs = deal.proFormaOutputs as any;
+    const oldLoanBalance = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
+    
+    // New loan at 75% of current value
+    const newLoanBalance = Math.round(currentPropertyValue * MAX_REFINANCE_LTV);
+    
+    // Refinance fees
+    const refinanceFees = Math.round(newLoanBalance * REFINANCE_FEE_PCT);
+    
+    // Cash out = new loan - old loan - fees
+    const cashOut = newLoanBalance - oldLoanBalance - refinanceFees;
+    
+    if (cashOut <= 0) {
+      throw new Error('Not enough equity to refinance - no cash out available');
+    }
+    
+    // Update deal with new loan info
+    const [updatedDeal] = await db
+      .update(schema.deals)
+      .set({
+        currentLoanBalance: newLoanBalance,
+        refinanceCount: (deal.refinanceCount ?? 0) + 1,
+        lastRefinanceWeek: currentWeek,
+      })
+      .where(eq(schema.deals.id, dealId))
+      .returning();
+    
+    // Update player cash
+    const newCash = gameRun.cash + cashOut;
+    const [updatedGameRun] = await db
+      .update(schema.gameRuns)
+      .set({
+        cash: newCash,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.gameRuns.id, gameRunId))
+      .returning();
+    
+    // Add ledger entries for refinance
+    await db.insert(schema.ledgerEntries).values([
+      {
+        gameRunId,
+        direction: 'debit',
+        category: 'refinance_fee',
+        amount: refinanceFees,
+        balanceAfter: gameRun.cash - refinanceFees,
+        description: `Refinance fees (2% of new loan)`,
+        propertyId: deal.propertyId,
+        dealId: dealId,
+        gameWeek: currentWeek,
+      },
+      {
+        gameRunId,
+        direction: 'credit',
+        category: 'refinance_cash_out',
+        amount: cashOut + refinanceFees,
+        balanceAfter: newCash,
+        description: `Cash-out refinance - ${Math.round((appreciationMultiplier - 1) * 100)}% appreciation`,
+        propertyId: deal.propertyId,
+        dealId: dealId,
+        gameWeek: currentWeek,
+      },
+    ]);
+    
+    return {
+      deal: updatedDeal,
+      gameRun: updatedGameRun,
+      cashOut,
+      newLoanBalance,
+      oldLoanBalance,
+      refinanceFees,
     };
   }
 

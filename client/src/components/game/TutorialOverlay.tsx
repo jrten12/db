@@ -3,6 +3,11 @@ import { useTutorial } from '@/contexts/TutorialContext';
 import { X, ChevronLeft, ChevronRight, Lightbulb, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const ACTION_LABELS: Record<string, string> = {
+  'select_property': 'Click on a property card to continue',
+  'lock_proforma': 'Lock in your pro forma to continue',
+};
+
 export function TutorialOverlay() {
   const { 
     isActive, 
@@ -11,7 +16,8 @@ export function TutorialOverlay() {
     totalSteps, 
     nextStep, 
     previousStep, 
-    endTutorial 
+    endTutorial,
+    isActionRequired,
   } = useTutorial();
   
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
@@ -177,6 +183,14 @@ export function TutorialOverlay() {
             />
           </div>
 
+          {isActionRequired && currentStep.requiresAction && (
+            <div className="bg-purple-500/20 border border-purple-500/40 rounded-lg p-2 mb-3 text-center">
+              <span className="text-purple-300 text-sm font-medium">
+                {ACTION_LABELS[currentStep.requiresAction] || 'Complete the action to continue'}
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <Button
               variant="ghost"
@@ -203,7 +217,10 @@ export function TutorialOverlay() {
             <Button
               size="sm"
               onClick={nextStep}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white shadow-lg"
+              disabled={isActionRequired}
+              className={`${isActionRequired 
+                ? 'bg-gray-600 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400'} text-white shadow-lg`}
               data-testid="button-next-step"
             >
               {stepIndex === totalSteps ? 'Finish' : 'Next'}

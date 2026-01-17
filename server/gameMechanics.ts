@@ -1154,12 +1154,18 @@ export async function activateRentalProperty(
     realityAdjustmentMonthly,
   };
 
+  // Get loan amount from pro forma for tracking
+  const initialLoanBalance = proFormaOutputs?.loanAmount || 0;
+  
   const updatedDeal = await storage.updateDeal(deal.id, {
     status: 'active_rental',
     weeklyIncome,
     lastIncomePaymentWeek: gameRun.currentWeek,
     proFormaOutputs: updatedProFormaOutputs,
     purchasePrice: property?.price || 0,
+    purchaseWeek: gameRun.currentWeek, // For seasoning period tracking
+    currentLoanBalance: initialLoanBalance, // For refinancing calculations
+    refinanceCount: 0, // Initialize refinance count
   });
 
   // Award trophies for rental activation

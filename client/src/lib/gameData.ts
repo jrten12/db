@@ -18,6 +18,7 @@ export interface ProFormaInputs {
   ltv: number; // Loan-to-Value 50-90%, drives interest rate and fees
   sellingCostsPct: number | null;
   contractorType: 'cheap' | 'fast';
+  financeRehab: boolean; // Include rehab costs in loan (acquisition + construction loan)
 }
 
 // LTV-based financing calculations
@@ -79,6 +80,7 @@ export const defaultProForma: ProFormaInputs = {
   ltv: DEFAULT_LTV,
   sellingCostsPct: null,
   contractorType: 'cheap',
+  financeRehab: false, // Default to not financing rehab
 };
 
 // Required fields for rent strategy (LTV handles financing automatically)
@@ -107,16 +109,49 @@ export const isProFormaInputsComplete = (inputs: ProFormaInputs): boolean => {
     return false;
   }
   
+  // Key financial fields must be > 0 to be valid
+  // Taxes and insurance should always be positive for real properties
+  if (inputs.taxesAnnual !== null && inputs.taxesAnnual <= 0) return false;
+  if (inputs.insuranceAnnual !== null && inputs.insuranceAnnual <= 0) return false;
+  
+  // For flips, rehab budget and weeks must be positive
+  if (inputs.strategy === 'flip') {
+    if (inputs.rehabBudget === null || inputs.rehabBudget <= 0) return false;
+    if (inputs.rehabWeeks === null || inputs.rehabWeeks <= 0) return false;
+  }
+  
   return true;
 };
 
-// Get list of missing required fields
+// Get list of missing or invalid required fields
 export const getMissingFields = (inputs: ProFormaInputs): string[] => {
   const requiredFields = inputs.strategy === 'rent' ? requiredRentFields : requiredFlipFields;
-  return requiredFields.filter(field => {
+  const missing = requiredFields.filter(field => {
     const value = inputs[field];
     return value === null || value === undefined;
   });
+  
+  // Also flag fields that are 0 when they should be positive
+  const invalid: string[] = [];
+  if (inputs.strategy === 'rent' && inputs.expectedRent !== null && inputs.expectedRent <= 0) {
+    invalid.push('expectedRent');
+  }
+  if (inputs.taxesAnnual !== null && inputs.taxesAnnual <= 0 && !missing.includes('taxesAnnual')) {
+    invalid.push('taxesAnnual');
+  }
+  if (inputs.insuranceAnnual !== null && inputs.insuranceAnnual <= 0 && !missing.includes('insuranceAnnual')) {
+    invalid.push('insuranceAnnual');
+  }
+  if (inputs.strategy === 'flip') {
+    if (inputs.rehabBudget !== null && inputs.rehabBudget <= 0 && !missing.includes('rehabBudget')) {
+      invalid.push('rehabBudget');
+    }
+    if (inputs.rehabWeeks !== null && inputs.rehabWeeks <= 0 && !missing.includes('rehabWeeks')) {
+      invalid.push('rehabWeeks');
+    }
+  }
+  
+  return [...missing, ...invalid];
 };
 
 export const calculateProForma = (
@@ -145,8 +180,15 @@ export const calculateProForma = (
   const interestRate = getInterestRateFromLTV(ltv);
   const loanOriginationPct = getLoanFeesFromLTV(ltv);
 
-  const loanAmount = property.price * (1 - downPaymentPct / 100);
-  const downPaymentAmount = property.price * (downPaymentPct / 100);
+  // For flips with financeRehab enabled, include rehab in the loan (acquisition + construction loan)
+  // This allows players to finance both purchase and rehab with one loan
+  const rehabWithContingencyForLoan = inputs.strategy === 'flip' && inputs.financeRehab 
+    ? rehabBudget * (1 + contingencyPct / 100) 
+    : 0;
+  const loanBasis = property.price + rehabWithContingencyForLoan;
+  
+  const loanAmount = loanBasis * (ltv / 100);
+  const downPaymentAmount = loanBasis * (1 - ltv / 100);
   const loanOriginationFees = loanAmount * (loanOriginationPct / 100);
   const closingCosts = Math.round(property.price * 0.03);
 
@@ -177,8 +219,10 @@ export const calculateProForma = (
 
   // Total cash invested = all cash out of pocket:
   // Down payment + Closing costs + Loan fees + Holding costs (flip) + Rehab with contingency (flip)
+  // Note: If financeRehab is true, rehab is included in the loan, not paid upfront
   const rehabWithContingency = inputs.strategy === 'flip' ? rehabBudget * (1 + contingencyPct / 100) : 0;
-  const totalCashInvested = downPaymentAmount + closingCosts + loanOriginationFees + flipHoldingCosts + rehabWithContingency;
+  const rehabCashOutOfPocket = inputs.financeRehab ? 0 : rehabWithContingency;
+  const totalCashInvested = downPaymentAmount + closingCosts + loanOriginationFees + flipHoldingCosts + rehabCashOutOfPocket;
   
   const annualNOI = noiMonthly * 12;
   const capRate = (annualNOI / property.price) * 100;

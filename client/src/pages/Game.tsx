@@ -864,6 +864,31 @@ export default function Game() {
     }
   }, [gameRun, deals, properties, queryClient, addTrophies]);
 
+  const handleRefinanceRental = useCallback(async (dealId: number) => {
+    if (!gameRun) return;
+    
+    try {
+      const result = await api.refinanceRental(dealId, gameRun.id);
+      
+      // Update game state with new cash
+      setGameRun(result.gameRun);
+      
+      // Find property name for toast
+      const deal = deals.find(d => d.id === dealId);
+      const property = properties.find(p => p.id === deal?.propertyId);
+      
+      toast.success(
+        `Refinanced ${property?.name || 'property'}! Cash out: $${result.cashOut.toLocaleString()} (new loan: $${result.newLoanBalance.toLocaleString()})`,
+        { duration: 6000 }
+      );
+      
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to refinance property');
+    }
+  }, [gameRun, deals, properties, queryClient]);
+
   // Show confirmation dialog before selling
   const handleSellProperty = useCallback((dealId: number, strategy: 'rent' | 'flip') => {
     const deal = deals.find(d => d.id === dealId);
@@ -1098,6 +1123,7 @@ export default function Game() {
                   onAdvanceWeek={handleAdvanceWeek}
                   onSellRental={handleSellRental}
                   onSellFlip={handleSellFlip}
+                  onRefinanceRental={handleRefinanceRental}
                 />
               </div>
             </div>

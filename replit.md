@@ -112,6 +112,18 @@ Preferred communication style: Simple, everyday language.
   - UI: TimeProgressionPanel shows active rentals with sell button and price estimate
   - Schema fields: `purchasePrice`, `salePrice`, `saleMultiplier` on deals table
   - Status changes: `active_rental` → `sold_rental` on sale completion
+- **Rehab Financing for Flips**: Toggle to include rehab costs in the loan (acquisition + construction loan)
+  - `financeRehab` toggle in pro forma financing section (flip strategy only)
+  - When enabled: loanBasis = purchasePrice + rehabCosts, reducing upfront cash needed
+  - When disabled: rehab costs paid out of pocket as before
+  - Educational messaging explains construction loan tradeoffs
+- **Rental Refinancing**: Cash-out refinance to free up capital from appreciated rentals
+  - 8-week seasoning period required before refinancing
+  - New appraisal at 5-15% appreciation over purchase price
+  - 75% max LTV on refinance, 2% refinance fees
+  - One refinance per property (prevents infinite leverage)
+  - Schema fields: `purchaseWeek`, `refinanceCount`, `currentLoanBalance`, `lastRefinanceWeek`
+  - UI: "Refi" button in TimeProgressionPanel with seasoning countdown
 
 ## External Dependencies
 

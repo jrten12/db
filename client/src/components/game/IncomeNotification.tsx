@@ -257,11 +257,14 @@ export function useIncomeNotifications() {
     totalExpenses: number,
     propertyName?: string
   ) => {
+    const description = grossRent > 0 
+      ? `Rent: +$${grossRent.toLocaleString()} | Expenses: -$${totalExpenses.toLocaleString()}`
+      : `Net weekly cash flow`;
     addIncomeEvent({
       amount: netIncome,
       type: 'rental',
       title: propertyName ? `${propertyName}` : 'Weekly Rental Income',
-      description: `Rent: +$${grossRent.toLocaleString()} | Expenses: -$${totalExpenses.toLocaleString()}`,
+      description,
       emoji: '🏠',
       color: netIncome >= 0 ? 'green' : 'yellow',
     });

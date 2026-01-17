@@ -92,13 +92,22 @@ export const requiredFlipFields: (keyof ProFormaInputs)[] = [
   'rehabBudget', 'rehabWeeks', 'contingencyPct', 'sellingCostsPct'
 ];
 
-// Check if pro forma is complete (all required fields filled)
+// Check if pro forma is complete (all required fields filled with valid values)
 export const isProFormaInputsComplete = (inputs: ProFormaInputs): boolean => {
   const requiredFields = inputs.strategy === 'rent' ? requiredRentFields : requiredFlipFields;
-  return requiredFields.every(field => {
+  const allFieldsFilled = requiredFields.every(field => {
     const value = inputs[field];
     return value !== null && value !== undefined;
   });
+  
+  if (!allFieldsFilled) return false;
+  
+  // For rentals, expectedRent must be > 0 (otherwise cash flow calculations break)
+  if (inputs.strategy === 'rent' && (inputs.expectedRent === null || inputs.expectedRent <= 0)) {
+    return false;
+  }
+  
+  return true;
 };
 
 // Get list of missing required fields

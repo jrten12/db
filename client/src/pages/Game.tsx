@@ -434,9 +434,9 @@ export default function Game() {
       ...prev,
       strategy,
       contractorType: contractor,
-      expectedRent: rentEstimate,
-      rehabBudget: rehabEstimate,
-      rehabWeeks: timelineEstimate,
+      expectedRent: prev.expectedRent ?? rentEstimate,
+      rehabBudget: prev.rehabBudget ?? rehabEstimate,
+      rehabWeeks: prev.rehabWeeks ?? timelineEstimate,
     }));
     // Reset touched fields - user must interact with all fields
     // Mark only the fields chosen by buttons (strategy, financing, contractor) as touched

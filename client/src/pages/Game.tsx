@@ -516,28 +516,18 @@ export default function Game() {
         await api.startFlipRehab(newDeal.id, gameRun.id, rehabWeeks);
         toast.success('Flip started! Check Time & Income panel to track progress.');
       } else {
-        // Activate rental property
-        const rentalResult = await api.activateRental(newDeal.id, gameRun.id, proFormaOutputs.cashFlowMonthly);
-        
+        // Activate rental property - server will calculate actual income from property ground truth
+        const rentalResult = await api.activateRental(newDeal.id, gameRun.id);
+
         // Show surprise costs warning if any hidden issues were discovered
         if (rentalResult.surpriseCosts > 0) {
           toast.warning(`⚠️ Surprise repairs: $${rentalResult.surpriseCosts.toLocaleString()} for ${rentalResult.surpriseIssues.join(', ')}. Your investment just got more expensive!`);
         }
-        
-        // Show reality check feedback - compare player assumptions to market reality
-        if (rentalResult.realityCheck) {
-          const rc = rentalResult.realityCheck;
-          if (rc.wasOptimistic) {
-            toast.error(`📊 Reality Check: ${rc.explanation}`, { duration: 8000 });
-          } else if (rc.actualCashFlow > rc.projectedCashFlow) {
-            toast.success(`📊 ${rc.explanation}`, { duration: 5000 });
-          }
-        }
-        
+
         // Update game run with new cash balance after surprise costs
         const updatedGameRun = await api.getGameRun(gameRun.id);
         setGameRun(updatedGameRun);
-        
+
         toast.success('Rental activated! You will receive weekly income.');
       }
 

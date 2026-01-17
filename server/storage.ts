@@ -892,9 +892,15 @@ export class DBStorage implements IStorage {
     }
     
     // Check seasoning period - use gameRun.currentWeek for consistency
+    // If purchaseWeek is null, property was created before this feature - use 0 as fallback
     const purchaseWeek = deal.purchaseWeek ?? 0;
     const currentWeek = gameRun.currentWeek;
     const weeksHeld = currentWeek - purchaseWeek;
+    
+    // Guard against negative weeksHeld (shouldn't happen but be safe)
+    if (weeksHeld < 0) {
+      throw new Error('Invalid seasoning calculation - please contact support');
+    }
     
     if (weeksHeld < SEASONING_WEEKS) {
       throw new Error(`Must hold property for ${SEASONING_WEEKS} weeks before refinancing (${SEASONING_WEEKS - weeksHeld} weeks remaining)`);
@@ -955,25 +961,29 @@ export class DBStorage implements IStorage {
       .returning();
     
     // Add ledger entries for refinance
+    // Gross proceeds = new loan - old loan
+    const grossProceeds = newLoanBalance - oldLoanBalance;
+    const afterGrossProceeds = gameRun.cash + grossProceeds;
+    
     await db.insert(schema.ledgerEntries).values([
       {
         gameRunId,
-        direction: 'debit',
-        category: 'refinance_fee',
-        amount: refinanceFees,
-        balanceAfter: gameRun.cash - refinanceFees,
-        description: `Refinance fees (2% of new loan)`,
+        direction: 'credit',
+        category: 'refinance_proceeds',
+        amount: grossProceeds,
+        balanceAfter: afterGrossProceeds,
+        description: `Refinance proceeds (new loan $${newLoanBalance.toLocaleString()} - old loan $${oldLoanBalance.toLocaleString()})`,
         propertyId: deal.propertyId,
         dealId: dealId,
         gameWeek: currentWeek,
       },
       {
         gameRunId,
-        direction: 'credit',
-        category: 'refinance_cash_out',
-        amount: cashOut + refinanceFees,
-        balanceAfter: newCash,
-        description: `Cash-out refinance - ${Math.round((appreciationMultiplier - 1) * 100)}% appreciation`,
+        direction: 'debit',
+        category: 'refinance_fee',
+        amount: refinanceFees,
+        balanceAfter: newCash, // afterGrossProceeds - refinanceFees = newCash
+        description: `Refinance fees (2% of $${newLoanBalance.toLocaleString()} loan)`,
         propertyId: deal.propertyId,
         dealId: dealId,
         gameWeek: currentWeek,

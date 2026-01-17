@@ -69,7 +69,7 @@ export default function Game() {
   
   // Persist skipped diligence to sessionStorage
   const skippedDiligenceArray = Array.from(skippedDiligenceDeals);
-  const [flipMetrics, setFlipMetrics] = useState({ profit: 0, roi: 0, holdWeeks: 0 });
+  const [flipMetrics, setFlipMetrics] = useState({ profit: 0, roi: 0, holdWeeks: 0, hasAppraisal: false });
   const [showLedger, setShowLedger] = useState(false);
 
   const [locationFilter, setLocationFilter] = useState<LocationFilter>('all');
@@ -609,20 +609,26 @@ export default function Game() {
       });
 
       if (proFormaInputs.strategy === 'flip') {
-        const rehabBudget = proFormaInputs.rehabBudget ?? 0;
-        const contingencyPct = proFormaInputs.contingencyPct ?? 0;
-        const interestRate = getInterestRateFromLTV(proFormaInputs.ltv);
-        const taxesAnnual = proFormaInputs.taxesAnnual ?? 0;
-        const insuranceAnnual = proFormaInputs.insuranceAnnual ?? 0;
         const rehabWeeks = proFormaInputs.rehabWeeks ?? 0;
+        const hasAppraisal = (completedDiligence[selectedProperty.id] || []).includes('appraisal');
         
-        const allInBasis = selectedProperty.price + closingCosts + rehabBudget * (1 + contingencyPct / 100);
-        const holdingCostPerWeek = Math.round((selectedProperty.price * (interestRate / 100) / 52) +
-          (taxesAnnual / 52) + (insuranceAnnual / 52));
-        const arvMid = (selectedProperty.arvMin + selectedProperty.arvMax) / 2;
-        const profit = arvMid - allInBasis - (holdingCostPerWeek * rehabWeeks);
-        const roi = proFormaOutputs.totalCashInvested > 0 ? (profit / proFormaOutputs.totalCashInvested) * 100 : 0;
-        setFlipMetrics({ profit, roi, holdWeeks: rehabWeeks });
+        if (hasAppraisal) {
+          const rehabBudget = proFormaInputs.rehabBudget ?? 0;
+          const contingencyPct = proFormaInputs.contingencyPct ?? 0;
+          const interestRate = getInterestRateFromLTV(proFormaInputs.ltv);
+          const taxesAnnual = proFormaInputs.taxesAnnual ?? 0;
+          const insuranceAnnual = proFormaInputs.insuranceAnnual ?? 0;
+          
+          const allInBasis = selectedProperty.price + closingCosts + rehabBudget * (1 + contingencyPct / 100);
+          const holdingCostPerWeek = Math.round((selectedProperty.price * (interestRate / 100) / 52) +
+            (taxesAnnual / 52) + (insuranceAnnual / 52));
+          const arvMid = (selectedProperty.arvMin + selectedProperty.arvMax) / 2;
+          const profit = arvMid - allInBasis - (holdingCostPerWeek * rehabWeeks);
+          const roi = proFormaOutputs.totalCashInvested > 0 ? (profit / proFormaOutputs.totalCashInvested) * 100 : 0;
+          setFlipMetrics({ profit, roi, holdWeeks: rehabWeeks, hasAppraisal: true });
+        } else {
+          setFlipMetrics({ profit: 0, roi: 0, holdWeeks: rehabWeeks, hasAppraisal: false });
+        }
 
         // Start flip rehab period
         await api.startFlipRehab(newDeal.id, gameRun.id, rehabWeeks);
@@ -865,6 +871,7 @@ export default function Game() {
     setProFormaOutputs(null);
     setProFormaInputs(defaultProForma);
     setSelectedPropertyId(null);
+    setFlipMetrics({ profit: 0, roi: 0, holdWeeks: 0, hasAppraisal: false });
   }, []);
 
   const handlePremiumPurchase = useCallback(async (type: 'cash' | 'weeks' | 'bundle', cashAmount: number, weeksAmount?: number) => {
@@ -1109,6 +1116,7 @@ export default function Game() {
                 flipProfit={flipMetrics.profit}
                 flipROI={flipMetrics.roi}
                 holdWeeks={flipMetrics.holdWeeks}
+                hasAppraisal={flipMetrics.hasAppraisal}
                 onContinue={handleContinueFromResults}
               />
             </div>

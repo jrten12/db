@@ -1081,42 +1081,31 @@ export async function activateRentalProperty(
   // Base vacancy rate from player's assumption
   const playerBaseVacancyRate = proFormaInputs?.vacancyRate || 5;
   
-  // Tenant pays utilities penalty: +1 week vacancy = +1.92% (1/52 weeks)
-  // In pro forma: utilities = true means LANDLORD pays, utilities = false means TENANT pays
-  // TENANT pays = harder to find tenants = +1 week vacancy penalty
-  const landlordPaysUtils = proFormaInputs?.utilities === true;
-  const tenantPaysUtilities = !landlordPaysUtils;
-  const utilityVacancyPenalty = tenantPaysUtilities ? 1.92 : 0;
-  
-  // Market reality vacancy (urban 7%, suburban 5%) - applied if player didn't do market study
-  const didMarketStudy = completedDiligence.includes('market_study');
-  const marketVacancyRate = property?.locationType === 'urban' ? 7 : 5;
-  
-  // Effective vacancy rate for this property
-  // If player did market study: use market rate, otherwise: use player's rate
-  // Always add utility penalty if tenant pays utilities
-  let effectiveVacancyRate = didMarketStudy ? marketVacancyRate : playerBaseVacancyRate;
-  effectiveVacancyRate += utilityVacancyPenalty;
+  // Calculate reality check - compare player assumptions to market reality
+  const playerProjectedCashFlow = (proFormaInputs?.expectedRent || proFormaInputs?.monthlyRent || 0) * (1 - (proFormaInputs?.vacancyRate || 5) / 100) - monthlyOpEx - debtServiceMonthly;
+  const realityCheck = calculateRealityCheck(
+    { rentMin: property.rentMin, rentMax: property.rentMax, locationType: property.locationType },
+    { monthlyRent: proFormaInputs?.expectedRent || proFormaInputs?.monthlyRent || 0, vacancyRate: proFormaInputs?.vacancyRate || 5 },
+    playerProjectedCashFlow,
+    completedDiligence
+  );
+
+  // === STORED VALUES FOR WEEKLY PROCESSING ===
+  // Use stored versions to avoid redeclaring - these are for the updatedProFormaOutputs
+  const storedMarketVacancyRate = property?.locationType === 'urban' ? 7 : 5;
+  const storedEffectiveVacancyRate = effectiveVacancyRate;
+  const storedUtilityVacancyPenalty = tenantPaysUtilitiesVacancyPenalty;
   
   // Calculate monthly vacancy loss for this specific property
-  const monthlyVacancyLoss = monthlyGrossRent * (effectiveVacancyRate / 100);
+  const monthlyVacancyLoss = monthlyGrossRent * (storedEffectiveVacancyRate / 100);
   
-  // Calculate other operating expenses (without vacancy or debt service - they're separate)
-  const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
-  const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
-  const maintenancePct = proFormaInputs?.maintenancePct || 5;
-  const capexPct = proFormaInputs?.capexPct || 5;
+  // Operating expenses - use values from proFormaOutputs if available
+  const storedDebtService = proFormaOutputs?.debtServiceMonthly || debtServiceMonthly;
+  const monthlyMaintenance = monthlyGrossRent * ((proFormaInputs?.maintenancePct || 5) / 100);
+  const monthlyCapex = monthlyGrossRent * ((proFormaInputs?.capexPct || 5) / 100);
   const hasPropertyMgmt = proFormaInputs?.propertyManagement || false;
-  const landlordPaysUtilities = proFormaInputs?.utilities || false;
-  const utilitiesMonthly = proFormaInputs?.utilitiesMonthly || 150;
-  const debtServiceMonthly = proFormaOutputs?.debtServiceMonthly || 0;
-  
-  const monthlyTaxes = taxesAnnual / 12;
-  const monthlyInsurance = insuranceAnnual / 12;
-  const monthlyMaintenance = monthlyGrossRent * (maintenancePct / 100);
-  const monthlyCapex = monthlyGrossRent * (capexPct / 100);
   const monthlyMgmt = hasPropertyMgmt ? monthlyGrossRent * (proFormaInputs?.propertyManagementPct || 10) / 100 : 0;
-  const monthlyUtilitiesCost = landlordPaysUtilities ? utilitiesMonthly : 0;
+  const monthlyUtilitiesCost = proFormaInputs?.utilities ? (proFormaInputs?.utilitiesMonthly || 150) : 0;
   
   // Operating expenses (NOT including vacancy or debt service - they're tracked separately)
   const monthlyOperatingExpenses = monthlyTaxes + monthlyInsurance + monthlyMaintenance + 
@@ -1134,9 +1123,9 @@ export async function activateRentalProperty(
     totalCashInvested: (proFormaOutputs?.totalCashInvested || 0) + surpriseCosts,
     // Vacancy tracking (unique per property)
     playerBaseVacancyRate,
-    utilityVacancyPenalty,
-    marketVacancyRate,
-    effectiveVacancyRate,
+    utilityVacancyPenalty: storedUtilityVacancyPenalty,
+    marketVacancyRate: storedMarketVacancyRate,
+    effectiveVacancyRate: storedEffectiveVacancyRate,
     monthlyVacancyLoss,
     // Expense breakdown (separate categories)
     monthlyOperatingExpenses,  // taxes, insurance, maintenance, capex, mgmt, utilities

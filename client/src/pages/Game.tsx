@@ -440,7 +440,7 @@ export default function Game() {
     }));
     // Reset touched fields - user must interact with all fields
     // Mark only the fields chosen by buttons (strategy, financing, contractor) as touched
-    setTouchedFields(new Set(['strategy', 'financingType', 'contractorType']));
+    setTouchedFields(new Set(['strategy', 'financingType', 'contractorType'] as (keyof ProFormaInputs)[]));
     setIsProFormaComplete(false);
     setProFormaOutputs(null);
     setCurrentScreen('proforma');
@@ -676,7 +676,7 @@ export default function Game() {
         toast.success('Flip started! Check Time & Income panel to track progress.');
       } else {
         // Activate rental property
-        const rentalResult = await api.activateRental(newDeal.id, gameRun.id, proFormaOutputs.cashFlowMonthly);
+        const rentalResult = await api.activateRental(newDeal.id, gameRun.id);
         
         // Show title issue warning if skipped title search
         if (rentalResult.titleIssue) {
@@ -785,30 +785,6 @@ export default function Game() {
           }
         }
       });
-
-      const tenantCurveballs = (result.curveballs || []).filter(
-        (curveball: Curveball) => curveball.tenantIssue
-      );
-      if (tenantCurveballs.length && deals.some(deal => deal.status === 'active_rental')) {
-        setTenantIssues(prev => [
-          ...prev,
-          ...tenantCurveballs.map((curveball: Curveball) => {
-            const persona = TENANT_PERSONAS[Math.floor(Math.random() * TENANT_PERSONAS.length)];
-            return {
-              id: `${Date.now()}-${Math.random()}`,
-              title: curveball.name,
-              description: curveball.description,
-              cashImpact: curveball.cashImpact,
-              rentMultiplier: curveball.rentMultiplier,
-              timeImpact: curveball.timeImpact,
-              emoji: curveball.emoji,
-              tenantName: persona.name,
-              tenantTrait: persona.trait,
-              tenantNote: persona.note,
-            };
-          }),
-        ]);
-      }
 
       // Refresh game run state and other data
       const updatedGameRun = await api.getGameRun(gameRun.id);

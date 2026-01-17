@@ -39,6 +39,8 @@ export interface IStorage {
   getGameRun(id: number): Promise<GameRun | undefined>;
   updateGameRun(id: number, updates: Partial<InsertGameRun>): Promise<GameRun | undefined>;
   getActiveGameRun(): Promise<GameRun | undefined>;
+  getActiveGameByPlayer(playerName: string): Promise<GameRun | undefined>;
+  deleteGameRun(id: number): Promise<void>;
 
   // Property methods
   getAllProperties(): Promise<Property[]>;
@@ -139,6 +141,31 @@ export class DBStorage implements IStorage {
       .orderBy(desc(schema.gameRuns.createdAt))
       .limit(1);
     return run;
+  }
+
+  async getActiveGameByPlayer(playerName: string): Promise<GameRun | undefined> {
+    const [run] = await db
+      .select()
+      .from(schema.gameRuns)
+      .where(
+        and(
+          eq(schema.gameRuns.playerName, playerName),
+          eq(schema.gameRuns.status, "active")
+        )
+      )
+      .orderBy(desc(schema.gameRuns.createdAt))
+      .limit(1);
+    return run;
+  }
+
+  async deleteGameRun(id: number): Promise<void> {
+    await db.transaction(async (tx) => {
+      await tx.delete(schema.curveballEvents).where(eq(schema.curveballEvents.gameRunId, id));
+      await tx.delete(schema.deals).where(eq(schema.deals.gameRunId, id));
+      await tx.delete(schema.propertyInvestigations).where(eq(schema.propertyInvestigations.gameRunId, id));
+      await tx.delete(schema.ledgerEntries).where(eq(schema.ledgerEntries.gameRunId, id));
+      await tx.delete(schema.gameRuns).where(eq(schema.gameRuns.id, id));
+    });
   }
 
   // Property methods
@@ -638,7 +665,8 @@ export class DBStorage implements IStorage {
       purchasePrice = property.price;
     }
     
-    const saleMultiplier = 0.90 + Math.random() * 0.25;
+    // Rental sale: -15% to +10% of purchase price (less upside due to wear and tear)
+    const saleMultiplier = 0.85 + Math.random() * 0.25;
     const salePrice = Math.round(purchasePrice * saleMultiplier);
     const saleProfit = salePrice - purchasePrice;
     
@@ -826,33 +854,35 @@ export class DBStorage implements IStorage {
     entries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[], 
     currentCash: number
   ): Promise<{ entries: LedgerEntry[], newCash: number }> {
-    let runningBalance = currentCash;
-    const createdEntries: LedgerEntry[] = [];
+    return await db.transaction(async (tx) => {
+      let runningBalance = currentCash;
+      const createdEntries: LedgerEntry[] = [];
 
-    for (const entry of entries) {
-      if (entry.direction === 'debit') {
-        runningBalance -= entry.amount;
-      } else {
-        runningBalance += entry.amount;
+      for (const entry of entries) {
+        if (entry.direction === 'debit') {
+          runningBalance -= entry.amount;
+        } else {
+          runningBalance += entry.amount;
+        }
+
+        const [ledgerEntry] = await tx
+          .insert(schema.ledgerEntries)
+          .values({
+            ...entry,
+            gameRunId,
+            balanceAfter: runningBalance,
+          })
+          .returning();
+        createdEntries.push(ledgerEntry);
       }
 
-      const [ledgerEntry] = await db
-        .insert(schema.ledgerEntries)
-        .values({
-          ...entry,
-          gameRunId,
-          balanceAfter: runningBalance,
-        })
-        .returning();
-      createdEntries.push(ledgerEntry);
-    }
+      await tx
+        .update(schema.gameRuns)
+        .set({ cash: runningBalance, updatedAt: new Date() })
+        .where(eq(schema.gameRuns.id, gameRunId));
 
-    await db
-      .update(schema.gameRuns)
-      .set({ cash: runningBalance, updatedAt: new Date() })
-      .where(eq(schema.gameRuns.id, gameRunId));
-
-    return { entries: createdEntries, newCash: runningBalance };
+      return { entries: createdEntries, newCash: runningBalance };
+    });
   }
 
   // Restore methods for save game feature
@@ -862,38 +892,40 @@ export class DBStorage implements IStorage {
     savedInvestigations: Array<Omit<InsertPropertyInvestigation, 'gameRunId'>>,
     savedLedgerEntries: Array<Omit<InsertLedgerEntry, 'gameRunId'>>
   ): Promise<{ deals: Deal[]; investigations: PropertyInvestigation[]; ledgerEntries: LedgerEntry[] }> {
-    const restoredDeals: Deal[] = [];
-    const restoredInvestigations: PropertyInvestigation[] = [];
-    const restoredLedgerEntries: LedgerEntry[] = [];
+    return await db.transaction(async (tx) => {
+      const restoredDeals: Deal[] = [];
+      const restoredInvestigations: PropertyInvestigation[] = [];
+      const restoredLedgerEntries: LedgerEntry[] = [];
 
-    // Restore investigations first
-    for (const inv of savedInvestigations) {
-      const [restored] = await db
-        .insert(schema.propertyInvestigations)
-        .values({ ...inv, gameRunId })
-        .returning();
-      restoredInvestigations.push(restored);
-    }
+      // Restore investigations first
+      for (const inv of savedInvestigations) {
+        const [restored] = await tx
+          .insert(schema.propertyInvestigations)
+          .values({ ...inv, gameRunId })
+          .returning();
+        restoredInvestigations.push(restored);
+      }
 
-    // Restore deals
-    for (const deal of savedDeals) {
-      const [restored] = await db
-        .insert(schema.deals)
-        .values({ ...deal, gameRunId })
-        .returning();
-      restoredDeals.push(restored);
-    }
+      // Restore deals
+      for (const deal of savedDeals) {
+        const [restored] = await tx
+          .insert(schema.deals)
+          .values({ ...deal, gameRunId })
+          .returning();
+        restoredDeals.push(restored);
+      }
 
-    // Restore ledger entries (without updating cash since game run already has correct cash)
-    for (const entry of savedLedgerEntries) {
-      const [restored] = await db
-        .insert(schema.ledgerEntries)
-        .values({ ...entry, gameRunId })
-        .returning();
-      restoredLedgerEntries.push(restored);
-    }
+      // Restore ledger entries (without updating cash since game run already has correct cash)
+      for (const entry of savedLedgerEntries) {
+        const [restored] = await tx
+          .insert(schema.ledgerEntries)
+          .values({ ...entry, gameRunId })
+          .returning();
+        restoredLedgerEntries.push(restored);
+      }
 
-    return { deals: restoredDeals, investigations: restoredInvestigations, ledgerEntries: restoredLedgerEntries };
+      return { deals: restoredDeals, investigations: restoredInvestigations, ledgerEntries: restoredLedgerEntries };
+    });
   }
 
   // Hall of Fame methods

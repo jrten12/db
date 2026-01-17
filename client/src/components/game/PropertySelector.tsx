@@ -161,9 +161,9 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
               tabIndex={isUnavailable ? undefined : 0}
               className={`group relative rounded-2xl overflow-hidden transition-all duration-300 text-left ${
                 isUnavailable
-                  ? 'opacity-60 cursor-not-allowed grayscale'
+                  ? 'opacity-85 cursor-default'
                   : canSell
-                    ? 'opacity-90'
+                    ? 'opacity-100'
                     : isSelected
                       ? 'ring-2 ring-gold scale-[1.02] shadow-xl shadow-gold/20 cursor-pointer'
                       : 'hover:scale-[1.02] hover:shadow-xl hover:shadow-black/40 cursor-pointer'

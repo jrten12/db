@@ -43,11 +43,25 @@ Preferred communication style: Simple, everyday language.
 
 ### Project Structure
 ```
-├── client/src/          # React frontend
+├── client/src/          # React web frontend
 │   ├── components/      # UI components (game/, ui/)
 │   ├── pages/           # Route pages (Landing, Game)
 │   ├── lib/             # Utilities, API client, game logic
 │   └── hooks/           # Custom React hooks
+├── mobile/              # React Native/Expo iOS app
+│   ├── app/             # Expo Router screens
+│   │   ├── _layout.tsx  # Root layout with providers
+│   │   ├── index.tsx    # Landing screen
+│   │   ├── game.tsx     # Property list screen
+│   │   ├── property/[id].tsx  # Property detail
+│   │   └── proforma/[id].tsx  # Pro forma analysis
+│   ├── src/
+│   │   ├── components/  # Native UI components
+│   │   └── lib/         # Shared game logic (ported)
+│   ├── assets/          # App icon, splash screen
+│   ├── app.config.ts    # Expo configuration
+│   ├── eas.json         # EAS Build configuration
+│   └── APP_STORE_CHECKLIST.md  # Submission guide
 ├── server/              # Express backend
 │   ├── index.ts         # Server entry point
 │   ├── routes.ts        # API route definitions
@@ -57,6 +71,15 @@ Preferred communication style: Simple, everyday language.
 │   └── schema.ts        # Drizzle schema + Zod validation
 └── attached_assets/     # Game design documents and images
 ```
+
+### Mobile App (iOS)
+- **Framework**: React Native with Expo SDK 52
+- **Navigation**: Expo Router (file-based routing)
+- **Styling**: NativeWind (Tailwind for React Native)
+- **Animations**: React Native Reanimated
+- **State**: TanStack React Query (same as web)
+- **Bundle ID**: com.dealbreak.simulator
+- **Build**: EAS Build for TestFlight/App Store
 
 ### Game Logic Architecture
 - Pro forma calculations handled client-side in `lib/gameData.ts`

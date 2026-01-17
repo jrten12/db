@@ -49,14 +49,48 @@ import societyHillWindows from '@assets/generated_images/society_hill_historic_w
 import fishtownSettling from '@assets/generated_images/fishtown_row_house_settling.png';
 import hillsideSeptic from '@assets/generated_images/hillside_retreat_septic_well.png';
 
-import issueMold from '@assets/generated_images/properties/issues/mold.png';
-import issueFoundation from '@assets/generated_images/properties/issues/foundation_crack.png';
-import issueRoof from '@assets/generated_images/properties/issues/roof_damage.png';
-import issuePlumbing from '@assets/generated_images/properties/issues/plumbing.png';
-import issueTermite from '@assets/generated_images/properties/issues/termite.png';
-import issueHvac from '@assets/generated_images/properties/issues/hvac.png';
-import issueWaterDamage from '@assets/generated_images/properties/issues/water_damage.png';
-import issueElectrical from '@assets/generated_images/properties/issues/electrical.png';
+import issueRoofWear from '@assets/generated_images/worn_roof_shingles.png';
+import issueOutdatedHvac from '@assets/generated_images/outdated_hvac_system.png';
+import issueFoundationSettling from '@assets/generated_images/foundation_settling_cracks.png';
+import issueDrainageIssues from '@assets/generated_images/yard_drainage_issues.png';
+import issueMoldRemediation from '@assets/generated_images/basement_mold_growth.png';
+import issueElectricalOutdated from '@assets/generated_images/outdated_electrical_panel.png';
+import issuePlumbingGalvanized from '@assets/generated_images/corroded_galvanized_plumbing.png';
+import issueHoaAssessment from '@assets/generated_images/hoa_assessment_notice.png';
+import issueIndustrialConversion from '@assets/generated_images/industrial_conversion_issues.png';
+import issueHvacCommercial from '@assets/generated_images/commercial_hvac_on_residential.png';
+import issueHvacHighRise from '@assets/generated_images/high-rise_hvac_systems.png';
+import issuePorchRot from '@assets/generated_images/rotted_porch_wood.png';
+import issueKnobTube from '@assets/generated_images/knob_and_tube_wiring.png';
+import issueLeadPaint from '@assets/generated_images/lead_paint_peeling.png';
+import issueRadonMitigation from '@assets/generated_images/radon_gas_mitigation.png';
+import issueSidingDamage from '@assets/generated_images/damaged_house_siding.png';
+import issueTermiteDamage from '@assets/generated_images/termite_wood_damage.png';
+import issueTreeRootDamage from '@assets/generated_images/tree_root_damage.png';
+import issueSepticIssues from '@assets/generated_images/septic_system_issues.png';
+import issueSumpPump from '@assets/generated_images/basement_sump_pump.png';
+import issueChimneyRebuild from '@assets/generated_images/chimney_needs_rebuilding.png';
+import issueBasementMoisture from '@assets/generated_images/basement_moisture_issues.png';
+import issueDockRepair from '@assets/generated_images/dock_repair_needed.png';
+import issueFireSuppression from '@assets/generated_images/fire_suppression_system.png';
+import issueHistoricWindows from '@assets/generated_images/historic_windows_restoration.png';
+import issueHoaReserveLow from '@assets/generated_images/hoa_reserve_fund_low.png';
+import issueHurricaneStraps from '@assets/generated_images/hurricane_strap_installation.png';
+import issueHvacReplacement from '@assets/generated_images/hvac_replacement_needed.png';
+import issueIrrigationRepair from '@assets/generated_images/irrigation_system_repair.png';
+import issueLoadingDock from '@assets/generated_images/loading_dock_area.png';
+import issueFoundationMajor from '@assets/generated_images/major_foundation_damage.png';
+import issueCosmeticUpdates from '@assets/generated_images/cosmetic_updates_needed.png';
+import issuePlumbingStack from '@assets/generated_images/plumbing_stack_replacement.png';
+import issuePoolResurface from '@assets/generated_images/pool_needs_resurfacing.png';
+import issueSaltCorrosion from '@assets/generated_images/salt_corrosion_damage.png';
+import issuePlumbingReplacement from '@assets/generated_images/plumbing_replacement_needed.png';
+import issueStructuralSettling from '@assets/generated_images/structural_settling_damage.png';
+import issueAsbestosTiles from '@assets/generated_images/asbestos_floor_tiles.png';
+import issueHistoricDistrict from '@assets/generated_images/historic_district_building.png';
+import issueBrickRepointing from '@assets/generated_images/brick_repointing_needed.png';
+import issueNarrowLotAccess from '@assets/generated_images/narrow_lot_access.png';
+import issueRoofHistoric from '@assets/generated_images/historic_roof_restoration.png';
 
 const propertyImages: Record<string, string> = {
   'Oakwood Cottage': oakwoodFront,
@@ -80,44 +114,62 @@ const propertyImages: Record<string, string> = {
 };
 
 export const issueImages: Record<string, string> = {
-  'mold_remediation': issueMold,
-  'foundation_settling': issueFoundation,
-  'roof_wear': issueRoof,
-  'roof_replacement': issueRoof,
-  'plumbing_galvanized': issuePlumbing,
-  'termite_damage': issueTermite,
-  'outdated_hvac': issueHvac,
-  'hvac_commercial': issueHvac,
-  'electrical_outdated': issueElectrical,
-  'water_damage': issueWaterDamage,
-  'drainage_issues': issueWaterDamage,
-  'septic_issues': issuePlumbing,
-  'well_water': issuePlumbing,
-  'asbestos_tiles': issueWaterDamage,
-  'hoa_assessment': issueFoundation,
-  'cosmetic_updates': issueWaterDamage,
-  'pool_equipment': issuePlumbing,
-  'elevator_issues': issueHvac,
-  'building_systems': issueHvac,
-  'parking_issues': issueFoundation,
-  'security_system': issueElectrical,
-  'roof_shared': issueRoof,
-  'historic_requirements': issueFoundation,
-  'brick_repointing': issueFoundation,
-  'narrow_lot_access': issueFoundation,
-  'high_hoa_fees': issueFoundation,
-  'hvac_high_rise': issueHvac,
-  'dual_system_updates': issueHvac,
-  'utility_separation': issueElectrical,
-  'basement_moisture': issueWaterDamage,
-  'historic_windows': issueWaterDamage,
-  'hoa_reserve_low': issueFoundation,
-  'structural_settling': issueFoundation,
-  'plumbing_replacement': issuePlumbing,
-  'electrical_upgrade': issueElectrical,
-  'roof_historic': issueRoof,
-  'hoa_assessment_pending': issueFoundation,
-  'industrial_conversion': issueHvac,
+  'mold_remediation': issueMoldRemediation,
+  'foundation_settling': issueFoundationSettling,
+  'foundation_major': issueFoundationMajor,
+  'roof_wear': issueRoofWear,
+  'roof_replacement': issueRoofWear,
+  'roof_shared': issueRoofWear,
+  'roof_historic': issueRoofHistoric,
+  'plumbing_galvanized': issuePlumbingGalvanized,
+  'plumbing_replacement': issuePlumbingReplacement,
+  'plumbing_stack': issuePlumbingStack,
+  'termite_damage': issueTermiteDamage,
+  'outdated_hvac': issueOutdatedHvac,
+  'hvac_commercial': issueHvacCommercial,
+  'hvac_high_rise': issueHvacHighRise,
+  'hvac_replacement': issueHvacReplacement,
+  'electrical_outdated': issueElectricalOutdated,
+  'electrical_upgrade': issueElectricalOutdated,
+  'drainage_issues': issueDrainageIssues,
+  'septic_issues': issueSepticIssues,
+  'asbestos_tiles': issueAsbestosTiles,
+  'hoa_assessment': issueHoaAssessment,
+  'hoa_reserve_low': issueHoaReserveLow,
+  'hoa_assessment_pending': issueHoaAssessment,
+  'cosmetic_updates': issueCosmeticUpdates,
+  'pool_equipment': issuePoolResurface,
+  'pool_resurface': issuePoolResurface,
+  'elevator_issues': issueHvacHighRise,
+  'building_systems': issueHvacHighRise,
+  'security_system': issueElectricalOutdated,
+  'historic_requirements': issueHistoricDistrict,
+  'brick_repointing': issueBrickRepointing,
+  'narrow_lot_access': issueNarrowLotAccess,
+  'high_hoa_fees': issueHoaAssessment,
+  'dual_system_updates': issueOutdatedHvac,
+  'utility_separation': issueElectricalOutdated,
+  'basement_moisture': issueBasementMoisture,
+  'historic_windows': issueHistoricWindows,
+  'structural_settling': issueStructuralSettling,
+  'industrial_conversion': issueIndustrialConversion,
+  'porch_rot': issuePorchRot,
+  'knob_tube': issueKnobTube,
+  'lead_paint': issueLeadPaint,
+  'radon_mitigation': issueRadonMitigation,
+  'siding_damage': issueSidingDamage,
+  'tree_root_damage': issueTreeRootDamage,
+  'sump_pump': issueSumpPump,
+  'chimney_rebuild': issueChimneyRebuild,
+  'dock_repair': issueDockRepair,
+  'fire_suppression': issueFireSuppression,
+  'hurricane_straps': issueHurricaneStraps,
+  'irrigation_repair': issueIrrigationRepair,
+  'loading_dock': issueLoadingDock,
+  'salt_corrosion': issueSaltCorrosion,
+  'parking_issues': issueNarrowLotAccess,
+  'well_water': issuePlumbingReplacement,
+  'water_damage': issueBasementMoisture,
 };
 
 // Interior images - using glob imports for dynamic loading

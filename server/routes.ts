@@ -55,6 +55,30 @@ export async function registerRoutes(
     }
   });
 
+  // Get active game by player name
+  app.get("/api/game-runs/player/:playerName", async (req, res) => {
+    try {
+      const playerName = decodeURIComponent(req.params.playerName);
+      const gameRun = await storage.getActiveGameByPlayer(playerName);
+      res.json(gameRun || null);
+    } catch (error) {
+      console.error("Error fetching game by player:", error);
+      res.status(500).json({ error: "Failed to fetch game by player" });
+    }
+  });
+
+  // Delete game run (for starting new game)
+  app.delete("/api/game-runs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteGameRun(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting game run:", error);
+      res.status(500).json({ error: "Failed to delete game run" });
+    }
+  });
+
   // Get specific game run
   app.get("/api/game-runs/:id", async (req, res) => {
     try {
@@ -606,6 +630,7 @@ export async function registerRoutes(
       // Get player and award trophies (wrapped to prevent blocking game end)
       const player = await storage.getOrCreatePlayer(gameRun.playerName);
       let awardedTrophies: string[] = [];
+      let trophyAwardError = false;
       try {
         awardedTrophies = await gameMechanics.checkAndAwardTrophies(player.id, gameRunId, {
           gameEnded: true,
@@ -615,15 +640,15 @@ export async function registerRoutes(
         });
       } catch (trophyErr) {
         console.error('Error awarding trophies (continuing):', trophyErr);
+        trophyAwardError = true;
       }
 
-      // Update player stats
+      // Update player stats (note: totalGamesPlayed is already incremented when game starts)
       const deals = await storage.getDealsByGameRun(gameRunId);
       const completedDeals = deals.filter(d => d.status === 'completed' || d.status === 'active_rental');
       const totalProfit = completedDeals.reduce((sum, d) => sum + (d.actualProfit || 0), 0);
 
       await storage.updatePlayerStats(player.id, {
-        totalGamesPlayed: player.totalGamesPlayed + 1,
         totalDealsCompleted: player.totalDealsCompleted + completedDeals.length,
         totalProfitEarned: player.totalProfitEarned + Math.max(0, totalProfit),
         bestGameProfit: Math.max(player.bestGameProfit, totalProfit),
@@ -633,8 +658,9 @@ export async function registerRoutes(
       res.json({ 
         success: true, 
         awardedTrophies,
+        trophyErrors: trophyAwardError ? 'Some trophies may not have been awarded' : undefined,
         playerStats: {
-          totalGamesPlayed: player.totalGamesPlayed + 1,
+          totalGamesPlayed: player.totalGamesPlayed,
           gamesWon: player.gamesWon + (won ? 1 : 0),
         }
       });

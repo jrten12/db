@@ -27,6 +27,19 @@ export const api = {
     return res.json();
   },
 
+  async getActiveGameByPlayer(playerName: string): Promise<GameRun | null> {
+    const res = await fetch(`${API_BASE}/game-runs/player/${encodeURIComponent(playerName)}`);
+    if (!res.ok) throw new Error('Failed to fetch game by player');
+    return res.json();
+  },
+
+  async deleteGameRun(id: number): Promise<void> {
+    const res = await fetch(`${API_BASE}/game-runs/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to delete game run');
+  },
+
   async getGameRun(id: number): Promise<GameRun> {
     const res = await fetch(`${API_BASE}/game-runs/${id}`);
     if (!res.ok) throw new Error('Failed to fetch game run');

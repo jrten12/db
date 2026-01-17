@@ -192,6 +192,8 @@ export const api = {
     saleProfit: number;
     salePrice: number;
     purchasePrice: number;
+    mortgagePayoff: number;
+    netProceeds: number;
   }> {
     const res = await fetch(`${API_BASE}/deals/${dealId}/sell`, {
       method: 'POST',

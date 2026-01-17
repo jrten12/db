@@ -818,9 +818,12 @@ export default function Game() {
       const property = properties.find(p => p.id === deal?.propertyId);
       
       const profitSign = result.saleProfit >= 0 ? '+' : '';
+      const mortgageInfo = result.mortgagePayoff > 0 
+        ? ` (paid off $${result.mortgagePayoff.toLocaleString()} mortgage)` 
+        : '';
       toast.success(
-        `Sold ${property?.name || 'property'} for $${result.salePrice.toLocaleString()} (${profitSign}$${result.saleProfit.toLocaleString()})`,
-        { duration: 5000 }
+        `Sold ${property?.name || 'property'} for $${result.salePrice.toLocaleString()}${mortgageInfo}. Net: $${result.netProceeds.toLocaleString()} (${profitSign}$${result.saleProfit.toLocaleString()} profit)`,
+        { duration: 6000 }
       );
       
       queryClient.invalidateQueries({ queryKey: ['deals'] });

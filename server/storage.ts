@@ -56,7 +56,7 @@ export interface IStorage {
   getDealsByGameRun(gameRunId: number): Promise<Deal[]>;
   getDealsByPlayerName(playerName: string): Promise<Deal[]>;
   updateDeal(id: number, updates: Partial<InsertDeal>): Promise<Deal | undefined>;
-  sellRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number }>;
+  sellRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number; mortgagePayoff: number; netProceeds: number }>;
   sellFlipProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number }>;
 
   // Property Investigation methods
@@ -625,7 +625,7 @@ export class DBStorage implements IStorage {
     return deal;
   }
 
-  async sellRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number }> {
+  async sellRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number; mortgagePayoff: number; netProceeds: number }> {
     const [deal] = await db
       .select()
       .from(schema.deals)
@@ -665,9 +665,21 @@ export class DBStorage implements IStorage {
       purchasePrice = property.price;
     }
     
+    // Get the mortgage/loan amount from the deal's pro forma outputs
+    // This is the amount the player borrowed and must pay back when selling
+    const proFormaOutputs = deal.proFormaOutputs as any;
+    const mortgagePayoff = proFormaOutputs?.loanAmount || 0;
+    
     // Rental sale: -15% to +10% of purchase price (less upside due to wear and tear)
     const saleMultiplier = 0.85 + Math.random() * 0.25;
     const salePrice = Math.round(purchasePrice * saleMultiplier);
+    
+    // Net proceeds = gross sale price minus mortgage payoff
+    // This is the actual cash the player receives
+    const netProceeds = salePrice - mortgagePayoff;
+    
+    // Profit is based on equity change: sale price - original purchase price
+    // (The mortgage payoff doesn't affect profit, just cash flow)
     const saleProfit = salePrice - purchasePrice;
     
     const [updatedDeal] = await db
@@ -684,7 +696,49 @@ export class DBStorage implements IStorage {
       .returning();
     
     const newWeeksRemaining = gameRun.weeksRemaining - 2;
-    const newCash = gameRun.cash + salePrice;
+    
+    // Cash increases by NET proceeds (after paying off mortgage)
+    let runningBalance = gameRun.cash;
+    
+    // Create ledger entries for the sale
+    const ledgerEntries: any[] = [];
+    
+    // First: Credit the gross sale price
+    runningBalance += salePrice;
+    ledgerEntries.push({
+      gameRunId,
+      direction: 'credit',
+      category: 'sale_proceeds',
+      amount: salePrice,
+      balanceAfter: runningBalance,
+      description: `Sold rental property - ${saleMultiplier >= 1 ? '+' : ''}${Math.round((saleMultiplier - 1) * 100)}% of purchase price`,
+      propertyId: deal.propertyId,
+      dealId: dealId,
+      gameWeek: gameRun.currentWeek,
+    });
+    
+    // Second: Debit the mortgage payoff (if any)
+    if (mortgagePayoff > 0) {
+      runningBalance -= mortgagePayoff;
+      ledgerEntries.push({
+        gameRunId,
+        direction: 'debit',
+        category: 'expense',
+        amount: mortgagePayoff,
+        balanceAfter: runningBalance,
+        description: `🏦 Mortgage payoff`,
+        propertyId: deal.propertyId,
+        dealId: dealId,
+        gameWeek: gameRun.currentWeek,
+      });
+    }
+    
+    // Insert all ledger entries
+    for (const entry of ledgerEntries) {
+      await db.insert(schema.ledgerEntries).values(entry);
+    }
+    
+    const newCash = runningBalance;
     const isProfitable = saleProfit > 0;
     const newProfitableDeals = isProfitable ? gameRun.profitableDeals + 1 : gameRun.profitableDeals;
     
@@ -699,23 +753,14 @@ export class DBStorage implements IStorage {
       .where(eq(schema.gameRuns.id, gameRunId))
       .returning();
     
-    await db.insert(schema.ledgerEntries).values({
-      gameRunId,
-      direction: 'credit',
-      category: 'sale_proceeds',
-      amount: salePrice,
-      balanceAfter: newCash,
-      description: `Sold rental property - ${saleMultiplier >= 1 ? '+' : ''}${Math.round((saleMultiplier - 1) * 100)}% of purchase price`,
-      propertyId: deal.propertyId,
-      dealId: dealId,
-    });
-    
     return {
       deal: updatedDeal,
       gameRun: updatedGameRun,
       saleProfit,
       salePrice,
       purchasePrice,
+      mortgagePayoff,
+      netProceeds,
     };
   }
 

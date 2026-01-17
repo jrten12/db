@@ -5,18 +5,27 @@ import type { GameRun } from '@shared/schema';
 interface PlayerNameModalProps {
   isOpen: boolean;
   onSubmit: (playerName: string) => void;
-  onResumeGame: (gameRun: GameRun) => void;
-  onNewGameReplace: (playerName: string, existingGameId: number) => void;
   onViewHallOfFame: () => void;
-  checkExistingGame: (playerName: string) => Promise<GameRun | null>;
+  savedGameInfo?: {
+    playerName: string;
+    savedAt: Date;
+    cash: number;
+    weeksRemaining: number;
+  } | null;
+  onContinueSavedGame?: () => void;
+  onResumeGame?: (gameRun: GameRun) => void;
+  onNewGameReplace?: (playerName: string, existingGameId: number) => void;
+  checkExistingGame?: (playerName: string) => Promise<GameRun | null>;
 }
 
 export function PlayerNameModal({ 
   isOpen, 
   onSubmit, 
+  onViewHallOfFame,
+  savedGameInfo,
+  onContinueSavedGame,
   onResumeGame,
   onNewGameReplace,
-  onViewHallOfFame, 
   checkExistingGame 
 }: PlayerNameModalProps) {
   const [playerName, setPlayerName] = useState('');
@@ -43,10 +52,14 @@ export function PlayerNameModal({
     setError('');
     
     try {
-      const existing = await checkExistingGame(trimmed);
-      if (existing && existing.status === 'active') {
-        setExistingGame(existing);
-        setShowExistingGameOptions(true);
+      if (checkExistingGame) {
+        const existing = await checkExistingGame(trimmed);
+        if (existing && existing.status === 'active') {
+          setExistingGame(existing);
+          setShowExistingGameOptions(true);
+        } else {
+          onSubmit(trimmed);
+        }
       } else {
         onSubmit(trimmed);
       }
@@ -58,13 +71,13 @@ export function PlayerNameModal({
   };
 
   const handleResume = () => {
-    if (existingGame) {
+    if (existingGame && onResumeGame) {
       onResumeGame(existingGame);
     }
   };
 
   const handleNewGame = () => {
-    if (existingGame) {
+    if (existingGame && onNewGameReplace) {
       onNewGameReplace(playerName.trim(), existingGame.id);
     }
   };

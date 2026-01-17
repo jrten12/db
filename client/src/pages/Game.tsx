@@ -194,6 +194,9 @@ export default function Game() {
         throw new Error('Failed to create game run');
       }
       
+      // Invalidate properties cache to ensure fresh data on new game
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      
       sessionStorage.setItem('currentGameRunId', String(newRun.id));
       sessionStorage.removeItem('skippedDiligenceDeals');
       setSkippedDiligenceDeals(new Set());
@@ -205,7 +208,7 @@ export default function Game() {
     } finally {
       setIsLoadingGame(false);
     }
-  }, []);
+  }, [queryClient]);
 
   const continueSavedGame = useCallback(async () => {
     const saved = loadGame();
@@ -266,6 +269,7 @@ export default function Game() {
   const { data: properties = [], isLoading: isLoadingProps } = useQuery({
     queryKey: ['properties'],
     queryFn: api.getProperties,
+    staleTime: 60000, // Refetch properties every minute instead of caching forever
   });
 
   const updateGameMutation = useMutation({

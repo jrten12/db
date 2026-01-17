@@ -620,6 +620,7 @@ export async function processRentalIncome(
         : `🏠 Weekly rent - ${propertyName}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
+      gameWeek: gameRun.currentWeek,
     });
   }
   
@@ -632,6 +633,7 @@ export async function processRentalIncome(
       description: `🏚️ Vacancy (${vacancyRate}%) - ${propertyName}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
+      gameWeek: gameRun.currentWeek,
     });
   }
   
@@ -644,6 +646,7 @@ export async function processRentalIncome(
       description: `📊 Operating costs - ${propertyName}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
+      gameWeek: gameRun.currentWeek,
     });
   }
   
@@ -656,30 +659,35 @@ export async function processRentalIncome(
       description: `🏦 Mortgage - ${propertyName}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
+      gameWeek: gameRun.currentWeek,
     });
   }
   
-  // Reality check adjustment (optimistic = penalty, conservative = bonus)
-  if (weeklyRealityAdjustment !== 0) {
+  // Reality check adjustment - market rent was different from player's estimate
+  // Only show this if there was no grossRent (meaning player didn't enter rent properly)
+  // Otherwise, the rent line already reflects the market reality
+  if (weeklyRealityAdjustment !== 0 && scaledGrossRent === 0) {
     if (weeklyRealityAdjustment > 0) {
-      // Player was conservative - their actual cash flow is HIGHER
+      // Player was conservative - actual market rent is higher
       ledgerEntries.push({
         direction: 'credit',
         category: 'income',
         amount: weeklyRealityAdjustment,
-        description: `📈 Conservative bonus - ${propertyName}`,
+        description: `🏠 Weekly rent - ${propertyName}`,
         propertyId: deal.propertyId,
         dealId: deal.id,
+        gameWeek: gameRun.currentWeek,
       });
     } else {
-      // Player was optimistic - their actual cash flow is LOWER
+      // Player was optimistic - actual market rent is lower
       ledgerEntries.push({
         direction: 'debit',
         category: 'expense',
         amount: Math.abs(weeklyRealityAdjustment),
-        description: `📉 Reality check - ${propertyName}`,
+        description: `📉 Rent lower than estimated - ${propertyName}`,
         propertyId: deal.propertyId,
         dealId: deal.id,
+        gameWeek: gameRun.currentWeek,
       });
     }
   }
@@ -694,6 +702,7 @@ export async function processRentalIncome(
         description: `${curveball?.emoji || '🎲'} ${curveball?.name || 'Curveball'} - ${propertyName}`,
         propertyId: deal.propertyId,
         dealId: deal.id,
+        gameWeek: gameRun.currentWeek,
       });
     } else {
       ledgerEntries.push({
@@ -703,6 +712,7 @@ export async function processRentalIncome(
         description: `${curveball?.emoji || '🎲'} ${curveball?.name || 'Curveball'} - ${propertyName}`,
         propertyId: deal.propertyId,
         dealId: deal.id,
+        gameWeek: gameRun.currentWeek,
       });
     }
   }

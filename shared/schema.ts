@@ -123,12 +123,13 @@ export const ledgerEntries = pgTable("ledger_entries", {
   id: serial("id").primaryKey(),
   gameRunId: integer("game_run_id").notNull().references(() => gameRuns.id),
   direction: text("direction").notNull(), // 'debit' | 'credit'
-  category: text("category").notNull(), // 'starting_balance' | 'due_diligence' | 'down_payment' | 'closing_cost' | 'loan_fee' | 'holding_cost' | 'income' | 'rehab'
+  category: text("category").notNull(), // 'starting_balance' | 'due_diligence' | 'down_payment' | 'closing_cost' | 'loan_fee' | 'holding_cost' | 'income' | 'rehab' | 'expense'
   amount: integer("amount").notNull(), // in cents for precision, positive value
   balanceAfter: integer("balance_after").notNull(),
   description: text("description").notNull(),
   propertyId: integer("property_id").references(() => properties.id),
   dealId: integer("deal_id").references(() => deals.id),
+  gameWeek: integer("game_week").notNull().default(1), // When the transaction occurred
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

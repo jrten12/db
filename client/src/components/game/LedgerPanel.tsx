@@ -17,6 +17,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   holding_cost: 'Holding Costs',
   rehab: 'Rehab Costs',
   income: 'Income',
+  expense: 'Expense',
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -28,6 +29,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   holding_cost: 'text-red-400',
   rehab: 'text-yellow-400',
   income: 'text-emerald-400',
+  expense: 'text-red-400',
 };
 
 export function LedgerPanel({ entries, startingCash, onClose }: LedgerPanelProps) {

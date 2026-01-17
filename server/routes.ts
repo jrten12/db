@@ -199,24 +199,34 @@ export async function registerRoutes(
   app.post("/api/game-runs/:id/ledger", ledgerLimiter, async (req, res) => {
     try {
       const gameRunId = parseInt(req.params.id);
-      const { entries, currentCash } = req.body as {
-        entries: Array<{ direction: string; category: string; amount: number; description: string; propertyId?: number; dealId?: number }>;
+      const { entries, currentCash, gameWeek } = req.body as {
+        entries: Array<{ direction: string; category: string; amount: number; description: string; propertyId?: number; dealId?: number; gameWeek?: number }>;
         currentCash: number;
+        gameWeek?: number;
       };
+      
+      // Get current game week from game run if not provided
+      const gameRun = await storage.getGameRun(gameRunId);
+      const currentGameWeek = gameWeek ?? gameRun?.currentWeek ?? 1;
+      
+      // Add gameWeek to each entry if not already present
+      const entriesWithWeek = entries.map(e => ({
+        ...e,
+        gameWeek: e.gameWeek ?? currentGameWeek,
+      }));
 
       // Calculate total debits to check if player can afford this
-      const totalDebits = entries
+      const totalDebits = entriesWithWeek
         .filter(e => e.direction === 'debit')
         .reduce((sum, e) => sum + e.amount, 0);
       
       // Get actual current cash from database to prevent stale data issues
-      const gameRun = await storage.getGameRun(gameRunId);
       const actualCash = gameRun?.cash ?? currentCash;
       
       // Check if this is a property purchase transaction
       // Purchase transactions have categories: down_payment, closing_cost, loan_fee
       const purchaseCategories = ['down_payment', 'closing_cost', 'loan_fee'];
-      const isPurchaseTransaction = entries.some(e => purchaseCategories.includes(e.category));
+      const isPurchaseTransaction = entriesWithWeek.some(e => purchaseCategories.includes(e.category));
       
       if (isPurchaseTransaction) {
         // First purchase: block if insufficient funds (can't go bankrupt on first deal)
@@ -244,7 +254,7 @@ export async function registerRoutes(
         }
       }
 
-      const result = await storage.createLedgerEntriesWithCashUpdate(gameRunId, entries, actualCash);
+      const result = await storage.createLedgerEntriesWithCashUpdate(gameRunId, entriesWithWeek, actualCash);
       res.json(result);
     } catch (error) {
       console.error("Error creating ledger entries:", error);

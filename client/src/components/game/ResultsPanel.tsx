@@ -10,6 +10,7 @@ interface ResultsPanelProps {
   flipProfit?: number;
   flipROI?: number;
   holdWeeks?: number;
+  hasAppraisal?: boolean;
   onContinue: () => void;
 }
 
@@ -19,12 +20,14 @@ interface ExplanationItem {
   description: string;
 }
 
-export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, holdWeeks = 0, onContinue }: ResultsPanelProps) {
+export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, holdWeeks = 0, hasAppraisal = true, onContinue }: ResultsPanelProps) {
   const isPositiveCashFlow = outputs.cashFlowMonthly > 0;
   const isGoodCashOnCash = outputs.cashOnCash > 8;
   const isGoodCapRate = outputs.capRate > 6;
   const isPositiveProfit = flipProfit > 0;
   const isGoodROI = flipROI > 20;
+  
+  const showFlipUnknown = strategy === 'flip' && !hasAppraisal;
   
   const explanations: ExplanationItem[] = [];
   
@@ -71,44 +74,57 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
       });
     }
   } else {
-    if (!isPositiveProfit) {
-      explanations.push({
-        type: 'error',
-        title: 'Flip Profit',
-        description: `Your all-in costs exceeded the ARV. This flip loses ${formatCurrency(Math.abs(flipProfit))}. Consider a lower purchase price or reduced rehab scope.`
-      });
-    } else if (flipProfit < 20000) {
+    if (showFlipUnknown) {
       explanations.push({
         type: 'warning',
-        title: 'Flip Profit',
-        description: `Your projected profit of ${formatCurrency(flipProfit)} is relatively thin. Unexpected costs could eat into margins quickly.`
+        title: 'Unknown ARV',
+        description: `You skipped the Comp Analysis! Without knowing the After Repair Value, you're gambling on what buyers will pay. Your actual profit is unknown until you sell.`
       });
-    } else {
-      explanations.push({
-        type: 'tip',
-        title: 'Flip Profit',
-        description: `Strong projected profit of ${formatCurrency(flipProfit)}! This provides a healthy buffer for unexpected costs.`
-      });
-    }
-    
-    if (flipROI < 15) {
-      explanations.push({
-        type: 'warning',
-        title: 'Return on Investment',
-        description: `Your ${flipROI.toFixed(1)}% ROI is below the 20% target. The risk may not justify the return.`
-      });
-    } else if (flipROI < 20) {
       explanations.push({
         type: 'info',
-        title: 'Return on Investment',
-        description: `Your ${flipROI.toFixed(1)}% ROI is close but aim for 20%+ to account for market fluctuations.`
+        title: 'Risky Decision',
+        description: `Smart investors complete due diligence before committing capital. You'll discover the true value when you sell - hope it's not a loss!`
       });
     } else {
-      explanations.push({
-        type: 'tip',
-        title: 'Return on Investment',
-        description: `Excellent! Your ${flipROI.toFixed(1)}% ROI exceeds the 20% benchmark for flip investments.`
-      });
+      if (!isPositiveProfit) {
+        explanations.push({
+          type: 'error',
+          title: 'Flip Profit',
+          description: `Your all-in costs exceeded the ARV. This flip loses ${formatCurrency(Math.abs(flipProfit))}. Consider a lower purchase price or reduced rehab scope.`
+        });
+      } else if (flipProfit < 20000) {
+        explanations.push({
+          type: 'warning',
+          title: 'Flip Profit',
+          description: `Your projected profit of ${formatCurrency(flipProfit)} is relatively thin. Unexpected costs could eat into margins quickly.`
+        });
+      } else {
+        explanations.push({
+          type: 'tip',
+          title: 'Flip Profit',
+          description: `Strong projected profit of ${formatCurrency(flipProfit)}! This provides a healthy buffer for unexpected costs.`
+        });
+      }
+      
+      if (flipROI < 15) {
+        explanations.push({
+          type: 'warning',
+          title: 'Return on Investment',
+          description: `Your ${flipROI.toFixed(1)}% ROI is below the 20% target. The risk may not justify the return.`
+        });
+      } else if (flipROI < 20) {
+        explanations.push({
+          type: 'info',
+          title: 'Return on Investment',
+          description: `Your ${flipROI.toFixed(1)}% ROI is close but aim for 20%+ to account for market fluctuations.`
+        });
+      } else {
+        explanations.push({
+          type: 'tip',
+          title: 'Return on Investment',
+          description: `Excellent! Your ${flipROI.toFixed(1)}% ROI exceeds the 20% benchmark for flip investments.`
+        });
+      }
     }
     
     if (holdWeeks > 16) {
@@ -233,7 +249,9 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                 <>
                   <div className="flex items-center gap-3">
                     <div className="trophy-icon-container" style={{ padding: '0.75rem' }}>
-                      {isPositiveProfit ? (
+                      {showFlipUnknown ? (
+                        <HelpCircle className="w-6 h-6 text-amber-400 trophy-icon-warning" />
+                      ) : isPositiveProfit ? (
                         <TrendingUp className="w-6 h-6 text-emerald-400 trophy-icon-success" />
                       ) : (
                         <TrendingDown className="w-6 h-6 text-red-400 trophy-icon-danger" />
@@ -241,15 +259,23 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                     </div>
                     <div>
                       <div className="text-gray-400 text-sm">Projected Profit</div>
-                      <div className={`text-2xl font-bold font-mono ${isPositiveProfit ? 'text-emerald-400' : 'text-red-400'}`} style={{ filter: isPositiveProfit ? 'drop-shadow(0 0 8px rgba(16,185,129,0.5))' : 'drop-shadow(0 0 8px rgba(239,68,68,0.4))' }}>
-                        {isPositiveProfit ? '' : '-'}{formatCurrency(Math.abs(flipProfit))}
-                      </div>
+                      {showFlipUnknown ? (
+                        <div className="text-2xl font-bold font-mono text-amber-400" style={{ filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.4))' }}>
+                          ???
+                        </div>
+                      ) : (
+                        <div className={`text-2xl font-bold font-mono ${isPositiveProfit ? 'text-emerald-400' : 'text-red-400'}`} style={{ filter: isPositiveProfit ? 'drop-shadow(0 0 8px rgba(16,185,129,0.5))' : 'drop-shadow(0 0 8px rgba(239,68,68,0.4))' }}>
+                          {isPositiveProfit ? '' : '-'}{formatCurrency(Math.abs(flipProfit))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <div className="trophy-icon-container" style={{ padding: '0.75rem' }}>
-                      {isGoodROI ? (
+                      {showFlipUnknown ? (
+                        <HelpCircle className="w-6 h-6 text-amber-400 trophy-icon-warning" />
+                      ) : isGoodROI ? (
                         <Check className="w-6 h-6 text-emerald-400 trophy-icon-success" />
                       ) : (
                         <AlertTriangle className="w-6 h-6 text-amber-400 trophy-icon-warning" />
@@ -257,9 +283,15 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                     </div>
                     <div>
                       <div className="text-gray-400 text-sm">Return on Investment</div>
-                      <div className={`text-2xl font-bold font-mono ${flipROI > 0 ? (isGoodROI ? 'text-emerald-400' : 'text-amber-400') : 'text-red-400'}`} style={{ filter: flipROI > 0 ? (isGoodROI ? 'drop-shadow(0 0 8px rgba(16,185,129,0.5))' : 'drop-shadow(0 0 8px rgba(251,191,36,0.4))') : 'drop-shadow(0 0 8px rgba(239,68,68,0.4))' }}>
-                        {flipROI.toFixed(1)}%
-                      </div>
+                      {showFlipUnknown ? (
+                        <div className="text-2xl font-bold font-mono text-amber-400" style={{ filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.4))' }}>
+                          ???
+                        </div>
+                      ) : (
+                        <div className={`text-2xl font-bold font-mono ${flipROI > 0 ? (isGoodROI ? 'text-emerald-400' : 'text-amber-400') : 'text-red-400'}`} style={{ filter: flipROI > 0 ? (isGoodROI ? 'drop-shadow(0 0 8px rgba(16,185,129,0.5))' : 'drop-shadow(0 0 8px rgba(251,191,36,0.4))') : 'drop-shadow(0 0 8px rgba(239,68,68,0.4))' }}>
+                          {flipROI.toFixed(1)}%
+                        </div>
+                      )}
                     </div>
                   </div>
 

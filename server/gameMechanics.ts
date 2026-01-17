@@ -313,21 +313,43 @@ export async function completeFlipDeal(
     });
   }
 
-  // Calculate profit (sale price - all-in cost - surprise repair costs)
+  // Calculate holding costs during rehab period
+  // These are interest, taxes, and insurance that accrue while property is being renovated
+  const interestRate = proFormaInputs?.interestRate || 0;
+  const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
+  const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
+  const rehabWeeks = deal.weeksUntilCompletion || proFormaInputs?.rehabWeeks || 0;
+  const loanAmount = proFormaOutputs?.loanAmount || 0;
+
+  // Calculate weekly holding costs: interest on loan + property taxes + insurance
+  const holdingCostPerWeek = Math.round(
+    (loanAmount * (interestRate / 100) / 52) +
+    (taxesAnnual / 52) +
+    (insuranceAnnual / 52)
+  );
+  const totalHoldingCosts = holdingCostPerWeek * rehabWeeks;
+
+  // Calculate selling costs (realtor commission, closing costs, etc.)
+  const sellingCostsPct = proFormaInputs?.sellingCostsPct || 8; // Default 8% if not specified
+  const sellingCosts = Math.round(salePrice * (sellingCostsPct / 100));
+
+  // Calculate profit (sale price - all-in cost - holding costs - selling costs - surprise repair costs)
   // Surprise costs are also reflected in ledger debit, which correctly updates cash.
   // Both systems track this expense: ledger for cash flow, profit for ROI metrics.
   // This is not double-counting because:
-  // - Ledger tracks cash balance: +salePrice - surpriseCosts
-  // - Profit tracks ROI: salePrice - allInCost - surpriseCosts
+  // - Ledger tracks cash balance: +salePrice - surpriseCosts - sellingCosts
+  // - Profit tracks ROI: salePrice - allInCost - holdingCosts - sellingCosts - surpriseCosts
   // allInCost was the player's total investment (including rehab budget they committed to)
+  // holdingCosts are interest/taxes/insurance that accrued during rehab
+  // sellingCosts are realtor commission and closing costs to sell the property
   // surpriseCosts are ADDITIONAL expenses discovered during flip
   const allInCost = proFormaOutputs.allInBasis || 0;
-  const profit = salePrice - allInCost - surpriseCosts;
+  const profit = salePrice - allInCost - totalHoldingCosts - sellingCosts - surpriseCosts;
 
-  // Create ledger entries - sale proceeds and any surprise costs
+  // Create ledger entries - sale proceeds and all selling costs
   const ledgerEntries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[] = [];
-  
-  // Sale proceeds entry
+
+  // Sale proceeds entry (gross sale price)
   ledgerEntries.push({
     direction: 'credit',
     category: 'income',
@@ -338,7 +360,31 @@ export async function completeFlipDeal(
     propertyId: deal.propertyId,
     dealId: deal.id,
   });
-  
+
+  // Holding costs during rehab (interest, taxes, insurance)
+  if (totalHoldingCosts > 0) {
+    ledgerEntries.push({
+      direction: 'debit',
+      category: 'expense',
+      amount: totalHoldingCosts,
+      description: `Holding costs (${rehabWeeks} weeks): interest, taxes, insurance`,
+      propertyId: deal.propertyId,
+      dealId: deal.id,
+    });
+  }
+
+  // Selling costs (realtor commission, closing costs)
+  if (sellingCosts > 0) {
+    ledgerEntries.push({
+      direction: 'debit',
+      category: 'expense',
+      amount: sellingCosts,
+      description: `Selling costs (${sellingCostsPct}%): realtor, title, closing`,
+      propertyId: deal.propertyId,
+      dealId: deal.id,
+    });
+  }
+
   // Surprise repair costs entry (if any undiscovered issues or title issues)
   if (surpriseCosts > 0) {
     const repairIssueNames = undiscoveredIssues.map(i => i.name);
@@ -915,47 +961,69 @@ interface RentalActivationResult {
 
 export async function activateRentalProperty(
   deal: Deal,
-  gameRun: GameRun,
-  monthlyCashFlow: number
+  gameRun: GameRun
 ): Promise<RentalActivationResult> {
-  // Get property to check for undiscovered issues and reality check
+  // Get property to access ground truth rent data
   const property = await storage.getProperty(deal.propertyId);
+  if (!property) {
+    throw new Error('Property not found');
+  }
+
+  const proFormaInputs = deal.proFormaInputs as any;
   const investigations = await storage.getPropertyInvestigations(gameRun.id);
   const completedDiligence = investigations
     .filter(inv => inv.propertyId === deal.propertyId)
     .map(inv => inv.investigationType);
-  
-  // Extract player inputs from stored pro forma
-  const proFormaInputs = deal.proFormaInputs as any;
-  // Note: Client uses 'expectedRent', not 'monthlyRent'
-  const playerMonthlyRent = proFormaInputs?.expectedRent || proFormaInputs?.monthlyRent || 0;
-  const playerVacancyRate = proFormaInputs?.vacancyRate || 5;
-  
-  // Perform reality check - compare player assumptions to market reality
-  let realityCheck: RealityCheckResult | undefined;
-  let actualMonthlyCashFlow = monthlyCashFlow;
-  
-  if (property && playerMonthlyRent > 0) {
-    realityCheck = calculateRealityCheck(
-      {
-        rentMin: property.rentMin,
-        rentMax: property.rentMax,
-        locationType: property.locationType,
-      },
-      {
-        monthlyRent: playerMonthlyRent,
-        vacancyRate: playerVacancyRate,
-      },
-      monthlyCashFlow,
-      completedDiligence
-    );
-    
-    // Use reality-adjusted cash flow for weekly income
-    actualMonthlyCashFlow = realityCheck.actualCashFlow;
+
+  // Calculate ACTUAL rent from property ground truth (not player's assumption!)
+  const didMarketStudy = completedDiligence.includes('market_study');
+  let actualRent: number;
+
+  if (didMarketStudy) {
+    // WITH market study: Actual rent within known range with minimal market variance
+    const rentRange = property.rentMax - property.rentMin;
+    const baseRent = property.rentMin + (Math.random() * rentRange);
+    // Small variance ±5% for market conditions
+    const marketVariance = 0.95 + (Math.random() * 0.10);
+    actualRent = Math.round(baseRent * marketVariance);
+  } else {
+    // WITHOUT market study: Higher uncertainty - player is gambling!
+    // Reality could be quite different from their assumption
+    const rentMid = (property.rentMin + property.rentMax) / 2;
+    // Reality factor: 70% to 130% of midpoint (±30% chaos)
+    const realityFactor = 0.70 + (Math.random() * 0.60);
+    actualRent = Math.round(rentMid * realityFactor);
   }
-  
-  const weeklyIncome = calculateWeeklyIncome(actualMonthlyCashFlow);
-  
+
+  // Calculate ACTUAL cash flow using actual rent + player's expense assumptions
+  // (We test their rent assumption but honor their other choices)
+  const vacancyRate = proFormaInputs.vacancyRate || 8;
+  const tenantPaysUtilitiesVacancyPenalty = proFormaInputs.utilities ? 0 : 1.92;
+  const effectiveVacancyRate = vacancyRate + tenantPaysUtilitiesVacancyPenalty;
+  const effectiveRent = actualRent * (1 - effectiveVacancyRate / 100);
+
+  // Operating expenses (use player's assumptions)
+  const monthlyTaxes = (proFormaInputs.taxesAnnual || 0) / 12;
+  const monthlyInsurance = (proFormaInputs.insuranceAnnual || 0) / 12;
+  const maintenanceCost = actualRent * ((proFormaInputs.maintenancePct || 8) / 100);
+  const capExCost = actualRent * ((proFormaInputs.capExPct || 10) / 100);
+  const utilitiesCost = proFormaInputs.utilities ? (proFormaInputs.utilitiesMonthly || 150) : 0;
+  const mgmtCost = proFormaInputs.propertyManagement ? actualRent * ((proFormaInputs.propertyManagementPct || 10) / 100) : 0;
+
+  const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
+  const noiMonthly = effectiveRent - monthlyOpEx;
+
+  // Debt service (use player's financing assumptions)
+  const downPaymentPct = proFormaInputs.downPaymentPct || 25;
+  const loanAmount = property.price * (1 - downPaymentPct / 100);
+  const interestRate = proFormaInputs.interestRate || 6.5;
+  const monthlyRate = interestRate / 100 / 12;
+  const numPayments = 30 * 12;
+  const debtServiceMonthly = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+
+  const actualCashFlowMonthly = noiMonthly - debtServiceMonthly;
+  const weeklyIncome = calculateWeeklyIncome(actualCashFlowMonthly);
+
   // Check for undiscovered property issues (surprise repair costs!)
   const propertyName = property?.name || '';
   const undiscoveredIssues = getUndiscoveredIssues(propertyName, completedDiligence);

@@ -324,9 +324,8 @@ export async function registerRoutes(
   app.post("/api/deals/:id/activate-rental", dealLimiter, async (req, res) => {
     try {
       const dealId = parseInt(req.params.id);
-      const { gameRunId, monthlyCashFlow } = req.body as {
+      const { gameRunId } = req.body as {
         gameRunId: number;
-        monthlyCashFlow: number;
       };
 
       const deal = await storage.getDealsByGameRun(gameRunId);
@@ -344,8 +343,7 @@ export async function registerRoutes(
 
       const result = await gameMechanics.activateRentalProperty(
         targetDeal,
-        gameRun,
-        monthlyCashFlow
+        gameRun
       );
       
       // Award trophies for rental activation

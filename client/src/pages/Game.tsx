@@ -11,6 +11,7 @@ import { MoneyAnimation } from '@/components/game/MoneyAnimation';
 import { DealTransactionAnimation } from '@/components/game/DealTransactionAnimation';
 import { TimeProgressionPanel } from '@/components/game/TimeProgressionPanel';
 import { IncomeNotification, useIncomeNotifications } from '@/components/game/IncomeNotification';
+import { TenantIssuePopup, type TenantIssueEvent } from '@/components/game/TenantIssuePopup';
 import { PremiumModal } from '@/components/game/PremiumModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
@@ -30,6 +31,7 @@ import {
   getLoanFeesFromLTV
 } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
+import type { Curveball } from '@/lib/curveballs';
 import { api } from '@/lib/api';
 import { saveGame, loadGame, getSaveInfo, clearSave } from '@/lib/saveGame';
 import type { GameRun, Property, LedgerEntry, Deal, HallOfFamePlayer } from '@shared/schema';
@@ -48,6 +50,34 @@ interface ProFormaCompletionState {
   [propertyId: number]: boolean;
 }
 
+const TENANT_PERSONAS = [
+  {
+    name: 'Alex',
+    trait: 'organized and concise',
+    note: 'Shares a tidy checklist and keeps updates short.',
+  },
+  {
+    name: 'Jordan',
+    trait: 'friendly and proactive',
+    note: 'Offers flexible times and appreciates quick updates.',
+  },
+  {
+    name: 'Riley',
+    trait: 'detail-oriented and calm',
+    note: 'Sends clear photos and a calm summary of the issue.',
+  },
+  {
+    name: 'Casey',
+    trait: 'straightforward and punctual',
+    note: 'Prefers quick resolutions and clear timelines.',
+  },
+  {
+    name: 'Taylor',
+    trait: 'thoughtful and patient',
+    note: 'Checks in politely and values transparency.',
+  },
+];
+
 export default function Game() {
   const queryClient = useQueryClient();
   const [currentScreen, setCurrentScreen] = useState<GameScreen>('market');
@@ -55,6 +85,7 @@ export default function Game() {
   const [proFormaInputs, setProFormaInputs] = useState<ProFormaInputs>(defaultProForma);
   const [proFormaOutputs, setProFormaOutputs] = useState<ProFormaOutputs | null>(null);
   const [isProFormaComplete, setIsProFormaComplete] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Set<keyof ProFormaInputs>>(new Set());
   const [completedDiligence, setCompletedDiligence] = useState<DiligenceState>({});
   const [proFormaCompletions, setProFormaCompletions] = useState<ProFormaCompletionState>({});
   const [skippedDiligenceDeals, setSkippedDiligenceDeals] = useState<Set<number>>(() => {
@@ -377,28 +408,28 @@ export default function Game() {
 
   const handleOpenProForma = useCallback((strategy: 'rent' | 'flip', contractor: 'cheap' | 'fast') => {
     if (!selectedProperty) return;
-    
+
     const diligenceForProperty = completedDiligence[selectedProperty.id] || [];
     const effectiveRanges = getEffectiveRanges(
       convertPropertyToGameProperty(selectedProperty),
       diligenceForProperty
     );
-    
+
     const hasMarketStudy = diligenceForProperty.includes('market_study');
     const hasContractorWalkthrough = diligenceForProperty.includes('contractor_walkthrough');
-    
-    const rentEstimate = hasMarketStudy 
+
+    const rentEstimate = hasMarketStudy
       ? Math.round((effectiveRanges.rent.min + effectiveRanges.rent.max) / 2)
       : 0;
-    
+
     const rehabEstimate = hasContractorWalkthrough
       ? Math.round((effectiveRanges.rehab.min + effectiveRanges.rehab.max) / 2)
       : 0;
-    
+
     const timelineEstimate = hasContractorWalkthrough
       ? Math.round((effectiveRanges.timeline.min + effectiveRanges.timeline.max) / 2)
       : 8;
-    
+
     setProFormaInputs(prev => ({
       ...prev,
       strategy,
@@ -407,6 +438,9 @@ export default function Game() {
       rehabBudget: rehabEstimate,
       rehabWeeks: timelineEstimate,
     }));
+    // Reset touched fields - user must interact with all fields
+    // Mark only the fields chosen by buttons (strategy, financing, contractor) as touched
+    setTouchedFields(new Set(['strategy', 'financingType', 'contractorType']));
     setIsProFormaComplete(false);
     setProFormaOutputs(null);
     setCurrentScreen('proforma');
@@ -481,8 +515,7 @@ export default function Game() {
 
   const handleBackToMarket = useCallback(() => {
     setCurrentScreen('market');
-    setIsProFormaComplete(false);
-    setProFormaOutputs(null);
+    // Don't reset pro forma state - preserve user's work when going back
   }, []);
 
   const handleReturnToProperty = useCallback(() => {
@@ -505,6 +538,14 @@ export default function Game() {
       setProFormaOutputs(calculateProForma(inputs, selectedProperty));
     }
   }, [isProFormaComplete, selectedProperty]);
+
+  const handleFieldTouch = useCallback((fieldKey: keyof ProFormaInputs) => {
+    setTouchedFields(prev => {
+      const newSet = new Set(prev);
+      newSet.add(fieldKey);
+      return newSet;
+    });
+  }, []);
 
   const handleCalculate = useCallback(() => {
     if (selectedProperty) {
@@ -650,21 +691,11 @@ export default function Game() {
             toast.warning(`⚠️ Surprise repairs: $${repairCost.toLocaleString()} for ${repairIssues.join(', ')}. Your investment just got more expensive!`);
           }
         }
-        
-        // Show reality check feedback - compare player assumptions to market reality
-        if (rentalResult.realityCheck) {
-          const rc = rentalResult.realityCheck;
-          if (rc.wasOptimistic) {
-            toast.error(`📊 Reality Check: ${rc.explanation}`, { duration: 8000 });
-          } else if (rc.actualCashFlow > rc.projectedCashFlow) {
-            toast.success(`📊 ${rc.explanation}`, { duration: 5000 });
-          }
-        }
-        
+
         // Update game run with new cash balance after surprise costs
         const updatedGameRun = await api.getGameRun(gameRun.id);
         setGameRun(updatedGameRun);
-        
+
         toast.success('Rental activated! You will receive weekly income.');
         
         // Show trophy notifications if any were awarded
@@ -754,6 +785,30 @@ export default function Game() {
           }
         }
       });
+
+      const tenantCurveballs = (result.curveballs || []).filter(
+        (curveball: Curveball) => curveball.tenantIssue
+      );
+      if (tenantCurveballs.length && deals.some(deal => deal.status === 'active_rental')) {
+        setTenantIssues(prev => [
+          ...prev,
+          ...tenantCurveballs.map((curveball: Curveball) => {
+            const persona = TENANT_PERSONAS[Math.floor(Math.random() * TENANT_PERSONAS.length)];
+            return {
+              id: `${Date.now()}-${Math.random()}`,
+              title: curveball.name,
+              description: curveball.description,
+              cashImpact: curveball.cashImpact,
+              rentMultiplier: curveball.rentMultiplier,
+              timeImpact: curveball.timeImpact,
+              emoji: curveball.emoji,
+              tenantName: persona.name,
+              tenantTrait: persona.trait,
+              tenantNote: persona.note,
+            };
+          }),
+        ]);
+      }
 
       // Refresh game run state and other data
       const updatedGameRun = await api.getGameRun(gameRun.id);
@@ -1087,6 +1142,8 @@ export default function Game() {
                     onReturnToProperty={handleReturnToProperty}
                     onProceedWithoutDiligence={handleProceedWithoutDiligence}
                     skippedDiligence={skippedDiligenceDeals.has(selectedProperty.id)}
+                    touchedFields={touchedFields}
+                    onFieldTouch={handleFieldTouch}
                   />
                 </div>
 

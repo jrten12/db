@@ -18,12 +18,17 @@ const isFilled = (val: number | null | boolean | string): boolean => {
   return val !== null && val !== undefined;
 };
 
-// Generate input class with green glow when filled
-const getInputClass = (filled: boolean, baseClass: string = '') => {
+// Generate input class with green glow when filled and touched, amber for untouched
+const getInputClass = (filled: boolean, touched: boolean, isRequired: boolean, baseClass: string = '') => {
   const base = `${baseClass} transition-all duration-200`;
-  if (filled) {
+  if (filled && touched) {
+    // Filled and touched - green glow
     return `${base} border-emerald-500/50 shadow-[0_0_8px_rgba(16,185,129,0.3)]`;
+  } else if (isRequired && !touched) {
+    // Required but not touched - amber border with pulse
+    return `${base} border-amber-500/70 shadow-[0_0_8px_rgba(251,191,36,0.4)] animate-pulse`;
   }
+  // Default - slate border
   return `${base} border-slate-700`;
 };
 
@@ -153,9 +158,11 @@ interface ProFormaPanelProps {
   onReturnToProperty?: () => void;
   onProceedWithoutDiligence?: () => void;
   skippedDiligence?: boolean;
+  touchedFields?: Set<keyof ProFormaInputs>;
+  onFieldTouch?: (fieldKey: keyof ProFormaInputs) => void;
 }
 
-export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 50000, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false }: ProFormaPanelProps) {
+export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 50000, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false, touchedFields = new Set(), onFieldTouch }: ProFormaPanelProps) {
   const effectiveRanges = useMemo(() => getEffectiveRanges(
     {
       rentMin: property.rentRange?.[0] ?? property.rentMin ?? 1000,
@@ -184,6 +191,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
   const handleChange = <K extends keyof ProFormaInputs>(key: K, value: ProFormaInputs[K]) => {
     onInputsChange({ ...inputs, [key]: value });
+    // Mark field as touched
+    if (onFieldTouch) {
+      onFieldTouch(key);
+    }
     // Briefly highlight affected calculations
     if (key === 'expectedRent' || key === 'vacancyRate') {
       setHighlightField('effectiveRent');
@@ -337,42 +348,50 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const filledCount = requiredFields.filter(field => isFilled(inputs[field as keyof ProFormaInputs])).length;
   const completionPct = Math.round((filledCount / requiredFields.length) * 100);
 
+  // Check if all required fields have been touched by the user
+  const untouchedRequiredFields = requiredFields.filter(field => !touchedFields.has(field));
+  const allRequiredFieldsTouched = untouchedRequiredFields.length === 0;
+  const touchedCount = requiredFields.filter(field => touchedFields.has(field)).length;
+
+  // Pro forma is only complete if all fields are filled AND all required fields have been touched
+  const isFullyComplete = isComplete && allRequiredFieldsTouched;
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-4" data-testid="pro-forma-panel">
       <div className="xl:col-span-2 space-y-4">
         {/* COMPLETION PROGRESS BANNER */}
         <div className={`backdrop-blur rounded-xl border p-4 transition-all ${
-          isComplete 
-            ? 'bg-emerald-500/10 border-emerald-500/50' 
+          isFullyComplete
+            ? 'bg-emerald-500/10 border-emerald-500/50'
             : 'bg-slate-900/90 border-slate-700'
         }`}>
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              {isComplete ? (
+              {isFullyComplete ? (
                 <CheckCircle className="w-5 h-5 text-emerald-400" />
               ) : (
                 <AlertTriangle className="w-5 h-5 text-amber-400" />
               )}
-              <span className={`font-semibold text-sm ${isComplete ? 'text-emerald-400' : 'text-white'}`}>
-                {isComplete ? 'Pro Forma Complete!' : 'Complete Your Analysis'}
+              <span className={`font-semibold text-sm ${isFullyComplete ? 'text-emerald-400' : 'text-white'}`}>
+                {isFullyComplete ? 'Pro Forma Complete!' : 'Interact with All Fields'}
               </span>
             </div>
-            <span className={`text-sm font-mono ${isComplete ? 'text-emerald-400' : 'text-gray-400'}`}>
-              {filledCount}/{requiredFields.length} fields
+            <span className={`text-sm font-mono ${isFullyComplete ? 'text-emerald-400' : 'text-gray-400'}`}>
+              {touchedCount}/{requiredFields.length} touched
             </span>
           </div>
-          
+
           {/* Progress bar */}
           <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-            <div 
-              className={`h-full transition-all duration-500 ${isComplete ? 'bg-emerald-500' : 'bg-blue-500'}`}
-              style={{ width: `${completionPct}%` }}
+            <div
+              className={`h-full transition-all duration-500 ${isFullyComplete ? 'bg-emerald-500' : 'bg-blue-500'}`}
+              style={{ width: `${Math.round((touchedCount / requiredFields.length) * 100)}%` }}
             />
           </div>
-          
-          {!isComplete && missingFields.length > 0 && (
-            <p className="text-gray-400 text-xs mt-2">
-              Missing: {missingFields.slice(0, 3).join(', ')}{missingFields.length > 3 ? ` +${missingFields.length - 3} more` : ''}
+
+          {!allRequiredFieldsTouched && (
+            <p className="text-amber-400 text-xs mt-2">
+              ⚠️ You must interact with each field/slider, even if values are pre-filled. Untouched: {untouchedRequiredFields.slice(0, 3).join(', ')}{untouchedRequiredFields.length > 3 ? ` +${untouchedRequiredFields.length - 3} more` : ''}
             </p>
           )}
         </div>
@@ -944,7 +963,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                             onFocus={() => handleNumberFocus('expectedRent')}
                             onChange={(e) => handleNumberChangeFor('expectedRent', e.target.value)}
                             onBlur={() => handleNumberBlur('expectedRent', effectiveRanges.rent.min, effectiveRanges.rent.max)}
-                            className={`w-full pl-7 pr-12 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-emerald-500 ${getInputClass(isFilled(inputs.expectedRent))}`}
+                            className={`w-full pl-7 pr-12 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-emerald-500 ${getInputClass(isFilled(inputs.expectedRent), touchedFields.has('expectedRent'), requiredFields.includes('expectedRent'))}`}
                             data-testid="input-expected-rent-number"
                           />
                           <span className="absolute right-3 top-2.5 text-gray-500 text-xs">/mo</span>
@@ -1258,7 +1277,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                             onFocus={() => handleNumberFocus('rehabBudget')}
                             onChange={(e) => handleNumberChangeFor('rehabBudget', e.target.value)}
                             onBlur={() => handleNumberBlur('rehabBudget', effectiveRanges.rehab.min, effectiveRanges.rehab.max)}
-                            className={`w-full pl-7 pr-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-amber-500 ${getInputClass(isFilled(inputs.rehabBudget))}`}
+                            className={`w-full pl-7 pr-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-amber-500 ${getInputClass(isFilled(inputs.rehabBudget), touchedFields.has('rehabBudget'), requiredFields.includes('rehabBudget'))}`}
                             data-testid="input-rehab-budget-number"
                           />
                         </div>

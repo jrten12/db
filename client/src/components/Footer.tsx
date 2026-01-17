@@ -3,13 +3,13 @@ import signatureImage from "@assets/244711DD-4A02-45F4-AF84-DB41F02E853B_1768194
 
 export default function Footer() {
   return (
-    <footer className="mt-auto py-6 px-4 border-t border-slate-800/50 bg-slate-900/50">
+    <footer className="mt-auto py-4 px-4 border-t border-slate-800/50 bg-slate-900/50">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col items-center justify-center gap-6">
+        <div className="flex flex-col items-center justify-center gap-3">
           <img
             src={signatureImage}
             alt="A Game By Infarill & LVI Properties, LLC"
-            className="w-full max-w-md sm:max-w-lg md:max-w-xl h-auto"
+            className="w-full max-w-[200px] sm:max-w-[240px] h-auto opacity-80"
           />
           
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm">

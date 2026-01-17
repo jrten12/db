@@ -399,6 +399,10 @@ export default function Game() {
   const handlePropertyClick = useCallback((id: number) => {
     setSelectedPropertyId(id);
     setCurrentScreen('detail');
+    setProFormaInputs(defaultProForma);
+    setProFormaOutputs(null);
+    setIsProFormaComplete(false);
+    setTouchedFields(new Set());
     completeAction('select_property');
   }, [completeAction]);
 

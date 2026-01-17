@@ -2,24 +2,24 @@ import type { Property } from '@shared/schema';
 
 export interface ProFormaInputs {
   strategy: 'rent' | 'flip';
-  expectedRent: number;
-  vacancyRate: number;
-  taxesAnnual: number;
-  insuranceAnnual: number;
-  maintenancePct: number;
-  capExPct: number;
+  expectedRent: number | null;
+  vacancyRate: number | null;
+  taxesAnnual: number | null;
+  insuranceAnnual: number | null;
+  maintenancePct: number | null;
+  capExPct: number | null;
   utilities: boolean;
-  utilitiesMonthly: number;
+  utilitiesMonthly: number | null;
   propertyManagement: boolean;
-  propertyManagementPct: number;
-  rehabBudget: number;
-  rehabWeeks: number;
-  contingencyPct: number;
+  propertyManagementPct: number | null;
+  rehabBudget: number | null;
+  rehabWeeks: number | null;
+  contingencyPct: number | null;
   financingType: 'bank' | 'hard-money';
-  interestRate: number;
-  downPaymentPct: number;
-  loanOriginationPct: number;
-  sellingCostsPct: number;
+  interestRate: number | null;
+  downPaymentPct: number | null;
+  loanOriginationPct: number | null;
+  sellingCostsPct: number | null;
   contractorType: 'cheap' | 'fast';
 }
 
@@ -34,56 +34,104 @@ export interface ProFormaOutputs {
   totalCashInvested: number;
 }
 
+// Empty defaults - player must fill in all values
 export const defaultProForma: ProFormaInputs = {
   strategy: 'rent',
-  expectedRent: 1600,
-  vacancyRate: 8,
-  taxesAnnual: 2400,
-  insuranceAnnual: 1200,
-  maintenancePct: 8,
-  capExPct: 10,
+  expectedRent: null,
+  vacancyRate: null,
+  taxesAnnual: null,
+  insuranceAnnual: null,
+  maintenancePct: null,
+  capExPct: null,
   utilities: false,
-  utilitiesMonthly: 150,
+  utilitiesMonthly: null,
   propertyManagement: false,
-  propertyManagementPct: 10,
-  rehabBudget: 40000,
-  rehabWeeks: 8,
-  contingencyPct: 10,
+  propertyManagementPct: null,
+  rehabBudget: null,
+  rehabWeeks: null,
+  contingencyPct: null,
   financingType: 'bank',
-  interestRate: 6.5,
-  downPaymentPct: 25,
-  loanOriginationPct: 2,
-  sellingCostsPct: 8,
+  interestRate: null,
+  downPaymentPct: null,
+  loanOriginationPct: null,
+  sellingCostsPct: null,
   contractorType: 'cheap',
+};
+
+// Required fields for rent strategy
+export const requiredRentFields: (keyof ProFormaInputs)[] = [
+  'expectedRent', 'vacancyRate', 'taxesAnnual', 'insuranceAnnual',
+  'maintenancePct', 'capExPct', 'downPaymentPct', 'interestRate'
+];
+
+// Required fields for flip strategy
+export const requiredFlipFields: (keyof ProFormaInputs)[] = [
+  'rehabBudget', 'rehabWeeks', 'contingencyPct', 'downPaymentPct', 
+  'interestRate', 'sellingCostsPct'
+];
+
+// Check if pro forma is complete (all required fields filled)
+export const isProFormaInputsComplete = (inputs: ProFormaInputs): boolean => {
+  const requiredFields = inputs.strategy === 'rent' ? requiredRentFields : requiredFlipFields;
+  return requiredFields.every(field => {
+    const value = inputs[field];
+    return value !== null && value !== undefined;
+  });
+};
+
+// Get list of missing required fields
+export const getMissingFields = (inputs: ProFormaInputs): string[] => {
+  const requiredFields = inputs.strategy === 'rent' ? requiredRentFields : requiredFlipFields;
+  return requiredFields.filter(field => {
+    const value = inputs[field];
+    return value === null || value === undefined;
+  });
 };
 
 export const calculateProForma = (
   inputs: ProFormaInputs,
   property: Property
 ): ProFormaOutputs => {
-  const loanAmount = property.price * (1 - inputs.downPaymentPct / 100);
-  const downPaymentAmount = property.price * (inputs.downPaymentPct / 100);
-  const loanOriginationFees = loanAmount * (inputs.loanOriginationPct / 100);
+  // Use 0 for null values during calculation (validation should prevent incomplete submissions)
+  const expectedRent = inputs.expectedRent ?? 0;
+  const vacancyRate = inputs.vacancyRate ?? 0;
+  const taxesAnnual = inputs.taxesAnnual ?? 0;
+  const insuranceAnnual = inputs.insuranceAnnual ?? 0;
+  const maintenancePct = inputs.maintenancePct ?? 0;
+  const capExPct = inputs.capExPct ?? 0;
+  const utilitiesMonthly = inputs.utilitiesMonthly ?? 0;
+  const propertyManagementPct = inputs.propertyManagementPct ?? 0;
+  const rehabBudget = inputs.rehabBudget ?? 0;
+  const contingencyPct = inputs.contingencyPct ?? 0;
+  const interestRate = inputs.interestRate ?? 0;
+  const downPaymentPct = inputs.downPaymentPct ?? 0;
+  const loanOriginationPct = inputs.loanOriginationPct ?? 0;
 
-  const monthlyRate = inputs.interestRate / 100 / 12;
+  const loanAmount = property.price * (1 - downPaymentPct / 100);
+  const downPaymentAmount = property.price * (downPaymentPct / 100);
+  const loanOriginationFees = loanAmount * (loanOriginationPct / 100);
+
+  const monthlyRate = interestRate / 100 / 12;
   const numPayments = 30 * 12;
-  const debtServiceMonthly = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
+  const debtServiceMonthly = monthlyRate > 0 
+    ? loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1)
+    : 0;
 
   const tenantPaysUtilitiesVacancyPenalty = inputs.utilities ? 0 : 1.92;
-  const effectiveVacancyRate = inputs.vacancyRate + tenantPaysUtilitiesVacancyPenalty;
-  const effectiveRent = inputs.expectedRent * (1 - effectiveVacancyRate / 100);
-  const monthlyTaxes = inputs.taxesAnnual / 12;
-  const monthlyInsurance = inputs.insuranceAnnual / 12;
-  const maintenanceCost = inputs.expectedRent * (inputs.maintenancePct / 100);
-  const capExCost = inputs.expectedRent * (inputs.capExPct / 100);
-  const utilitiesCost = inputs.utilities ? inputs.utilitiesMonthly : 0;
-  const mgmtCost = inputs.propertyManagement ? inputs.expectedRent * (inputs.propertyManagementPct / 100) : 0;
+  const effectiveVacancyRate = vacancyRate + tenantPaysUtilitiesVacancyPenalty;
+  const effectiveRent = expectedRent * (1 - effectiveVacancyRate / 100);
+  const monthlyTaxes = taxesAnnual / 12;
+  const monthlyInsurance = insuranceAnnual / 12;
+  const maintenanceCost = expectedRent * (maintenancePct / 100);
+  const capExCost = expectedRent * (capExPct / 100);
+  const utilitiesCost = inputs.utilities ? utilitiesMonthly : 0;
+  const mgmtCost = inputs.propertyManagement ? expectedRent * (propertyManagementPct / 100) : 0;
 
   const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
   const noiMonthly = effectiveRent - monthlyOpEx;
   const cashFlowMonthly = noiMonthly - debtServiceMonthly;
 
-  const totalCashInvested = downPaymentAmount + loanOriginationFees + inputs.rehabBudget * (1 + inputs.contingencyPct / 100);
+  const totalCashInvested = downPaymentAmount + loanOriginationFees + rehabBudget * (1 + contingencyPct / 100);
   const annualNOI = noiMonthly * 12;
   const capRate = (annualNOI / property.price) * 100;
   const cashOnCash = totalCashInvested > 0 ? ((cashFlowMonthly * 12) / totalCashInvested) * 100 : 0;

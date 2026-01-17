@@ -157,7 +157,7 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" className="cursor-help touch-manipulation active:opacity-70">{children}</button>
+        <div role="button" tabIndex={0} className="cursor-help touch-manipulation active:opacity-70">{children}</div>
       </PopoverTrigger>
       <PopoverContent side="top" className="max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4 z-[100]">
         <div className="space-y-2">
@@ -173,7 +173,7 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
 interface PropertyDetailProps {
   property: Property;
   onClose: () => void;
-  onOpenProForma: (strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money', contractor: 'cheap' | 'fast') => void;
+  onOpenProForma: () => void;
   onPass: () => void;
   isProFormaComplete?: boolean;
   completedDiligence?: string[];
@@ -191,9 +191,6 @@ export function PropertyDetail({
   onDiligencePurchase,
   cash = 30000,
 }: PropertyDetailProps) {
-  const [strategy, setStrategy] = useState<'rent' | 'flip'>('rent');
-  const [financing, setFinancing] = useState<'bank' | 'hard-money'>('bank');
-  const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
   const [pendingDiligence, setPendingDiligence] = useState<DiligenceOption | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
@@ -207,10 +204,18 @@ export function PropertyDetail({
     ...interiorImages.filter(img => !imageLoadErrors.has(img.url))
   ];
 
-  const currentImage = allImages[currentImageIndex];
+  const safeIndex = Math.min(currentImageIndex, Math.max(0, allImages.length - 1));
+  const currentImage = allImages[safeIndex] || allImages[0];
 
   const handleImageError = (url: string) => {
-    setImageLoadErrors(prev => new Set([...prev, url]));
+    setImageLoadErrors(prev => {
+      const newSet = new Set(prev);
+      newSet.add(url);
+      return newSet;
+    });
+    if (currentImageIndex >= allImages.length - 1) {
+      setCurrentImageIndex(0);
+    }
   };
 
   const nextImage = () => {
@@ -359,18 +364,30 @@ export function PropertyDetail({
                 {allImages.length > 1 && (
                   <>
                     <button
-                      onClick={prevImage}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-2 rounded-full border border-slate-700 transition-all"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        prevImage();
+                      }}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-3 rounded-full border border-slate-700 transition-all z-10"
                       aria-label="Previous image"
+                      type="button"
+                      data-testid="button-prev-image"
                     >
-                      <ChevronLeft className="w-5 h-5 text-white" />
+                      <ChevronLeft className="w-5 h-5 text-white pointer-events-none" />
                     </button>
                     <button
-                      onClick={nextImage}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-2 rounded-full border border-slate-700 transition-all"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        nextImage();
+                      }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-3 rounded-full border border-slate-700 transition-all z-10"
                       aria-label="Next image"
+                      type="button"
+                      data-testid="button-next-image"
                     >
-                      <ChevronRight className="w-5 h-5 text-white" />
+                      <ChevronRight className="w-5 h-5 text-white pointer-events-none" />
                     </button>
                   </>
                 )}
@@ -403,20 +420,26 @@ export function PropertyDetail({
                   {allImages.map((img, index) => (
                     <button
                       key={img.url}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setCurrentImageIndex(index);
+                      }}
+                      className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                         index === currentImageIndex
                           ? 'border-emerald-500 scale-105'
                           : 'border-slate-700 hover:border-slate-600 opacity-70 hover:opacity-100'
                       }`}
+                      type="button"
+                      data-testid={`thumbnail-${index}`}
                     >
                       <img
                         src={img.url}
                         alt={img.label}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover pointer-events-none"
                       />
-                      <div className="absolute inset-0 flex items-end p-1">
-                        <span className="text-[8px] text-white bg-black/60 px-1 rounded truncate w-full text-center">
+                      <div className="absolute bottom-0 left-0 right-0 p-1 bg-gradient-to-t from-black/80 to-transparent">
+                        <span className="text-[8px] text-white truncate block text-center">
                           {img.label}
                         </span>
                       </div>
@@ -554,7 +577,7 @@ export function PropertyDetail({
                           {isCompleted ? (
                             <Check className="w-4 h-4 text-emerald-400" />
                           ) : (
-                            <span className="text-xs text-gray-400">{formatCurrency(option.cost)} + {option.timeWeeks < 1 ? `${option.timeWeeks * 7}d` : `${option.timeWeeks}w`}</span>
+                            <span className="text-xs text-gray-400">{formatCurrency(option.cost)} + {option.timeWeeks}w</span>
                           )}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">{option.reveals}</p>
@@ -614,71 +637,8 @@ export function PropertyDetail({
               )}
             </div>
 
-            {/* Right Column - Strategy & Financing (7 cols) */}
+            {/* Right Column - Analysis & Actions (7 cols) */}
             <div className="lg:col-span-7 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Strategy */}
-                <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
-                  <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">Choose Your Strategy</h3>
-                  <div className="space-y-2">
-                    <button onClick={() => setStrategy('rent')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${strategy === 'rent' ? 'bg-emerald-500/20 border-2 border-emerald-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
-                      data-testid="button-strategy-rent">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${strategy === 'rent' ? 'bg-emerald-500' : 'bg-slate-600'}`}>
-                        {strategy === 'rent' && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Rental</div>
-                        <div className="text-xs text-gray-400">Calculate your cash flow</div>
-                      </div>
-                      <Home className={`w-5 h-5 ${strategy === 'rent' ? 'text-emerald-400' : 'text-gray-500'}`} />
-                    </button>
-                    <button onClick={() => setStrategy('flip')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${strategy === 'flip' ? 'bg-emerald-500/20 border-2 border-emerald-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
-                      data-testid="button-strategy-flip">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${strategy === 'flip' ? 'bg-emerald-500' : 'bg-slate-600'}`}>
-                        {strategy === 'flip' && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Flip</div>
-                        <div className="text-xs text-gray-400">Calculate your profit</div>
-                      </div>
-                      <DollarSign className={`w-5 h-5 ${strategy === 'flip' ? 'text-emerald-400' : 'text-gray-500'}`} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Financing */}
-                <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
-                  <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">Financing Options</h3>
-                  <div className="space-y-2">
-                    <button onClick={() => setFinancing('hard-money')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${financing === 'hard-money' ? 'bg-amber-500/20 border-2 border-amber-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
-                      data-testid="button-financing-hard-money">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${financing === 'hard-money' ? 'bg-amber-500' : 'bg-slate-600'}`}>
-                        {financing === 'hard-money' && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Hard Money Loan</div>
-                        <div className="text-xs text-gray-400">10% Down, 12% Interest</div>
-                      </div>
-                      <Zap className={`w-5 h-5 ${financing === 'hard-money' ? 'text-amber-400' : 'text-gray-500'}`} />
-                    </button>
-                    <button onClick={() => setFinancing('bank')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${financing === 'bank' ? 'bg-emerald-500/20 border-2 border-emerald-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
-                      data-testid="button-financing-bank">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${financing === 'bank' ? 'bg-emerald-500' : 'bg-slate-600'}`}>
-                        {financing === 'bank' && <Check className="w-4 h-4 text-white" />}
-                      </div>
-                      <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Bank Loan</div>
-                        <div className="text-xs text-gray-400">25% Down, 5% Interest</div>
-                      </div>
-                      <Shield className={`w-5 h-5 ${financing === 'bank' ? 'text-emerald-400' : 'text-gray-500'}`} />
-                    </button>
-                  </div>
-                </div>
-              </div>
 
               {/* Timeline Risk Explanation */}
               <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
@@ -701,30 +661,6 @@ export function PropertyDetail({
                     </div>
                   </div>
                 )}
-              </div>
-
-              {/* Contractor Choice - Locked until after offer */}
-              <div className="bg-slate-800/30 backdrop-blur rounded-xl p-4 border border-slate-600 opacity-60">
-                <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <Lock className="w-4 h-4" /> Contractor Choice
-                  <span className="text-xs font-normal text-gray-500">(Available after offer accepted)</span>
-                </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-700/20 border border-slate-700">
-                    <Clock className="w-6 h-6 text-gray-500" />
-                    <div className="text-center">
-                      <div className="font-semibold text-gray-400 text-sm">Cheap & Slow</div>
-                      <div className="text-xs text-gray-500">15% savings, +50% time</div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-700/20 border border-slate-700">
-                    <Zap className="w-6 h-6 text-gray-500" />
-                    <div className="text-center">
-                      <div className="font-semibold text-gray-400 text-sm">Fast & Expensive</div>
-                      <div className="text-xs text-gray-500">30% premium, 30% faster</div>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Deal Outcome Unknown */}
@@ -753,8 +689,8 @@ export function PropertyDetail({
               {/* Action Buttons - PRO FORMA REQUIRED BEFORE OFFER */}
               <div className="space-y-3">
                 {/* PRIMARY: View Pro Forma */}
-                <button 
-                  onClick={() => onOpenProForma(strategy, financing, contractor)}
+                <button
+                  onClick={onOpenProForma}
                   className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-xl font-bold text-base transition-all shadow-lg shadow-emerald-500/30"
                   data-testid="button-pro-forma"
                 >
@@ -808,9 +744,7 @@ export function PropertyDetail({
                 <div className="flex items-center justify-between text-sm mt-1">
                   <span className="text-gray-400">Time:</span>
                   <span className="text-amber-400 font-mono">
-                    -{pendingDiligence.timeWeeks < 1 
-                      ? `${Math.round(pendingDiligence.timeWeeks * 7)} days` 
-                      : `${pendingDiligence.timeWeeks} week${pendingDiligence.timeWeeks !== 1 ? 's' : ''}`}
+                    -{pendingDiligence.timeWeeks} week{pendingDiligence.timeWeeks !== 1 ? 's' : ''}
                   </span>
                 </div>
               </div>

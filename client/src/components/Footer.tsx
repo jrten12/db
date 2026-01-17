@@ -24,6 +24,25 @@ export default function Footer() {
             Privacy Policy
           </Link>
         </div>
+        
+        {/* Signature attribution with cursive neon blue pen effect */}
+        <div className="mt-6 pt-5 border-t border-slate-800/30">
+          <div className="flex flex-col items-center justify-center gap-1">
+            <span className="text-gray-500 text-[10px] uppercase tracking-[0.2em]">
+              a game by
+            </span>
+            <div 
+              className="text-sky-300 text-2xl sm:text-3xl"
+              style={{ 
+                fontFamily: '"Great Vibes", cursive',
+                textShadow: '0 0 4px rgba(56,189,248,0.9), 0 0 12px rgba(56,189,248,0.5), 0 0 24px rgba(56,189,248,0.25)',
+                transform: 'rotate(-1deg)',
+              }}
+            >
+              Infarill LLC <span className="text-sky-400/60 mx-1">&</span> Nancy Deephouse
+            </div>
+          </div>
+        </div>
       </div>
     </footer>
   );

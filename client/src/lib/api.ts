@@ -116,6 +116,14 @@ export const api = {
     surpriseCosts: number;
     surpriseIssues: string[];
     newCash: number;
+    realityCheck?: {
+      projectedCashFlow: number;
+      actualCashFlow: number;
+      rentDelta: number;
+      vacancyDelta: number;
+      explanation: string;
+      wasOptimistic: boolean;
+    };
   }> {
     const res = await fetch(`${API_BASE}/deals/${dealId}/activate-rental`, {
       method: 'POST',

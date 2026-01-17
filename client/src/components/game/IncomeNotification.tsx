@@ -251,14 +251,19 @@ export function useIncomeNotifications() {
     setEvents((prev) => prev.filter((e) => e.id !== id));
   };
 
-  const addRentalPayment = (amount: number, propertyName?: string) => {
+  const addRentalPayment = (
+    netIncome: number,
+    grossRent: number,
+    totalExpenses: number,
+    propertyName?: string
+  ) => {
     addIncomeEvent({
-      amount,
+      amount: netIncome,
       type: 'rental',
-      title: 'Rent Payment Received',
-      description: propertyName ? `Weekly rent from ${propertyName}` : 'Weekly rent payment',
+      title: propertyName ? `${propertyName}` : 'Weekly Rental Income',
+      description: `Rent: +$${grossRent.toLocaleString()} | Expenses: -$${totalExpenses.toLocaleString()}`,
       emoji: '🏠',
-      color: 'green',
+      color: netIncome >= 0 ? 'green' : 'yellow',
     });
   };
 

@@ -10,6 +10,7 @@ import { LedgerPanel } from '@/components/game/LedgerPanel';
 import { MoneyAnimation } from '@/components/game/MoneyAnimation';
 import { TimeProgressionPanel } from '@/components/game/TimeProgressionPanel';
 import { IncomeNotification, useIncomeNotifications } from '@/components/game/IncomeNotification';
+import { TenantIssuePopup, type TenantIssueEvent } from '@/components/game/TenantIssuePopup';
 import { PremiumModal } from '@/components/game/PremiumModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
@@ -22,6 +23,7 @@ import {
   convertPropertyToGameProperty
 } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
+import type { Curveball } from '@/lib/curveballs';
 import { api } from '@/lib/api';
 import type { GameRun, Property, LedgerEntry, Deal, HallOfFamePlayer } from '@shared/schema';
 import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.png';
@@ -39,6 +41,34 @@ interface ProFormaCompletionState {
   [propertyId: number]: boolean;
 }
 
+const TENANT_PERSONAS = [
+  {
+    name: 'Alex',
+    trait: 'organized and concise',
+    note: 'Shares a tidy checklist and keeps updates short.',
+  },
+  {
+    name: 'Jordan',
+    trait: 'friendly and proactive',
+    note: 'Offers flexible times and appreciates quick updates.',
+  },
+  {
+    name: 'Riley',
+    trait: 'detail-oriented and calm',
+    note: 'Sends clear photos and a calm summary of the issue.',
+  },
+  {
+    name: 'Casey',
+    trait: 'straightforward and punctual',
+    note: 'Prefers quick resolutions and clear timelines.',
+  },
+  {
+    name: 'Taylor',
+    trait: 'thoughtful and patient',
+    note: 'Checks in politely and values transparency.',
+  },
+];
+
 export default function Game() {
   const queryClient = useQueryClient();
   const [currentScreen, setCurrentScreen] = useState<GameScreen>('market');
@@ -46,8 +76,21 @@ export default function Game() {
   const [proFormaInputs, setProFormaInputs] = useState<ProFormaInputs>(defaultProForma);
   const [proFormaOutputs, setProFormaOutputs] = useState<ProFormaOutputs | null>(null);
   const [isProFormaComplete, setIsProFormaComplete] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Set<keyof ProFormaInputs>>(new Set());
   const [completedDiligence, setCompletedDiligence] = useState<DiligenceState>({});
   const [proFormaCompletions, setProFormaCompletions] = useState<ProFormaCompletionState>({});
+  const [skippedDiligenceDeals, setSkippedDiligenceDeals] = useState<Set<number>>(() => {
+    try {
+      const stored = sessionStorage.getItem('skippedDiligenceDeals');
+      if (stored) {
+        return new Set(JSON.parse(stored) as number[]);
+      }
+    } catch {}
+    return new Set();
+  });
+  
+  // Persist skipped diligence to sessionStorage
+  const skippedDiligenceArray = Array.from(skippedDiligenceDeals);
   const [flipMetrics, setFlipMetrics] = useState({ profit: 0, roi: 0, holdWeeks: 0 });
   const [showLedger, setShowLedger] = useState(false);
 
@@ -58,15 +101,25 @@ export default function Game() {
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<HallOfFamePlayer | null>(null);
   const [showNameEntry, setShowNameEntry] = useState(true);
+  const [tenantIssues, setTenantIssues] = useState<TenantIssueEvent[]>([]);
 
   const STARTING_CASH = 50000;
 
   // Income notifications
   const { events: incomeEvents, dismissEvent, addRentalPayment, addFlipProceeds, addCurveballBonus } = useIncomeNotifications();
+  const dismissTenantIssue = useCallback(() => {
+    setTenantIssues(prev => prev.slice(1));
+  }, []);
 
   const [gameRun, setGameRun] = useState<GameRun | null>(null);
   const [isLoadingGame, setIsLoadingGame] = useState(true);
   const [gameError, setGameError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('skippedDiligenceDeals', JSON.stringify(skippedDiligenceArray));
+    } catch {}
+  }, [skippedDiligenceArray]);
 
   useEffect(() => {
     const checkActiveGame = async () => {
@@ -116,6 +169,8 @@ export default function Game() {
       }
       
       sessionStorage.setItem('currentGameRunId', String(newRun.id));
+      sessionStorage.removeItem('skippedDiligenceDeals');
+      setSkippedDiligenceDeals(new Set());
       setGameRun(newRun);
       setShowNameEntry(false);
     } catch (err) {
@@ -170,6 +225,8 @@ export default function Game() {
     queryFn: () => api.getDeals(gameRun!.id),
     enabled: !!gameRun?.id,
   });
+
+  const activeTenantIssue = tenantIssues[0] ?? null;
 
   const createLedgerMutation = useMutation({
     mutationFn: ({ gameRunId, entries, currentCash }: {
@@ -241,41 +298,39 @@ export default function Game() {
     setCurrentScreen('market');
   }, []);
 
-  const handleOpenProForma = useCallback((strategy: 'rent' | 'flip', financing: 'bank' | 'hard-money', contractor: 'cheap' | 'fast') => {
+  const handleOpenProForma = useCallback(() => {
     if (!selectedProperty) return;
-    
+
     const diligenceForProperty = completedDiligence[selectedProperty.id] || [];
     const effectiveRanges = getEffectiveRanges(
       convertPropertyToGameProperty(selectedProperty),
       diligenceForProperty
     );
-    
+
     const hasMarketStudy = diligenceForProperty.includes('market_study');
     const hasContractorWalkthrough = diligenceForProperty.includes('contractor_walkthrough');
-    
-    const rentEstimate = hasMarketStudy 
+
+    const rentEstimate = hasMarketStudy
       ? Math.round((effectiveRanges.rent.min + effectiveRanges.rent.max) / 2)
       : 0;
-    
+
     const rehabEstimate = hasContractorWalkthrough
       ? Math.round((effectiveRanges.rehab.min + effectiveRanges.rehab.max) / 2)
       : 0;
-    
+
     const timelineEstimate = hasContractorWalkthrough
       ? Math.round((effectiveRanges.timeline.min + effectiveRanges.timeline.max) / 2)
       : 8;
-    
+
     setProFormaInputs(prev => ({
       ...prev,
-      strategy,
-      financingType: financing,
-      interestRate: financing === 'bank' ? 6.5 : 12,
-      downPaymentPct: financing === 'bank' ? 25 : 10,
-      contractorType: contractor,
       expectedRent: rentEstimate,
       rehabBudget: rehabEstimate,
       rehabWeeks: timelineEstimate,
     }));
+    // Reset touched fields - user must interact with all fields
+    // Mark only the fields chosen by buttons (strategy, financing, contractor) as touched
+    setTouchedFields(new Set(['strategy', 'financingType', 'contractorType']));
     setIsProFormaComplete(false);
     setProFormaOutputs(null);
     setCurrentScreen('proforma');
@@ -350,9 +405,22 @@ export default function Game() {
 
   const handleBackToMarket = useCallback(() => {
     setCurrentScreen('market');
-    setIsProFormaComplete(false);
-    setProFormaOutputs(null);
+    // Don't reset pro forma state - preserve user's work when going back
   }, []);
+
+  const handleReturnToProperty = useCallback(() => {
+    setCurrentScreen('detail');
+  }, []);
+
+  const handleProceedWithoutDiligence = useCallback(() => {
+    if (!selectedProperty) return;
+    setSkippedDiligenceDeals(prev => {
+      const newSet = new Set(prev);
+      newSet.add(selectedProperty.id);
+      return newSet;
+    });
+    toast.warning('Proceeding without full due diligence - hidden issues may surface later!');
+  }, [selectedProperty]);
 
   const handleInputsChange = useCallback((inputs: ProFormaInputs) => {
     setProFormaInputs(inputs);
@@ -360,6 +428,14 @@ export default function Game() {
       setProFormaOutputs(calculateProForma(inputs, selectedProperty));
     }
   }, [isProFormaComplete, selectedProperty]);
+
+  const handleFieldTouch = useCallback((fieldKey: keyof ProFormaInputs) => {
+    setTouchedFields(prev => {
+      const newSet = new Set(prev);
+      newSet.add(fieldKey);
+      return newSet;
+    });
+  }, []);
 
   const handleCalculate = useCallback(() => {
     if (selectedProperty) {
@@ -421,16 +497,23 @@ export default function Game() {
       });
 
       if (proFormaInputs.strategy === 'flip') {
-        const allInBasis = selectedProperty.price + closingCosts + proFormaInputs.rehabBudget * (1 + proFormaInputs.contingencyPct / 100);
-        const holdingCostPerWeek = Math.round((selectedProperty.price * (proFormaInputs.interestRate / 100) / 52) +
-          (proFormaInputs.taxesAnnual / 52) + (proFormaInputs.insuranceAnnual / 52));
+        const rehabBudget = proFormaInputs.rehabBudget ?? 0;
+        const contingencyPct = proFormaInputs.contingencyPct ?? 0;
+        const interestRate = proFormaInputs.interestRate ?? 0;
+        const taxesAnnual = proFormaInputs.taxesAnnual ?? 0;
+        const insuranceAnnual = proFormaInputs.insuranceAnnual ?? 0;
+        const rehabWeeks = proFormaInputs.rehabWeeks ?? 0;
+        
+        const allInBasis = selectedProperty.price + closingCosts + rehabBudget * (1 + contingencyPct / 100);
+        const holdingCostPerWeek = Math.round((selectedProperty.price * (interestRate / 100) / 52) +
+          (taxesAnnual / 52) + (insuranceAnnual / 52));
         const arvMid = (selectedProperty.arvMin + selectedProperty.arvMax) / 2;
-        const profit = arvMid - allInBasis - (holdingCostPerWeek * proFormaInputs.rehabWeeks);
+        const profit = arvMid - allInBasis - (holdingCostPerWeek * rehabWeeks);
         const roi = proFormaOutputs.totalCashInvested > 0 ? (profit / proFormaOutputs.totalCashInvested) * 100 : 0;
-        setFlipMetrics({ profit, roi, holdWeeks: proFormaInputs.rehabWeeks });
+        setFlipMetrics({ profit, roi, holdWeeks: rehabWeeks });
 
         // Start flip rehab period
-        await api.startFlipRehab(newDeal.id, gameRun.id, proFormaInputs.rehabWeeks);
+        await api.startFlipRehab(newDeal.id, gameRun.id, rehabWeeks);
         toast.success('Flip started! Check Time & Income panel to track progress.');
       } else {
         // Activate rental property - server will calculate actual income from property ground truth
@@ -472,7 +555,12 @@ export default function Game() {
       // Show income notifications for rental payments
       result.rentalPayments.forEach((payment: any) => {
         const property = properties.find(p => p.id === deals.find(d => d.id === payment.dealId)?.propertyId);
-        addRentalPayment(payment.weeklyIncome, property?.name);
+        addRentalPayment(
+          payment.weeklyIncome,
+          payment.grossRent || 0,
+          payment.totalExpenses || 0,
+          property?.name
+        );
       });
 
       // Show flip completion notifications
@@ -486,6 +574,30 @@ export default function Game() {
           toast.warning(`⚠️ Surprise repairs on ${property?.name || 'property'}: $${flip.surpriseCosts.toLocaleString()} for ${flip.surpriseIssues?.join(', ')}. This cut into your profit!`);
         }
       });
+
+      const tenantCurveballs = (result.curveballs || []).filter(
+        (curveball: Curveball) => curveball.tenantIssue
+      );
+      if (tenantCurveballs.length && deals.some(deal => deal.status === 'active_rental')) {
+        setTenantIssues(prev => [
+          ...prev,
+          ...tenantCurveballs.map((curveball: Curveball) => {
+            const persona = TENANT_PERSONAS[Math.floor(Math.random() * TENANT_PERSONAS.length)];
+            return {
+              id: `${Date.now()}-${Math.random()}`,
+              title: curveball.name,
+              description: curveball.description,
+              cashImpact: curveball.cashImpact,
+              rentMultiplier: curveball.rentMultiplier,
+              timeImpact: curveball.timeImpact,
+              emoji: curveball.emoji,
+              tenantName: persona.name,
+              tenantTrait: persona.trait,
+              tenantNote: persona.note,
+            };
+          }),
+        ]);
+      }
 
       // Refresh game run state and other data
       const updatedGameRun = await api.getGameRun(gameRun.id);
@@ -688,6 +800,12 @@ export default function Game() {
                     onInputsChange={handleInputsChange}
                     onCalculate={handleCalculate}
                     completedDiligence={completedDiligence[selectedProperty.id] || []}
+                    playerCash={gameRun?.cash ?? 50000}
+                    onReturnToProperty={handleReturnToProperty}
+                    onProceedWithoutDiligence={handleProceedWithoutDiligence}
+                    skippedDiligence={skippedDiligenceDeals.has(selectedProperty.id)}
+                    touchedFields={touchedFields}
+                    onFieldTouch={handleFieldTouch}
                   />
                 </div>
 
@@ -773,6 +891,8 @@ export default function Game() {
 
         {/* Income Notifications */}
         <IncomeNotification events={incomeEvents} onDismiss={dismissEvent} />
+
+        <TenantIssuePopup issue={activeTenantIssue} onClose={dismissTenantIssue} />
 
         {/* Bankruptcy Modal */}
         {isBankrupt && (

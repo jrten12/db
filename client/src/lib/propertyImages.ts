@@ -19,6 +19,29 @@ import portRichmondDuplex from '@assets/generated_images/port_richmond_duplex.pn
 import kensingtonRow from '@assets/generated_images/kensington_row_house.png';
 import northernLibertiesLoft from '@assets/generated_images/northern_liberties_loft_building.png';
 
+import interiorKitchenExtreme from '@assets/generated_images/fixer-upper_kitchen_needs_work.png';
+import interiorBathroomExtreme from '@assets/generated_images/bathroom_needs_renovation.png';
+import interiorLivingRoomExtreme from '@assets/generated_images/living_room_needs_updates.png';
+import interiorBasementExtreme from '@assets/generated_images/basement_with_potential_issues.png';
+
+import interiorKitchenDated from '@assets/generated_images/dated_kitchen_needs_updating.png';
+import interiorBathroomDated from '@assets/generated_images/dated_bathroom_cosmetic_updates.png';
+import interiorLivingRoomDated from '@assets/generated_images/dated_living_room_light_updates.png';
+import interiorBasementClean from '@assets/generated_images/clean_unfinished_basement_potential.png';
+
+import elmwoodKitchenPipes from '@assets/generated_images/elmwood_bungalow_kitchen_pipes.png';
+import kensingtonDeferredMaint from '@assets/generated_images/kensington_row_deferred_maintenance.png';
+import oldCitySettling from '@assets/generated_images/old_city_brownstone_settling.png';
+import oldCityBasement from '@assets/generated_images/old_city_brownstone_basement.png';
+import maplewoodElectrical from '@assets/generated_images/maplewood_colonial_electrical_issues.png';
+import oakwoodHvac from '@assets/generated_images/oakwood_cottage_hvac_basement.png';
+import riversideFoundation from '@assets/generated_images/riverside_ranch_foundation_crack.png';
+import southStreetWall from '@assets/generated_images/south_street_twin_shared_wall.png';
+import portRichmondHvac from '@assets/generated_images/port_richmond_duplex_hvac.png';
+import queenVillageBrick from '@assets/generated_images/queen_village_townhouse_brick.png';
+import westsideCosmetic from '@assets/generated_images/westside_manor_cosmetic_updates.png';
+import fairmountDualSystems from '@assets/generated_images/fairmount_duplex_dual_systems.png';
+
 import issueMold from '@assets/generated_images/properties/issues/mold.png';
 import issueFoundation from '@assets/generated_images/properties/issues/foundation_crack.png';
 import issueRoof from '@assets/generated_images/properties/issues/roof_damage.png';
@@ -109,28 +132,87 @@ export const getPropertyImage = (propertyName: string): string => {
   return propertyImages[propertyName] || oakwoodFront;
 };
 
+const propertySpecificInteriors: Record<string, Array<{ type: string; label: string; url: string }>> = {
+  'Elmwood Bungalow': [
+    { type: 'kitchen', label: 'Kitchen', url: elmwoodKitchenPipes },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomExtreme },
+    { type: 'living', label: 'Living Room', url: interiorLivingRoomExtreme },
+    { type: 'basement', label: 'Basement', url: interiorBasementExtreme },
+  ],
+  'Kensington Row': [
+    { type: 'living', label: 'Living Room', url: kensingtonDeferredMaint },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenExtreme },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomExtreme },
+    { type: 'basement', label: 'Basement', url: interiorBasementExtreme },
+  ],
+  'Old City Brownstone': [
+    { type: 'living', label: 'Living Room', url: oldCitySettling },
+    { type: 'basement', label: 'Basement', url: oldCityBasement },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenExtreme },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomExtreme },
+  ],
+  'Maplewood Colonial': [
+    { type: 'kitchen', label: 'Kitchen', url: maplewoodElectrical },
+    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+    { type: 'basement', label: 'Basement', url: interiorBasementClean },
+  ],
+  'Oakwood Cottage': [
+    { type: 'basement', label: 'Basement', url: oakwoodHvac },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  ],
+  'Riverside Ranch': [
+    { type: 'living', label: 'Living Room', url: riversideFoundation },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+    { type: 'basement', label: 'Basement', url: interiorBasementClean },
+  ],
+  'South Street Twin': [
+    { type: 'living', label: 'Living Room', url: southStreetWall },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+    { type: 'basement', label: 'Basement', url: interiorBasementClean },
+  ],
+  'Port Richmond Duplex': [
+    { type: 'basement', label: 'Basement', url: portRichmondHvac },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  ],
+  'Queen Village Townhouse': [
+    { type: 'living', label: 'Living Room', url: queenVillageBrick },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+    { type: 'basement', label: 'Basement', url: interiorBasementClean },
+  ],
+  'Westside Manor': [
+    { type: 'kitchen', label: 'Kitchen', url: westsideCosmetic },
+    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+    { type: 'basement', label: 'Basement', url: interiorBasementClean },
+  ],
+  'Fairmount Duplex': [
+    { type: 'basement', label: 'Basement', url: fairmountDualSystems },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  ],
+  'Hillside Retreat': [
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+    { type: 'basement', label: 'Basement', url: interiorBasementClean },
+  ],
+};
+
 export const getPropertyInteriorImages = (propertyName: string): Array<{ type: string; label: string; url: string }> => {
-  const images: Array<{ type: string; label: string; url: string }> = [];
-  const dirName = propertyName.toLowerCase().replace(/ /g, '_');
-
-  // Try to construct paths to interior images
-  // These will be 404 if not generated yet, but the UI can handle that gracefully
-  const basePath = `/attached_assets/generated_images/properties/${dirName}`;
-
-  const possibleImages = [
-    { type: 'kitchen', label: 'Kitchen', url: `${basePath}/kitchen.png` },
-    { type: 'living_room', label: 'Living Room', url: `${basePath}/living_room.png` },
-    { type: 'bedroom', label: 'Bedroom', url: `${basePath}/bedroom.png` },
-  ];
-
-  // Return all possible images - the UI component will check if they load
-  return possibleImages;
+  return propertySpecificInteriors[propertyName] || [];
 };
 
 export const hasInteriorImages = (propertyName: string): boolean => {
-  // For now, assume interior images might exist for all properties
-  // The UI will handle displaying only loaded images
-  return true;
+  return propertyName in propertySpecificInteriors;
 };
 
 export const getIssueImage = (issueId: string): string | null => {

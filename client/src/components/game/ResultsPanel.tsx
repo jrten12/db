@@ -347,9 +347,11 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
               ? (isPositiveCashFlow && isGoodCashOnCash 
                   ? 'bg-emerald-500/10 border-emerald-500/50' 
                   : 'bg-red-500/10 border-red-500/50')
-              : (isPositiveProfit && isGoodROI 
-                  ? 'bg-emerald-500/10 border-emerald-500/50' 
-                  : 'bg-red-500/10 border-red-500/50')
+              : showFlipUnknown
+                  ? 'bg-amber-500/10 border-amber-500/50'
+                  : (isPositiveProfit && isGoodROI 
+                      ? 'bg-emerald-500/10 border-emerald-500/50' 
+                      : 'bg-red-500/10 border-red-500/50')
           }`} data-testid="deal-verdict">
             <div className="flex items-center gap-3 mb-3">
               <div className="trophy-icon-container" style={{ padding: '1rem' }}>
@@ -359,6 +361,8 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                   ) : (
                     <X className="w-8 h-8 text-red-400 trophy-icon-danger" />
                   )
+                ) : showFlipUnknown ? (
+                  <HelpCircle className="w-8 h-8 text-amber-400 trophy-icon-warning" />
                 ) : (
                   isPositiveProfit && isGoodROI ? (
                     <Check className="w-8 h-8 text-emerald-400 trophy-icon-success" />
@@ -370,15 +374,21 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
               <h3 className={`text-xl font-bold ${
                 strategy === 'rent'
                   ? (isPositiveCashFlow && isGoodCashOnCash ? 'text-emerald-400' : 'text-red-400')
-                  : (isPositiveProfit && isGoodROI ? 'text-emerald-400' : 'text-red-400')
+                  : showFlipUnknown ? 'text-amber-400' : (isPositiveProfit && isGoodROI ? 'text-emerald-400' : 'text-red-400')
               }`} style={{
-                filter: (strategy === 'rent' ? (isPositiveCashFlow && isGoodCashOnCash) : (isPositiveProfit && isGoodROI))
-                  ? 'drop-shadow(0 0 12px rgba(16,185,129,0.6))'
-                  : 'drop-shadow(0 0 12px rgba(239,68,68,0.5))'
+                filter: strategy === 'rent' 
+                  ? ((isPositiveCashFlow && isGoodCashOnCash)
+                      ? 'drop-shadow(0 0 12px rgba(16,185,129,0.6))'
+                      : 'drop-shadow(0 0 12px rgba(239,68,68,0.5))')
+                  : showFlipUnknown
+                      ? 'drop-shadow(0 0 12px rgba(251,191,36,0.6))'
+                      : ((isPositiveProfit && isGoodROI)
+                          ? 'drop-shadow(0 0 12px rgba(16,185,129,0.6))'
+                          : 'drop-shadow(0 0 12px rgba(239,68,68,0.5))')
               }}>
                 {strategy === 'rent'
                   ? (isPositiveCashFlow && isGoodCashOnCash ? '🏆 Deal Meets Rental Thresholds' : '❌ Deal Fails Rental Thresholds')
-                  : (isPositiveProfit && isGoodROI ? '🏆 Deal Meets Flip Thresholds' : '❌ Deal Fails Flip Thresholds')
+                  : showFlipUnknown ? '⚠️ Outcome Unknown - No Appraisal' : (isPositiveProfit && isGoodROI ? '🏆 Deal Meets Flip Thresholds' : '❌ Deal Fails Flip Thresholds')
                 }
               </h3>
             </div>
@@ -399,6 +409,18 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                         ? `This deal fails because rent doesn't cover your mortgage and expenses. Consider: Is rent too optimistic? Is the purchase price too high? Are you using the right financing?`
                         : `This deal has positive cash flow but ${outputs.cashOnCash.toFixed(1)}% CoC is below the 8% threshold. Your capital would work harder elsewhere. Consider negotiating a lower price or finding higher rents.`
                     }
+                  </p>
+                </>
+              ) : showFlipUnknown ? (
+                <>
+                  <p>
+                    <strong>Status:</strong> You skipped the Comp Analysis due diligence
+                  </p>
+                  <p>
+                    <strong>Your Deal:</strong> ROI ??? | Profit ???
+                  </p>
+                  <p className="text-gray-400 mt-2">
+                    Without knowing the After Repair Value (ARV), you can't calculate profit or ROI. You're essentially gambling on what buyers will pay. The true outcome will be revealed when you sell.
                   </p>
                 </>
               ) : (

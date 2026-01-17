@@ -119,6 +119,7 @@ export function LedgerPanel({ entries, startingCash, onClose }: LedgerPanelProps
                       <span className={`text-xs font-semibold ${CATEGORY_COLORS[entry.category] || 'text-gray-400'}`}>
                         {CATEGORY_LABELS[entry.category] || entry.category}
                       </span>
+                      <span className="text-xs text-gray-500">Week {entry.gameWeek}</span>
                     </div>
                     <div className="text-white text-sm truncate">{entry.description}</div>
                   </div>

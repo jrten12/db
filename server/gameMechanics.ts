@@ -13,7 +13,7 @@ import type { GameRun, Deal, InsertLedgerEntry, InsertCurveballEvent } from '@sh
 import * as schema from '@shared/schema';
 import { db } from './storage';
 import { eq } from 'drizzle-orm';
-import { rollForCurveball } from '../client/src/lib/curveballs';
+import { rollForCurveball, type PropertyContext, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
 import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue } from '@shared/propertyIssues';
 
 /**
@@ -914,8 +914,19 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     if (deal.status === 'active_rental') {
       // Check if it's time for payment (hasn't been paid this week)
       if ((deal.lastIncomePaymentWeek || 0) < gameRun.currentWeek + 1) {
-        // Roll for curveball events (rental_monthly trigger)
-        const curveball = rollForCurveball('rental_monthly');
+        // Get property info for context-aware curveballs
+        const property = await storage.getProperty(deal.propertyId);
+        
+        // Build property context for curveball system with normalized values
+        const propertyContext: PropertyContext | undefined = property ? {
+          propertyType: normalizePropertyType(property.propertyType || 'house'),
+          conditionTag: normalizeConditionTag(property.conditionTag || 'good'),
+          locationType: normalizeLocationType(property.locationType || 'suburban'),
+          price: deal.purchasePrice || property.price,
+        } : undefined;
+        
+        // Roll for curveball events with property context
+        const curveball = rollForCurveball('rental_monthly', propertyContext);
 
         const result = await processRentalIncome(deal, gameRun, curveball || undefined);
         rentalPayments.push(result);

@@ -609,26 +609,15 @@ export async function processRentalIncome(
   // rent - vacancy - opex - debt + cashImpact = netWeeklyIncome
   // (verified: we calculated netWeeklyIncome from these same components above)
   
-  // Credit: Gross rent income (keep this clean - curveball impacts shown separately)
-  if (scaledGrossRent > 0) {
+  // Credit: Net rent income (gross rent minus vacancy already factored in)
+  // Show as single "Rent" entry - vacancy is baked into the amount, not shown as confusing weekly deduction
+  const netRentAfterVacancy = scaledGrossRent - scaledVacancyLoss;
+  if (netRentAfterVacancy > 0) {
     ledgerEntries.push({
       direction: 'credit',
       category: 'income',
-      amount: scaledGrossRent,
+      amount: netRentAfterVacancy,
       description: `🏠 Rent - ${propertyName}`,
-      propertyId: deal.propertyId,
-      dealId: deal.id,
-      gameWeek: gameRun.currentWeek,
-    });
-  }
-  
-  // Debit: Vacancy loss (rent-tied, scales with rent)
-  if (scaledVacancyLoss > 0) {
-    ledgerEntries.push({
-      direction: 'debit',
-      category: 'expense',
-      amount: scaledVacancyLoss,
-      description: `🏚️ Vacancy (${vacancyRate}%) - ${propertyName}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
       gameWeek: gameRun.currentWeek,

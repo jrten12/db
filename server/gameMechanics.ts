@@ -17,6 +17,111 @@ import { rollForCurveball } from '../client/src/lib/curveballs';
 import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue } from '@shared/propertyIssues';
 
 /**
+ * Loan Amortization Utilities
+ * 
+ * The game runs in 52 weeks, but mortgages are typically 30 years (360 months).
+ * We use accelerated amortization to make principal paydown visible during gameplay
+ * while keeping the monthly payment and interest rate realistic.
+ * 
+ * Strategy: Each game week processes an accelerated principal payment.
+ * The player sees realistic monthly payment amounts, but principal reduces faster
+ * so they can build equity during the game's timeframe.
+ */
+
+// Game time compression factor: 52 weeks in game represents ~5 years of real mortgage payments
+// This makes equity building visible while keeping payment amounts realistic
+const MORTGAGE_ACCELERATION_FACTOR = 5; // 1 game week = 5 weeks of real amortization
+
+interface AmortizationPayment {
+  totalPayment: number;       // Total monthly payment (P&I)
+  interestPayment: number;    // Interest portion
+  principalPayment: number;   // Principal portion
+  remainingBalance: number;   // Balance after payment
+}
+
+/**
+ * Calculate monthly mortgage payment using standard amortization formula
+ */
+export function calculateMonthlyPayment(
+  principal: number,
+  annualRate: number, // as percentage, e.g., 6.5 for 6.5%
+  termMonths: number
+): number {
+  if (principal <= 0 || termMonths <= 0) return 0;
+  if (annualRate <= 0) return Math.round(principal / termMonths);
+  
+  const monthlyRate = annualRate / 100 / 12;
+  const payment = principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / 
+                  (Math.pow(1 + monthlyRate, termMonths) - 1);
+  return Math.round(payment);
+}
+
+/**
+ * Calculate a single amortization payment breakdown
+ */
+export function calculateAmortizationPayment(
+  currentBalance: number,
+  annualRate: number,
+  termMonths: number,
+  originalPrincipal: number
+): AmortizationPayment {
+  if (currentBalance <= 0) {
+    return { totalPayment: 0, interestPayment: 0, principalPayment: 0, remainingBalance: 0 };
+  }
+  
+  const monthlyRate = annualRate / 100 / 12;
+  const monthlyPayment = calculateMonthlyPayment(originalPrincipal, annualRate, termMonths);
+  
+  // Interest is calculated on current balance
+  const interestPayment = Math.round(currentBalance * monthlyRate);
+  
+  // Principal is remainder of payment
+  const principalPayment = Math.min(monthlyPayment - interestPayment, currentBalance);
+  
+  // Remaining balance
+  const remainingBalance = Math.max(0, currentBalance - principalPayment);
+  
+  return {
+    totalPayment: monthlyPayment,
+    interestPayment,
+    principalPayment,
+    remainingBalance,
+  };
+}
+
+/**
+ * Calculate accelerated weekly principal payment for game purposes
+ * Uses real amortization math but accelerates time so equity builds visibly
+ */
+export function calculateWeeklyPrincipalPayment(
+  currentBalance: number,
+  annualRate: number,
+  termMonths: number,
+  originalPrincipal: number
+): { weeklyPrincipal: number; weeklyInterest: number } {
+  if (currentBalance <= 0 || annualRate <= 0) {
+    return { weeklyPrincipal: 0, weeklyInterest: 0 };
+  }
+  
+  // Calculate monthly amortization values
+  const amort = calculateAmortizationPayment(currentBalance, annualRate, termMonths, originalPrincipal);
+  
+  // Convert to weekly (4.33 weeks per month) and apply acceleration
+  const weeksPerMonth = 4.33;
+  const weeklyInterest = Math.round(amort.interestPayment / weeksPerMonth);
+  
+  // Apply acceleration factor to principal portion only
+  // Interest stays realistic, but principal paydown is accelerated
+  const weeklyPrincipal = Math.round((amort.principalPayment / weeksPerMonth) * MORTGAGE_ACCELERATION_FACTOR);
+  
+  // Don't pay more principal than remaining balance
+  return {
+    weeklyPrincipal: Math.min(weeklyPrincipal, currentBalance),
+    weeklyInterest,
+  };
+}
+
+/**
  * Title Issue Types that can occur when skipping title search
  */
 const TITLE_ISSUES = [
@@ -194,6 +299,10 @@ interface RentalIncomeResult {
   };
   newCash: number;
   dealId: number;
+  // Loan tracking
+  principalPaid?: number;
+  interestPaid?: number;
+  remainingBalance?: number;
 }
 
 interface WeekProgressionResult {
@@ -715,9 +824,32 @@ export async function processRentalIncome(
     currentCash
   );
 
-  // Update deal's last payment week
+  // Calculate and track principal reduction (accelerated for game time)
+  // The debt service payment is already deducted from cash above
+  // This tracks the principal/interest split for the debt tab
+  let principalPaid = 0;
+  let interestPaid = 0;
+  let newLoanBalance = deal.currentLoanBalance ?? 0;
+  
+  if (newLoanBalance > 0 && deal.originalLoanAmount && deal.loanInterestRate) {
+    const { weeklyPrincipal, weeklyInterest } = calculateWeeklyPrincipalPayment(
+      newLoanBalance,
+      deal.loanInterestRate,
+      deal.loanTermMonths || 360,
+      deal.originalLoanAmount
+    );
+    
+    principalPaid = weeklyPrincipal;
+    interestPaid = weeklyInterest;
+    newLoanBalance = Math.max(0, newLoanBalance - principalPaid);
+  }
+  
+  // Update deal's payment tracking and loan balance
   await storage.updateDeal(deal.id, {
     lastIncomePaymentWeek: gameRun.currentWeek,
+    currentLoanBalance: newLoanBalance,
+    totalPrincipalPaid: (deal.totalPrincipalPaid || 0) + principalPaid,
+    totalInterestPaid: (deal.totalInterestPaid || 0) + interestPaid,
   });
 
   return {
@@ -734,6 +866,10 @@ export async function processRentalIncome(
     } : undefined,
     newCash,
     dealId: deal.id,
+    // Loan tracking data
+    principalPaid,
+    interestPaid,
+    remainingBalance: newLoanBalance,
   };
 }
 
@@ -1141,8 +1277,10 @@ export async function activateRentalProperty(
     realityAdjustmentMonthly,
   };
 
-  // Get loan amount from pro forma for tracking
+  // Get loan details from pro forma for tracking
   const initialLoanBalance = proFormaOutputs?.loanAmount || 0;
+  const loanInterestRate = proFormaInputs?.interestRate || 6.5;
+  const loanTermMonths = 360; // 30-year mortgage standard
   
   const updatedDeal = await storage.updateDeal(deal.id, {
     status: 'active_rental',
@@ -1151,7 +1289,13 @@ export async function activateRentalProperty(
     proFormaOutputs: updatedProFormaOutputs,
     purchasePrice: property?.price || 0,
     purchaseWeek: gameRun.currentWeek, // For seasoning period tracking
-    currentLoanBalance: initialLoanBalance, // For refinancing calculations
+    // Loan tracking fields
+    originalLoanAmount: initialLoanBalance,
+    loanInterestRate,
+    loanTermMonths,
+    currentLoanBalance: initialLoanBalance,
+    totalPrincipalPaid: 0,
+    totalInterestPaid: 0,
     refinanceCount: 0, // Initialize refinance count
   });
 

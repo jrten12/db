@@ -1166,10 +1166,10 @@ export default function Game() {
         
         <SaveIndicator />
 
-        <main className="flex-1 max-w-7xl mx-auto px-4 py-6 md:py-8 w-full">
+        <main className="flex-1 w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">
           {currentScreen === 'market' && (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-3">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1800px] mx-auto">
+              <div className="lg:col-span-9 xl:col-span-9">
                 <PropertySelector
                   properties={properties}
                   selectedId={selectedPropertyId}
@@ -1187,7 +1187,7 @@ export default function Game() {
                   onSellProperty={handleSellProperty}
                 />
               </div>
-              <div className="lg:col-span-1">
+              <div className="lg:col-span-3 xl:col-span-3">
                 <TimeProgressionPanel
                   gameRun={gameRun}
                   deals={deals}
@@ -1211,8 +1211,8 @@ export default function Game() {
                 Back to Market
               </button>
               
-              <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1600px] mx-auto">
+                <div className="lg:col-span-8 xl:col-span-8">
                   <ProFormaPanel
                     property={convertPropertyToGameProperty(selectedProperty)}
                     inputs={proFormaInputs}
@@ -1228,7 +1228,7 @@ export default function Game() {
                   />
                 </div>
 
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-4 xl:col-span-4">
                   <MetricsPanel 
                     outputs={proFormaOutputs}
                     isUnlocked={isProFormaComplete}

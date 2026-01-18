@@ -76,7 +76,7 @@ export function TutorialOverlay() {
   if (!isActive || !currentStep) return null;
 
   const isCentered = currentStep.position === 'center' || !targetRect;
-  const tooltipWidth = isMobile ? Math.min(340, window.innerWidth - 32) : 380;
+  const tooltipWidth = isMobile ? Math.min(340, window.innerWidth - 32) : 480;
 
   const getTooltipStyle = (): React.CSSProperties => {
     if (isCentered || isMobile) {
@@ -155,7 +155,7 @@ export function TutorialOverlay() {
       )}
 
       <div 
-        className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl border border-purple-500/30 shadow-2xl shadow-purple-500/20 transition-all duration-300 ${isAnimating ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
+        className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl border border-purple-500/30 shadow-2xl shadow-purple-500/20 transition-all duration-300 max-h-[85vh] overflow-y-auto ${isAnimating ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
         style={getTooltipStyle()}
         data-testid="tutorial-tooltip"
       >

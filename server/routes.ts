@@ -1,10 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema, trophyTypes } from "@shared/schema";
+import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema, insertTenantSchema, trophyTypes } from "@shared/schema";
 import { z } from "zod";
 import * as gameMechanics from "./gameMechanics";
 import { dealLimiter, ledgerLimiter, gameActionLimiter, authLimiter, purchaseLimiter } from "./rateLimiter";
+import OpenAI from "openai";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -793,6 +794,98 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Error refinancing property:", error);
       res.status(400).json({ error: error.message || "Failed to refinance property" });
+    }
+  });
+
+  // === TENANT ROUTES ===
+
+  // Get tenants for a game run
+  app.get("/api/game-runs/:id/tenants", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const tenants = await storage.getTenantsByGameRun(gameRunId);
+      res.json(tenants);
+    } catch (error) {
+      console.error("Error fetching tenants:", error);
+      res.status(500).json({ error: "Failed to fetch tenants" });
+    }
+  });
+
+  // Create a tenant for a deal (called when rental becomes active)
+  app.post("/api/deals/:dealId/tenant", gameActionLimiter, async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.dealId);
+      const { name, personalityType, speechPatterns } = req.body;
+
+      // Check if tenant already exists for this deal
+      const existingTenant = await storage.getTenantByDeal(dealId);
+      if (existingTenant) {
+        res.json(existingTenant);
+        return;
+      }
+
+      const tenant = await storage.createTenant({
+        dealId,
+        name,
+        personalityType,
+        speechPatterns,
+        lastContactWeek: null,
+      });
+      res.json(tenant);
+    } catch (error) {
+      console.error("Error creating tenant:", error);
+      res.status(500).json({ error: "Failed to create tenant" });
+    }
+  });
+
+  // Generate tenant portrait using GPT image
+  app.post("/api/tenants/:id/generate-portrait", gameActionLimiter, async (req, res) => {
+    try {
+      const tenantId = parseInt(req.params.id);
+      const { prompt } = req.body;
+
+      // Initialize OpenAI client with AI integrations
+      const openai = new OpenAI({
+        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      });
+
+      const response = await openai.images.generate({
+        model: "gpt-image-1",
+        prompt: prompt,
+        n: 1,
+        size: "256x256",
+      });
+
+      // Get base64 image data
+      const imageData = response.data?.[0]?.b64_json;
+      if (!imageData) {
+        throw new Error("No image data returned");
+      }
+
+      // Convert to data URL
+      const portraitUrl = `data:image/png;base64,${imageData}`;
+
+      // Update tenant with portrait
+      const updated = await storage.updateTenant(tenantId, { portraitUrl });
+      res.json(updated);
+    } catch (error: any) {
+      console.error("Error generating portrait:", error);
+      // Don't fail the whole flow - just return without portrait
+      res.status(200).json({ error: "Portrait generation failed, continuing without portrait" });
+    }
+  });
+
+  // Update tenant (e.g., update lastContactWeek)
+  app.patch("/api/tenants/:id", async (req, res) => {
+    try {
+      const tenantId = parseInt(req.params.id);
+      const updates = req.body;
+      const updated = await storage.updateTenant(tenantId, updates);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating tenant:", error);
+      res.status(500).json({ error: "Failed to update tenant" });
     }
   });
 

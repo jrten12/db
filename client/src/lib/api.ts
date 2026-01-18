@@ -1,4 +1,4 @@
-import type { GameRun, Property, Deal, InsertGameRun, InsertDeal, PropertyInvestigation, InsertPropertyInvestigation, LedgerEntry, HallOfFamePlayer, PlayerTrophy } from '@shared/schema';
+import type { GameRun, Property, Deal, InsertGameRun, InsertDeal, PropertyInvestigation, InsertPropertyInvestigation, LedgerEntry, HallOfFamePlayer, PlayerTrophy, Tenant, InsertTenant } from '@shared/schema';
 
 const API_BASE = '/api';
 
@@ -338,6 +338,45 @@ export const api = {
       body: JSON.stringify({ won, finalCash, weeksRemaining }),
     });
     if (!res.ok) throw new Error('Failed to end game');
+    return res.json();
+  },
+
+  // Tenants
+  async getTenants(gameRunId: number): Promise<Tenant[]> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/tenants`);
+    if (!res.ok) throw new Error('Failed to fetch tenants');
+    return res.json();
+  },
+
+  async createTenant(dealId: number, data: { name: string; personalityType: string; speechPatterns: string[] }): Promise<Tenant> {
+    const res = await fetch(`${API_BASE}/deals/${dealId}/tenant`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to create tenant');
+    return res.json();
+  },
+
+  async generateTenantPortrait(tenantId: number, prompt: string): Promise<Tenant | null> {
+    const res = await fetch(`${API_BASE}/tenants/${tenantId}/generate-portrait`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.error) return null;
+    return data;
+  },
+
+  async updateTenant(tenantId: number, updates: Partial<InsertTenant>): Promise<Tenant> {
+    const res = await fetch(`${API_BASE}/tenants/${tenantId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) throw new Error('Failed to update tenant');
     return res.json();
   },
 };

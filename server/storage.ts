@@ -19,7 +19,9 @@ import type {
   HallOfFamePlayer,
   InsertHallOfFamePlayer,
   PlayerTrophy,
-  InsertPlayerTrophy
+  InsertPlayerTrophy,
+  Tenant,
+  InsertTenant
 } from "@shared/schema";
 
 const pool = new Pool({
@@ -77,6 +79,12 @@ export interface IStorage {
   getPlayerTrophies(playerId: number): Promise<PlayerTrophy[]>;
   getAllTrophies(): Promise<PlayerTrophy[]>;
   hasPlayerTrophy(playerId: number, trophyId: string): Promise<boolean>;
+
+  // Tenant methods
+  createTenant(tenant: InsertTenant): Promise<Tenant>;
+  getTenantByDeal(dealId: number): Promise<Tenant | undefined>;
+  getTenantsByGameRun(gameRunId: number): Promise<Tenant[]>;
+  updateTenant(id: number, updates: Partial<InsertTenant>): Promise<Tenant | undefined>;
 }
 
 export class DBStorage implements IStorage {
@@ -1182,6 +1190,72 @@ export class DBStorage implements IStorage {
       ))
       .limit(1);
     return !!trophy;
+  }
+
+  // Tenant methods
+  async createTenant(tenant: InsertTenant): Promise<Tenant> {
+    const [created] = await db
+      .insert(schema.tenants)
+      .values(tenant)
+      .returning();
+    return created;
+  }
+
+  async getTenantByDeal(dealId: number): Promise<Tenant | undefined> {
+    const [tenant] = await db
+      .select()
+      .from(schema.tenants)
+      .where(eq(schema.tenants.dealId, dealId))
+      .limit(1);
+    return tenant;
+  }
+
+  async getTenantsByGameRun(gameRunId: number): Promise<Tenant[]> {
+    // Get all tenants for active rentals in this game run
+    const deals = await db
+      .select()
+      .from(schema.deals)
+      .where(and(
+        eq(schema.deals.gameRunId, gameRunId),
+        eq(schema.deals.status, 'active_rental')
+      ));
+    
+    if (deals.length === 0) return [];
+    
+    const dealIds = deals.map(d => d.id);
+    const tenants = await db
+      .select()
+      .from(schema.tenants)
+      .where(
+        // Filter tenants by deal IDs using OR conditions
+        dealIds.length > 0 
+          ? eq(schema.tenants.dealId, dealIds[0]) 
+          : eq(schema.tenants.dealId, -1)
+      );
+    
+    // If more deal IDs, need to get them all
+    if (dealIds.length > 1) {
+      const allTenants: Tenant[] = [];
+      for (const dealId of dealIds) {
+        const [tenant] = await db
+          .select()
+          .from(schema.tenants)
+          .where(eq(schema.tenants.dealId, dealId));
+        if (tenant) allTenants.push(tenant);
+      }
+      return allTenants;
+    }
+    
+    return tenants;
+  }
+
+  async updateTenant(id: number, updates: Partial<InsertTenant>): Promise<Tenant | undefined> {
+    const [updated] = await db
+      .update(schema.tenants)
+      .set(updates)
+      .where(eq(schema.tenants.id, id))
+      .returning();
+    return updated;
   }
 }
 

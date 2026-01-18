@@ -35,7 +35,7 @@ import {
   getLoanFeesFromLTV
 } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
-import type { Curveball } from '@/lib/curveballs';
+import { type Curveball, getTenantMessageForCurveball, curveballHasTenantMessage, getCurveballById } from '@/lib/curveballs';
 import { api } from '@/lib/api';
 import { saveGame, loadGame, getSaveInfo, clearSave } from '@/lib/saveGame';
 import type { GameRun, Property, LedgerEntry, Deal, HallOfFamePlayer } from '@shared/schema';
@@ -845,14 +845,54 @@ export default function Game() {
           }
         }
         
-        // Random chance to trigger a tenant text message (30% chance per week if there are active rentals)
-        if (activeRentals.length > 0 && Math.random() < 0.30) {
-          // Refetch tenants to include newly created ones
-          const allTenants = rentalsNeedingTenants.length > 0 
-            ? await api.getTenants(gameRun.id) 
-            : existingTenants;
+        // Handle tenant text messages - prioritize expense-linked messages from curveballs
+        // Refetch tenants to include newly created ones
+        const allTenants = rentalsNeedingTenants.length > 0 
+          ? await api.getTenants(gameRun.id) 
+          : existingTenants;
+        
+        if (allTenants.length > 0) {
+          // Check if any rental payment had a curveball with tenant messages
+          let expenseMessageShown = false;
           
-          if (allTenants.length > 0) {
+          for (const payment of result.rentalPayments) {
+            // Look up full curveball definition to get tenant messages
+            if (payment.curveball?.id) {
+              const fullCurveball = getCurveballById(payment.curveball.id);
+              
+              // Guard: if curveball not found in definitions, log and continue
+              if (!fullCurveball) {
+                console.warn(`Curveball id "${payment.curveball.id}" not found in definitions`);
+                continue;
+              }
+              
+              if (curveballHasTenantMessage(fullCurveball)) {
+                // Find the tenant for this deal
+                const tenantForDeal = allTenants.find(t => t.dealId === payment.dealId);
+                if (tenantForDeal) {
+                  const personalityType = tenantForDeal.personalityType || 'generic';
+                  const expenseMessage = getTenantMessageForCurveball(
+                    fullCurveball,
+                    personalityType
+                  );
+                  
+                  if (expenseMessage) {
+                    setTenantTextPopup({
+                      isOpen: true,
+                      tenant: tenantForDeal,
+                      message: expenseMessage,
+                    });
+                    expenseMessageShown = true;
+                    break; // Only show one expense message per week advancement
+                  }
+                }
+              }
+            }
+          }
+          
+          // If no expense message was shown, occasionally show humor-only messages (15% chance)
+          // This is lower than before since expense messages provide more educational value
+          if (!expenseMessageShown && activeRentals.length > 0 && Math.random() < 0.15) {
             const randomTenant = allTenants[Math.floor(Math.random() * allTenants.length)];
             const speechPatterns = randomTenant.speechPatterns as string[] || [];
             if (speechPatterns.length > 0) {

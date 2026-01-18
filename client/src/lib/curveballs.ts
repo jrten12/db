@@ -57,6 +57,21 @@ export interface Curveball {
   propertyTypes?: PropertyType[];    // Only applies to these types (empty = all)
   locationTypes?: LocationType[];    // Only applies to these locations
   conditionTags?: ConditionTag[];    // More likely for these conditions
+  
+  // Tenant text message templates (for expense-linked messages)
+  // Each personality type can have different messages for the same issue
+  tenantMessages?: {
+    corporate_brain?: string[];
+    retired_micromanager?: string[];
+    anxious_professional?: string[];
+    new_money?: string[];
+    law_curious?: string[];
+    lonely_caller?: string[];
+    control_seeker?: string[];
+    passive_aggressive?: string[];
+    chaos_magnet?: string[];
+    generic?: string[];  // Fallback for any personality
+  };
 }
 
 // Condition probability multipliers (worse condition = more issues)
@@ -291,6 +306,13 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     description: 'Tenant had a payroll issue - rent will be 1 week late.',
     emoji: '😬',
     color: 'yellow',
+    tenantMessages: {
+      corporate_brain: ["Hey! Quick flag - my payroll got delayed this cycle. Rent will hit your account next week. Apologies for any cash flow disruption on your end!"],
+      anxious_professional: ["Hi, I'm SO sorry to tell you this but my paycheck got delayed. I'll have the rent to you next week, I promise. Please don't hate me."],
+      passive_aggressive: ["Just wanted to let you know rent will be a little late. I'm sure you understand these things happen, like how maintenance requests sometimes take a while too."],
+      chaos_magnet: ["You're not going to believe this but my company switched payroll systems and somehow I don't exist anymore?? Working on it. Rent next week for sure."],
+      generic: ["Hey, my paycheck got delayed - rent will be about a week late. Sorry for the inconvenience!"],
+    },
   },
   {
     id: 'appliance_breakdown',
@@ -305,6 +327,15 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     emoji: '🔧',
     color: 'red',
     conditionTags: ['fixer-upper', 'needs-work', 'dated'],
+    tenantMessages: {
+      corporate_brain: ["Circling back on an urgent matter - the dishwasher has officially EOL'd. It made a grinding noise and now displays nothing. Can we prioritize a replacement?"],
+      retired_micromanager: ["The dishwasher stopped working at 2:47 PM today. I documented the failure - it made 3 loud clicks, then smoke came out. I have video if needed."],
+      anxious_professional: ["The dishwasher died and I'm a little stressed because I have a lot of dishes?? Is this an emergency? Should I be worried about water damage? I'm probably overthinking this."],
+      new_money: ["The dishwasher broke. I'd appreciate an expedited replacement - ideally something stainless steel that matches the fridge. Happy to discuss upgrade options."],
+      chaos_magnet: ["The dishwasher straight up DIED. Mid-cycle. There's water everywhere. Well, not everywhere, but enough. This always happens to me."],
+      passive_aggressive: ["The dishwasher finally gave up. I've been hand-washing dishes for a few days now. It's very character-building! Let me know when you can address it."],
+      generic: ["Hey, the dishwasher stopped working. It won't turn on at all. Can you send someone to take a look?"],
+    },
   },
   {
     id: 'appliance_minor',
@@ -317,6 +348,13 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     description: 'The garbage disposal jammed and needs a repair visit.',
     emoji: '🔧',
     color: 'yellow',
+    tenantMessages: {
+      corporate_brain: ["Quick sync - the garbage disposal is making a sound that's definitely not in the user manual. Can we align on getting this fixed?"],
+      retired_micromanager: ["The garbage disposal jammed at 6:15 PM. I tried the reset button (pushed it 4 times) and used the hex key. No luck. Documenting for your records."],
+      anxious_professional: ["The garbage disposal made a horrible noise and stopped. I may have put too much down it? I'm so sorry if I broke it. Can someone take a look?"],
+      chaos_magnet: ["Add this to my file: the garbage disposal just made a noise like a blender eating rocks. I didn't put rocks in it. I think."],
+      generic: ["Hey, the garbage disposal is jammed. I tried resetting it but it's not working. Can you send someone?"],
+    },
   },
   {
     id: 'hvac_repair',
@@ -331,6 +369,15 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     emoji: '🌡️',
     color: 'red',
     conditionTags: ['fixer-upper', 'needs-work', 'dated', 'cosmetic'],
+    tenantMessages: {
+      corporate_brain: ["Flagging a climate control issue - the AC is outputting warm air. My home office is currently 84 degrees. This is impacting my productivity significantly."],
+      retired_micromanager: ["The AC has been cycling every 3 minutes instead of the usual 12. The temperature has gone up 8 degrees since yesterday. I have hourly readings if you need them."],
+      anxious_professional: ["The AC isn't working and it's getting really hot. Is this a freon thing? I googled it and now I'm worried about refrigerant leaks. Are those dangerous??"],
+      new_money: ["The AC situation is becoming untenable. It's 82 degrees in here. Is there a way to fast-track an HVAC tech? I'm happy to pay extra for priority service."],
+      chaos_magnet: ["The AC is blowing hot air now. HOT. AIR. In the summer. I'm melting. This unit has it out for me, I swear."],
+      passive_aggressive: ["The AC seems to be on vacation! It's been blowing warm air for a few days. I've been using a hand fan - very retro! No rush, I'm sure you're busy."],
+      generic: ["Hey, the AC stopped cooling. It's running but just blowing warm air. Can we get someone out to look at it?"],
+    },
   },
   {
     id: 'water_heater',
@@ -345,6 +392,15 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     emoji: '💧',
     color: 'red',
     conditionTags: ['fixer-upper', 'needs-work', 'dated'],
+    tenantMessages: {
+      corporate_brain: ["Critical infrastructure alert - we have no hot water. The water heater appears to have failed. This is a habitability blocker. Please advise on ETA for resolution."],
+      retired_micromanager: ["No hot water this morning. I waited 47 minutes for it to warm up (I timed it). Checked the pilot light - it's out and won't relight. Tank feels cold."],
+      anxious_professional: ["There's no hot water and I'm kind of freaking out. Is the water heater supposed to make a hissing sound? Should I be worried about it exploding?? Please help."],
+      new_money: ["No hot water is a non-starter for me. I need this addressed urgently. I have calls all day and cold showers aren't going to work."],
+      chaos_magnet: ["The water heater died. Of course it did. I was in the shower when it went from hot to ice cold. INSTANT. Like the universe was waiting."],
+      law_curious: ["I wanted to document that we have no hot water. I believe there are habitability standards around this. What's the timeline for getting this fixed?"],
+      generic: ["Hey, we have no hot water. I think the water heater broke. This is kind of urgent - can you send someone today?"],
+    },
   },
   {
     id: 'small_plumbing_leak',
@@ -357,6 +413,14 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     description: 'Small leak under kitchen sink needs repair.',
     emoji: '🚰',
     color: 'yellow',
+    tenantMessages: {
+      corporate_brain: ["Wanted to loop you in - I've discovered a leak under the kitchen sink. I've placed a bucket as a temporary containment measure. Let me know when you have bandwidth to address."],
+      retired_micromanager: ["Found a leak under the sink at 3:22 PM. It's dripping about once every 4 seconds. I've measured - approximately 2 cups of water per hour. Photos attached if needed."],
+      anxious_professional: ["There's water under the kitchen sink! Is this mold-level serious or just annoying-level serious? I put a towel down but I'm worried about the cabinets."],
+      chaos_magnet: ["There's a mysterious puddle under the sink. Tracked it down - something's leaking. It's not dramatic yet but knowing my luck it will be soon."],
+      passive_aggressive: ["No worries about the leak under the sink - I've been emptying a bucket every few hours. It's kind of meditative actually! Whenever you get a chance."],
+      generic: ["Hey, I noticed there's a leak under the kitchen sink. It's not major but there's water pooling. Can you send a plumber?"],
+    },
   },
   {
     id: 'electrical_issue',
@@ -370,6 +434,13 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     emoji: '⚡',
     color: 'yellow',
     conditionTags: ['fixer-upper', 'needs-work', 'dated'],
+    tenantMessages: {
+      corporate_brain: ["Just flagging: the outlet in the bedroom is offline. My laptop charger works in other outlets so it's definitely this one. Can we get an electrician aligned?"],
+      anxious_professional: ["Hi! Sorry to bother you - is the outlet in the bedroom supposed to make a tiny buzzing noise? It's probably nothing but I can't stop thinking about it. Also it stopped working."],
+      chaos_magnet: ["So I plugged in my phone and there was a spark. Like a VISIBLE spark. The outlet doesn't work now. I didn't do anything weird I swear."],
+      retired_micromanager: ["The outlet in the guest room stopped working at approximately 10:15 AM. I've tested it with three different devices. Breaker looks fine. Documenting for your records."],
+      generic: ["Hey, one of the outlets stopped working. I checked the breaker and it looks fine. Can you send an electrician?"],
+    },
   },
   {
     id: 'early_lease_break',
@@ -399,6 +470,13 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     color: 'red',
     propertyTypes: ['house', 'townhouse'],
     conditionTags: ['fixer-upper', 'needs-work', 'dated'],
+    tenantMessages: {
+      corporate_brain: ["High-priority issue: the ceiling in the bedroom is leaking after last night's storm. I've placed a bucket as containment but we need a roof assessment ASAP."],
+      anxious_professional: ["Quick question, no rush, but there's a water stain on the ceiling. Should I be worried? It's getting bigger. Oh no it's dripping now. Please help."],
+      chaos_magnet: ["So... funny story. The ceiling is dripping. Not from my apartment - I checked. The water is coming from ABOVE the ceiling. How??"],
+      law_curious: ["Documenting that there's a roof leak in the bedroom. Water is actively coming through the ceiling. I believe this affects habitability. What's the timeline?"],
+      generic: ["There's water coming through the ceiling after the storm. Looks like a roof leak. Can you send someone out?"],
+    },
   },
   {
     id: 'foundation_crack',
@@ -442,6 +520,13 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     color: 'yellow',
     propertyTypes: ['house'],
     locationTypes: ['suburban'],
+    tenantMessages: {
+      anxious_professional: ["This is embarrassing but I think I heard scratching in the wall last night. It was probably just the building settling, right? RIGHT? Actually I saw a mouse. Please help."],
+      chaos_magnet: ["Something is living in my walls. I don't know what. But I heard it sneeze. SNEEZE. Do mice sneeze?? Saw one run across the kitchen at 2 AM."],
+      retired_micromanager: ["I've spotted a mouse 3 times now: once in the kitchen, twice near the pantry. I've set 4 traps myself but they're avoiding them. Exterminator needed."],
+      passive_aggressive: ["I've noticed some new roommates! They're small and have tails. Been leaving little presents in the pantry. I'm sure they'll move out on their own eventually!"],
+      generic: ["Hey, I saw a mouse in the kitchen. Actually a few times now. Can we get an exterminator out?"],
+    },
   },
   {
     id: 'pest_termites',
@@ -890,6 +975,50 @@ export function rollForCurveballs(
     }
   }
   return null;
+}
+
+/**
+ * Get a tenant message for a curveball event based on personality type
+ * Returns the expense-linked message if available, null otherwise
+ */
+export function getTenantMessageForCurveball(
+  curveball: Curveball,
+  personalityType: string
+): string | null {
+  if (!curveball.tenantMessages) {
+    return null; // This curveball doesn't have tenant messages
+  }
+  
+  // Try to get message for specific personality
+  const personalityMessages = curveball.tenantMessages[personalityType as keyof typeof curveball.tenantMessages];
+  if (personalityMessages && personalityMessages.length > 0) {
+    return personalityMessages[Math.floor(Math.random() * personalityMessages.length)];
+  }
+  
+  // Fall back to generic messages
+  const genericMessages = curveball.tenantMessages.generic;
+  if (genericMessages && genericMessages.length > 0) {
+    return genericMessages[Math.floor(Math.random() * genericMessages.length)];
+  }
+  
+  return null;
+}
+
+/**
+ * Check if a curveball has tenant messages (for deciding whether to show text popup)
+ */
+export function curveballHasTenantMessage(curveball: Curveball): boolean {
+  return curveball.tenantMessages !== undefined && 
+         Object.keys(curveball.tenantMessages).length > 0;
+}
+
+/**
+ * Look up a curveball definition by ID
+ * Used when backend returns minimal curveball info and we need the full definition
+ */
+export function getCurveballById(id: string): Curveball | undefined {
+  const all = [...POSITIVE_CURVEBALLS, ...NEGATIVE_CURVEBALLS, ...NEUTRAL_CURVEBALLS];
+  return all.find(cb => cb.id === id);
 }
 
 /**

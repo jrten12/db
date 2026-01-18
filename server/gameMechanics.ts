@@ -303,6 +303,7 @@ interface RentalIncomeResult {
   vacancyLoss: number;
   vacancyRate: number;
   curveball?: {
+    id: string;
     name: string;
     description: string;
     cashImpact: number;
@@ -892,6 +893,7 @@ export async function processRentalIncome(
     vacancyLoss: scaledVacancyLoss, // After rent multiplier applied
     vacancyRate: proFormaOutputs?.effectiveVacancyRate || 0,
     curveball: curveball ? {
+      id: curveball.id,
       name: curveball.name,
       description: curveball.description,
       cashImpact: curveball.cashImpact || 0,

@@ -345,6 +345,35 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const isComplete = isProFormaInputsComplete(inputs);
   const missingFields = getMissingFields(inputs);
   const requiredFields = inputs.strategy === 'rent' ? requiredRentFields : requiredFlipFields;
+  
+  // Field name to display label and element ID mapping
+  const fieldDisplayInfo: Record<string, { label: string; elementId: string }> = {
+    expectedRent: { label: 'Expected Rent', elementId: 'field-expectedRent' },
+    vacancyRate: { label: 'Vacancy Rate', elementId: 'field-vacancyRate' },
+    taxesAnnual: { label: 'Taxes', elementId: 'field-taxesAnnual' },
+    insuranceAnnual: { label: 'Insurance', elementId: 'field-insuranceAnnual' },
+    maintenancePct: { label: 'Maintenance', elementId: 'field-maintenancePct' },
+    capExPct: { label: 'CapEx Reserve', elementId: 'field-capExPct' },
+    rehabBudget: { label: 'Rehab Budget', elementId: 'field-rehabBudget' },
+    rehabWeeks: { label: 'Rehab Timeline', elementId: 'field-rehabWeeks' },
+    contingencyPct: { label: 'Contingency', elementId: 'field-contingencyPct' },
+    sellingCostsPct: { label: 'Selling Costs', elementId: 'field-sellingCostsPct' },
+  };
+  
+  // Scroll to a specific field
+  const scrollToField = (fieldName: string) => {
+    const info = fieldDisplayInfo[fieldName];
+    if (info) {
+      const element = document.getElementById(info.elementId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('ring-2', 'ring-amber-400', 'ring-offset-2', 'ring-offset-slate-900');
+        setTimeout(() => {
+          element.classList.remove('ring-2', 'ring-amber-400', 'ring-offset-2', 'ring-offset-slate-900');
+        }, 2000);
+      }
+    }
+  };
   const filledCount = requiredFields.filter(field => isFilled(inputs[field as keyof ProFormaInputs])).length;
   const completionPct = Math.round((filledCount / requiredFields.length) * 100);
 
@@ -602,7 +631,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   </div>
 
                   {hasAppraisal ? (
-                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                    <div id="field-sellingCostsPct" className="bg-slate-800/50 rounded-xl p-3 border border-slate-700 scroll-mt-4 transition-all duration-300">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-gray-400 text-xs flex items-center">Selling Costs<InfoTooltip term="sellingCosts" /></span>
                         <span className="text-white font-mono text-sm">{inputs.sellingCostsPct}% of ARV</span>
@@ -963,7 +992,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           
           {expandedSections.operations && (
             <div className="px-4 pb-4 space-y-4">
-              <div>
+              <div id="field-expectedRent" className="scroll-mt-4 transition-all duration-300 rounded-lg p-2 -m-2">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-400 text-xs flex items-center">Market Rent<InfoTooltip term="expectedRent" /></span>
                   {effectiveRanges.rent.known ? (
@@ -1052,7 +1081,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 )}
               </div>
 
-              <div>
+              <div id="field-vacancyRate" className="scroll-mt-4 transition-all duration-300 rounded-lg p-2 -m-2">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-400 text-xs flex items-center">Vacancy Rate<InfoTooltip term="vacancyRate" /></span>
                   <span className="text-white font-mono text-sm">
@@ -1116,75 +1145,83 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Operating Expenses</p>
                 
                 <div className="grid grid-cols-2 gap-3">
-                  <AssumptionInput
-                    label="Taxes"
-                    value={inputs.taxesAnnual}
-                    onChange={(v) => handleChange('taxesAnnual', v)}
-                    min={Math.round(property.price * 0.005)}
-                    max={Math.round(property.price * 0.03)}
-                    step={100}
-                    format="currency"
-                    compact
-                    presets={[
-                      { label: 'Low', value: Math.round(property.price * 0.01), description: '1% of price', color: 'conservative' },
-                      { label: 'Avg', value: Math.round(property.price * 0.015), description: '1.5% typical', color: 'market' },
-                      { label: 'High', value: Math.round(property.price * 0.025), description: '2.5% of price', color: 'aggressive' },
-                    ]}
-                    helpText="Property taxes per year. Usually 1-2.5% of property value depending on location."
-                  />
+                  <div id="field-taxesAnnual" className="scroll-mt-4 transition-all duration-300 rounded-lg">
+                    <AssumptionInput
+                      label="Taxes"
+                      value={inputs.taxesAnnual}
+                      onChange={(v) => handleChange('taxesAnnual', v)}
+                      min={Math.round(property.price * 0.005)}
+                      max={Math.round(property.price * 0.03)}
+                      step={100}
+                      format="currency"
+                      compact
+                      presets={[
+                        { label: 'Low', value: Math.round(property.price * 0.01), description: '1% of price', color: 'conservative' },
+                        { label: 'Avg', value: Math.round(property.price * 0.015), description: '1.5% typical', color: 'market' },
+                        { label: 'High', value: Math.round(property.price * 0.025), description: '2.5% of price', color: 'aggressive' },
+                      ]}
+                      helpText="Property taxes per year. Usually 1-2.5% of property value depending on location."
+                    />
+                  </div>
                   
-                  <AssumptionInput
-                    label="Insurance"
-                    value={inputs.insuranceAnnual}
-                    onChange={(v) => handleChange('insuranceAnnual', v)}
-                    min={600}
-                    max={Math.round(property.price * 0.015)}
-                    step={100}
-                    format="currency"
-                    compact
-                    presets={[
-                      { label: 'Low', value: 900, description: 'Basic policy', color: 'conservative' },
-                      { label: 'Avg', value: 1500, description: 'Standard coverage', color: 'market' },
-                      { label: 'Full', value: 2400, description: 'Comprehensive', color: 'aggressive' },
-                    ]}
-                    helpText="Yearly landlord insurance premium. Typically $75-200/month."
-                  />
+                  <div id="field-insuranceAnnual" className="scroll-mt-4 transition-all duration-300 rounded-lg">
+                    <AssumptionInput
+                      label="Insurance"
+                      value={inputs.insuranceAnnual}
+                      onChange={(v) => handleChange('insuranceAnnual', v)}
+                      min={600}
+                      max={Math.round(property.price * 0.015)}
+                      step={100}
+                      format="currency"
+                      compact
+                      presets={[
+                        { label: 'Low', value: 900, description: 'Basic policy', color: 'conservative' },
+                        { label: 'Avg', value: 1500, description: 'Standard coverage', color: 'market' },
+                        { label: 'Full', value: 2400, description: 'Comprehensive', color: 'aggressive' },
+                      ]}
+                      helpText="Yearly landlord insurance premium. Typically $75-200/month."
+                    />
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3">
-                  <PercentAssumption
-                    label="Maintenance"
-                    value={inputs.maintenancePct}
-                    onChange={(v) => handleChange('maintenancePct', v)}
-                    baseAmount={n(inputs.expectedRent) * 12}
-                    baseLabel="annual rent"
-                    min={3}
-                    max={15}
-                    step={1}
-                    presets={[
-                      { label: 'Risky', value: 5, color: 'aggressive' },
-                      { label: 'Safe', value: 8, color: 'market' },
-                      { label: 'Old Home', value: 12, color: 'conservative' },
-                    ]}
-                    helpText="% of rent set aside for ongoing repairs. 5-10% is typical. Older properties need more."
-                  />
+                  <div id="field-maintenancePct" className="scroll-mt-4 transition-all duration-300 rounded-lg">
+                    <PercentAssumption
+                      label="Maintenance"
+                      value={inputs.maintenancePct}
+                      onChange={(v) => handleChange('maintenancePct', v)}
+                      baseAmount={n(inputs.expectedRent) * 12}
+                      baseLabel="annual rent"
+                      min={3}
+                      max={15}
+                      step={1}
+                      presets={[
+                        { label: 'Risky', value: 5, color: 'aggressive' },
+                        { label: 'Safe', value: 8, color: 'market' },
+                        { label: 'Old Home', value: 12, color: 'conservative' },
+                      ]}
+                      helpText="% of rent set aside for ongoing repairs. 5-10% is typical. Older properties need more."
+                    />
+                  </div>
                   
-                  <PercentAssumption
-                    label="CapEx Reserve"
-                    value={inputs.capExPct}
-                    onChange={(v) => handleChange('capExPct', v)}
-                    baseAmount={n(inputs.expectedRent) * 12}
-                    baseLabel="annual rent"
-                    min={5}
-                    max={15}
-                    step={1}
-                    presets={[
-                      { label: 'Risky', value: 5, color: 'aggressive' },
-                      { label: 'Safe', value: 10, color: 'market' },
-                      { label: 'Old Home', value: 12, color: 'conservative' },
-                    ]}
-                    helpText="% of rent for big-ticket replacements (roof, HVAC, appliances). Budget 8-12%."
-                  />
+                  <div id="field-capExPct" className="scroll-mt-4 transition-all duration-300 rounded-lg">
+                    <PercentAssumption
+                      label="CapEx Reserve"
+                      value={inputs.capExPct}
+                      onChange={(v) => handleChange('capExPct', v)}
+                      baseAmount={n(inputs.expectedRent) * 12}
+                      baseLabel="annual rent"
+                      min={5}
+                      max={15}
+                      step={1}
+                      presets={[
+                        { label: 'Risky', value: 5, color: 'aggressive' },
+                        { label: 'Safe', value: 10, color: 'market' },
+                        { label: 'Old Home', value: 12, color: 'conservative' },
+                      ]}
+                      helpText="% of rent for big-ticket replacements (roof, HVAC, appliances). Budget 8-12%."
+                    />
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3">
@@ -1278,7 +1315,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           
           {expandedSections.timeline && (
             <div className="px-4 pb-4 space-y-4">
-              <div>
+              <div id="field-rehabBudget" className="scroll-mt-4 transition-all duration-300 rounded-lg p-2 -m-2">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-400 text-xs flex items-center">Rehab Budget<InfoTooltip term="rehabBudget" /></span>
                   {effectiveRanges.rehab.known ? (
@@ -1337,7 +1374,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 )}
               </div>
 
-              <div>
+              <div id="field-rehabWeeks" className="scroll-mt-4 transition-all duration-300 rounded-lg p-2 -m-2">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-400 text-xs flex items-center">Rehab Duration<InfoTooltip term="rehabWeeks" /></span>
                   {effectiveRanges.timeline.known ? (
@@ -1376,7 +1413,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 )}
               </div>
 
-              <div>
+              <div id="field-contingencyPct" className="scroll-mt-4 transition-all duration-300 rounded-lg p-2 -m-2">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-gray-400 text-xs">Contingency</span>
                   <span className="text-white font-mono text-sm">{n(inputs.contingencyPct)}%</span>
@@ -1713,10 +1750,23 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     <span className="text-amber-400 font-bold text-sm">Fill All Required Fields</span>
                   </div>
                   <p className="text-gray-300 text-sm mb-2">
-                    Complete your pro forma by setting values for: {missingFields.map(f => f.replace(/([A-Z])/g, ' $1').trim()).join(', ')}
+                    Complete your pro forma by setting values for:{' '}
+                    {missingFields.map((f, i) => (
+                      <span key={f}>
+                        <button
+                          type="button"
+                          onClick={() => scrollToField(f)}
+                          className="text-amber-400 underline hover:text-amber-300 transition-colors cursor-pointer"
+                          data-testid={`link-missing-field-${f}`}
+                        >
+                          {fieldDisplayInfo[f]?.label || f.replace(/([A-Z])/g, ' $1').trim()}
+                        </button>
+                        {i < missingFields.length - 1 && ', '}
+                      </span>
+                    ))}
                   </p>
                   <div className="text-gray-500 text-xs">
-                    Use the sliders above to enter your assumptions
+                    Click a field name above to jump to it
                   </div>
                 </div>
               )

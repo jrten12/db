@@ -840,14 +840,22 @@ export async function processRentalIncome(
   // We track accelerated principal paydown to make equity building visible during gameplay
   let principalPaid = 0;
   let interestPaid = 0;
-  let newLoanBalance = deal.currentLoanBalance ?? 0;
   
-  if (newLoanBalance > 0 && deal.originalLoanAmount && deal.loanInterestRate) {
+  // Use fallback values from proFormaOutputs if dedicated loan fields are not set
+  const originalLoanAmount = deal.originalLoanAmount ?? proFormaOutputs?.loanAmount ?? 0;
+  const loanInterestRate = deal.loanInterestRate ?? proFormaInputs?.interestRate ?? 6.5;
+  const loanTermMonths = deal.loanTermMonths ?? 360;
+  let newLoanBalance = deal.currentLoanBalance ?? originalLoanAmount;
+  
+  // Track if we need to initialize loan fields (for deals created before loan tracking was added)
+  const needsLoanInit = !deal.originalLoanAmount && originalLoanAmount > 0;
+  
+  if (newLoanBalance > 0 && originalLoanAmount > 0) {
     const { weeklyPrincipal, weeklyInterest, acceleratedPrincipal } = calculateWeeklyPrincipalPayment(
       newLoanBalance,
-      deal.loanInterestRate,
-      deal.loanTermMonths || 360,
-      deal.originalLoanAmount
+      loanInterestRate,
+      loanTermMonths,
+      originalLoanAmount
     );
     
     // Track realistic values for display purposes
@@ -860,12 +868,22 @@ export async function processRentalIncome(
   }
   
   // Update deal's payment tracking and loan balance
-  await storage.updateDeal(deal.id, {
+  // Also initialize loan fields if they were missing (for legacy deals)
+  const updateData: Record<string, any> = {
     lastIncomePaymentWeek: gameRun.currentWeek,
     currentLoanBalance: newLoanBalance,
     totalPrincipalPaid: (deal.totalPrincipalPaid || 0) + principalPaid,
     totalInterestPaid: (deal.totalInterestPaid || 0) + interestPaid,
-  });
+  };
+  
+  // Initialize loan fields for legacy deals
+  if (needsLoanInit) {
+    updateData.originalLoanAmount = originalLoanAmount;
+    updateData.loanInterestRate = loanInterestRate;
+    updateData.loanTermMonths = loanTermMonths;
+  }
+  
+  await storage.updateDeal(deal.id, updateData);
 
   return {
     weeklyIncome: netWeeklyIncome,

@@ -1131,20 +1131,22 @@ export class DBStorage implements IStorage {
     currentCash: number
   ): Promise<{ entries: LedgerEntry[], newCash: number }> {
     return await db.transaction(async (tx) => {
-      let runningBalance = currentCash;
+      let runningBalance = Math.round(currentCash);
       const createdEntries: LedgerEntry[] = [];
 
       for (const entry of entries) {
+        const roundedAmount = Math.round(entry.amount);
         if (entry.direction === 'debit') {
-          runningBalance -= entry.amount;
+          runningBalance -= roundedAmount;
         } else {
-          runningBalance += entry.amount;
+          runningBalance += roundedAmount;
         }
 
         const [ledgerEntry] = await tx
           .insert(schema.ledgerEntries)
           .values({
             ...entry,
+            amount: roundedAmount,
             gameRunId,
             balanceAfter: runningBalance,
           })

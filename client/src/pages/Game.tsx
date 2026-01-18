@@ -23,6 +23,7 @@ import { BankruptModal } from '@/components/game/BankruptModal';
 import { SaveIndicator } from '@/components/game/SaveIndicator';
 import { TutorialOverlay } from '@/components/game/TutorialOverlay';
 import { TutorialPrompt } from '@/components/game/TutorialPrompt';
+import { DebtPanel, DebtPanelTrigger } from '@/components/game/DebtPanel';
 import { useTutorial } from '@/contexts/TutorialContext';
 import {
   ProFormaInputs,
@@ -110,6 +111,7 @@ export default function Game() {
   const [moneyAnimationTrigger, setMoneyAnimationTrigger] = useState(0);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showHallOfFame, setShowHallOfFame] = useState(false);
+  const [showDebtPanel, setShowDebtPanel] = useState(false);
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<HallOfFamePlayer | null>(null);
   const [showNameEntry, setShowNameEntry] = useState(true);
@@ -1187,7 +1189,7 @@ export default function Game() {
                   onSellProperty={handleSellProperty}
                 />
               </div>
-              <div className="lg:col-span-3 xl:col-span-3">
+              <div className="lg:col-span-3 xl:col-span-3 space-y-3">
                 <TimeProgressionPanel
                   gameRun={gameRun}
                   deals={deals}
@@ -1196,6 +1198,10 @@ export default function Game() {
                   onSellRental={handleSellRental}
                   onSellFlip={handleSellFlip}
                   onRefinanceRental={handleRefinanceRental}
+                />
+                <DebtPanelTrigger 
+                  deals={deals} 
+                  onClick={() => setShowDebtPanel(true)} 
                 />
               </div>
             </div>
@@ -1413,6 +1419,14 @@ export default function Game() {
           tenantName={tenantTextPopup.tenant?.name || ''}
           tenantPortraitUrl={tenantTextPopup.tenant?.portraitUrl}
           message={tenantTextPopup.message}
+        />
+
+        {/* Debt Panel Modal */}
+        <DebtPanel
+          deals={deals}
+          properties={properties}
+          isOpen={showDebtPanel}
+          onOpenChange={setShowDebtPanel}
         />
 
         {/* Tutorial System */}

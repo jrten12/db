@@ -20,17 +20,18 @@ import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue } from '@s
  * Loan Amortization Utilities
  * 
  * The game runs in 52 weeks, but mortgages are typically 30 years (360 months).
- * We use accelerated amortization to make principal paydown visible during gameplay
- * while keeping the monthly payment and interest rate realistic.
+ * We use accelerated amortization for BOOKKEEPING ONLY to make principal paydown 
+ * visible during gameplay. Cash payments remain realistic.
  * 
- * Strategy: Each game week processes an accelerated principal payment.
- * The player sees realistic monthly payment amounts, but principal reduces faster
- * so they can build equity during the game's timeframe.
+ * Strategy: Player pays realistic weekly debt service (based on monthly payment).
+ * The loan balance reduces faster (simulating 5 years of payments in 52 weeks)
+ * so players can see equity building. This is educational acceleration only -
+ * it doesn't affect the actual cash flow, which uses standard mortgage math.
  */
 
-// Game time compression factor: 52 weeks in game represents ~5 years of real mortgage payments
-// This makes equity building visible while keeping payment amounts realistic
-const MORTGAGE_ACCELERATION_FACTOR = 5; // 1 game week = 5 weeks of real amortization
+// Game time compression factor for principal reduction (bookkeeping only)
+// 52 game weeks simulate ~5 years of real mortgage amortization
+const MORTGAGE_ACCELERATION_FACTOR = 5; // 1 game week = 5 weeks of principal paydown
 
 interface AmortizationPayment {
   totalPayment: number;       // Total monthly payment (P&I)
@@ -90,34 +91,44 @@ export function calculateAmortizationPayment(
 }
 
 /**
- * Calculate accelerated weekly principal payment for game purposes
- * Uses real amortization math but accelerates time so equity builds visibly
+ * Calculate weekly amortization for game tracking
+ * 
+ * Returns two sets of values:
+ * 1. Cash values: Realistic weekly interest/principal from actual mortgage payment
+ * 2. Bookkeeping principal: Accelerated principal reduction for loan balance tracking
+ * 
+ * The player's cash flow uses the realistic amounts (debtService already handles this).
+ * The loan balance uses accelerated principal to show equity building faster.
  */
 export function calculateWeeklyPrincipalPayment(
   currentBalance: number,
   annualRate: number,
   termMonths: number,
   originalPrincipal: number
-): { weeklyPrincipal: number; weeklyInterest: number } {
+): { weeklyPrincipal: number; weeklyInterest: number; acceleratedPrincipal: number } {
   if (currentBalance <= 0 || annualRate <= 0) {
-    return { weeklyPrincipal: 0, weeklyInterest: 0 };
+    return { weeklyPrincipal: 0, weeklyInterest: 0, acceleratedPrincipal: 0 };
   }
   
   // Calculate monthly amortization values
   const amort = calculateAmortizationPayment(currentBalance, annualRate, termMonths, originalPrincipal);
   
-  // Convert to weekly (4.33 weeks per month) and apply acceleration
+  // Convert to weekly (4.33 weeks per month)
   const weeksPerMonth = 4.33;
   const weeklyInterest = Math.round(amort.interestPayment / weeksPerMonth);
+  const weeklyPrincipal = Math.round(amort.principalPayment / weeksPerMonth);
   
-  // Apply acceleration factor to principal portion only
-  // Interest stays realistic, but principal paydown is accelerated
-  const weeklyPrincipal = Math.round((amort.principalPayment / weeksPerMonth) * MORTGAGE_ACCELERATION_FACTOR);
+  // Accelerated principal for loan balance tracking (bookkeeping only, not cash)
+  // This simulates multiple months of principal paydown per game week
+  const acceleratedPrincipal = Math.min(
+    Math.round(weeklyPrincipal * MORTGAGE_ACCELERATION_FACTOR),
+    currentBalance
+  );
   
-  // Don't pay more principal than remaining balance
   return {
-    weeklyPrincipal: Math.min(weeklyPrincipal, currentBalance),
-    weeklyInterest,
+    weeklyPrincipal,        // Realistic principal (matches cash flow)
+    weeklyInterest,         // Realistic interest (matches cash flow)
+    acceleratedPrincipal,   // Accelerated for loan balance tracking
   };
 }
 
@@ -825,23 +836,27 @@ export async function processRentalIncome(
   );
 
   // Calculate and track principal reduction (accelerated for game time)
-  // The debt service payment is already deducted from cash above
-  // This tracks the principal/interest split for the debt tab
+  // The debt service payment is already deducted from cash above (uses realistic amounts)
+  // We track accelerated principal paydown to make equity building visible during gameplay
   let principalPaid = 0;
   let interestPaid = 0;
   let newLoanBalance = deal.currentLoanBalance ?? 0;
   
   if (newLoanBalance > 0 && deal.originalLoanAmount && deal.loanInterestRate) {
-    const { weeklyPrincipal, weeklyInterest } = calculateWeeklyPrincipalPayment(
+    const { weeklyPrincipal, weeklyInterest, acceleratedPrincipal } = calculateWeeklyPrincipalPayment(
       newLoanBalance,
       deal.loanInterestRate,
       deal.loanTermMonths || 360,
       deal.originalLoanAmount
     );
     
-    principalPaid = weeklyPrincipal;
+    // Track realistic values for display purposes
     interestPaid = weeklyInterest;
-    newLoanBalance = Math.max(0, newLoanBalance - principalPaid);
+    
+    // Use accelerated principal for loan balance tracking (bookkeeping only)
+    // This simulates 5 years of payments in 52 weeks for educational value
+    principalPaid = acceleratedPrincipal;
+    newLoanBalance = Math.max(0, newLoanBalance - acceleratedPrincipal);
   }
   
   // Update deal's payment tracking and loan balance

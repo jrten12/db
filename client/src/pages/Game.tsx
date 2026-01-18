@@ -592,6 +592,11 @@ export default function Game() {
   } | null>(null);
 
   const handleCommitDeal = useCallback(async () => {
+    // Guard against double-clicks
+    if (isCommittingDeal) {
+      return;
+    }
+    
     if (!gameRun || !selectedProperty || !proFormaOutputs) {
       toast.error('Missing required data. Please try again.');
       return;
@@ -753,7 +758,7 @@ export default function Game() {
         toast.error('Failed to save deal. Please try again.');
       }
     }
-  }, [gameRun, selectedProperty, proFormaOutputs, proFormaInputs, createDealMutation, createLedgerMutation, queryClient, updateGameMutation]);
+  }, [isCommittingDeal, gameRun, selectedProperty, proFormaOutputs, proFormaInputs, createDealMutation, createLedgerMutation, queryClient, updateGameMutation]);
 
   const handleAdvanceWeek = useCallback(async () => {
     if (!gameRun) return;

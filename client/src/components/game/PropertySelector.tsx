@@ -43,10 +43,12 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
   const urbanCount = properties.filter(p => p.locationType === 'urban').length;
   const suburbanCount = properties.filter(p => p.locationType === 'suburban').length;
   
-  const filteredProperties = properties.filter(p => {
-    if (locationFilter === 'all') return true;
-    return p.locationType === locationFilter;
-  });
+  const filteredProperties = properties
+    .filter(p => {
+      if (locationFilter === 'all') return true;
+      return p.locationType === locationFilter;
+    })
+    .sort((a, b) => a.price - b.price);
 
   return (
     <div className="space-y-6" data-testid="property-list">

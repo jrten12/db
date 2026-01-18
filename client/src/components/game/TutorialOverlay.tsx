@@ -4,8 +4,8 @@ import { X, ChevronLeft, ChevronRight, Lightbulb, GraduationCap } from 'lucide-r
 import { Button } from '@/components/ui/button';
 
 const ACTION_LABELS: Record<string, string> = {
-  'select_property': 'Click on a property card to continue',
-  'lock_proforma': 'Lock in your pro forma to continue',
+  'select_property': 'Tap a property to continue',
+  'lock_proforma': 'Lock your pro forma to continue',
 };
 
 export function TutorialOverlay() {
@@ -22,7 +22,15 @@ export function TutorialOverlay() {
   
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (!isActive || !currentStep?.targetTestId) {
@@ -33,18 +41,24 @@ export function TutorialOverlay() {
     const findTarget = () => {
       const element = document.querySelector(`[data-testid="${currentStep.targetTestId}"]`);
       if (element) {
-        setTargetRect(element.getBoundingClientRect());
+        const rect = element.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          setTargetRect(rect);
+        } else {
+          setTargetRect(null);
+        }
       } else {
         setTargetRect(null);
       }
     };
 
-    findTarget();
+    const timer = setTimeout(findTarget, 100);
     const interval = setInterval(findTarget, 500);
     window.addEventListener('resize', findTarget);
     window.addEventListener('scroll', findTarget, true);
 
     return () => {
+      clearTimeout(timer);
       clearInterval(interval);
       window.removeEventListener('resize', findTarget);
       window.removeEventListener('scroll', findTarget, true);
@@ -62,22 +76,25 @@ export function TutorialOverlay() {
   if (!isActive || !currentStep) return null;
 
   const isCentered = currentStep.position === 'center' || !targetRect;
+  const tooltipWidth = isMobile ? Math.min(340, window.innerWidth - 32) : 380;
 
-  const getTooltipPosition = () => {
-    if (isCentered) {
+  const getTooltipStyle = (): React.CSSProperties => {
+    if (isCentered || isMobile) {
       return {
+        position: 'fixed',
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
+        width: tooltipWidth,
+        maxWidth: 'calc(100vw - 32px)',
       };
     }
 
-    const padding = 20;
-    const tooltipWidth = 380;
-    const tooltipHeight = 280;
+    const padding = 16;
+    const tooltipHeight = 300;
 
     let top = targetRect!.top;
-    let left = targetRect!.right + padding;
+    let left = targetRect!.left;
 
     switch (currentStep.position) {
       case 'left':
@@ -98,74 +115,81 @@ export function TutorialOverlay() {
         break;
     }
 
-    top = Math.max(20, Math.min(top, window.innerHeight - tooltipHeight - 20));
-    left = Math.max(20, Math.min(left, window.innerWidth - tooltipWidth - 20));
+    top = Math.max(16, Math.min(top, window.innerHeight - tooltipHeight - 16));
+    left = Math.max(16, Math.min(left, window.innerWidth - tooltipWidth - 16));
 
-    return { top: `${top}px`, left: `${left}px` };
+    return {
+      position: 'fixed',
+      top: `${top}px`,
+      left: `${left}px`,
+      width: tooltipWidth,
+    };
   };
 
   return (
     <div 
       ref={overlayRef}
-      className="fixed inset-0 z-[100] pointer-events-none"
+      className="fixed inset-0 z-[100]"
       data-testid="tutorial-overlay"
     >
-      {!isCentered && targetRect && (
-        <>
-          <div className="absolute inset-0 bg-black/60 pointer-events-auto" />
-          <div 
-            className="absolute rounded-xl ring-4 ring-purple-500 ring-offset-4 ring-offset-transparent shadow-2xl shadow-purple-500/50 transition-all duration-300"
-            style={{
-              top: targetRect.top - 8,
-              left: targetRect.left - 8,
-              width: targetRect.width + 16,
-              height: targetRect.height + 16,
-              boxShadow: '0 0 0 9999px rgba(0,0,0,0.6), 0 0 40px rgba(168,85,247,0.5)',
-            }}
-          />
-        </>
-      )}
+      <div 
+        className="absolute inset-0 bg-black/70"
+        onClick={(e) => {
+          if (!isActionRequired) {
+            e.stopPropagation();
+          }
+        }}
+      />
 
-      {isCentered && (
-        <div className="absolute inset-0 bg-black/70 pointer-events-auto" />
+      {!isCentered && !isMobile && targetRect && (
+        <div 
+          className="absolute rounded-xl ring-4 ring-purple-500 ring-offset-2 ring-offset-transparent shadow-2xl shadow-purple-500/50 transition-all duration-300 pointer-events-none"
+          style={{
+            top: targetRect.top - 4,
+            left: targetRect.left - 4,
+            width: targetRect.width + 8,
+            height: targetRect.height + 8,
+            boxShadow: '0 0 0 9999px rgba(0,0,0,0.7), 0 0 30px rgba(168,85,247,0.4)',
+          }}
+        />
       )}
 
       <div 
-        className={`absolute w-[380px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl border border-purple-500/30 shadow-2xl shadow-purple-500/20 pointer-events-auto transition-all duration-300 ${isAnimating ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
-        style={getTooltipPosition()}
+        className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl border border-purple-500/30 shadow-2xl shadow-purple-500/20 transition-all duration-300 ${isAnimating ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
+        style={getTooltipStyle()}
         data-testid="tutorial-tooltip"
       >
-        <div className="absolute -top-3 -right-3">
+        <div className="absolute -top-2 -right-2 z-10">
           <button
             onClick={endTutorial}
-            className="w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-600 border border-slate-600 flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded-full bg-slate-700 hover:bg-slate-600 border border-slate-600 flex items-center justify-center transition-colors"
             data-testid="button-end-tutorial"
           >
-            <X className="w-4 h-4 text-gray-400" />
+            <X className="w-3.5 h-3.5 text-gray-400" />
           </button>
         </div>
 
-        <div className="p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-              <GraduationCap className="w-5 h-5 text-white" />
+        <div className="p-4 md:p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg flex-shrink-0">
+              <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </div>
-            <div>
-              <h3 className="text-white font-bold text-lg">{currentStep.title}</h3>
+            <div className="min-w-0">
+              <h3 className="text-white font-bold text-base md:text-lg truncate">{currentStep.title}</h3>
               <div className="text-purple-400 text-xs font-medium">
                 Step {stepIndex} of {totalSteps}
               </div>
             </div>
           </div>
 
-          <p className="text-gray-300 text-sm leading-relaxed mb-4">
+          <p className="text-gray-300 text-sm leading-relaxed mb-3">
             {currentStep.content}
           </p>
 
           {currentStep.financialConcept && (
-            <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl p-3 mb-4 border border-amber-500/20">
+            <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-xl p-3 mb-3 border border-amber-500/20">
               <div className="flex items-center gap-2 mb-1">
-                <Lightbulb className="w-4 h-4 text-amber-400" />
+                <Lightbulb className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                 <span className="text-amber-400 font-semibold text-xs uppercase tracking-wide">
                   {currentStep.financialConcept.term}
                 </span>
@@ -176,7 +200,7 @@ export function TutorialOverlay() {
             </div>
           )}
 
-          <div className="h-1.5 bg-slate-700 rounded-full mb-4 overflow-hidden">
+          <div className="h-1.5 bg-slate-700 rounded-full mb-3 overflow-hidden">
             <div 
               className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
               style={{ width: `${(stepIndex / totalSteps) * 100}%` }}
@@ -184,34 +208,34 @@ export function TutorialOverlay() {
           </div>
 
           {isActionRequired && currentStep.requiresAction && (
-            <div className="bg-purple-500/20 border border-purple-500/40 rounded-lg p-2 mb-3 text-center">
+            <div className="bg-purple-500/20 border border-purple-500/40 rounded-lg p-2 mb-3 text-center animate-pulse">
               <span className="text-purple-300 text-sm font-medium">
                 {ACTION_LABELS[currentStep.requiresAction] || 'Complete the action to continue'}
               </span>
             </div>
           )}
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={previousStep}
               disabled={stepIndex <= 1}
-              className="text-gray-400 hover:text-white disabled:opacity-30"
+              className="text-gray-400 hover:text-white disabled:opacity-30 px-2"
               data-testid="button-previous-step"
             >
-              <ChevronLeft className="w-4 h-4 mr-1" />
-              Back
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline ml-1">Back</span>
             </Button>
 
             <Button
               variant="ghost"
               size="sm"
               onClick={endTutorial}
-              className="text-gray-500 hover:text-gray-300 text-xs"
+              className="text-gray-500 hover:text-gray-300 text-xs px-2"
               data-testid="button-skip-tutorial"
             >
-              Skip Tutorial
+              Skip
             </Button>
 
             <Button
@@ -220,7 +244,7 @@ export function TutorialOverlay() {
               disabled={isActionRequired}
               className={`${isActionRequired 
                 ? 'bg-gray-600 cursor-not-allowed' 
-                : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400'} text-white shadow-lg`}
+                : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400'} text-white shadow-lg px-3`}
               data-testid="button-next-step"
             >
               {stepIndex === totalSteps ? 'Finish' : 'Next'}

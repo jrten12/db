@@ -85,6 +85,9 @@ export interface IStorage {
   getTenantByDeal(dealId: number): Promise<Tenant | undefined>;
   getTenantsByGameRun(gameRunId: number): Promise<Tenant[]>;
   updateTenant(id: number, updates: Partial<InsertTenant>): Promise<Tenant | undefined>;
+  
+  // Curveball methods
+  getLastCurveballForDeal(dealId: number): Promise<string | undefined>;
 }
 
 export class DBStorage implements IStorage {
@@ -1342,6 +1345,16 @@ export class DBStorage implements IStorage {
       .where(eq(schema.tenants.id, id))
       .returning();
     return updated;
+  }
+  
+  async getLastCurveballForDeal(dealId: number): Promise<string | undefined> {
+    const [event] = await db
+      .select({ curveballId: schema.curveballEvents.curveballId })
+      .from(schema.curveballEvents)
+      .where(eq(schema.curveballEvents.dealId, dealId))
+      .orderBy(desc(schema.curveballEvents.gameWeek))
+      .limit(1);
+    return event?.curveballId;
   }
 }
 

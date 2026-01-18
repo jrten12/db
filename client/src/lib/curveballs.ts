@@ -921,9 +921,16 @@ export function getCurveballsForTrigger(
  */
 export function rollForCurveball(
   trigger: CurveballTrigger,
-  context?: PropertyContext
+  context?: PropertyContext,
+  excludeIds?: string[]
 ): Curveball | null {
-  const possibleEvents = getCurveballsForTrigger(trigger, context);
+  let possibleEvents = getCurveballsForTrigger(trigger, context);
+  
+  // Filter out recently-used curveballs to avoid unrealistic repetition
+  // (same issue shouldn't happen twice in a row on same property)
+  if (excludeIds && excludeIds.length > 0) {
+    possibleEvents = possibleEvents.filter(e => !excludeIds.includes(e.id));
+  }
 
   // Each event rolls independently
   for (const event of possibleEvents) {

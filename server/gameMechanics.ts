@@ -945,8 +945,12 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           price: deal.purchasePrice || property.price,
         } : undefined;
         
-        // Roll for curveball events with property context
-        const curveball = rollForCurveball('rental_monthly', propertyContext);
+        // Get last curveball for this deal to avoid unrealistic repetition
+        const lastCurveballId = await storage.getLastCurveballForDeal(deal.id);
+        const excludeIds = lastCurveballId ? [lastCurveballId] : [];
+        
+        // Roll for curveball events with property context (excluding recently-used)
+        const curveball = rollForCurveball('rental_monthly', propertyContext, excludeIds);
 
         const result = await processRentalIncome(deal, gameRun, curveball || undefined);
         rentalPayments.push(result);

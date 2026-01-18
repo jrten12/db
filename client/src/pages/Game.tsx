@@ -1142,11 +1142,11 @@ export default function Game() {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-fixed"
+      className="min-h-screen bg-cover bg-center bg-fixed flex flex-col"
       style={{ backgroundImage: `url(${woodTexture})` }}
       data-testid="game-screen"
     >
-      <div className="min-h-screen bg-black/30">
+      <div className="flex-1 bg-black/30 flex flex-col">
         <StatusBar
           cash={gameRun.cash}
           weeksRemaining={gameRun.weeksRemaining}
@@ -1161,7 +1161,7 @@ export default function Game() {
         
         <SaveIndicator />
 
-        <main className="max-w-7xl mx-auto px-4 py-6 md:py-8">
+        <main className="flex-1 max-w-7xl mx-auto px-4 py-6 md:py-8 w-full">
           {currentScreen === 'market' && (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <div className="lg:col-span-3">
@@ -1273,8 +1273,6 @@ export default function Game() {
 
         {/* Copyright Footer */}
         <Footer />
-
-        <div className="safe-area-bottom" />
 
         {/* Money Animation - triggered on purchases */}
         <MoneyAnimation 

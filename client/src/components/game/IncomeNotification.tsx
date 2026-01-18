@@ -257,9 +257,10 @@ export function useIncomeNotifications() {
     totalExpenses: number,
     propertyName?: string
   ) => {
-    const description = grossRent > 0 
-      ? `Rent: +$${grossRent.toLocaleString()} | Expenses: -$${totalExpenses.toLocaleString()}`
-      : `Net weekly cash flow`;
+    // Just show "Weekly cash flow" - the breakdown was confusing
+    const description = netIncome >= 0 
+      ? 'Weekly cash flow after expenses'
+      : 'Expenses exceeded rent this week';
     addIncomeEvent({
       amount: netIncome,
       type: 'rental',

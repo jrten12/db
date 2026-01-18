@@ -609,15 +609,13 @@ export async function processRentalIncome(
   // rent - vacancy - opex - debt + cashImpact = netWeeklyIncome
   // (verified: we calculated netWeeklyIncome from these same components above)
   
-  // Credit: Gross rent income
+  // Credit: Gross rent income (keep this clean - curveball impacts shown separately)
   if (scaledGrossRent > 0) {
     ledgerEntries.push({
       direction: 'credit',
       category: 'income',
       amount: scaledGrossRent,
-      description: curveball
-        ? `🏠 Rent - ${propertyName} ${curveball.emoji || ''} ${curveball.name}`
-        : `🏠 Weekly rent - ${propertyName}`,
+      description: `🏠 Rent - ${propertyName}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
       gameWeek: gameRun.currentWeek,

@@ -224,3 +224,23 @@ export type InsertHallOfFamePlayer = z.infer<typeof insertHallOfFamePlayerSchema
 
 export type PlayerTrophy = typeof playerTrophies.$inferSelect;
 export type InsertPlayerTrophy = z.infer<typeof insertPlayerTrophySchema>;
+
+// Tenants for rental properties
+export const tenants = pgTable("tenants", {
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").notNull().references(() => deals.id),
+  name: text("name").notNull(),
+  personalityType: text("personality_type").notNull(), // Internal type, not shown to player
+  portraitUrl: text("portrait_url"), // Generated via GPT image
+  speechPatterns: jsonb("speech_patterns").notNull(), // Array of possible messages
+  lastContactWeek: integer("last_contact_week"), // Prevent spam
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertTenantSchema = createInsertSchema(tenants).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Tenant = typeof tenants.$inferSelect;
+export type InsertTenant = z.infer<typeof insertTenantSchema>;

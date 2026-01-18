@@ -1,0 +1,95 @@
+
+The Corporate Brain
+	•	“I just want to level-set expectations around noise.”
+	•	“Can we align on what ‘quiet enjoyment’ means operationally?”
+	•	“This may require a process.”
+	•	“I’m flagging a risk vector.”
+	•	“Let’s get ahead of this.”
+
+⸻
+
+The Retired Micromanager
+	•	“I’ve lived in six homes and this one runs loose.”
+	•	“I wake up early and notice things.”
+	•	“People don’t close doors like they used to.”
+	•	“I don’t complain often. I document.”
+	•	“Someone should be accountable.”
+
+⸻
+
+The Anxious Professional
+	•	“I don’t want to sound crazy.”
+	•	“This is probably nothing, but it’s distracting.”
+	•	“I just need to know if this is normal.”
+	•	“I can’t focus when the environment shifts.”
+	•	“I have a big week.”
+
+⸻
+
+The New Money Tenant
+	•	“This isn’t what I’m used to.”
+	•	“In my last place, this wouldn’t fly.”
+	•	“I’m paying a lot for this.”
+	•	“I didn’t expect… neighbors.”
+	•	“I don’t want this to become a thing.”
+
+⸻
+
+The Law-Curious
+	•	“I’m not threatening anything.”
+	•	“I looked up the code.”
+	•	“I spoke to someone who knows about this.”
+	•	“I don’t want to escalate prematurely.”
+	•	“I’m just asking where responsibility begins.”
+
+⸻
+
+The Lonely Caller
+	•	“Sorry to bother you.”
+	•	“I wasn’t sure who else to call.”
+	•	“I just wanted someone to know.”
+	•	“It’s quiet now, but earlier—”
+	•	“You probably get these calls.”
+
+⸻
+
+The Control Seeker
+	•	“I need to understand who’s allowed to be here.”
+	•	“I don’t like surprises.”
+	•	“I noticed a pattern.”
+	•	“Things were better before.”
+	•	“I need this addressed.”
+
+⸻
+
+The Passive Aggressive
+	•	“I’ll adjust on my end if needed.”
+	•	“I can adapt.”
+	•	“I don’t want special treatment.”
+	•	“I’m flexible.”
+	•	“I’ll remember this.”
+
+⸻
+
+The Chaos Magnet (thinks they’re normal)
+	•	“This always happens to me.”
+	•	“Every place I live has this issue.”
+	•	“I attract problems.”
+	•	“I knew this would come up.”
+	•	“It’s fine. I’ll deal with it.”
+
+⸻
+
+WHY THIS IS FUNNIER
+	•	You know exactly who they are
+	•	They’re not joking
+	•	They think they’re reasonable
+	•	The darkness is social: status, control, anxiety, loneliness
+	•	It feels real because it is
+
+Game Design Hook
+	•	Each tenant has:
+	•	a speech pattern
+	•	a stress threshold
+	•	a memory
+	•	Same issue + different personality = different call

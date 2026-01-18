@@ -1238,26 +1238,29 @@ export default function Game() {
 
   return (
     <div 
-      className="h-screen overflow-y-auto bg-cover bg-center bg-fixed flex flex-col"
+      className="h-screen bg-cover bg-center bg-fixed flex flex-col"
       style={{ backgroundImage: `url(${woodTexture})` }}
       data-testid="game-screen"
     >
-      <div className="min-h-full bg-black/30 flex flex-col">
-        <StatusBar
-          cash={gameRun.cash}
-          weeksRemaining={gameRun.weeksRemaining}
-          profitableDeals={gameRun.profitableDeals}
-          goalDeals={gameRun.goalDeals}
-          onOpenLedger={() => setShowLedger(true)}
-          onOpenPremium={() => setShowPremiumModal(true)}
-          onOpenHallOfFame={() => setShowHallOfFame(true)}
-          onAdvanceWeek={handleAdvanceWeek}
-          isAdvancingWeek={isAdvancingWeek}
-        />
+      <div className="flex-1 bg-black/30 flex flex-col overflow-hidden">
+        {/* Fixed header that stays at top when scrolling */}
+        <div className="flex-shrink-0">
+          <StatusBar
+            cash={gameRun.cash}
+            weeksRemaining={gameRun.weeksRemaining}
+            profitableDeals={gameRun.profitableDeals}
+            goalDeals={gameRun.goalDeals}
+            onOpenLedger={() => setShowLedger(true)}
+            onOpenPremium={() => setShowPremiumModal(true)}
+            onOpenHallOfFame={() => setShowHallOfFame(true)}
+            onAdvanceWeek={handleAdvanceWeek}
+            isAdvancingWeek={isAdvancingWeek}
+          />
+        </div>
         
         <SaveIndicator />
 
-        <main className="flex-1 w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">
+        <main className="flex-1 w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8 overflow-y-auto">
           {currentScreen === 'market' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1800px] mx-auto">
               <div className="lg:col-span-9 xl:col-span-9">

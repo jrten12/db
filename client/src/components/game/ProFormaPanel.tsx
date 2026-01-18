@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react';
 import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getLoanFeesFromLTV, getDownPaymentFromLTV } from '@/lib/gameData';
 import { getEffectiveRanges, EffectiveRanges } from '@/lib/propertyIssues';
-import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle } from 'lucide-react';
+import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AssumptionInput, PercentAssumption } from './AssumptionInput';
 import { FormulaCanvas, MiniFormula } from './FormulaCanvas';
+import { ProFormaEditor } from './ProFormaEditor';
 import type { Property } from '@shared/schema';
 
 // Helper to safely get numeric value (default to 0 for calculations)
@@ -184,6 +185,9 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     operations: true,
     timeline: true,
   });
+
+  // Pro Forma Editor Modal State
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
 
   // Learning Mode State
   const [showFormulas, setShowFormulas] = useState(true);
@@ -519,881 +523,79 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           </div>
         )}
 
-        {/* LAYER 1: DEAL FOUNDATION */}
-        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 overflow-hidden">
-          <button 
-            onClick={() => toggleSection('foundation')}
-            className="w-full flex items-center justify-between p-4 hover:bg-slate-800/50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-blue-400" />
+        {/* PRO FORMA EDITOR BUTTON - Opens beautiful modal */}
+        <div className="bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-emerald-500/10 backdrop-blur rounded-2xl border-2 border-blue-500/30 overflow-hidden shadow-2xl">
+          <div className="p-8 text-center">
+            <div className="mb-6">
+              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/50 mb-4">
+                <Edit3 className="w-10 h-10 text-white" />
               </div>
-              <div className="text-left">
-                <h3 className="text-white font-semibold text-sm">Deal Foundation</h3>
-                <p className="text-gray-500 text-xs">Your total investment basis</p>
-              </div>
+              <h3 className="text-white text-2xl font-bold mb-2">Build Your Pro Forma</h3>
+              <p className="text-gray-400 text-sm max-w-lg mx-auto">
+                Open the interactive spreadsheet editor to analyze this deal. See market data ranges, get guidance for each field, and build your financial model.
+              </p>
             </div>
-            {expandedSections.foundation ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-          </button>
-          
-          {expandedSections.foundation && (
-            <div className="px-4 pb-4 space-y-4">
-              {inputs.strategy === 'rent' ? (
-                <>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1 flex items-center">Purchase Price<InfoTooltip term="purchasePrice" /></div>
-                      <div className="text-white text-lg font-bold font-mono">{formatCurrency(property.price)}</div>
-                      <div className="text-gray-500 text-xs">Fixed</div>
-                    </div>
-                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1 flex items-center">Closing Costs<InfoTooltip term="closingCosts" /></div>
-                      <div className="text-white text-lg font-bold font-mono">{formatCurrency(closingCosts)}</div>
-                      <div className="text-gray-500 text-xs">~3% estimate</div>
-                    </div>
-                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1 flex items-center">Rehab + Contingency<InfoTooltip term="contingency" /></div>
-                      <div className="text-white text-lg font-bold font-mono">
-                        {formatCurrency(n(inputs.rehabBudget) * (1 + n(inputs.contingencyPct) / 100))}
-                      </div>
-                      <div className="text-gray-500 text-xs">Your estimate</div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gradient-to-r from-blue-500/20 to-emerald-500/20 rounded-xl p-4 border border-blue-500/30">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider flex items-center">Total Project Cost<InfoTooltip term="allInBasis" /></div>
-                        <div className="text-white text-2xl font-bold font-mono mt-1">{formatCurrency(allInBasis)}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-gray-400 text-xs">Price per sqft</div>
-                        <div className="text-gray-300 font-mono">{formatCurrency(Math.round(allInBasis / property.sizeSqft))}/sqft</div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1 flex items-center">Purchase Price<InfoTooltip term="purchasePrice" /></div>
-                      <div className="text-white text-lg font-bold font-mono">{formatCurrency(property.price)}</div>
-                      <div className="text-gray-500 text-xs">Your acquisition cost</div>
-                    </div>
-                    {hasAppraisal ? (
-                      <div className="bg-emerald-500/10 rounded-xl p-3 border border-emerald-500/30">
-                        <div className="text-emerald-400 text-xs mb-1 flex items-center">ARV (After Repair Value)<InfoTooltip term="arv" /></div>
-                        <div className="text-emerald-300 text-lg font-bold font-mono">
-                          {formatCurrency(property.arvMin)} - {formatCurrency(property.arvMax)}
-                        </div>
-                        <div className="text-emerald-500/70 text-xs">Final sale price will vary</div>
-                      </div>
-                    ) : (
-                      <div className="bg-amber-500/10 rounded-xl p-3 border border-amber-500/30">
-                        <div className="text-amber-400 text-xs mb-1 flex items-center">ARV (After Repair Value)<InfoTooltip term="unknownArv" /></div>
-                        <div className="text-amber-300 text-lg font-bold font-mono flex items-center gap-1">
-                          <Lock className="w-4 h-4" /> Unknown
-                        </div>
-                        <div className="text-amber-500/70 text-xs">Do Comp Analysis first</div>
-                      </div>
-                    )}
-                  </div>
 
-                  {hasAppraisal ? (
-                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-400 text-xs flex items-center">Selling Costs<InfoTooltip term="sellingCosts" /></span>
-                        <span className="text-white font-mono text-sm">{inputs.sellingCostsPct}% of ARV</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="6"
-                        max="12"
-                        step="0.5"
-                        value={inputs.sellingCostsPct ?? 8}
-                        onChange={(e) => handleChange('sellingCostsPct', Number(e.target.value))}
-                        className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                        style={{
-                          background: `linear-gradient(to right, #10b981 0%, #10b981 ${((n(inputs.sellingCostsPct) - 6) / 6) * 100}%, #334155 ${((n(inputs.sellingCostsPct) - 6) / 6) * 100}%, #334155 100%)`
-                        }}
-                        data-testid="input-selling-costs"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>6% (optimistic)</span>
-                        <span>12% (conservative)</span>
-                      </div>
-                      <div className="text-center mt-2">
-                        <span className="text-red-400 font-mono text-sm">= {formatCurrency(sellingCosts)}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-amber-500/10 rounded-xl p-3 border border-amber-500/30">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Lock className="w-4 h-4 text-amber-400" />
-                        <span className="text-amber-400 text-xs font-semibold">Selling Costs Unknown</span>
-                      </div>
-                      <p className="text-gray-400 text-xs">
-                        Complete a Comp Analysis to see what similar homes sold for. Then you can estimate selling costs.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1 flex items-center">Closing Costs<InfoTooltip term="closingCosts" /></div>
-                      <div className="text-white font-bold font-mono">{formatCurrency(closingCosts)}</div>
-                      <div className="text-gray-500 text-xs">~3% estimate</div>
-                    </div>
-                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1 flex items-center">Rehab Budget<InfoTooltip term="rehabBudget" /></div>
-                      <div className="text-white font-bold font-mono">{formatCurrency(n(inputs.rehabBudget))}</div>
-                      <div className="text-gray-500 text-xs">Your estimate</div>
-                    </div>
-                    <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                      <div className="text-gray-400 text-xs mb-1 flex items-center">Contingency ({n(inputs.contingencyPct)}%)<InfoTooltip term="contingency" /></div>
-                      <div className="text-white font-bold font-mono">{formatCurrency(Math.round(n(inputs.rehabBudget) * n(inputs.contingencyPct) / 100))}</div>
-                      <div className="text-gray-500 text-xs">Buffer for surprises</div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-gradient-to-r from-blue-500/20 to-slate-800/50 rounded-xl p-4 border border-blue-500/30">
-                      <div className="text-blue-400 text-xs font-semibold uppercase tracking-wider">Total Project Cost</div>
-                      <div className="text-white text-xl font-bold font-mono mt-1">{formatCurrency(allInBasis)}</div>
-                      <div className="text-gray-500 text-xs mt-1">Total cost to acquire & fix</div>
-                    </div>
-                    {hasAppraisal ? (
-                      <div className={`bg-gradient-to-r rounded-xl p-4 border ${flipProfit > 0 ? 'from-emerald-500/20 to-slate-800/50 border-emerald-500/30' : 'from-red-500/20 to-slate-800/50 border-red-500/30'}`}>
-                        <div className={`text-xs font-semibold uppercase tracking-wider ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>Projected Profit</div>
-                        <div className={`text-xl font-bold font-mono mt-1 ${flipProfit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {flipProfit > 0 ? '' : '-'}{formatCurrency(Math.abs(flipProfit))}
-                        </div>
-                        <div className="text-gray-500 text-xs mt-1">Varies with final sale price</div>
-                      </div>
-                    ) : (
-                      <div className="bg-gradient-to-r from-amber-500/20 to-slate-800/50 rounded-xl p-4 border border-amber-500/30">
-                        <div className="text-amber-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
-                          <Lock className="w-3 h-3" /> Projected Profit
-                        </div>
-                        <div className="text-amber-300 text-xl font-bold font-mono mt-1">???</div>
-                        <div className="text-gray-500 text-xs mt-1">Complete Comp Analysis first</div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* LAYER 2: CAPITAL STACK */}
-        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 overflow-hidden">
-          <button 
-            onClick={() => toggleSection('capital')}
-            className="w-full flex items-center justify-between p-4 hover:bg-slate-800/50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                <Landmark className="w-4 h-4 text-amber-400" />
-              </div>
-              <div className="text-left">
-                <h3 className="text-white font-semibold text-sm">Capital Stack</h3>
-                <p className="text-gray-500 text-xs">How you're financing this deal</p>
-              </div>
-            </div>
-            {expandedSections.capital ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-          </button>
-          
-          {expandedSections.capital && (
-            <div className="px-4 pb-4 space-y-4">
-              {/* LTV Slider - drives all financing terms */}
-              <div className="space-y-3" data-testid="ltv-slider">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-xs flex items-center">Loan-to-Value (LTV)<InfoTooltip term="leverage" /></span>
-                    <span className="text-white font-mono text-sm font-bold">{inputs.ltv}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={LTV_MIN}
-                    max={LTV_MAX}
-                    value={inputs.ltv}
-                    onChange={(e) => handleChange('ltv', Number(e.target.value))}
-                    className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, ${leverageLevel === 'high' ? '#ef4444' : leverageLevel === 'moderate' ? '#f59e0b' : '#10b981'} 0%, ${leverageLevel === 'high' ? '#ef4444' : leverageLevel === 'moderate' ? '#f59e0b' : '#10b981'} ${((inputs.ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)) * 100}%, #334155 ${((inputs.ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)) * 100}%, #334155 100%)`
-                    }}
-                    data-testid="input-ltv"
-                  />
-                  <div className="flex justify-between text-[10px] text-gray-500 mt-1">
-                    <span>{LTV_MIN}% (Conservative)</span>
-                    <span>{LTV_MAX}% (Aggressive)</span>
-                  </div>
-                </div>
-
-                {/* Derived values displayed as badges */}
-                <div className="grid grid-cols-3 gap-2 mt-3">
-                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
-                    <div className="text-gray-500 text-[10px] uppercase">Down Payment</div>
-                    <div className="text-white font-mono text-sm font-semibold">{getDownPaymentFromLTV(inputs.ltv)}%</div>
-                  </div>
-                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
-                    <div className="text-gray-500 text-[10px] uppercase">Interest Rate</div>
-                    <div className={`font-mono text-sm font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>
-                      {getInterestRateFromLTV(inputs.ltv).toFixed(1)}%
-                    </div>
-                  </div>
-                  <div className="bg-slate-800/50 rounded-lg p-2 text-center">
-                    <div className="text-gray-500 text-[10px] uppercase">Loan Fees</div>
-                    <div className={`font-mono text-sm font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>
-                      {getLoanFeesFromLTV(inputs.ltv).toFixed(1)}%
-                    </div>
-                  </div>
-                </div>
-
-                {/* Educational message about leverage-risk tradeoff */}
-                <div className={`text-xs p-2 rounded-lg ${
-                  inputs.ltv >= 85 ? 'bg-red-500/10 text-red-400 border border-red-500/30' : 
-                  inputs.ltv >= 75 ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30' : 
-                  'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                }`}>
-                  {inputs.ltv >= 85 ? (
-                    <>High leverage = higher interest rate + fees. Less cash down, but riskier.</>
-                  ) : inputs.ltv >= 75 ? (
-                    <>Moderate leverage. Balanced approach between cash down and borrowing costs.</>
-                  ) : (
-                    <>Conservative leverage = lower interest rate + fees. More cash down, but safer.</>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700">
-                <div className="text-center">
-                  <div className="text-gray-500 text-xs">Cash at Close</div>
-                  <div className="text-white font-bold font-mono">{formatCurrency(liveOutputs.downPaymentAmount)}</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-gray-500 text-xs">Monthly Debt Service</div>
-                  <div className="text-red-400 font-bold font-mono">-{formatCurrency(liveOutputs.debtServiceMonthly)}</div>
-                </div>
-              </div>
-
-              <div className="bg-slate-800/50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-xs">Leverage Level</span>
-                  {hasAppraisal ? (
-                    <span className={`text-xs font-semibold ${
-                      leverageLevel === 'high' ? 'text-red-400' : leverageLevel === 'moderate' ? 'text-amber-400' : 'text-emerald-400'
-                    }`}>{leverageLevel.toUpperCase()}</span>
-                  ) : (
-                    <span className="text-amber-400 text-xs flex items-center gap-1">
-                      <Lock className="w-3 h-3" /> Do comps first
-                    </span>
-                  )}
-                </div>
-                <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                  {hasAppraisal ? (
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        leverageLevel === 'high' ? 'bg-red-500' : leverageLevel === 'moderate' ? 'bg-amber-500' : 'bg-emerald-500'
-                      }`}
-                      style={{ width: `${leverageRatio * 100}%` }}
-                    />
-                  ) : (
-                    <div className="h-full bg-slate-600 w-full" />
-                  )}
-                </div>
-              </div>
-
-              {/* TOTAL CASH NEEDED SUMMARY */}
-              <div className="bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-emerald-500/20 backdrop-blur rounded-xl border-2 border-blue-500/50 p-4 shadow-lg">
-                <div className="flex items-center gap-2 mb-3">
-                  <DollarSign className="w-5 h-5 text-blue-400" />
-                  <h4 className="text-blue-400 font-bold text-sm uppercase tracking-wider">
-                    {inputs.strategy === 'rent' ? '💰 Cash Needed to Close' : '💰 Total Project Cash'}
-                  </h4>
-                </div>
-                {(() => {
-                  const loanFees = Math.round(liveOutputs.loanAmount * derivedLoanFeesPct / 100);
-                  const flipHoldingCosts = holdingCostPerWeek * (inputs.rehabWeeks ?? 4);
-                  const rehabWithContingency = inputs.strategy === 'flip' 
-                    ? Math.round(n(inputs.rehabBudget) * (inputs.contractorType === 'fast' ? 1.5 : 1.0) * (1 + n(inputs.contingencyPct) / 100))
-                    : 0;
-                  const cashAtClosing = liveOutputs.downPaymentAmount + closingCosts + loanFees;
-                  // Use liveOutputs.totalCashInvested as the single source of truth
-                  const totalProjectCash = liveOutputs.totalCashInvested;
-                  const canAfford = playerCash >= totalProjectCash;
-                  const cashRatio = Math.min(playerCash / totalProjectCash, 1) * 100;
-                  
-                  return (
-                    <>
-                      <div className="space-y-2 mb-3">
-                        {/* Cash at Closing subtotal */}
-                        <div className="bg-slate-800/50 rounded-lg p-2">
-                          <div className="text-gray-400 text-xs mb-1 font-semibold">Cash at Closing</div>
-                          <div className="space-y-1 text-sm">
-                            <div className="flex items-center justify-between">
-                              <span className="text-gray-400 text-xs">Down Payment ({derivedDownPaymentPct}%)</span>
-                              <span className="text-white font-mono text-xs">{formatCurrency(liveOutputs.downPaymentAmount)}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-gray-400 text-xs">+ Closing Costs (3%)</span>
-                              <span className="text-white font-mono text-xs">{formatCurrency(closingCosts)}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-gray-400 text-xs">+ Loan Fees ({derivedLoanFeesPct.toFixed(1)}%)</span>
-                              <span className="text-white font-mono text-xs">{formatCurrency(loanFees)}</span>
-                            </div>
-                          </div>
-                          {inputs.strategy === 'rent' && (
-                            <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-700">
-                              <span className="text-blue-300 text-xs font-semibold">Total</span>
-                              <span className="text-blue-300 font-mono text-sm font-semibold">{formatCurrency(cashAtClosing)}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Rehab costs for flip */}
-                        {inputs.strategy === 'flip' && (
-                          <div className="bg-slate-800/50 rounded-lg p-2">
-                            <div className="text-gray-400 text-xs mb-1 font-semibold">+ Rehab & Holding</div>
-                            <div className="space-y-1 text-sm">
-                              <div className="flex items-center justify-between">
-                                <span className="text-gray-400 text-xs">Rehab Budget + Contingency</span>
-                                <span className="text-white font-mono text-xs">{formatCurrency(rehabWithContingency)}</span>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-gray-400 text-xs">Holding Costs ({inputs.rehabWeeks ?? 4} weeks)</span>
-                                <span className="text-white font-mono text-xs">{formatCurrency(flipHoldingCosts)}</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="border-t-2 border-blue-400/30 pt-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-blue-300 font-bold text-base">
-                            {inputs.strategy === 'rent' ? 'TOTAL AT CLOSING' : 'TOTAL PROJECT CASH'}
-                          </span>
-                          <span className={`font-mono font-bold text-2xl ${canAfford ? 'text-emerald-400' : 'text-red-400'}`}>
-                            {formatCurrency(totalProjectCash)}
-                          </span>
-                        </div>
-                        
-                        <div className="mt-3 space-y-1">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-400">Your Cash: <span className="text-white font-mono">{formatCurrency(playerCash)}</span></span>
-                            <span className={canAfford ? 'text-emerald-400' : 'text-red-400'}>
-                              {canAfford ? '✓ Can Afford' : `Need ${formatCurrency(totalProjectCash - playerCash)} more`}
-                            </span>
-                          </div>
-                          <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full transition-all duration-300 ${canAfford ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-red-500 to-amber-500'}`}
-                              style={{ width: `${cashRatio}%` }}
-                            />
-                          </div>
-                        </div>
-                        
-                        <p className="text-gray-400 text-xs mt-2 italic">
-                          {inputs.strategy === 'rent'
-                            ? 'Cash you need at closing to acquire this rental'
-                            : 'Total cash needed to complete this project (including carrying costs during rehab)'}
-                        </p>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* LAYER 3: OPERATING ASSUMPTIONS - Only show for rental strategy */}
-        {inputs.strategy === 'rent' && (
-          <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 overflow-hidden">
             <button
-              onClick={() => toggleSection('operations')}
-              className="w-full flex items-center justify-between p-4 hover:bg-slate-800/50 transition-colors"
+              onClick={() => setIsEditorOpen(true)}
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
-                </div>
-                <div className="text-left">
-                  <h3 className="text-white font-semibold text-sm">Operating Assumptions</h3>
-                  <p className="text-gray-500 text-xs">Income and expenses</p>
-                </div>
-              </div>
-              {expandedSections.operations ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+              <Edit3 className="w-6 h-6" />
+              <span>Open Pro Forma Editor</span>
             </button>
-          
-          {expandedSections.operations && (
-            <div className="px-4 pb-4 space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-xs flex items-center">Market Rent<InfoTooltip term="expectedRent" /></span>
-                  {effectiveRanges.rent.known ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500 text-xs">Range: {formatCurrency(effectiveRanges.rent.min)}-{formatCurrency(effectiveRanges.rent.max)}</span>
+
+            {/* Quick Summary of Current Inputs */}
+            {(inputs.expectedRent || inputs.rehabBudget || inputs.ltv) && (
+              <div className="mt-6 pt-6 border-t border-slate-700">
+                <p className="text-gray-500 text-xs uppercase tracking-wider mb-3">Current Assumptions</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-left">
+                  <div className="bg-slate-800/50 rounded-lg p-3">
+                    <div className="text-gray-500 text-xs">Strategy</div>
+                    <div className="text-white font-semibold text-sm capitalize">{inputs.strategy}</div>
+                  </div>
+                  {inputs.strategy === 'rent' && inputs.expectedRent && (
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="text-gray-500 text-xs">Monthly Rent</div>
+                      <div className="text-emerald-400 font-mono font-semibold text-sm">{formatCurrency(inputs.expectedRent)}</div>
                     </div>
-                  ) : (
-                    <UnknownValueTooltip type="rent">
-                      <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
-                        <Lock className="w-3 h-3" /> ???
-                      </span>
-                    </UnknownValueTooltip>
                   )}
-                </div>
-                {effectiveRanges.rent.known ? (
-                  <>
-                    {/* With market study: constrained slider + text input */}
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <div className="relative">
-                          <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={getInputValue('expectedRent')}
-                            placeholder={FIELD_HINTS.expectedRent}
-                            onFocus={() => handleNumberFocus('expectedRent')}
-                            onChange={(e) => handleNumberChangeFor('expectedRent', e.target.value)}
-                            onBlur={() => handleNumberBlur('expectedRent', effectiveRanges.rent.min, effectiveRanges.rent.max)}
-                            className={`w-full pl-7 pr-12 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-emerald-500 ${getInputClass(isFilled(inputs.expectedRent), touchedFields.has('expectedRent'), requiredFields.includes('expectedRent'))}`}
-                            data-testid="input-expected-rent-number"
-                          />
-                          <span className="absolute right-3 top-2.5 text-gray-500 text-xs">/mo</span>
-                        </div>
-                      </div>
+                  {inputs.strategy === 'rent' && inputs.vacancyRate !== null && (
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="text-gray-500 text-xs">Vacancy Rate</div>
+                      <div className="text-white font-mono font-semibold text-sm">{inputs.vacancyRate}%</div>
                     </div>
-                    <input
-                      type="range"
-                      min={effectiveRanges.rent.min}
-                      max={effectiveRanges.rent.max}
-                      value={inputs.expectedRent || effectiveRanges.rent.min}
-                      onChange={(e) => handleChange('expectedRent', Number(e.target.value))}
-                      className="w-full h-2 rounded-full appearance-none cursor-pointer mt-2"
-                      style={{
-                        background: `linear-gradient(to right, #10b981 0%, #10b981 ${((n(inputs.expectedRent) - effectiveRanges.rent.min) / (effectiveRanges.rent.max - effectiveRanges.rent.min)) * 100}%, #334155 ${((n(inputs.expectedRent) - effectiveRanges.rent.min) / (effectiveRanges.rent.max - effectiveRanges.rent.min)) * 100}%, #334155 100%)`
-                      }}
-                      data-testid="input-expected-rent"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>Conservative: {formatCurrency(effectiveRanges.rent.min)}</span>
-                      <span>Optimistic: {formatCurrency(effectiveRanges.rent.max)}</span>
+                  )}
+                  {inputs.rehabBudget && (
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="text-gray-500 text-xs">Rehab Budget</div>
+                      <div className="text-white font-mono font-semibold text-sm">{formatCurrency(inputs.rehabBudget)}</div>
                     </div>
-                    <div className="mt-2 text-xs text-emerald-400 flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" /> Based on market study data
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* Without market study: free text input (player is guessing blind) */}
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <div className="relative">
-                          <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={getInputValue('expectedRent')}
-                            placeholder="Enter your rent estimate..."
-                            onFocus={() => handleNumberFocus('expectedRent')}
-                            onChange={(e) => handleNumberChangeFor('expectedRent', e.target.value)}
-                            onBlur={() => handleNumberBlur('expectedRent', 0)} // No max constraint
-                            className={`w-full pl-7 pr-12 py-2 bg-slate-800 border border-amber-500/50 rounded-lg text-white font-mono text-sm focus:outline-none focus:border-amber-500 ${getInputClass(isFilled(inputs.expectedRent), 'border-amber-500/50')}`}
-                            data-testid="input-expected-rent-freeform"
-                          />
-                          <span className="absolute right-3 top-2.5 text-gray-500 text-xs">/mo</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-2 bg-amber-500/10 border border-amber-500/30 rounded-lg p-2">
-                      <p className="text-amber-400 text-xs flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" />
-                        <span>Guessing blind! Market study reveals the true rent range.</span>
-                      </p>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-xs flex items-center">Vacancy Rate<InfoTooltip term="vacancyRate" /></span>
-                  <span className="text-white font-mono text-sm">
-                    {inputs.vacancyRate}%
-                    {!inputs.utilities && <span className="text-amber-400 text-xs ml-1">(+1wk vacancy)</span>}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="20"
-                  value={inputs.vacancyRate ?? 0}
-                  onChange={(e) => handleChange('vacancyRate', Number(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #f59e0b 0%, #f59e0b ${n(inputs.vacancyRate) * 5}%, #334155 ${n(inputs.vacancyRate) * 5}%, #334155 100%)`
-                  }}
-                  data-testid="input-vacancy-rate"
-                />
-              </div>
-
-              {/* NOI Flow Visualization */}
-              <div className="bg-slate-800/50 rounded-xl p-3">
-                <div className="text-gray-400 text-xs mb-3">Income to NOI Flow</div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 text-xs text-gray-400">Gross Rent</div>
-                    <div className="flex-1 h-4 bg-emerald-500/30 rounded overflow-hidden">
-                      <div className="h-full bg-emerald-500" style={{ width: '100%' }} />
-                    </div>
-                    <div className="w-20 text-right text-xs text-emerald-400 font-mono">{formatCurrency(n(inputs.expectedRent))}</div>
+                  )}
+                  <div className="bg-slate-800/50 rounded-lg p-3">
+                    <div className="text-gray-500 text-xs">Loan-to-Value</div>
+                    <div className="text-white font-mono font-semibold text-sm">{inputs.ltv}%</div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 text-xs text-gray-400">- Vacancy</div>
-                    <div className="flex-1 h-4 bg-red-500/30 rounded overflow-hidden">
-                      <div className="h-full bg-red-500" style={{ width: `${n(inputs.vacancyRate) * 5}%` }} />
-                    </div>
-                    <div className="w-20 text-right text-xs text-red-400 font-mono">-{formatCurrency(n(inputs.expectedRent) * n(inputs.vacancyRate) / 100)}</div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 text-xs text-gray-400">- Expenses</div>
-                    <div className="flex-1 h-4 bg-amber-500/30 rounded overflow-hidden">
-                      <div className="h-full bg-amber-500" style={{ width: `${n(inputs.expectedRent) > 0 ? (monthlyExpenses / n(inputs.expectedRent)) * 100 : 0}%` }} />
-                    </div>
-                    <div className="w-20 text-right text-xs text-amber-400 font-mono">-{formatCurrency(monthlyExpenses)}</div>
-                  </div>
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-700">
-                    <div className="w-24 text-xs text-white font-semibold">= NOI</div>
-                    <div className="flex-1 h-5 bg-blue-500/30 rounded overflow-hidden">
-                      <div className={`h-full ${liveOutputs.noiMonthly > 0 ? 'bg-blue-500' : 'bg-red-500'}`} 
-                        style={{ width: `${n(inputs.expectedRent) > 0 ? Math.min(100, Math.max(0, (liveOutputs.noiMonthly / n(inputs.expectedRent)) * 100)) : 0}%` }} />
-                    </div>
-                    <div className={`w-20 text-right text-sm font-bold font-mono ${liveOutputs.noiMonthly > 0 ? 'text-blue-400' : 'text-red-400'}`}>
-                      {formatCurrency(liveOutputs.noiMonthly)}
-                    </div>
+                  <div className="bg-slate-800/50 rounded-lg p-3">
+                    <div className="text-gray-500 text-xs">Total Cash Needed</div>
+                    <div className="text-blue-400 font-mono font-semibold text-sm">{formatCurrency(liveOutputs.totalCashInvested)}</div>
                   </div>
                 </div>
               </div>
-
-              <div className="space-y-3">
-                <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Operating Expenses</p>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <AssumptionInput
-                    label="Taxes"
-                    value={inputs.taxesAnnual}
-                    onChange={(v) => handleChange('taxesAnnual', v)}
-                    min={Math.round(property.price * 0.005)}
-                    max={Math.round(property.price * 0.03)}
-                    step={100}
-                    format="currency"
-                    compact
-                    presets={[
-                      { label: 'Low', value: Math.round(property.price * 0.01), description: '1% of price', color: 'conservative' },
-                      { label: 'Avg', value: Math.round(property.price * 0.015), description: '1.5% typical', color: 'market' },
-                      { label: 'High', value: Math.round(property.price * 0.025), description: '2.5% of price', color: 'aggressive' },
-                    ]}
-                    helpText="Property taxes per year. Usually 1-2.5% of property value depending on location."
-                  />
-                  
-                  <AssumptionInput
-                    label="Insurance"
-                    value={inputs.insuranceAnnual}
-                    onChange={(v) => handleChange('insuranceAnnual', v)}
-                    min={600}
-                    max={Math.round(property.price * 0.015)}
-                    step={100}
-                    format="currency"
-                    compact
-                    presets={[
-                      { label: 'Low', value: 900, description: 'Basic policy', color: 'conservative' },
-                      { label: 'Avg', value: 1500, description: 'Standard coverage', color: 'market' },
-                      { label: 'Full', value: 2400, description: 'Comprehensive', color: 'aggressive' },
-                    ]}
-                    helpText="Yearly landlord insurance premium. Typically $75-200/month."
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <PercentAssumption
-                    label="Maintenance"
-                    value={inputs.maintenancePct}
-                    onChange={(v) => handleChange('maintenancePct', v)}
-                    baseAmount={n(inputs.expectedRent) * 12}
-                    baseLabel="annual rent"
-                    min={3}
-                    max={15}
-                    step={1}
-                    presets={[
-                      { label: 'Risky', value: 5, color: 'aggressive' },
-                      { label: 'Safe', value: 8, color: 'market' },
-                      { label: 'Old Home', value: 12, color: 'conservative' },
-                    ]}
-                    helpText="% of rent set aside for ongoing repairs. 5-10% is typical. Older properties need more."
-                  />
-                  
-                  <PercentAssumption
-                    label="CapEx Reserve"
-                    value={inputs.capExPct}
-                    onChange={(v) => handleChange('capExPct', v)}
-                    baseAmount={n(inputs.expectedRent) * 12}
-                    baseLabel="annual rent"
-                    min={5}
-                    max={15}
-                    step={1}
-                    presets={[
-                      { label: 'Risky', value: 5, color: 'aggressive' },
-                      { label: 'Safe', value: 10, color: 'market' },
-                      { label: 'Old Home', value: 12, color: 'conservative' },
-                    ]}
-                    helpText="% of rent for big-ticket replacements (roof, HVAC, appliances). Budget 8-12%."
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-400 text-xs font-medium">Utilities</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => handleChange('utilities', false)}
-                        className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
-                          !inputs.utilities
-                            ? 'bg-amber-500/30 border border-amber-500 text-amber-400'
-                            : 'bg-slate-700/50 border border-slate-600 text-gray-400 hover:border-slate-500'
-                        }`}
-                        data-testid="toggle-utilities-tenant"
-                      >
-                        Tenant
-                        <span className="block text-[10px] opacity-70">+1wk vacancy</span>
-                      </button>
-                      <button
-                        onClick={() => handleChange('utilities', true)}
-                        className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
-                          inputs.utilities
-                            ? 'bg-red-500/30 border border-red-500 text-red-400'
-                            : 'bg-slate-700/50 border border-slate-600 text-gray-400 hover:border-slate-500'
-                        }`}
-                        data-testid="toggle-utilities-owner"
-                      >
-                        You Pay
-                        <span className="block text-[10px] opacity-70">${inputs.utilitiesMonthly}/mo</span>
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-400 text-xs font-medium">Property Mgmt</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => handleChange('propertyManagement', false)}
-                        className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
-                          !inputs.propertyManagement
-                            ? 'bg-emerald-500/30 border border-emerald-500 text-emerald-400'
-                            : 'bg-slate-700/50 border border-slate-600 text-gray-400 hover:border-slate-500'
-                        }`}
-                        data-testid="toggle-property-mgmt-off"
-                      >
-                        Self-Manage
-                        <span className="block text-[10px] opacity-70">$0/mo</span>
-                      </button>
-                      <button
-                        onClick={() => handleChange('propertyManagement', true)}
-                        className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
-                          inputs.propertyManagement
-                            ? 'bg-blue-500/30 border border-blue-500 text-blue-400'
-                            : 'bg-slate-700/50 border border-slate-600 text-gray-400 hover:border-slate-500'
-                        }`}
-                        data-testid="toggle-property-mgmt-on"
-                      >
-                        Hire PM
-                        <span className="block text-[10px] opacity-70">{inputs.propertyManagementPct}% of rent</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+            )}
           </div>
-        )}
-
-        {/* LAYER 4: TIMELINE & RISK */}
-        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 overflow-hidden">
-          <button 
-            onClick={() => toggleSection('timeline')}
-            className="w-full flex items-center justify-between p-4 hover:bg-slate-800/50 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-red-400" />
-              </div>
-              <div className="text-left">
-                <h3 className="text-white font-semibold text-sm">Time & Risk</h3>
-                <p className="text-gray-500 text-xs">Rehab timeline and contingencies</p>
-              </div>
-            </div>
-            {expandedSections.timeline ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
-          </button>
-          
-          {expandedSections.timeline && (
-            <div className="px-4 pb-4 space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-xs flex items-center">Rehab Budget<InfoTooltip term="rehabBudget" /></span>
-                  {effectiveRanges.rehab.known ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500 text-xs">Range: {formatCurrency(effectiveRanges.rehab.min)}-{formatCurrency(effectiveRanges.rehab.max)}</span>
-                    </div>
-                  ) : (
-                    <UnknownValueTooltip type="rehab">
-                      <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
-                        <Lock className="w-3 h-3" /> ???
-                      </span>
-                    </UnknownValueTooltip>
-                  )}
-                </div>
-                {effectiveRanges.rehab.known ? (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <div className="relative">
-                          <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            value={getInputValue('rehabBudget')}
-                            placeholder={FIELD_HINTS.rehabBudget}
-                            onFocus={() => handleNumberFocus('rehabBudget')}
-                            onChange={(e) => handleNumberChangeFor('rehabBudget', e.target.value)}
-                            onBlur={() => handleNumberBlur('rehabBudget', effectiveRanges.rehab.min, effectiveRanges.rehab.max)}
-                            className={`w-full pl-7 pr-3 py-2 bg-slate-800 border rounded-lg text-white font-mono text-sm focus:outline-none focus:border-amber-500 ${getInputClass(isFilled(inputs.rehabBudget), touchedFields.has('rehabBudget'), requiredFields.includes('rehabBudget'))}`}
-                            data-testid="input-rehab-budget-number"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <input
-                      type="range"
-                      min={effectiveRanges.rehab.min}
-                      max={effectiveRanges.rehab.max}
-                      value={inputs.rehabBudget || effectiveRanges.rehab.min}
-                      onChange={(e) => handleChange('rehabBudget', Number(e.target.value))}
-                      className="w-full h-2 rounded-full appearance-none cursor-pointer mt-2"
-                      style={{
-                        background: `linear-gradient(to right, #f59e0b 0%, #f59e0b ${((n(inputs.rehabBudget) - effectiveRanges.rehab.min) / (effectiveRanges.rehab.max - effectiveRanges.rehab.min)) * 100}%, #334155 ${((n(inputs.rehabBudget) - effectiveRanges.rehab.min) / (effectiveRanges.rehab.max - effectiveRanges.rehab.min)) * 100}%, #334155 100%)`
-                      }}
-                      data-testid="input-rehab-budget"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>Conservative: {formatCurrency(effectiveRanges.rehab.min)}</span>
-                      <span>Optimistic: {formatCurrency(effectiveRanges.rehab.max)}</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-center">
-                    <p className="text-amber-400 text-xs">Complete a Contractor Walkthrough to unlock rehab estimates</p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-xs flex items-center">Rehab Duration<InfoTooltip term="rehabWeeks" /></span>
-                  {effectiveRanges.timeline.known ? (
-                    <span className="text-white font-mono text-sm">{inputs.rehabWeeks} weeks</span>
-                  ) : (
-                    <UnknownValueTooltip type="timeline">
-                      <span className="text-amber-400 font-mono text-sm flex items-center gap-1">
-                        <Lock className="w-3 h-3" /> ???
-                      </span>
-                    </UnknownValueTooltip>
-                  )}
-                </div>
-                {effectiveRanges.timeline.known ? (
-                  <>
-                    <input
-                      type="range"
-                      min={effectiveRanges.timeline.min}
-                      max={effectiveRanges.timeline.max}
-                      value={inputs.rehabWeeks || effectiveRanges.timeline.min}
-                      onChange={(e) => handleChange('rehabWeeks', Number(e.target.value))}
-                      className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                      style={{
-                        background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${((n(inputs.rehabWeeks) - effectiveRanges.timeline.min) / (effectiveRanges.timeline.max - effectiveRanges.timeline.min)) * 100}%, #334155 ${((n(inputs.rehabWeeks) - effectiveRanges.timeline.min) / (effectiveRanges.timeline.max - effectiveRanges.timeline.min)) * 100}%, #334155 100%)`
-                      }}
-                      data-testid="input-rehab-weeks"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>{effectiveRanges.timeline.min}w</span>
-                      <span>{effectiveRanges.timeline.max}w</span>
-                    </div>
-                  </>
-                ) : (
-                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-center">
-                    <p className="text-amber-400 text-xs">Complete a Contractor Walkthrough to unlock timeline estimates</p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-xs">Contingency</span>
-                  <span className="text-white font-mono text-sm">{n(inputs.contingencyPct)}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="25"
-                  value={inputs.contingencyPct ?? 0}
-                  onChange={(e) => handleChange('contingencyPct', Number(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #10b981 0%, #10b981 ${n(inputs.contingencyPct) * 4}%, #334155 ${n(inputs.contingencyPct) * 4}%, #334155 100%)`
-                  }}
-                  data-testid="input-contingency"
-                />
-              </div>
-
-              {/* Timeline Bar */}
-              <div className="bg-slate-800/50 rounded-xl p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-xs">Holding Cost Burn</span>
-                  <span className="text-red-400 text-xs font-mono">{formatCurrency(holdingCostPerWeek)}/week</span>
-                </div>
-                <div className="relative h-6 bg-slate-700 rounded-full overflow-hidden">
-                  {Array.from({ length: n(inputs.rehabWeeks) }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute top-0 h-full bg-red-500/80 border-r border-slate-700"
-                      style={{ 
-                        left: `${(i / Math.max(effectiveRanges.timeline.max, n(inputs.rehabWeeks))) * 100}%`,
-                        width: `${100 / Math.max(effectiveRanges.timeline.max, n(inputs.rehabWeeks))}%`
-                      }}
-                    />
-                  ))}
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-gray-500 text-xs">Total holding costs:</span>
-                  <span className="text-red-400 font-mono text-sm font-semibold">
-                    {formatCurrency(holdingCostPerWeek * n(inputs.rehabWeeks))}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Pro Forma Editor Modal */}
+      <ProFormaEditor
+        isOpen={isEditorOpen}
+        onClose={() => setIsEditorOpen(false)}
+        property={property}
+        inputs={inputs}
+        onInputsChange={onInputsChange}
+        completedDiligence={completedDiligence}
+        onFieldTouch={onFieldTouch}
+      />
 
       {/* LAYER 5: LIVE OUTCOMES */}
       <div className="xl:col-span-1">

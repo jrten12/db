@@ -1018,12 +1018,12 @@ export class DBStorage implements IStorage {
       throw new Error('Property not found');
     }
     
-    // Calculate current property value with appreciation
+    // Calculate current property value with appreciation (deterministic)
     const monthsHeld = Math.floor(weeksHeld / 4.33);
     const baseAppreciation = 0.02;
     const timeAppreciation = Math.min(monthsHeld * 0.005, 0.10);
-    const randomVariation = (Math.random() - 0.5) * 0.06;
-    const totalAppreciation = 1 + baseAppreciation + timeAppreciation + randomVariation;
+    const locationBonus = property.locationType === 'urban' ? 0.015 : 0;
+    const totalAppreciation = 1 + baseAppreciation + timeAppreciation + locationBonus;
     const currentPropertyValue = Math.round(property.price * totalAppreciation);
     
     const proFormaOutputs = deal.proFormaOutputs as any;
@@ -1046,8 +1046,8 @@ export class DBStorage implements IStorage {
     const dti = totalMonthlyIncome > 0 ? (totalMonthlyDebt / totalMonthlyIncome) * 100 : 50;
     const reserveMonths = gameRun.cash / (totalMonthlyDebt || 1000);
     
-    // Calculate interest rate based on financials
-    const baseRate = 6.5 + (Math.random() * 1.5);
+    // Calculate interest rate based on financials (deterministic)
+    const baseRate = 7.0;
     const dtiAdjustment = dti > 50 ? (dti - 50) * 0.03 : 0;
     const reserveAdjustment = reserveMonths > 6 ? -0.25 : (reserveMonths < 3 ? 0.5 : 0);
     const currentEquity = currentPropertyValue - oldLoanBalance;

@@ -33,12 +33,14 @@ async function calculateRefinanceOptions(deal: Deal, gameRun: GameRun, allDeals:
   }
   
   // Calculate current property value with appreciation
-  // Base appreciation: 5-15% depending on how long held (realistic market gains)
+  // Deterministic appreciation based on weeks held - no random variation
+  // This ensures consistent values when modal is reopened
   const monthsHeld = Math.floor(weeksHeld / 4.33);
-  const baseAppreciation = 0.02; // 2% base
+  const baseAppreciation = 0.02; // 2% base (market floor)
   const timeAppreciation = Math.min(monthsHeld * 0.005, 0.10); // 0.5% per month, max 10%
-  const randomVariation = (Math.random() - 0.5) * 0.06; // +/- 3% market variation
-  const totalAppreciation = 1 + baseAppreciation + timeAppreciation + randomVariation;
+  // Use property location for a small deterministic variation (urban appreciates faster)
+  const locationBonus = property.locationType === 'urban' ? 0.015 : 0;
+  const totalAppreciation = 1 + baseAppreciation + timeAppreciation + locationBonus;
   const currentMarketValue = Math.round(property.price * totalAppreciation);
   
   // Get current loan balance
@@ -65,8 +67,8 @@ async function calculateRefinanceOptions(deal: Deal, gameRun: GameRun, allDeals:
   const cashReserves = gameRun.cash;
   
   // Calculate variable rate based on player's financials
-  // Base rate: 6-8% depending on market
-  const baseRate = 6.5 + (Math.random() * 1.5); // 6.5-8% base
+  // Base rate: 7% fixed - variations come from player's financial situation
+  const baseRate = 7.0;
   
   // DTI adjustment: higher debt = higher rate
   const dtiAdjustment = dti > 50 ? (dti - 50) * 0.03 : 0; // +0.03% per point above 50% DTI

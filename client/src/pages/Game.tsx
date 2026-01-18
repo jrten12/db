@@ -985,11 +985,23 @@ export default function Game() {
     }
   }, [gameRun, deals, properties, queryClient, addTrophies]);
 
-  const handleRefinanceRental = useCallback(async (dealId: number) => {
+  // Open refinance modal instead of directly refinancing
+  const handleOpenRefinanceModal = useCallback(async (dealId: number) => {
+    const deal = deals.find(d => d.id === dealId);
+    if (!deal) return;
+    
+    const property = properties.find(p => p.id === deal.propertyId);
+    if (!property) return;
+    
+    setRefinancingDeal({ deal, property });
+  }, [deals, properties]);
+
+  // Execute refinance with selected LTV from modal
+  const handleExecuteRefinance = useCallback(async (dealId: number, selectedLtv: number) => {
     if (!gameRun) return;
     
     try {
-      const result = await api.refinanceRental(dealId, gameRun.id);
+      const result = await api.refinanceRental(dealId, gameRun.id, selectedLtv);
       
       // Update game state with new cash
       setGameRun(result.gameRun);
@@ -999,7 +1011,7 @@ export default function Game() {
       const property = properties.find(p => p.id === deal?.propertyId);
       
       toast.success(
-        `Refinanced ${property?.name || 'property'}! Cash out: $${result.cashOut.toLocaleString()} (new loan: $${result.newLoanBalance.toLocaleString()})`,
+        `Refinanced ${property?.name || 'property'}! Cash out: $${result.cashOut.toLocaleString()} @ ${result.newInterestRate.toFixed(2)}%`,
         { duration: 6000 }
       );
       
@@ -1244,7 +1256,7 @@ export default function Game() {
                   onAdvanceWeek={handleAdvanceWeek}
                   onSellRental={handleSellRental}
                   onSellFlip={handleSellFlip}
-                  onRefinanceRental={handleRefinanceRental}
+                  onRefinanceRental={handleOpenRefinanceModal}
                 />
                 <DebtPanelTrigger 
                   deals={deals} 
@@ -1477,6 +1489,18 @@ export default function Game() {
           isOpen={showDebtPanel}
           onOpenChange={setShowDebtPanel}
         />
+
+        {/* Refinance Modal */}
+        {refinancingDeal && gameRun && (
+          <RefinanceModal
+            isOpen={!!refinancingDeal}
+            onClose={() => setRefinancingDeal(null)}
+            deal={refinancingDeal.deal}
+            property={refinancingDeal.property}
+            gameRun={gameRun}
+            onRefinance={handleExecuteRefinance}
+          />
+        )}
 
         {/* Tutorial System */}
         <TutorialOverlay />

@@ -122,6 +122,12 @@ Preferred communication style: Simple, everyday language.
   - New appraisal at 5-15% appreciation over purchase price
   - 75% max LTV on refinance, 2% refinance fees
   - One refinance per property (prevents infinite leverage)
+- **Debt Tracking & Amortization**: Visual loan paydown system
+  - Schema fields: originalLoanAmount, loanInterestRate, loanTermMonths, totalPrincipalPaid, totalInterestPaid
+  - Accelerated amortization (5x factor) for bookkeeping only - cash payments are realistic
+  - DebtPanel UI shows total debt, individual loans, paydown progress, equity percentages
+  - Accessible via floating button when player has active loans
+  - Educational notes explain how mortgage amortization works
 - **Tenant Text Messages**: Interactive tenant communication for rental properties
   - Tenants auto-created when rental becomes active with random name and personality
   - 9 personality types: corporate_brain, retired_micromanager, anxious_professional, new_money, law_curious, lonely_caller, control_seeker, passive_aggressive, chaos_magnet

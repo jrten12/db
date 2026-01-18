@@ -1242,22 +1242,23 @@ export default function Game() {
       style={{ backgroundImage: `url(${woodTexture})` }}
       data-testid="game-screen"
     >
-      <div className="min-h-screen bg-black/30">
-        {/* Sticky header that stays at top when scrolling */}
-        <div className="sticky top-0 z-50">
-          <StatusBar
-            cash={gameRun.cash}
-            weeksRemaining={gameRun.weeksRemaining}
-            profitableDeals={gameRun.profitableDeals}
-            goalDeals={gameRun.goalDeals}
-            onOpenLedger={() => setShowLedger(true)}
-            onOpenPremium={() => setShowPremiumModal(true)}
-            onOpenHallOfFame={() => setShowHallOfFame(true)}
-            onAdvanceWeek={handleAdvanceWeek}
-            isAdvancingWeek={isAdvancingWeek}
-          />
-        </div>
-        
+      {/* Fixed header at top of viewport */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-sm">
+        <StatusBar
+          cash={gameRun.cash}
+          weeksRemaining={gameRun.weeksRemaining}
+          profitableDeals={gameRun.profitableDeals}
+          goalDeals={gameRun.goalDeals}
+          onOpenLedger={() => setShowLedger(true)}
+          onOpenPremium={() => setShowPremiumModal(true)}
+          onOpenHallOfFame={() => setShowHallOfFame(true)}
+          onAdvanceWeek={handleAdvanceWeek}
+          isAdvancingWeek={isAdvancingWeek}
+        />
+      </div>
+      
+      {/* Main content with top padding to account for fixed header */}
+      <div className="min-h-screen bg-black/30 pt-36 md:pt-28">
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">

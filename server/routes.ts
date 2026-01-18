@@ -10,9 +10,10 @@ import OpenAI from "openai";
 // Calculate refinance options based on player's financial situation
 async function calculateRefinanceOptions(deal: Deal, gameRun: GameRun, allDeals: Deal[], property: Property) {
   const SEASONING_WEEKS = 8;
+  const REFINANCE_COOLDOWN_WEEKS = 4; // Must wait 4 weeks between refinances
   const BASE_FEE_PCT = 0.02; // 2% base refinance fees
   
-  // Check seasoning period
+  // Check seasoning period (for first refinance only)
   const purchaseWeek = deal.purchaseWeek ?? 0;
   const currentWeek = gameRun.currentWeek;
   const weeksHeld = currentWeek - purchaseWeek;
@@ -25,11 +26,16 @@ async function calculateRefinanceOptions(deal: Deal, gameRun: GameRun, allDeals:
     };
   }
   
-  if ((deal.refinanceCount ?? 0) > 0) {
-    return {
-      eligible: false,
-      reason: 'Property has already been refinanced once',
-    };
+  // Check refinance cooldown (must wait 4 weeks between refinances)
+  if (deal.lastRefinanceWeek !== null && deal.lastRefinanceWeek !== undefined) {
+    const weeksSinceLastRefi = currentWeek - deal.lastRefinanceWeek;
+    if (weeksSinceLastRefi < REFINANCE_COOLDOWN_WEEKS) {
+      return {
+        eligible: false,
+        weeksUntilEligible: REFINANCE_COOLDOWN_WEEKS - weeksSinceLastRefi,
+        reason: `Must wait ${REFINANCE_COOLDOWN_WEEKS - weeksSinceLastRefi} more week(s) before refinancing again`,
+      };
+    }
   }
   
   // Calculate current property value with appreciation

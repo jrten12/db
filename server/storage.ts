@@ -966,6 +966,7 @@ export class DBStorage implements IStorage {
     property?: Property
   ): Promise<{ deal: Deal; gameRun: GameRun; cashOut: number; newLoanBalance: number; oldLoanBalance: number; refinanceFees: number; newInterestRate: number }> {
     const SEASONING_WEEKS = 8;
+    const REFINANCE_COOLDOWN_WEEKS = 4; // Must wait 4 weeks between refinances
     const REFINANCE_FEE_PCT = 0.02; // 2% refinance fees
     
     const [deal] = await db
@@ -1002,6 +1003,14 @@ export class DBStorage implements IStorage {
     
     if (weeksHeld < SEASONING_WEEKS) {
       throw new Error(`Must hold property for ${SEASONING_WEEKS} weeks before refinancing (${SEASONING_WEEKS - weeksHeld} weeks remaining)`);
+    }
+    
+    // Check refinance cooldown (must wait 4 weeks between refinances)
+    if (deal.lastRefinanceWeek !== null && deal.lastRefinanceWeek !== undefined) {
+      const weeksSinceLastRefi = currentWeek - deal.lastRefinanceWeek;
+      if (weeksSinceLastRefi < REFINANCE_COOLDOWN_WEEKS) {
+        throw new Error(`Must wait ${REFINANCE_COOLDOWN_WEEKS - weeksSinceLastRefi} more week(s) before refinancing again`);
+      }
     }
     
     // Fetch property if not provided
@@ -1080,12 +1089,17 @@ export class DBStorage implements IStorage {
       throw new Error('Not enough equity to refinance - no cash out available');
     }
     
-    // Update deal with new loan info and interest rate
+    // Update deal with new loan info and reset debt tracking
+    // When refinancing, the old loan is paid off and a new one starts
     const [updatedDeal] = await db
       .update(schema.deals)
       .set({
         currentLoanBalance: newLoanBalance,
+        originalLoanAmount: newLoanBalance, // Reset to new loan amount for debt panel
         loanInterestRate: Math.round(newInterestRate * 1000000) / 1000000,
+        totalPrincipalPaid: 0, // Reset - new loan starts fresh
+        totalInterestPaid: 0, // Reset - new loan starts fresh
+        loanTermMonths: 360, // 30-year fixed for refinance
         refinanceCount: (deal.refinanceCount ?? 0) + 1,
         lastRefinanceWeek: currentWeek,
       })

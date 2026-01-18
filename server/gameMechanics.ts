@@ -844,8 +844,8 @@ export async function processRentalIncome(
   
   // Use fallback values from proFormaOutputs if dedicated loan fields are not set
   const originalLoanAmount = deal.originalLoanAmount ?? proFormaOutputs?.loanAmount ?? 0;
-  const loanInterestRate = deal.loanInterestRate ?? proFormaInputs?.interestRate ?? 6.5;
-  const loanTermMonths = deal.loanTermMonths ?? 360;
+  const loanInterestRate = deal.loanInterestRate ?? proFormaOutputs?.interestRate ?? 6.5;
+  const loanTermMonths = deal.loanTermMonths ?? proFormaOutputs?.loanTermMonths ?? 360;
   let newLoanBalance = deal.currentLoanBalance ?? originalLoanAmount;
   
   // Track if we need to initialize loan fields (for deals created before loan tracking was added)
@@ -1329,8 +1329,8 @@ export async function activateRentalProperty(
 
   // Get loan details from pro forma for tracking
   const initialLoanBalance = proFormaOutputs?.loanAmount || 0;
-  const loanInterestRate = proFormaInputs?.interestRate || 6.5;
-  const loanTermMonths = 360; // 30-year mortgage standard
+  const loanInterestRate = proFormaOutputs?.interestRate || 6.5;
+  const loanTermMonths = proFormaOutputs?.loanTermMonths || 360;
   
   const updatedDeal = await storage.updateDeal(deal.id, {
     status: 'active_rental',

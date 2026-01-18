@@ -25,6 +25,7 @@ interface LoanDetails {
   originalLoan: number;
   currentBalance: number;
   interestRate: number;
+  termYears: number;
   monthlyPayment: number;
   principalPaid: number;
   interestPaid: number;
@@ -46,7 +47,7 @@ function LoanCard({ loan }: { loan: LoanDetails }) {
         <div>
           <h3 className="font-semibold text-white">{loan.propertyName}</h3>
           <p className="text-xs text-gray-400">
-            {loan.interestRate.toFixed(2)}% APR • 30-year fixed
+            {loan.interestRate.toFixed(2)}% APR • {Math.round(loan.termYears)}-year fixed
           </p>
         </div>
         <div className="text-right">
@@ -100,13 +101,15 @@ export function DebtPanel({ deals, properties, isOpen, onOpenChange }: DebtPanel
       
       const originalLoan = deal.originalLoanAmount || outputs?.loanAmount || 0;
       const currentBalance = deal.currentLoanBalance ?? originalLoan;
-      const interestRate = deal.loanInterestRate ?? inputs?.interestRate ?? 6.5;
+      // Read interest rate from deal fields first, then from proFormaOutputs (not inputs)
+      const interestRate = deal.loanInterestRate ?? outputs?.interestRate ?? 6.5;
       const principalPaid = deal.totalPrincipalPaid ?? 0;
       const interestPaid = deal.totalInterestPaid ?? 0;
       const purchasePrice = deal.purchasePrice || 0;
       
       // Calculate monthly payment using standard amortization formula
-      const termMonths = deal.loanTermMonths || 360;
+      const termMonths = deal.loanTermMonths || outputs?.loanTermMonths || 360;
+      const termYears = termMonths / 12;
       const monthlyRate = interestRate / 100 / 12;
       const monthlyPayment = originalLoan > 0 && monthlyRate > 0
         ? originalLoan * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / 
@@ -124,6 +127,7 @@ export function DebtPanel({ deals, properties, isOpen, onOpenChange }: DebtPanel
         originalLoan,
         currentBalance,
         interestRate,
+        termYears,
         monthlyPayment,
         principalPaid,
         interestPaid,

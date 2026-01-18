@@ -55,6 +55,8 @@ export interface ProFormaOutputs {
   downPaymentAmount: number;
   loanAmount: number;
   totalCashInvested: number;
+  interestRate: number;
+  loanTermMonths: number;
 }
 
 // Default LTV at 75% (25% down payment, ~7.5% interest)
@@ -237,6 +239,8 @@ export const calculateProForma = (
     downPaymentAmount,
     loanAmount,
     totalCashInvested,
+    interestRate,
+    loanTermMonths: numPayments,
   };
 };
 

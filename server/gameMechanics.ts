@@ -714,6 +714,16 @@ export async function processRentalIncome(
       emoji: curveball.emoji,
       gameWeek: gameRun.currentWeek,
     });
+    
+    // Handle lease break - replace the tenant with a new one
+    if (curveball.id === 'early_lease_break') {
+      // Delete the old tenant
+      const oldTenant = await storage.getTenantByDeal(deal.id);
+      if (oldTenant) {
+        await db.delete(schema.tenants).where(eq(schema.tenants.id, oldTenant.id));
+      }
+      // New tenant will be auto-created on next rental payment when client detects missing tenant
+    }
   }
 
   // Get property name for descriptions

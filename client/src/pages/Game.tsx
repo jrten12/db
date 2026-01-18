@@ -1147,11 +1147,11 @@ export default function Game() {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-fixed flex flex-col"
+      className="h-screen overflow-y-auto bg-cover bg-center bg-fixed flex flex-col"
       style={{ backgroundImage: `url(${woodTexture})` }}
       data-testid="game-screen"
     >
-      <div className="flex-1 bg-black/30 flex flex-col">
+      <div className="min-h-full bg-black/30 flex flex-col">
         <StatusBar
           cash={gameRun.cash}
           weeksRemaining={gameRun.weeksRemaining}

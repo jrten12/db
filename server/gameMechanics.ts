@@ -740,15 +740,28 @@ export async function processRentalIncome(
   // rent - vacancy - opex - debt + cashImpact = netWeeklyIncome
   // (verified: we calculated netWeeklyIncome from these same components above)
   
-  // Credit: Net rent income (gross rent minus vacancy already factored in)
-  // Show as single "Rent" entry - vacancy is baked into the amount, not shown as confusing weekly deduction
+  // Credit: Net rent income (gross rent minus vacancy, plus reality adjustment)
+  // Reality adjustment is baked into the rent - shows actual market rent, not player's estimate
+  // This is cleaner than showing a confusing "market bonus" every week
   const netRentAfterVacancy = scaledGrossRent - scaledVacancyLoss;
-  if (netRentAfterVacancy > 0) {
+  const actualRentReceived = netRentAfterVacancy + weeklyRealityAdjustment;
+  if (actualRentReceived > 0) {
     ledgerEntries.push({
       direction: 'credit',
       category: 'income',
-      amount: netRentAfterVacancy,
+      amount: actualRentReceived,
       description: `🏠 Rent - ${propertyName}`,
+      propertyId: deal.propertyId,
+      dealId: deal.id,
+      gameWeek: gameRun.currentWeek,
+    });
+  } else if (actualRentReceived < 0) {
+    // Edge case: reality adjustment is negative and exceeds rent
+    ledgerEntries.push({
+      direction: 'debit',
+      category: 'expense',
+      amount: Math.abs(actualRentReceived),
+      description: `🏠 Rent shortfall - ${propertyName}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
       gameWeek: gameRun.currentWeek,
@@ -781,33 +794,9 @@ export async function processRentalIncome(
     });
   }
   
-  // Reality check adjustment - market rent was different from player's estimate
-  // Always show this as separate line item when non-zero so ledger matches popup
-  if (weeklyRealityAdjustment !== 0) {
-    if (weeklyRealityAdjustment > 0) {
-      // Player was conservative - actual market rent is higher
-      ledgerEntries.push({
-        direction: 'credit',
-        category: 'income',
-        amount: weeklyRealityAdjustment,
-        description: `📈 Market rent bonus - ${propertyName}`,
-        propertyId: deal.propertyId,
-        dealId: deal.id,
-        gameWeek: gameRun.currentWeek,
-      });
-    } else {
-      // Player was optimistic - actual market rent is lower
-      ledgerEntries.push({
-        direction: 'debit',
-        category: 'expense',
-        amount: Math.abs(weeklyRealityAdjustment),
-        description: `📉 Rent lower than market - ${propertyName}`,
-        propertyId: deal.propertyId,
-        dealId: deal.id,
-        gameWeek: gameRun.currentWeek,
-      });
-    }
-  }
+  // Reality check adjustment is now baked into the rent line above
+  // No separate line needed - the rent line already shows actual market rent
+  // This is cleaner and less confusing for players
   
   // Curveball cash impact (if any)
   if (cashImpact !== 0) {

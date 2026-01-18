@@ -14,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info } from 'lucide-react';
+import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark } from 'lucide-react';
 import type { Deal, GameRun, Property } from '@shared/schema';
 
 interface TimeProgressionPanelProps {
@@ -290,9 +290,18 @@ export function TimeProgressionPanel({
             // Refinancing check - use gameRun.currentWeek for consistency with server
             const currentWeek = gameRun.currentWeek;
             const purchaseWeek = (deal as any).purchaseWeek ?? 0;
+            const lastRefinanceWeek = (deal as any).lastRefinanceWeek;
             const weeksHeld = currentWeek - purchaseWeek;
-            const canRefinance = weeksHeld >= SEASONING_WEEKS && onRefinanceRental && ((deal as any).refinanceCount ?? 0) === 0;
-            const weeksUntilRefinance = Math.max(0, SEASONING_WEEKS - weeksHeld);
+            const REFINANCE_COOLDOWN = 4; // Must wait 4 weeks between refinances
+            
+            // Check seasoning for first refi, or cooldown for subsequent refis
+            const weeksSinceLastRefi = lastRefinanceWeek != null ? currentWeek - lastRefinanceWeek : Infinity;
+            const canRefinance = weeksHeld >= SEASONING_WEEKS && 
+                                 onRefinanceRental && 
+                                 weeksSinceLastRefi >= REFINANCE_COOLDOWN;
+            const weeksUntilRefinance = lastRefinanceWeek != null 
+              ? Math.max(0, REFINANCE_COOLDOWN - weeksSinceLastRefi)
+              : Math.max(0, SEASONING_WEEKS - weeksHeld);
             
             return (
               <div
@@ -316,14 +325,14 @@ export function TimeProgressionPanel({
                   </PopoverContent>
                 </Popover>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  {/* Refinance button */}
+                  {/* Refinance (Cash-Out) button with bank icon */}
                   {onRefinanceRental && (
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           size="sm"
                           variant="outline"
-                          className={`h-6 px-2 text-xs ${canRefinance ? 'bg-blue-500/20 border-blue-500/50 text-blue-300 hover:bg-blue-500/30' : 'bg-gray-500/10 border-gray-500/30 text-gray-500'}`}
+                          className={`h-7 px-2 text-xs gap-1 ${canRefinance ? 'bg-blue-500/20 border-blue-500/50 text-blue-300 hover:bg-blue-500/30' : 'bg-gray-500/10 border-gray-500/30 text-gray-500'}`}
                           disabled={!canRefinance || refinancingDealId === deal.id}
                           onClick={(e) => {
                             if (canRefinance) {
@@ -336,15 +345,22 @@ export function TimeProgressionPanel({
                           {refinancingDealId === deal.id ? (
                             <Loader2 className="w-3 h-3 animate-spin" />
                           ) : (
-                            'Refi'
+                            <>
+                              <Landmark className="w-3.5 h-3.5" />
+                              <DollarSign className="w-3 h-3 -ml-1" />
+                            </>
                           )}
                         </Button>
                       </PopoverTrigger>
-                      {!canRefinance && weeksUntilRefinance > 0 && (
-                        <PopoverContent className="w-48 bg-slate-900 border-slate-700 text-white text-xs p-2">
-                          Seasoning period: {weeksUntilRefinance} weeks until you can refinance
-                        </PopoverContent>
-                      )}
+                      <PopoverContent className="w-52 bg-slate-900 border-slate-700 text-white text-xs p-2">
+                        {canRefinance ? (
+                          <span className="text-blue-300">Cash-out refinance - tap to access your equity</span>
+                        ) : weeksUntilRefinance > 0 ? (
+                          <span>Seasoning period: {weeksUntilRefinance} weeks until you can refinance</span>
+                        ) : (
+                          <span>Refinancing not available</span>
+                        )}
+                      </PopoverContent>
                     </Popover>
                   )}
                   <span className="text-[10px] text-gray-500 hidden sm:inline">

@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import { formatCurrency } from '@/lib/gameData';
-import type { LedgerEntry } from '@shared/schema';
-import { ArrowUpCircle, ArrowDownCircle, X, Wallet } from 'lucide-react';
+import type { LedgerEntry, Deal, Property } from '@shared/schema';
+import { ArrowUpCircle, ArrowDownCircle, X, Wallet, Building2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface LedgerPanelProps {
   entries: LedgerEntry[];
   startingCash: number;
+  deals: Deal[];
+  properties: Property[];
   onClose: () => void;
 }
 
@@ -19,6 +23,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   income: 'Income',
   expense: 'Expense',
   sale_proceeds: 'Sale Proceeds',
+  rent_income: 'Rent Income',
+  debt_service: 'Mortgage Payment',
+  refinance_proceeds: 'Refinance Cash Out',
+  refinance_fees: 'Refinance Fees',
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -32,15 +40,140 @@ const CATEGORY_COLORS: Record<string, string> = {
   income: 'text-emerald-400',
   expense: 'text-red-400',
   sale_proceeds: 'text-green-400',
+  rent_income: 'text-emerald-400',
+  debt_service: 'text-orange-400',
+  refinance_proceeds: 'text-cyan-400',
+  refinance_fees: 'text-pink-400',
 };
 
-export function LedgerPanel({ entries, startingCash, onClose }: LedgerPanelProps) {
-  // Ascending order for balance calculations
+interface UnitPnL {
+  dealId: number;
+  propertyId: number;
+  propertyName: string;
+  neighborhood: string;
+  strategy: string;
+  status: string;
+  totalIncome: number;
+  totalExpenses: number;
+  netPnL: number;
+  entries: LedgerEntry[];
+}
+
+function UnitPnLCard({ unit, isExpanded, onToggle }: { unit: UnitPnL; isExpanded: boolean; onToggle: () => void }) {
+  const isProfitable = unit.netPnL >= 0;
+  const strategyLabel = unit.strategy === 'flip' ? 'Flip' : 'Rental';
+  const statusLabel = getStatusLabel(unit.status);
+  
+  return (
+    <div className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full p-4 text-left hover:bg-slate-700/30 transition-colors"
+        data-testid={`unit-pnl-card-${unit.dealId}`}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 bg-slate-700 rounded-lg">
+              <Building2 className="w-5 h-5 text-blue-400" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-semibold text-white truncate">{unit.propertyName}</div>
+              <div className="text-sm text-gray-400">{unit.neighborhood}</div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  unit.strategy === 'flip' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'
+                }`}>
+                  {strategyLabel}
+                </span>
+                <span className="text-xs text-gray-500">{statusLabel}</span>
+              </div>
+            </div>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <div className={`text-lg font-bold font-mono ${isProfitable ? 'text-emerald-400' : 'text-red-400'}`}>
+              {isProfitable ? '+' : ''}{formatCurrency(unit.netPnL)}
+            </div>
+            <div className="text-xs text-gray-500">Net P&L</div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <div className="bg-emerald-500/10 rounded-lg p-2 text-center border border-emerald-500/20">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <TrendingUp className="w-3 h-3 text-emerald-400" />
+              <span className="text-xs text-emerald-400">Income</span>
+            </div>
+            <div className="text-emerald-400 font-mono font-semibold">
+              +{formatCurrency(unit.totalIncome)}
+            </div>
+          </div>
+          <div className="bg-red-500/10 rounded-lg p-2 text-center border border-red-500/20">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <TrendingDown className="w-3 h-3 text-red-400" />
+              <span className="text-xs text-red-400">Expenses</span>
+            </div>
+            <div className="text-red-400 font-mono font-semibold">
+              -{formatCurrency(unit.totalExpenses)}
+            </div>
+          </div>
+        </div>
+      </button>
+      
+      {isExpanded && unit.entries.length > 0 && (
+        <div className="border-t border-slate-700 p-3 bg-slate-900/50 max-h-48 overflow-y-auto">
+          <div className="text-xs text-gray-400 mb-2 font-medium">Transaction History</div>
+          <div className="space-y-1.5">
+            {[...unit.entries].sort((a, b) => 
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            ).map((entry) => (
+              <div 
+                key={entry.id}
+                className="flex items-center justify-between gap-2 text-xs"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  {entry.direction === 'debit' ? (
+                    <ArrowDownCircle className="w-3 h-3 text-red-400 flex-shrink-0" />
+                  ) : (
+                    <ArrowUpCircle className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                  )}
+                  <span className={`${CATEGORY_COLORS[entry.category] || 'text-gray-400'} flex-shrink-0`}>
+                    {CATEGORY_LABELS[entry.category] || entry.category}
+                  </span>
+                  <span className="text-gray-500">Wk {entry.gameWeek}</span>
+                </div>
+                <span className={`font-mono ${entry.direction === 'debit' ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {entry.direction === 'debit' ? '-' : '+'}{formatCurrency(entry.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getStatusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    planned: 'Planned',
+    in_rehab: 'In Rehab',
+    ready_to_list: 'Ready to List',
+    leasing: 'Finding Tenants',
+    active_rental: 'Active Rental',
+    listing: 'Listed for Sale',
+    completed: 'Completed',
+    sold_rental: 'Sold',
+  };
+  return labels[status] || status;
+}
+
+export function LedgerPanel({ entries, startingCash, deals, properties, onClose }: LedgerPanelProps) {
+  const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
+  
   const sortedEntriesAsc = [...entries].sort((a, b) => 
     new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
   
-  // Descending order for display (most recent first)
   const sortedEntries = [...entries].sort((a, b) => 
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
@@ -62,9 +195,41 @@ export function LedgerPanel({ entries, startingCash, onClose }: LedgerPanelProps
     .filter(e => e.direction === 'credit')
     .reduce((sum, e) => sum + e.amount, 0);
 
+  const unitPnLs: UnitPnL[] = deals
+    .filter(deal => deal.status !== 'planned')
+    .map(deal => {
+      const property = properties.find(p => p.id === deal.propertyId);
+      const dealEntries = entries.filter(e => e.dealId === deal.id);
+      
+      const totalIncome = dealEntries
+        .filter(e => e.direction === 'credit')
+        .reduce((sum, e) => sum + e.amount, 0);
+      
+      const totalExpenses = dealEntries
+        .filter(e => e.direction === 'debit')
+        .reduce((sum, e) => sum + e.amount, 0);
+      
+      return {
+        dealId: deal.id,
+        propertyId: deal.propertyId,
+        propertyName: property?.name || `Property #${deal.propertyId}`,
+        neighborhood: property?.neighborhood || 'Unknown',
+        strategy: deal.strategy,
+        status: deal.status,
+        totalIncome,
+        totalExpenses,
+        netPnL: totalIncome - totalExpenses,
+        entries: dealEntries,
+      };
+    })
+    .sort((a, b) => b.netPnL - a.netPnL);
+
+  const unassignedEntries = entries.filter(e => !e.dealId);
+  const hasUnassigned = unassignedEntries.length > 0;
+
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" data-testid="ledger-panel">
-      <div className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl">
+      <div className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl">
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
             <Wallet className="w-6 h-6 text-emerald-400" />
@@ -98,48 +263,105 @@ export function LedgerPanel({ entries, startingCash, onClose }: LedgerPanelProps
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
-          {sortedEntries.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
-              No transactions yet. Start by selecting a property!
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {sortedEntries.map((entry) => (
-                <div 
-                  key={entry.id}
-                  className="flex items-center gap-3 bg-slate-800/50 rounded-lg p-3 border border-slate-700"
-                  data-testid={`ledger-entry-${entry.id}`}
-                >
-                  <div className="flex-shrink-0">
-                    {entry.direction === 'debit' ? (
-                      <ArrowDownCircle className="w-5 h-5 text-red-400" />
-                    ) : (
-                      <ArrowUpCircle className="w-5 h-5 text-emerald-400" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-semibold ${CATEGORY_COLORS[entry.category] || 'text-gray-400'}`}>
-                        {CATEGORY_LABELS[entry.category] || entry.category}
-                      </span>
-                      <span className="text-xs text-gray-500">Week {entry.gameWeek ?? '?'}</span>
+        <Tabs defaultValue="all" className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="mx-4 mt-3 bg-slate-800/50 border border-slate-700">
+            <TabsTrigger 
+              value="all" 
+              className="flex-1 data-[state=active]:bg-slate-700"
+              data-testid="tab-all-transactions"
+            >
+              All Transactions
+            </TabsTrigger>
+            <TabsTrigger 
+              value="by-unit" 
+              className="flex-1 data-[state=active]:bg-slate-700"
+              data-testid="tab-by-unit"
+            >
+              By Unit ({unitPnLs.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="flex-1 overflow-y-auto p-4 mt-0">
+            {sortedEntries.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                No transactions yet. Start by selecting a property!
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {sortedEntries.map((entry) => (
+                  <div 
+                    key={entry.id}
+                    className="flex items-center gap-3 bg-slate-800/50 rounded-lg p-3 border border-slate-700"
+                    data-testid={`ledger-entry-${entry.id}`}
+                  >
+                    <div className="flex-shrink-0">
+                      {entry.direction === 'debit' ? (
+                        <ArrowDownCircle className="w-5 h-5 text-red-400" />
+                      ) : (
+                        <ArrowUpCircle className="w-5 h-5 text-emerald-400" />
+                      )}
                     </div>
-                    <div className="text-white text-sm truncate">{entry.description}</div>
-                  </div>
-                  <div className="flex-shrink-0 text-right">
-                    <div className={`font-bold font-mono ${entry.direction === 'debit' ? 'text-red-400' : 'text-emerald-400'}`}>
-                      {entry.direction === 'debit' ? '-' : '+'}{formatCurrency(entry.amount)}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-semibold ${CATEGORY_COLORS[entry.category] || 'text-gray-400'}`}>
+                          {CATEGORY_LABELS[entry.category] || entry.category}
+                        </span>
+                        <span className="text-xs text-gray-500">Week {entry.gameWeek ?? '?'}</span>
+                      </div>
+                      <div className="text-white text-sm truncate">{entry.description}</div>
                     </div>
-                    <div className="text-gray-500 text-xs font-mono">
-                      {formatCurrency(entry.balanceAfter)}
+                    <div className="flex-shrink-0 text-right">
+                      <div className={`font-bold font-mono ${entry.direction === 'debit' ? 'text-red-400' : 'text-emerald-400'}`}>
+                        {entry.direction === 'debit' ? '-' : '+'}{formatCurrency(entry.amount)}
+                      </div>
+                      <div className="text-gray-500 text-xs font-mono">
+                        {formatCurrency(entry.balanceAfter)}
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="by-unit" className="flex-1 overflow-y-auto p-4 mt-0">
+            {unitPnLs.length === 0 ? (
+              <div className="text-center text-gray-500 py-8">
+                <Building2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>No properties purchased yet.</p>
+                <p className="text-sm mt-1">Commit to a deal to see unit-level P&L!</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-xs text-gray-400 mb-2">
+                  Tap a property to see transaction details
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+                {unitPnLs.map((unit) => (
+                  <UnitPnLCard
+                    key={unit.dealId}
+                    unit={unit}
+                    isExpanded={expandedUnit === unit.dealId}
+                    onToggle={() => setExpandedUnit(
+                      expandedUnit === unit.dealId ? null : unit.dealId
+                    )}
+                  />
+                ))}
+                
+                {hasUnassigned && (
+                  <div className="mt-4 pt-4 border-t border-slate-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Minus className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-400">General Transactions</span>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {unassignedEntries.length} transaction(s) not tied to a specific property
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

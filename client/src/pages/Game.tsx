@@ -1313,6 +1313,8 @@ export default function Game() {
           <LedgerPanel
             entries={ledgerEntries}
             startingCash={STARTING_CASH}
+            deals={deals}
+            properties={properties}
             onClose={() => setShowLedger(false)}
           />
         )}

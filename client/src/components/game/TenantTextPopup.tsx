@@ -24,7 +24,12 @@ export function TenantTextPopup({
 
   useEffect(() => {
     if (isOpen) {
+      // Reset to notification state when a new message arrives
       setShowNotification(true);
+      setShowFullMessage(false);
+    } else {
+      // Reset both states when popup closes to prepare for next message
+      setShowNotification(false);
       setShowFullMessage(false);
     }
   }, [isOpen]);

@@ -12,6 +12,9 @@ import { DealTransactionAnimation } from '@/components/game/DealTransactionAnima
 import { TimeProgressionPanel } from '@/components/game/TimeProgressionPanel';
 import { IncomeNotification, useIncomeNotifications } from '@/components/game/IncomeNotification';
 import { TenantIssuePopup, type TenantIssueEvent } from '@/components/game/TenantIssuePopup';
+import { TenantTextPopup } from '@/components/game/TenantTextPopup';
+import { generateTenantName, getRandomPersonalityType, getSpeechPatterns, getRandomMessage } from '@/lib/tenantGenerator';
+import type { Tenant } from '@shared/schema';
 import { PremiumModal } from '@/components/game/PremiumModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
@@ -571,6 +574,13 @@ export default function Game() {
 
   const [isCommittingDeal, setIsCommittingDeal] = useState(false);
   const [isAdvancingWeek, setIsAdvancingWeek] = useState(false);
+  
+  // Tenant text message state
+  const [tenantTextPopup, setTenantTextPopup] = useState<{
+    isOpen: boolean;
+    tenant: Tenant | null;
+    message: string;
+  }>({ isOpen: false, tenant: null, message: '' });
   const [dealOutcome, setDealOutcome] = useState<{
     property: Property;
     totalCashRequired: number;
@@ -799,6 +809,59 @@ export default function Game() {
       setGameRun(updatedGameRun);
       queryClient.invalidateQueries({ queryKey: ['deals'] });
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
+
+      // Create tenants for newly activated rentals and possibly trigger text messages
+      try {
+        const updatedDeals = await api.getDeals(gameRun.id);
+        const activeRentals = updatedDeals.filter((d: Deal) => d.status === 'active_rental');
+        
+        // Batch fetch tenants once to avoid N+1 queries
+        const existingTenants = await api.getTenants(gameRun.id);
+        const tenantDealIds = new Set(existingTenants.map(t => t.dealId));
+        
+        // Create tenants only for rentals that don't have one yet
+        const rentalsNeedingTenants = activeRentals.filter(r => !tenantDealIds.has(r.id));
+        for (const rental of rentalsNeedingTenants) {
+          try {
+            const personalityType = getRandomPersonalityType();
+            const name = generateTenantName();
+            const speechPatterns = getSpeechPatterns(personalityType);
+            
+            await api.createTenant(rental.id, {
+              name,
+              personalityType,
+              speechPatterns,
+            });
+          } catch (err) {
+            // Silently continue - tenant creation is non-critical
+            console.error('Failed to create tenant:', err);
+          }
+        }
+        
+        // Random chance to trigger a tenant text message (30% chance per week if there are active rentals)
+        if (activeRentals.length > 0 && Math.random() < 0.30) {
+          // Refetch tenants to include newly created ones
+          const allTenants = rentalsNeedingTenants.length > 0 
+            ? await api.getTenants(gameRun.id) 
+            : existingTenants;
+          
+          if (allTenants.length > 0) {
+            const randomTenant = allTenants[Math.floor(Math.random() * allTenants.length)];
+            const speechPatterns = randomTenant.speechPatterns as string[] || [];
+            if (speechPatterns.length > 0) {
+              const message = getRandomMessage(speechPatterns);
+              setTenantTextPopup({
+                isOpen: true,
+                tenant: randomTenant,
+                message,
+              });
+            }
+          }
+        }
+      } catch (err) {
+        // Tenant feature errors should not break week advancement
+        console.error('Tenant feature error:', err);
+      }
 
       toast.success(`Week ${result.newWeek} complete!`);
     } catch (error: any) {
@@ -1339,6 +1402,15 @@ export default function Game() {
             onTryAgain={handleBankruptTryAgain}
           />
         )}
+
+        {/* Tenant Text Messages */}
+        <TenantTextPopup
+          isOpen={tenantTextPopup.isOpen}
+          onClose={() => setTenantTextPopup({ isOpen: false, tenant: null, message: '' })}
+          tenantName={tenantTextPopup.tenant?.name || ''}
+          tenantPortraitUrl={tenantTextPopup.tenant?.portraitUrl}
+          message={tenantTextPopup.message}
+        />
 
         {/* Tutorial System */}
         <TutorialOverlay />

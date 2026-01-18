@@ -122,8 +122,15 @@ Preferred communication style: Simple, everyday language.
   - New appraisal at 5-15% appreciation over purchase price
   - 75% max LTV on refinance, 2% refinance fees
   - One refinance per property (prevents infinite leverage)
-  - Schema fields: `purchaseWeek`, `refinanceCount`, `currentLoanBalance`, `lastRefinanceWeek`
-  - UI: "Refi" button in TimeProgressionPanel with seasoning countdown
+- **Tenant Text Messages**: Interactive tenant communication for rental properties
+  - Tenants auto-created when rental becomes active with random name and personality
+  - 9 personality types: corporate_brain, retired_micromanager, anxious_professional, new_money, law_curious, lonely_caller, control_seeker, passive_aggressive, chaos_magnet
+  - Personality types are internal only, never shown to player
+  - 30% chance per week to receive a tenant text message
+  - iPhone-style text popup: notification banner → tap to see full message
+  - Diverse name generator with 50 first names × 40 last names avoiding stereotypes
+  - Schema: `tenants` table with dealId, name, personalityType, speechPatterns, portraitUrl
+  - Optional GPT-generated portraits via OpenAI AI integrations
 
 ## External Dependencies
 

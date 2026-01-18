@@ -2,6 +2,34 @@ import type { GameRun, Property, Deal, InsertGameRun, InsertDeal, PropertyInvest
 
 const API_BASE = '/api';
 
+export interface LtvOption {
+  ltv: number;
+  newLoanAmount: number;
+  cashOut: number;
+  refinanceFees: number;
+  monthlyPayment: number;
+}
+
+export interface RefinanceOptions {
+  eligible: boolean;
+  weeksUntilEligible?: number;
+  reason?: string;
+  currentMarketValue?: number;
+  currentLoanBalance?: number;
+  currentEquity?: number;
+  equityPercent?: number;
+  interestRate?: number;
+  refinanceFeePct?: number;
+  minLtv?: number;
+  maxLtv?: number;
+  ltvOptions?: LtvOption[];
+  playerMetrics?: {
+    dti: number;
+    cashReserves: number;
+    reserveMonths: number;
+  };
+}
+
 export const api = {
   // Properties
   async getProperties(): Promise<Property[]> {
@@ -227,18 +255,28 @@ export const api = {
     return res.json();
   },
 
-  async refinanceRental(dealId: number, gameRunId: number): Promise<{
+  async getRefinanceOptions(dealId: number, gameRunId: number): Promise<RefinanceOptions> {
+    const res = await fetch(`${API_BASE}/deals/${dealId}/refinance-options?gameRunId=${gameRunId}`);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to get refinance options');
+    }
+    return res.json();
+  },
+
+  async refinanceRental(dealId: number, gameRunId: number, selectedLtv?: number): Promise<{
     deal: Deal;
     gameRun: GameRun;
     cashOut: number;
     newLoanBalance: number;
     oldLoanBalance: number;
     refinanceFees: number;
+    newInterestRate: number;
   }> {
     const res = await fetch(`${API_BASE}/deals/${dealId}/refinance`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gameRunId }),
+      body: JSON.stringify({ gameRunId, selectedLtv }),
     });
     if (!res.ok) {
       const err = await res.json();

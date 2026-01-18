@@ -60,7 +60,7 @@ export interface IStorage {
   updateDeal(id: number, updates: Partial<InsertDeal>): Promise<Deal | undefined>;
   sellRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number; mortgagePayoff: number; netProceeds: number }>;
   sellFlipProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number }>;
-  refinanceRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; cashOut: number; newLoanBalance: number; oldLoanBalance: number; refinanceFees: number }>;
+  refinanceRentalProperty(dealId: number, gameRunId: number, requestedCashOut?: number, selectedLtv?: number, allDeals?: Deal[], property?: Property): Promise<{ deal: Deal; gameRun: GameRun; cashOut: number; newLoanBalance: number; oldLoanBalance: number; refinanceFees: number; newInterestRate: number }>;
 
   // Property Investigation methods
   createPropertyInvestigation(investigation: InsertPropertyInvestigation): Promise<PropertyInvestigation>;
@@ -957,10 +957,16 @@ export class DBStorage implements IStorage {
     };
   }
 
-  async refinanceRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; cashOut: number; newLoanBalance: number; oldLoanBalance: number; refinanceFees: number }> {
-    const SEASONING_WEEKS = 8; // Minimum weeks to hold before refinancing
+  async refinanceRentalProperty(
+    dealId: number, 
+    gameRunId: number, 
+    requestedCashOut?: number, 
+    selectedLtv?: number,
+    allDeals?: Deal[],
+    property?: Property
+  ): Promise<{ deal: Deal; gameRun: GameRun; cashOut: number; newLoanBalance: number; oldLoanBalance: number; refinanceFees: number; newInterestRate: number }> {
+    const SEASONING_WEEKS = 8;
     const REFINANCE_FEE_PCT = 0.02; // 2% refinance fees
-    const MAX_REFINANCE_LTV = 0.75; // 75% max LTV on refinance
     
     const [deal] = await db
       .select()
@@ -986,13 +992,10 @@ export class DBStorage implements IStorage {
       throw new Error('Game run not found');
     }
     
-    // Check seasoning period - use gameRun.currentWeek for consistency
-    // If purchaseWeek is null, property was created before this feature - use 0 as fallback
     const purchaseWeek = deal.purchaseWeek ?? 0;
     const currentWeek = gameRun.currentWeek;
     const weeksHeld = currentWeek - purchaseWeek;
     
-    // Guard against negative weeksHeld (shouldn't happen but be safe)
     if (weeksHeld < 0) {
       throw new Error('Invalid seasoning calculation - please contact support');
     }
@@ -1001,50 +1004,94 @@ export class DBStorage implements IStorage {
       throw new Error(`Must hold property for ${SEASONING_WEEKS} weeks before refinancing (${SEASONING_WEEKS - weeksHeld} weeks remaining)`);
     }
     
-    // Get property value for new appraisal
-    const [property] = await db
-      .select()
-      .from(schema.properties)
-      .where(eq(schema.properties.id, deal.propertyId))
-      .limit(1);
+    // Fetch property if not provided
+    if (!property) {
+      const [prop] = await db
+        .select()
+        .from(schema.properties)
+        .where(eq(schema.properties.id, deal.propertyId))
+        .limit(1);
+      property = prop;
+    }
     
     if (!property) {
       throw new Error('Property not found');
     }
     
-    // Current property value = original price + 5-15% appreciation
-    const appreciationMultiplier = 1.05 + Math.random() * 0.10;
-    const currentPropertyValue = Math.round(property.price * appreciationMultiplier);
+    // Calculate current property value with appreciation
+    const monthsHeld = Math.floor(weeksHeld / 4.33);
+    const baseAppreciation = 0.02;
+    const timeAppreciation = Math.min(monthsHeld * 0.005, 0.10);
+    const randomVariation = (Math.random() - 0.5) * 0.06;
+    const totalAppreciation = 1 + baseAppreciation + timeAppreciation + randomVariation;
+    const currentPropertyValue = Math.round(property.price * totalAppreciation);
     
-    // Calculate old loan balance from pro forma
     const proFormaOutputs = deal.proFormaOutputs as any;
     const oldLoanBalance = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
     
-    // New loan at 75% of current value
-    const newLoanBalance = Math.round(currentPropertyValue * MAX_REFINANCE_LTV);
+    // Calculate variable rate based on player's financial situation
+    let totalMonthlyDebt = 0;
+    let totalMonthlyIncome = 0;
     
-    // Refinance fees
+    if (allDeals) {
+      for (const d of allDeals) {
+        if (d.status === 'active_rental') {
+          const outputs = d.proFormaOutputs as any;
+          totalMonthlyDebt += outputs?.monthlyDebtService || 0;
+          totalMonthlyIncome += outputs?.monthlyGrossRent || 0;
+        }
+      }
+    }
+    
+    const dti = totalMonthlyIncome > 0 ? (totalMonthlyDebt / totalMonthlyIncome) * 100 : 50;
+    const reserveMonths = gameRun.cash / (totalMonthlyDebt || 1000);
+    
+    // Calculate interest rate based on financials
+    const baseRate = 6.5 + (Math.random() * 1.5);
+    const dtiAdjustment = dti > 50 ? (dti - 50) * 0.03 : 0;
+    const reserveAdjustment = reserveMonths > 6 ? -0.25 : (reserveMonths < 3 ? 0.5 : 0);
+    const currentEquity = currentPropertyValue - oldLoanBalance;
+    const equityPercent = (currentEquity / currentPropertyValue) * 100;
+    const equityAdjustment = equityPercent > 40 ? -0.25 : (equityPercent < 25 ? 0.5 : 0);
+    const newInterestRate = Math.max(5.5, Math.min(12, baseRate + dtiAdjustment + reserveAdjustment + equityAdjustment));
+    
+    // Calculate new loan based on selected LTV or requested cash out
+    let newLoanBalance: number;
+    let cashOut: number;
+    
+    if (selectedLtv) {
+      newLoanBalance = Math.round(currentPropertyValue * (selectedLtv / 100));
+    } else if (requestedCashOut) {
+      // Work backwards from requested cash out
+      // cashOut = newLoan - oldLoan - fees
+      // cashOut = newLoan - oldLoan - (newLoan * 0.02)
+      // cashOut = newLoan * 0.98 - oldLoan
+      // newLoan = (cashOut + oldLoan) / 0.98
+      newLoanBalance = Math.round((requestedCashOut + oldLoanBalance) / (1 - REFINANCE_FEE_PCT));
+    } else {
+      // Default: max out at 75% LTV
+      newLoanBalance = Math.round(currentPropertyValue * 0.75);
+    }
+    
     const refinanceFees = Math.round(newLoanBalance * REFINANCE_FEE_PCT);
-    
-    // Cash out = new loan - old loan - fees
-    const cashOut = newLoanBalance - oldLoanBalance - refinanceFees;
+    cashOut = newLoanBalance - oldLoanBalance - refinanceFees;
     
     if (cashOut <= 0) {
       throw new Error('Not enough equity to refinance - no cash out available');
     }
     
-    // Update deal with new loan info
+    // Update deal with new loan info and interest rate
     const [updatedDeal] = await db
       .update(schema.deals)
       .set({
         currentLoanBalance: newLoanBalance,
+        loanInterestRate: Math.round(newInterestRate * 1000000) / 1000000,
         refinanceCount: (deal.refinanceCount ?? 0) + 1,
         lastRefinanceWeek: currentWeek,
       })
       .where(eq(schema.deals.id, dealId))
       .returning();
     
-    // Update player cash
     const newCash = gameRun.cash + cashOut;
     const [updatedGameRun] = await db
       .update(schema.gameRuns)
@@ -1055,8 +1102,6 @@ export class DBStorage implements IStorage {
       .where(eq(schema.gameRuns.id, gameRunId))
       .returning();
     
-    // Add ledger entries for refinance
-    // Gross proceeds = new loan - old loan
     const grossProceeds = newLoanBalance - oldLoanBalance;
     const afterGrossProceeds = gameRun.cash + grossProceeds;
     
@@ -1067,7 +1112,7 @@ export class DBStorage implements IStorage {
         category: 'refinance_proceeds',
         amount: grossProceeds,
         balanceAfter: afterGrossProceeds,
-        description: `Refinance proceeds (new loan $${newLoanBalance.toLocaleString()} - old loan $${oldLoanBalance.toLocaleString()})`,
+        description: `Refinance proceeds (new loan $${newLoanBalance.toLocaleString()} @ ${newInterestRate.toFixed(2)}%)`,
         propertyId: deal.propertyId,
         dealId: dealId,
         gameWeek: currentWeek,
@@ -1077,7 +1122,7 @@ export class DBStorage implements IStorage {
         direction: 'debit',
         category: 'refinance_fee',
         amount: refinanceFees,
-        balanceAfter: newCash, // afterGrossProceeds - refinanceFees = newCash
+        balanceAfter: newCash,
         description: `Refinance fees (2% of $${newLoanBalance.toLocaleString()} loan)`,
         propertyId: deal.propertyId,
         dealId: dealId,
@@ -1092,6 +1137,7 @@ export class DBStorage implements IStorage {
       newLoanBalance,
       oldLoanBalance,
       refinanceFees,
+      newInterestRate,
     };
   }
 

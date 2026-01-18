@@ -24,6 +24,7 @@ import { SaveIndicator } from '@/components/game/SaveIndicator';
 import { TutorialOverlay } from '@/components/game/TutorialOverlay';
 import { TutorialPrompt } from '@/components/game/TutorialPrompt';
 import { DebtPanel, DebtPanelTrigger } from '@/components/game/DebtPanel';
+import { RefinanceModal } from '@/components/game/RefinanceModal';
 import { useTutorial } from '@/contexts/TutorialContext';
 import {
   ProFormaInputs,
@@ -124,6 +125,12 @@ export default function Game() {
     purchasePrice: number;
     minSale: number;
     maxSale: number;
+  } | null>(null);
+  
+  // Refinance modal state
+  const [refinancingDeal, setRefinancingDeal] = useState<{
+    deal: Deal;
+    property: Property;
   } | null>(null);
 
   const STARTING_CASH = 50000;

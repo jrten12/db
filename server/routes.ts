@@ -1,11 +1,138 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema, insertTenantSchema, trophyTypes } from "@shared/schema";
+import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema, insertTenantSchema, trophyTypes, type Deal, type GameRun, type Property } from "@shared/schema";
 import { z } from "zod";
 import * as gameMechanics from "./gameMechanics";
 import { dealLimiter, ledgerLimiter, gameActionLimiter, authLimiter, purchaseLimiter } from "./rateLimiter";
 import OpenAI from "openai";
+
+// Calculate refinance options based on player's financial situation
+async function calculateRefinanceOptions(deal: Deal, gameRun: GameRun, allDeals: Deal[], property: Property) {
+  const SEASONING_WEEKS = 8;
+  const BASE_FEE_PCT = 0.02; // 2% base refinance fees
+  
+  // Check seasoning period
+  const purchaseWeek = deal.purchaseWeek ?? 0;
+  const currentWeek = gameRun.currentWeek;
+  const weeksHeld = currentWeek - purchaseWeek;
+  
+  if (weeksHeld < SEASONING_WEEKS) {
+    return {
+      eligible: false,
+      weeksUntilEligible: SEASONING_WEEKS - weeksHeld,
+      reason: `Must hold property for ${SEASONING_WEEKS} weeks before refinancing`,
+    };
+  }
+  
+  if ((deal.refinanceCount ?? 0) > 0) {
+    return {
+      eligible: false,
+      reason: 'Property has already been refinanced once',
+    };
+  }
+  
+  // Calculate current property value with appreciation
+  // Base appreciation: 5-15% depending on how long held (realistic market gains)
+  const monthsHeld = Math.floor(weeksHeld / 4.33);
+  const baseAppreciation = 0.02; // 2% base
+  const timeAppreciation = Math.min(monthsHeld * 0.005, 0.10); // 0.5% per month, max 10%
+  const randomVariation = (Math.random() - 0.5) * 0.06; // +/- 3% market variation
+  const totalAppreciation = 1 + baseAppreciation + timeAppreciation + randomVariation;
+  const currentMarketValue = Math.round(property.price * totalAppreciation);
+  
+  // Get current loan balance
+  const proFormaOutputs = deal.proFormaOutputs as any;
+  const currentLoanBalance = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
+  
+  // Calculate equity
+  const currentEquity = currentMarketValue - currentLoanBalance;
+  const equityPercent = (currentEquity / currentMarketValue) * 100;
+  
+  // Calculate player's debt-to-income and cash reserves for rate determination
+  let totalMonthlyDebt = 0;
+  let totalMonthlyIncome = 0;
+  
+  for (const d of allDeals) {
+    if (d.status === 'active_rental') {
+      const outputs = d.proFormaOutputs as any;
+      totalMonthlyDebt += outputs?.monthlyDebtService || 0;
+      totalMonthlyIncome += outputs?.monthlyGrossRent || 0;
+    }
+  }
+  
+  const dti = totalMonthlyIncome > 0 ? (totalMonthlyDebt / totalMonthlyIncome) * 100 : 100;
+  const cashReserves = gameRun.cash;
+  
+  // Calculate variable rate based on player's financials
+  // Base rate: 6-8% depending on market
+  const baseRate = 6.5 + (Math.random() * 1.5); // 6.5-8% base
+  
+  // DTI adjustment: higher debt = higher rate
+  const dtiAdjustment = dti > 50 ? (dti - 50) * 0.03 : 0; // +0.03% per point above 50% DTI
+  
+  // Cash reserves adjustment: more cash = lower rate
+  const reserveMonths = cashReserves / (totalMonthlyDebt || 1000);
+  const reserveAdjustment = reserveMonths > 6 ? -0.25 : (reserveMonths < 3 ? 0.5 : 0);
+  
+  // Equity adjustment: more equity = lower rate
+  const equityAdjustment = equityPercent > 40 ? -0.25 : (equityPercent < 25 ? 0.5 : 0);
+  
+  const finalRate = Math.max(5.5, Math.min(12, baseRate + dtiAdjustment + reserveAdjustment + equityAdjustment));
+  
+  // Calculate max LTV based on financials
+  // Good financials = up to 80% LTV, poor = 65% LTV
+  let maxLtv = 75; // Base
+  if (dti < 40 && reserveMonths > 6) maxLtv = 80;
+  if (dti > 60 || reserveMonths < 2) maxLtv = 65;
+  
+  // Min LTV should be enough to cover current loan
+  const minLtvToCoverLoan = Math.ceil((currentLoanBalance / currentMarketValue) * 100) + 5;
+  const minLtv = Math.max(minLtvToCoverLoan, 50);
+  
+  // Calculate cash out at different LTV levels
+  const ltvOptions = [];
+  for (let ltv = minLtv; ltv <= maxLtv; ltv += 5) {
+    const newLoanAmount = Math.round(currentMarketValue * (ltv / 100));
+    const refinanceFees = Math.round(newLoanAmount * BASE_FEE_PCT);
+    const cashOut = newLoanAmount - currentLoanBalance - refinanceFees;
+    
+    if (cashOut > 0) {
+      ltvOptions.push({
+        ltv,
+        newLoanAmount,
+        cashOut,
+        refinanceFees,
+        monthlyPayment: Math.round(calculateMonthlyPayment(newLoanAmount, finalRate, 360)),
+      });
+    }
+  }
+  
+  return {
+    eligible: true,
+    currentMarketValue,
+    currentLoanBalance,
+    currentEquity,
+    equityPercent: Math.round(equityPercent),
+    interestRate: Math.round(finalRate * 100) / 100,
+    refinanceFeePct: BASE_FEE_PCT * 100,
+    minLtv,
+    maxLtv,
+    ltvOptions,
+    playerMetrics: {
+      dti: Math.round(dti),
+      cashReserves,
+      reserveMonths: Math.round(reserveMonths * 10) / 10,
+    },
+  };
+}
+
+// Helper to calculate monthly mortgage payment
+function calculateMonthlyPayment(principal: number, annualRate: number, termMonths: number): number {
+  const monthlyRate = annualRate / 100 / 12;
+  if (monthlyRate === 0) return principal / termMonths;
+  return principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / (Math.pow(1 + monthlyRate, termMonths) - 1);
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -767,11 +894,11 @@ export async function registerRoutes(
     }
   });
 
-  // Refinance rental property (cash-out refinance)
-  app.post("/api/deals/:id/refinance", dealLimiter, async (req, res) => {
+  // Get refinance options for a rental property
+  app.get("/api/deals/:id/refinance-options", async (req, res) => {
     try {
       const dealId = parseInt(req.params.id);
-      const { gameRunId } = req.body as { gameRunId: number };
+      const gameRunId = parseInt(req.query.gameRunId as string);
 
       const deal = await storage.getDeal(dealId);
       if (!deal) {
@@ -789,7 +916,57 @@ export async function registerRoutes(
         return;
       }
 
-      const result = await storage.refinanceRentalProperty(dealId, gameRunId);
+      // Get all deals for debt-to-income calculations
+      const allDeals = await storage.getDealsByGameRun(gameRunId);
+      const property = await storage.getProperty(deal.propertyId);
+      if (!property) {
+        res.status(404).json({ error: "Property not found" });
+        return;
+      }
+
+      const options = await calculateRefinanceOptions(deal, gameRun, allDeals, property);
+      res.json(options);
+    } catch (error: any) {
+      console.error("Error getting refinance options:", error);
+      res.status(400).json({ error: error.message || "Failed to get refinance options" });
+    }
+  });
+
+  // Refinance rental property (cash-out refinance)
+  app.post("/api/deals/:id/refinance", dealLimiter, async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { gameRunId, requestedCashOut, selectedLtv } = req.body as { 
+        gameRunId: number; 
+        requestedCashOut?: number;
+        selectedLtv?: number;
+      };
+
+      const deal = await storage.getDeal(dealId);
+      if (!deal) {
+        res.status(404).json({ error: "Deal not found" });
+        return;
+      }
+      if (deal.status !== 'active_rental') {
+        res.status(400).json({ error: "Can only refinance active rental properties" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      // Get all deals for rate calculations
+      const allDeals = await storage.getDealsByGameRun(gameRunId);
+      const property = await storage.getProperty(deal.propertyId);
+      if (!property) {
+        res.status(404).json({ error: "Property not found" });
+        return;
+      }
+
+      const result = await storage.refinanceRentalProperty(dealId, gameRunId, requestedCashOut, selectedLtv, allDeals, property);
       res.json(result);
     } catch (error: any) {
       console.error("Error refinancing property:", error);

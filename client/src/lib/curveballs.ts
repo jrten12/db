@@ -447,7 +447,7 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     name: 'Tenant Breaking Lease',
     type: 'negative',
     trigger: 'rental_monthly',
-    probability: 3,
+    probability: 1,
     cashImpactMin: -1000,
     cashImpactMax: -2500,
     description: 'Tenant got transferred for work - breaking lease early.',

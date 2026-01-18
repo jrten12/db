@@ -1238,13 +1238,13 @@ export default function Game() {
 
   return (
     <div 
-      className="h-screen bg-cover bg-center bg-fixed flex flex-col"
+      className="min-h-screen bg-cover bg-center bg-fixed"
       style={{ backgroundImage: `url(${woodTexture})` }}
       data-testid="game-screen"
     >
-      <div className="flex-1 bg-black/30 flex flex-col overflow-hidden">
-        {/* Fixed header that stays at top when scrolling */}
-        <div className="flex-shrink-0">
+      <div className="min-h-screen bg-black/30">
+        {/* Sticky header that stays at top when scrolling */}
+        <div className="sticky top-0 z-50">
           <StatusBar
             cash={gameRun.cash}
             weeksRemaining={gameRun.weeksRemaining}
@@ -1260,7 +1260,7 @@ export default function Game() {
         
         <SaveIndicator />
 
-        <main className="flex-1 w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8 overflow-y-auto">
+        <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">
           {currentScreen === 'market' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1800px] mx-auto">
               <div className="lg:col-span-9 xl:col-span-9">

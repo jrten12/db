@@ -19,6 +19,16 @@ import portRichmondDuplex from '@assets/generated_images/port_richmond_duplex.pn
 import kensingtonRow from '@assets/generated_images/kensington_row_house.png';
 import northernLibertiesLoft from '@assets/generated_images/northern_liberties_loft_building.png';
 
+import hudsonValleyFarmhouse from '@assets/generated_images/upstate_farmhouse_exterior.png';
+import skylinePenthouse from '@assets/generated_images/penthouse_condo_building_exterior.png';
+import chestnutHillVictorian from '@assets/generated_images/victorian_mansion_exterior.png';
+import lakefrontEstate from '@assets/generated_images/waterfront_estate_exterior.png';
+
+import farmhouseInterior from '@assets/generated_images/farmhouse_interior_living_room.png';
+import penthouseInterior from '@assets/generated_images/penthouse_interior_living_space.png';
+import victorianInterior from '@assets/generated_images/victorian_interior_grand_entry.png';
+import waterfrontInterior from '@assets/generated_images/waterfront_estate_interior.png';
+
 import interiorKitchenExtreme from '@assets/generated_images/fixer-upper_kitchen_needs_work.png';
 import interiorBathroomExtreme from '@assets/generated_images/bathroom_needs_renovation.png';
 import interiorLivingRoomExtreme from '@assets/generated_images/living_room_needs_updates.png';
@@ -111,6 +121,10 @@ const propertyImages: Record<string, string> = {
   'Fairmount Duplex': fairmountDuplex,
   'Society Hill Apartment': societyHillApartment,
   'Old City Brownstone': oldCityBrownstone,
+  'Hudson Valley Farmhouse': hudsonValleyFarmhouse,
+  'Skyline Penthouse': skylinePenthouse,
+  'Chestnut Hill Victorian': chestnutHillVictorian,
+  'Lakefront Estate': lakefrontEstate,
 };
 
 export const issueImages: Record<string, string> = {
@@ -170,6 +184,17 @@ export const issueImages: Record<string, string> = {
   'parking_issues': issueNarrowLotAccess,
   'well_water': issuePlumbingReplacement,
   'water_damage': issueBasementMoisture,
+  'well_system': issuePlumbingReplacement,
+  'septic_maintenance': issueSepticIssues,
+  'barn_roof': issueRoofWear,
+  'special_assessment_structural': issueHoaAssessment,
+  'ongoing_litigation': issueHoaAssessment,
+  'hoa_reserves_depleted': issueHoaReserveLow,
+  'lead_paint_abatement': issueLeadPaint,
+  'foundation_stone': issueFoundationSettling,
+  'knob_tube_wiring': issueKnobTube,
+  'dock_permit': issueDockRepair,
+  'seawall_maintenance': issueFoundationSettling,
 };
 
 // Interior images - using glob imports for dynamic loading
@@ -294,6 +319,27 @@ const propertySpecificInteriors: Record<string, Array<{ type: string; label: str
     { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
     { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
     { type: 'basement', label: 'Basement', url: interiorBasementClean },
+  ],
+  'Hudson Valley Farmhouse': [
+    { type: 'living', label: 'Living Room', url: farmhouseInterior },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  ],
+  'Skyline Penthouse': [
+    { type: 'living', label: 'Living Room', url: penthouseInterior },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  ],
+  'Chestnut Hill Victorian': [
+    { type: 'living', label: 'Grand Entry', url: victorianInterior },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+    { type: 'basement', label: 'Basement', url: interiorBasementClean },
+  ],
+  'Lakefront Estate': [
+    { type: 'living', label: 'Living Room', url: waterfrontInterior },
+    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
+    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
   ],
 };
 

@@ -52,38 +52,53 @@ export function TenantTextPopup({
     <AnimatePresence>
       {showNotification && (
         <motion.div
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          initial={{ y: -100, opacity: 0, scale: 0.8 }}
+          animate={{ 
+            y: 0, 
+            opacity: 1, 
+            scale: 1,
+            x: [0, -3, 3, -3, 3, 0],
+          }}
           exit={{ y: -100, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] cursor-pointer"
+          transition={{ 
+            type: 'spring', 
+            stiffness: 300, 
+            damping: 30,
+            x: { delay: 0.3, duration: 0.4, repeat: 2, repeatDelay: 1 }
+          }}
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] cursor-pointer"
           onClick={handleNotificationClick}
           data-testid="tenant-notification"
         >
-          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 p-3 min-w-[320px] max-w-[380px]">
-            <div className="flex items-start gap-3">
-              <div className="relative">
+          <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border-2 border-blue-400 p-4 min-w-[340px] max-w-[400px] ring-4 ring-blue-400/30">
+            <div className="flex items-start gap-4">
+              <div className="relative flex-shrink-0">
                 {tenantPortraitUrl ? (
                   <img 
                     src={tenantPortraitUrl} 
                     alt={tenantName}
-                    className="w-10 h-10 rounded-full object-cover"
+                    className="w-14 h-14 rounded-full object-cover border-2 border-blue-200"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg border-2 border-blue-300">
                     {initials}
                   </div>
                 )}
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-3 h-3 text-white" />
-                </div>
+                <motion.div 
+                  className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg"
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1 }}
+                >
+                  <MessageCircle className="w-3.5 h-3.5 text-white" />
+                </motion.div>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-gray-900 text-sm">{tenantName}</span>
-                  <span className="text-xs text-gray-400">now</span>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="font-bold text-gray-900">{tenantName}</span>
+                  <span className="text-xs text-blue-500 font-medium bg-blue-50 px-2 py-0.5 rounded-full">NEW</span>
                 </div>
-                <p className="text-gray-600 text-sm truncate">{message}</p>
+                <p className="text-gray-700 text-sm line-clamp-2">{message}</p>
+                <p className="text-blue-500 text-xs mt-2 font-medium">Tap to read full message →</p>
               </div>
             </div>
           </div>

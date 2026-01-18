@@ -13,8 +13,8 @@ import type { GameRun, Deal, InsertLedgerEntry, InsertCurveballEvent } from '@sh
 import * as schema from '@shared/schema';
 import { db } from './storage';
 import { eq } from 'drizzle-orm';
-import { rollForCurveball, type PropertyContext, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
-import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue } from '@shared/propertyIssues';
+import { rollForCurveball, rollForCurveballWithIssues, type PropertyContext, type CurveballResult, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
+import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue, getPropertyIssues } from '@shared/propertyIssues';
 
 /**
  * Loan Amortization Utilities
@@ -308,6 +308,9 @@ interface RentalIncomeResult {
     description: string;
     cashImpact: number;
     emoji?: string;
+    tenantMessage?: string | null;  // Text message from tenant about this issue
+    fromIssue?: boolean;            // Whether repair was caused by undiscovered property issue
+    issueId?: string;               // The undiscovered issue that caused this
   };
   newCash: number;
   dealId: number;
@@ -896,6 +899,9 @@ export async function processRentalIncome(
       description: curveball.description,
       cashImpact: curveball.cashImpact || 0,
       emoji: curveball.emoji,
+      tenantMessage: curveball.tenantMessage,
+      fromIssue: curveball.fromIssue,
+      issueId: curveball.issueId,
     } : undefined,
     newCash,
     dealId: deal.id,
@@ -927,6 +933,9 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   const completedFlips: FlipSaleResult[] = [];
   const curveballs: any[] = [];
 
+  // Get all property investigations for this game to check undiscovered issues
+  const investigations = await storage.getPropertyInvestigations(gameRunId);
+
   // Process active rental deals - pay weekly income
   for (const deal of deals) {
     if (deal.status === 'active_rental') {
@@ -947,14 +956,41 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         const lastCurveballId = await storage.getLastCurveballForDeal(deal.id);
         const excludeIds = lastCurveballId ? [lastCurveballId] : [];
         
-        // Roll for curveball events with property context (excluding recently-used)
-        const curveball = rollForCurveball('rental_monthly', propertyContext, excludeIds);
+        // Get tenant info for personalized messages
+        const tenant = await storage.getTenantByDeal(deal.id);
+        const tenantPersonality = tenant?.personalityType;
+        
+        // Get undiscovered property issues - repairs more likely if player skipped due diligence
+        const completedDiligence = investigations
+          .filter(inv => inv.propertyId === deal.propertyId)
+          .map(inv => inv.investigationType);
+        const undiscoveredIssues = property 
+          ? getUndiscoveredIssues(property.name, completedDiligence).map(issue => issue.id)
+          : [];
+        
+        // Roll for curveball events with issue awareness and tenant personality
+        const curveballResult = rollForCurveballWithIssues(
+          'rental_monthly', 
+          propertyContext, 
+          undiscoveredIssues,
+          tenantPersonality,
+          excludeIds
+        );
+        
+        // Extract curveball with tenant message for processing
+        const curveball = curveballResult?.curveball;
+        const curveballWithMessage = curveball ? {
+          ...curveball,
+          tenantMessage: curveballResult.tenantMessage,
+          fromIssue: curveballResult.fromIssue,
+          issueId: curveballResult.issueId,
+        } : undefined;
 
-        const result = await processRentalIncome(deal, gameRun, curveball || undefined);
+        const result = await processRentalIncome(deal, gameRun, curveballWithMessage);
         rentalPayments.push(result);
 
         if (curveball) {
-          curveballs.push(curveball);
+          curveballs.push(curveballWithMessage);
         }
       }
     }

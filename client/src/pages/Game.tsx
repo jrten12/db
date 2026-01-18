@@ -25,6 +25,7 @@ import { TutorialOverlay } from '@/components/game/TutorialOverlay';
 import { TutorialPrompt } from '@/components/game/TutorialPrompt';
 import { DebtPanel, DebtPanelTrigger } from '@/components/game/DebtPanel';
 import { RefinanceModal } from '@/components/game/RefinanceModal';
+import { OperatingExpensesPopup } from '@/components/game/OperatingExpensesPopup';
 import { useTutorial } from '@/contexts/TutorialContext';
 import {
   ProFormaInputs,
@@ -129,6 +130,12 @@ export default function Game() {
   
   // Refinance modal state
   const [refinancingDeal, setRefinancingDeal] = useState<{
+    deal: Deal;
+    property: Property;
+  } | null>(null);
+  
+  // Operating expenses popup state
+  const [opexPopupData, setOpexPopupData] = useState<{
     deal: Deal;
     property: Property;
   } | null>(null);
@@ -863,34 +870,57 @@ export default function Game() {
           let expenseMessageShown = false;
           
           for (const payment of result.rentalPayments) {
-            // Look up full curveball definition to get tenant messages
+            // Check if curveball has a tenant message (now provided by server with correct personality)
             if (payment.curveball?.id) {
-              const fullCurveball = getCurveballById(payment.curveball.id);
+              // Use server-provided tenant message if available (ensures consistency with personality)
+              const serverTenantMessage = payment.curveball.tenantMessage;
               
-              // Guard: if curveball not found in definitions, log and continue
-              if (!fullCurveball) {
-                console.warn(`Curveball id "${payment.curveball.id}" not found in definitions`);
-                continue;
-              }
-              
-              if (curveballHasTenantMessage(fullCurveball)) {
+              if (serverTenantMessage) {
                 // Find the tenant for this deal
                 const tenantForDeal = allTenants.find(t => t.dealId === payment.dealId);
                 if (tenantForDeal) {
-                  const personalityType = tenantForDeal.personalityType || 'generic';
-                  const expenseMessage = getTenantMessageForCurveball(
-                    fullCurveball,
-                    personalityType
-                  );
+                  // Add context if this repair was caused by an undiscovered property issue
+                  let finalMessage = serverTenantMessage;
+                  if (payment.curveball.fromIssue) {
+                    // The repair was caused by skipping due diligence - this is educational
+                    console.log(`Repair triggered by undiscovered issue: ${payment.curveball.issueId}`);
+                  }
                   
-                  if (expenseMessage) {
-                    setTenantTextPopup({
-                      isOpen: true,
-                      tenant: tenantForDeal,
-                      message: expenseMessage,
-                    });
-                    expenseMessageShown = true;
-                    break; // Only show one expense message per week advancement
+                  setTenantTextPopup({
+                    isOpen: true,
+                    tenant: tenantForDeal,
+                    message: finalMessage,
+                  });
+                  expenseMessageShown = true;
+                  break; // Only show one expense message per week advancement
+                }
+              } else {
+                // Fallback: look up curveball definition and generate message client-side
+                const fullCurveball = getCurveballById(payment.curveball.id);
+                
+                if (!fullCurveball) {
+                  console.warn(`Curveball id "${payment.curveball.id}" not found in definitions`);
+                  continue;
+                }
+                
+                if (curveballHasTenantMessage(fullCurveball)) {
+                  const tenantForDeal = allTenants.find(t => t.dealId === payment.dealId);
+                  if (tenantForDeal) {
+                    const personalityType = tenantForDeal.personalityType || 'generic';
+                    const expenseMessage = getTenantMessageForCurveball(
+                      fullCurveball,
+                      personalityType
+                    );
+                    
+                    if (expenseMessage) {
+                      setTenantTextPopup({
+                        isOpen: true,
+                        tenant: tenantForDeal,
+                        message: expenseMessage,
+                      });
+                      expenseMessageShown = true;
+                      break;
+                    }
                   }
                 }
               }
@@ -1375,6 +1405,13 @@ export default function Game() {
             deals={deals}
             properties={properties}
             onClose={() => setShowLedger(false)}
+            onOpexClick={(dealId) => {
+              const deal = deals.find(d => d.id === dealId);
+              const property = deal ? properties.find(p => p.id === deal.propertyId) : undefined;
+              if (deal && property) {
+                setOpexPopupData({ deal, property });
+              }
+            }}
           />
         )}
         
@@ -1499,6 +1536,16 @@ export default function Game() {
             property={refinancingDeal.property}
             gameRun={gameRun}
             onRefinance={handleExecuteRefinance}
+          />
+        )}
+        
+        {/* Operating Expenses Popup */}
+        {opexPopupData && (
+          <OperatingExpensesPopup
+            isOpen={!!opexPopupData}
+            onClose={() => setOpexPopupData(null)}
+            deal={opexPopupData.deal}
+            property={opexPopupData.property}
           />
         )}
 

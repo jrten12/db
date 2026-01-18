@@ -10,6 +10,7 @@ interface LedgerPanelProps {
   deals: Deal[];
   properties: Property[];
   onClose: () => void;
+  onOpexClick?: (dealId: number) => void;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -167,7 +168,7 @@ function getStatusLabel(status: string): string {
   return labels[status] || status;
 }
 
-export function LedgerPanel({ entries, startingCash, deals, properties, onClose }: LedgerPanelProps) {
+export function LedgerPanel({ entries, startingCash, deals, properties, onClose, onOpexClick }: LedgerPanelProps) {
   const [expandedUnit, setExpandedUnit] = useState<number | null>(null);
   
   const sortedEntriesAsc = [...entries].sort((a, b) => 
@@ -288,38 +289,51 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose 
               </div>
             ) : (
               <div className="space-y-2">
-                {sortedEntries.map((entry) => (
-                  <div 
-                    key={entry.id}
-                    className="flex items-center gap-3 bg-slate-800/50 rounded-lg p-3 border border-slate-700"
-                    data-testid={`ledger-entry-${entry.id}`}
-                  >
-                    <div className="flex-shrink-0">
-                      {entry.direction === 'debit' ? (
-                        <ArrowDownCircle className="w-5 h-5 text-red-400" />
-                      ) : (
-                        <ArrowUpCircle className="w-5 h-5 text-emerald-400" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-semibold ${CATEGORY_COLORS[entry.category] || 'text-gray-400'}`}>
-                          {CATEGORY_LABELS[entry.category] || entry.category}
-                        </span>
-                        <span className="text-xs text-gray-500">Week {entry.gameWeek ?? '?'}</span>
+                {sortedEntries.map((entry) => {
+                  const isOpex = entry.description?.includes('Operating costs');
+                  const isClickable = isOpex && onOpexClick && entry.dealId;
+                  
+                  return (
+                    <div 
+                      key={entry.id}
+                      className={`flex items-center gap-3 bg-slate-800/50 rounded-lg p-3 border border-slate-700 ${
+                        isClickable ? 'cursor-pointer hover:bg-slate-700/50 hover:border-blue-500/50 transition-colors' : ''
+                      }`}
+                      data-testid={`ledger-entry-${entry.id}`}
+                      onClick={isClickable ? () => onOpexClick(entry.dealId!) : undefined}
+                    >
+                      <div className="flex-shrink-0">
+                        {entry.direction === 'debit' ? (
+                          <ArrowDownCircle className="w-5 h-5 text-red-400" />
+                        ) : (
+                          <ArrowUpCircle className="w-5 h-5 text-emerald-400" />
+                        )}
                       </div>
-                      <div className="text-white text-sm truncate">{entry.description}</div>
-                    </div>
-                    <div className="flex-shrink-0 text-right">
-                      <div className={`font-bold font-mono ${entry.direction === 'debit' ? 'text-red-400' : 'text-emerald-400'}`}>
-                        {entry.direction === 'debit' ? '-' : '+'}{formatCurrency(entry.amount)}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-semibold ${CATEGORY_COLORS[entry.category] || 'text-gray-400'}`}>
+                            {CATEGORY_LABELS[entry.category] || entry.category}
+                          </span>
+                          <span className="text-xs text-gray-500">Week {entry.gameWeek ?? '?'}</span>
+                          {isClickable && (
+                            <span className="text-xs text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">
+                              Tap for breakdown
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-white text-sm truncate">{entry.description}</div>
                       </div>
-                      <div className="text-gray-500 text-xs font-mono">
-                        {formatCurrency(entry.balanceAfter)}
+                      <div className="flex-shrink-0 text-right">
+                        <div className={`font-bold font-mono ${entry.direction === 'debit' ? 'text-red-400' : 'text-emerald-400'}`}>
+                          {entry.direction === 'debit' ? '-' : '+'}{formatCurrency(entry.amount)}
+                        </div>
+                        <div className="text-gray-500 text-xs font-mono">
+                          {formatCurrency(entry.balanceAfter)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </TabsContent>

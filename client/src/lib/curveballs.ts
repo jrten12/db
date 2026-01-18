@@ -1029,6 +1029,128 @@ export function getCurveballById(id: string): Curveball | undefined {
 }
 
 /**
+ * Map property issues to related curveball IDs
+ * When a property has undiscovered issues, these can manifest as specific repairs
+ */
+const ISSUE_TO_CURVEBALL_MAP: Record<string, string[]> = {
+  // Structural/Foundation issues
+  'foundation_settling': ['foundation_crack'],
+  'foundation_issues': ['foundation_crack'],
+  
+  // Roof issues
+  'roof_wear': ['roof_leak'],
+  'roof_damage': ['roof_leak'],
+  
+  // HVAC issues
+  'outdated_hvac': ['hvac_repair', 'hvac_emergency'],
+  'hvac_issues': ['hvac_repair', 'hvac_emergency'],
+  
+  // Plumbing issues
+  'plumbing_galvanized': ['small_plumbing_leak', 'water_heater'],
+  'plumbing_issues': ['small_plumbing_leak', 'water_heater'],
+  
+  // Electrical issues
+  'electrical_outdated': ['electrical_issue'],
+  'electrical_issues': ['electrical_issue'],
+  
+  // Mold/moisture issues
+  'mold_remediation': ['mold_issue', 'small_plumbing_leak'],
+  'moisture_issues': ['mold_issue', 'small_plumbing_leak'],
+  'drainage_issues': ['foundation_crack', 'mold_issue'],
+  
+  // Pest issues
+  'pest_issues': ['pest_mice', 'pest_termites'],
+  
+  // Appliance issues (dated properties)
+  'dated_appliances': ['appliance_breakdown', 'appliance_minor'],
+};
+
+/**
+ * Result structure that includes tenant message for curveballss
+ */
+export interface CurveballResult {
+  curveball: Curveball;
+  tenantMessage?: string | null;
+  fromIssue?: boolean;  // Whether this repair was caused by undiscovered issue
+  issueId?: string;     // The issue ID that caused it
+}
+
+/**
+ * Roll for a curveball with enhanced probability for undiscovered property issues
+ * @param trigger - The trigger type (rental_monthly, flip_during_rehab, etc.)
+ * @param context - Property context (type, condition, location, price)
+ * @param undiscoveredIssues - Array of issue IDs that weren't discovered during due diligence
+ * @param tenantPersonality - The tenant's personality type for message generation
+ * @param excludeIds - Curveball IDs to exclude (prevent repetition)
+ */
+export function rollForCurveballWithIssues(
+  trigger: CurveballTrigger,
+  context?: PropertyContext,
+  undiscoveredIssues?: string[],
+  tenantPersonality?: string,
+  excludeIds?: string[]
+): CurveballResult | null {
+  // First, check if we should trigger an issue-based repair
+  // 20% chance per undiscovered issue to cause a related repair
+  if (undiscoveredIssues && undiscoveredIssues.length > 0 && trigger === 'rental_monthly') {
+    for (const issueId of undiscoveredIssues) {
+      const relatedCurveballIds = ISSUE_TO_CURVEBALL_MAP[issueId];
+      if (relatedCurveballIds && relatedCurveballIds.length > 0) {
+        // 15% chance per issue per check
+        const issueRoll = Math.random() * 100;
+        if (issueRoll < 15) {
+          // Pick a related curveball
+          const curveballId = relatedCurveballIds[Math.floor(Math.random() * relatedCurveballIds.length)];
+          const curveball = getCurveballById(curveballId);
+          
+          if (curveball && (!excludeIds || !excludeIds.includes(curveballId))) {
+            // Resolve variable amounts
+            const resolvedCurveball = { ...curveball };
+            if (curveball.cashImpactMin !== undefined && curveball.cashImpactMax !== undefined) {
+              const range = curveball.cashImpactMax - curveball.cashImpactMin;
+              let amount = Math.floor(curveball.cashImpactMin + Math.random() * range);
+              if (context && curveball.scaleWithPrice) {
+                amount = Math.round(amount * Math.max(0.6, Math.min(2.0, (context.price / BASE_PRICE))));
+              }
+              resolvedCurveball.cashImpact = amount;
+            }
+            
+            // Get tenant message if available
+            let tenantMessage: string | null = null;
+            if (tenantPersonality) {
+              tenantMessage = getTenantMessageForCurveball(resolvedCurveball, tenantPersonality);
+            }
+            
+            return {
+              curveball: resolvedCurveball,
+              tenantMessage,
+              fromIssue: true,
+              issueId,
+            };
+          }
+        }
+      }
+    }
+  }
+  
+  // Fall back to normal curveball roll
+  const curveball = rollForCurveball(trigger, context, excludeIds);
+  if (curveball) {
+    let tenantMessage: string | null = null;
+    if (tenantPersonality) {
+      tenantMessage = getTenantMessageForCurveball(curveball, tenantPersonality);
+    }
+    return {
+      curveball,
+      tenantMessage,
+      fromIssue: false,
+    };
+  }
+  
+  return null;
+}
+
+/**
  * Format cash impact for display
  */
 export function formatCurveballImpact(curveball: Curveball): string {

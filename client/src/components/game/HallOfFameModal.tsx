@@ -62,41 +62,41 @@ function TrophyBadge({ trophyId, size = 'md', earned = true }: { trophyId: strin
 
 function PlayerCard({ player, rank }: { player: HallOfFamePlayer & { trophies: PlayerTrophy[] }; rank: number }) {
   const getRankBadge = () => {
-    if (rank === 1) return { emoji: '🥇', color: 'text-yellow-400' };
-    if (rank === 2) return { emoji: '🥈', color: 'text-gray-300' };
-    if (rank === 3) return { emoji: '🥉', color: 'text-amber-600' };
-    return { emoji: `#${rank}`, color: 'text-gray-400' };
+    if (rank === 1) return { emoji: '🥇', color: 'text-yellow-400', bg: 'bg-gradient-to-r from-yellow-500/20 to-amber-500/10 border-yellow-500/40' };
+    if (rank === 2) return { emoji: '🥈', color: 'text-gray-300', bg: 'bg-gradient-to-r from-gray-400/20 to-slate-500/10 border-gray-400/40' };
+    if (rank === 3) return { emoji: '🥉', color: 'text-amber-600', bg: 'bg-gradient-to-r from-amber-700/20 to-orange-600/10 border-amber-600/40' };
+    return { emoji: `#${rank}`, color: 'text-gray-400', bg: 'bg-white/5 border-white/10' };
   };
 
   const badge = getRankBadge();
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all">
+    <div className={`${badge.bg} border rounded-xl p-5 hover:scale-[1.01] transition-all duration-200 shadow-lg`}>
       <div className="flex items-start gap-4">
-        <div className={`text-2xl font-bold ${badge.color} min-w-[40px]`}>
+        <div className={`text-3xl font-bold ${badge.color} min-w-[50px] text-center`}>
           {badge.emoji}
         </div>
         
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-bold text-lg truncate">{player.playerName}</h3>
+          <h3 className="text-white font-bold text-xl truncate mb-3">{player.playerName}</h3>
           
-          <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
-            <div className="text-gray-400">
-              Total Profit: <span className="text-emerald-400 font-medium">${player.totalProfitEarned.toLocaleString()}</span>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-3 py-2">
+              <div className="text-emerald-300 text-xs uppercase tracking-wide mb-0.5">Total Profit</div>
+              <div className="text-emerald-400 font-bold text-lg">${player.totalProfitEarned.toLocaleString()}</div>
             </div>
-            <div className="text-gray-400">
-              Games Won: <span className="text-blue-400 font-medium">{player.gamesWon}</span>
+            <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg px-3 py-2">
+              <div className="text-purple-300 text-xs uppercase tracking-wide mb-0.5">Deals Closed</div>
+              <div className="text-purple-400 font-bold text-lg">{player.totalDealsCompleted}</div>
             </div>
-            <div className="text-gray-400">
-              Deals: <span className="text-purple-400 font-medium">{player.totalDealsCompleted}</span>
-            </div>
-            <div className="text-gray-400">
-              Games: <span className="text-gray-300 font-medium">{player.totalGamesPlayed}</span>
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg px-3 py-2">
+              <div className="text-blue-300 text-xs uppercase tracking-wide mb-0.5">Best Game</div>
+              <div className="text-blue-400 font-bold text-lg">${player.bestGameProfit.toLocaleString()}</div>
             </div>
           </div>
 
           {player.trophies.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-3">
+            <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-white/10">
               {player.trophies.map((t, i) => (
                 <TrophyBadge key={i} trophyId={t.trophyId} size="sm" />
               ))}

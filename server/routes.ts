@@ -789,8 +789,23 @@ export async function registerRoutes(
 
       // Update player stats (note: totalGamesPlayed is already incremented when game starts)
       const deals = await storage.getDealsByGameRun(gameRunId);
-      const completedDeals = deals.filter(d => d.status === 'completed' || d.status === 'active_rental');
-      const totalProfit = completedDeals.reduce((sum, d) => sum + (d.actualProfit || 0), 0);
+      const completedDeals = deals.filter(d => d.status === 'completed' || d.status === 'active_rental' || d.status === 'sold_rental');
+      
+      // Calculate total profit including rental income
+      // For flips/sold rentals: use actualProfit
+      // For active rentals: calculate cumulative income from weekly income × weeks held
+      const totalProfit = completedDeals.reduce((sum, d) => {
+        if (d.actualProfit != null) {
+          return sum + d.actualProfit;
+        }
+        // For active rentals, estimate profit from weekly income
+        if (d.status === 'active_rental' && d.weeklyIncome) {
+          const purchaseWeek = (d as any).purchaseWeek || 0;
+          const weeksHeld = Math.max(1, gameRun.currentWeek - purchaseWeek);
+          return sum + (d.weeklyIncome * weeksHeld);
+        }
+        return sum;
+      }, 0);
 
       await storage.updatePlayerStats(player.id, {
         totalDealsCompleted: player.totalDealsCompleted + completedDeals.length,

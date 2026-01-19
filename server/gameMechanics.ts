@@ -132,6 +132,8 @@ export function calculateWeeklyPrincipalPayment(
   };
 }
 
+import { rollForEnhancedMaintenance } from './maintenanceMechanics';
+
 /**
  * Title Issue Types that can occur when skipping title search
  */
@@ -941,52 +943,16 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     if (deal.status === 'active_rental') {
       // Check if it's time for payment (hasn't been paid this week)
       if ((deal.lastIncomePaymentWeek || 0) < gameRun.currentWeek + 1) {
-        // Get property info for context-aware curveballs
+        // Get property for enhanced maintenance mechanics
         const property = await storage.getProperty(deal.propertyId);
-        
-        // Build property context for curveball system with normalized values
-        const propertyContext: PropertyContext | undefined = property ? {
-          propertyType: normalizePropertyType(property.propertyType || 'house'),
-          conditionTag: normalizeConditionTag(property.conditionTag || 'good'),
-          locationType: normalizeLocationType(property.locationType || 'suburban'),
-          price: deal.purchasePrice || property.price,
-        } : undefined;
-        
-        // Get last curveball for this deal to avoid unrealistic repetition
-        const lastCurveballId = await storage.getLastCurveballForDeal(deal.id);
-        const excludeIds = lastCurveballId ? [lastCurveballId] : [];
-        
-        // Get tenant info for personalized messages
-        const tenant = await storage.getTenantByDeal(deal.id);
-        const tenantPersonality = tenant?.personalityType;
-        
-        // Get undiscovered property issues - repairs more likely if player skipped due diligence
-        const completedDiligence = investigations
-          .filter(inv => inv.propertyId === deal.propertyId)
-          .map(inv => inv.investigationType);
-        const undiscoveredIssues = property 
-          ? getUndiscoveredIssues(property.name, completedDiligence).map(issue => issue.id)
-          : [];
-        
-        // Roll for curveball events with issue awareness and tenant personality
-        const curveballResult = rollForCurveballWithIssues(
-          'rental_monthly', 
-          propertyContext, 
-          undiscoveredIssues,
-          tenantPersonality,
-          excludeIds
-        );
-        
-        // Extract curveball with tenant message for processing
-        const curveball = curveballResult?.curveball;
-        const curveballWithMessage = curveball ? {
-          ...curveball,
-          tenantMessage: curveballResult.tenantMessage,
-          fromIssue: curveballResult.fromIssue,
-          issueId: curveballResult.issueId,
-        } : undefined;
 
-        const result = await processRentalIncome(deal, gameRun, curveballWithMessage);
+        // Roll for maintenance events using enhanced mechanics
+        // This considers property quality, type, and unfixed rehab issues
+        const curveball = property
+          ? rollForEnhancedMaintenance(property, deal)
+          : rollForCurveball('rental_monthly'); // Fallback to old system if property not found
+
+        const result = await processRentalIncome(deal, gameRun, curveball);
         rentalPayments.push(result);
 
         if (curveball) {

@@ -18,7 +18,14 @@ export interface ProFormaInputs {
   ltv: number; // Loan-to-Value 50-90%, drives interest rate and fees
   sellingCostsPct: number | null;
   contractorType: 'cheap' | 'fast';
+
   financeRehab: boolean; // Include rehab costs in loan (acquisition + construction loan)
+
+
+  // Rehab issue tracking (optional - for properties with discovered issues)
+  discoveredIssueIds?: string[];  // Issue IDs discovered during diligence
+  fixedIssueIds?: string[];       // Issue IDs that were fixed during rehab
+
 }
 
 // LTV-based financing calculations

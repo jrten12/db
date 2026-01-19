@@ -2,6 +2,7 @@ import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
 import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy, Play, Loader2 } from 'lucide-react';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 
 interface StatusBarProps {
@@ -257,9 +258,9 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
         </div>
       </div>
 
-      {/* Menu Overlay */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md" data-testid="menu-overlay">
+      {/* Menu Overlay - rendered via portal to escape backdrop-filter containing block */}
+      {menuOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md" data-testid="menu-overlay">
           <div className="flex flex-col items-center justify-center min-h-screen p-4">
             <button
               onClick={() => setMenuOpen(false)}
@@ -343,7 +344,8 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

@@ -70,24 +70,22 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
   }
 
   return (
-    <div className="space-y-4" data-testid="metrics-panel">
-      {/* Investment Decision Section - No calculated metrics shown before purchase */}
-      <div className="metric-card" data-testid="card-strategy-outcome">
-        <h3 className="font-display text-foreground text-lg font-semibold mb-4 text-center">
+    <div className="space-y-3" data-testid="metrics-panel">
+      {/* Investment Decision Section - Compact */}
+      <div className="metric-card p-3" data-testid="card-strategy-outcome">
+        <h3 className="font-display text-foreground text-base font-semibold mb-2 text-center">
           Ready to Invest?
         </h3>
         
-        <div className="text-center p-4 bg-slate-800/50 rounded-lg border border-slate-700 mb-4">
-          <p className="text-muted-foreground text-sm mb-2">
-            {strategy === 'rent' 
-              ? "Review your pro forma assumptions. Does this deal cash flow?"
-              : "Review your rehab budget and timeline. Will you profit after selling?"
-            }
-          </p>
-          <p className="text-amber-400 text-xs">
-            You'll learn the true outcome after you buy!
-          </p>
-        </div>
+        <p className="text-muted-foreground text-xs text-center mb-1">
+          {strategy === 'rent' 
+            ? "Does this deal cash flow?"
+            : "Will you profit after selling?"
+          }
+        </p>
+        <p className="text-amber-400 text-xs text-center">
+          True outcome revealed after purchase!
+        </p>
       </div>
 
       {isUnlocked && outputs && (
@@ -95,24 +93,24 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
 
           {onCommitDeal && outputs && (
             <>
-              {/* Cash Requirement Display */}
-              <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700 mb-3">
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Total Project Cash:</span>
+              {/* Cash Requirement Display - Compact */}
+              <div className="bg-slate-800/50 rounded-lg p-2 border border-slate-700 mb-2 text-xs">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-muted-foreground">Need:</span>
                   <span className="font-mono font-bold text-warning">
                     {formatCurrency(outputs.totalCashInvested)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Your Cash:</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Have:</span>
                   <span className={`font-mono font-bold ${playerCash >= outputs.totalCashInvested ? 'text-success' : 'text-danger'}`}>
                     {formatCurrency(playerCash)}
                   </span>
                 </div>
                 {playerCash < outputs.totalCashInvested && (
-                  <div className="mt-2 p-2 bg-danger/20 border border-danger/30 rounded text-xs text-danger flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                    <span>Need ${(outputs.totalCashInvested - playerCash).toLocaleString()} more to fund this project.</span>
+                  <div className="mt-1 p-1.5 bg-danger/20 border border-danger/30 rounded text-xs text-danger flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+                    <span>Need ${(outputs.totalCashInvested - playerCash).toLocaleString()} more</span>
                   </div>
                 )}
               </div>
@@ -120,7 +118,7 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
               <button 
                 onClick={onCommitDeal}
                 disabled={isCommitting || playerCash < outputs.totalCashInvested || disabled}
-                className={`w-full flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-semibold text-lg transition-all ${
+                className={`w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-semibold text-sm transition-all ${
                   isCommitting 
                     ? 'bg-slate-700 text-slate-400 cursor-wait' 
                     : (playerCash < outputs.totalCashInvested || disabled)
@@ -131,17 +129,17 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
               >
                 {isCommitting ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
                     Processing...
                   </>
                 ) : disabled ? (
                   <>
-                    <Lock className="w-5 h-5" />
+                    <Lock className="w-4 h-4" />
                     Time Expired
                   </>
                 ) : (
                   <>
-                    <DollarSign className="w-5 h-5" />
+                    <DollarSign className="w-4 h-4" />
                     Commit to Deal
                   </>
                 )}
@@ -151,67 +149,67 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
         </>
       )}
 
-      {/* Target Thresholds Card */}
-      <div className="metric-card" data-testid="card-thresholds">
-        <h3 className="font-display text-foreground text-base font-semibold mb-3 flex items-center gap-2">
-          <Target className="w-4 h-4 text-gold" />
-          Success Thresholds
+      {/* Target Thresholds Card - Compact */}
+      <div className="metric-card p-3" data-testid="card-thresholds">
+        <h3 className="font-display text-foreground text-sm font-semibold mb-2 flex items-center gap-2">
+          <Target className="w-3.5 h-3.5 text-gold" />
+          Thresholds
         </h3>
         
         {strategy === 'rent' ? (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-xs">
               <MetricTooltip term="thresholdCoC">
                 <span className="text-muted-foreground">Cash-on-Cash</span>
               </MetricTooltip>
-              <div className="flex items-center gap-2">
-                <span className="text-gold font-bold trophy-icon-gold">{STRATEGY_THRESHOLDS.rent.cashOnCash}%+</span>
+              <div className="flex items-center gap-1">
+                <span className="text-gold font-bold">{STRATEGY_THRESHOLDS.rent.cashOnCash}%+</span>
                 {isUnlocked && outputs && (
                   outputs.cashOnCash >= STRATEGY_THRESHOLDS.rent.cashOnCash
-                    ? <div className="trophy-icon-container"><TrendingUp className="w-4 h-4 text-success trophy-icon-success" /></div>
-                    : <div className="trophy-icon-container"><TrendingDown className="w-4 h-4 text-danger trophy-icon-danger" /></div>
+                    ? <TrendingUp className="w-3 h-3 text-success" />
+                    : <TrendingDown className="w-3 h-3 text-danger" />
                 )}
               </div>
             </div>
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-xs">
               <MetricTooltip term="cashFlow">
-                <span className="text-muted-foreground">Monthly Cash Flow</span>
+                <span className="text-muted-foreground">Cash Flow</span>
               </MetricTooltip>
-              <div className="flex items-center gap-2">
-                <span className="text-gold font-bold trophy-icon-gold">Positive</span>
+              <div className="flex items-center gap-1">
+                <span className="text-gold font-bold">Positive</span>
                 {isUnlocked && outputs && (
                   outputs.cashFlowMonthly > 0
-                    ? <div className="trophy-icon-container"><TrendingUp className="w-4 h-4 text-success trophy-icon-success" /></div>
-                    : <div className="trophy-icon-container"><TrendingDown className="w-4 h-4 text-danger trophy-icon-danger" /></div>
+                    ? <TrendingUp className="w-3 h-3 text-success" />
+                    : <TrendingDown className="w-3 h-3 text-danger" />
                 )}
               </div>
             </div>
           </div>
         ) : (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-xs">
               <MetricTooltip term="thresholdROI">
                 <span className="text-muted-foreground">ROI</span>
               </MetricTooltip>
-              <div className="flex items-center gap-2">
-                <span className="text-gold font-bold trophy-icon-gold">{STRATEGY_THRESHOLDS.flip.roi}%+</span>
+              <div className="flex items-center gap-1">
+                <span className="text-gold font-bold">{STRATEGY_THRESHOLDS.flip.roi}%+</span>
                 {isUnlocked && (
                   flipROI >= STRATEGY_THRESHOLDS.flip.roi
-                    ? <div className="trophy-icon-container"><TrendingUp className="w-4 h-4 text-success trophy-icon-success" /></div>
-                    : <div className="trophy-icon-container"><TrendingDown className="w-4 h-4 text-danger trophy-icon-danger" /></div>
+                    ? <TrendingUp className="w-3 h-3 text-success" />
+                    : <TrendingDown className="w-3 h-3 text-danger" />
                 )}
               </div>
             </div>
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-xs">
               <MetricTooltip term="minProfit">
                 <span className="text-muted-foreground">Min Profit</span>
               </MetricTooltip>
-              <div className="flex items-center gap-2">
-                <span className="text-gold font-bold trophy-icon-gold">{formatCurrency(STRATEGY_THRESHOLDS.flip.profitMin)}+</span>
+              <div className="flex items-center gap-1">
+                <span className="text-gold font-bold">{formatCurrency(STRATEGY_THRESHOLDS.flip.profitMin)}+</span>
                 {isUnlocked && (
                   flipProfit >= STRATEGY_THRESHOLDS.flip.profitMin
-                    ? <div className="trophy-icon-container"><TrendingUp className="w-4 h-4 text-success trophy-icon-success" /></div>
-                    : <div className="trophy-icon-container"><TrendingDown className="w-4 h-4 text-danger trophy-icon-danger" /></div>
+                    ? <TrendingUp className="w-3 h-3 text-success" />
+                    : <TrendingDown className="w-3 h-3 text-danger" />
                 )}
               </div>
             </div>
@@ -219,8 +217,8 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
         )}
 
         {isUnlocked && (
-          <div className={`mt-3 pt-3 border-t border-border text-center text-sm font-semibold rounded-lg p-2 ${meetsThresholds ? 'text-success trophy-success-bg' : 'text-warning trophy-warning-bg'}`}>
-            {meetsThresholds ? '✓ Meets Investment Criteria' : '⚠ Below Target Thresholds'}
+          <div className={`mt-2 pt-2 border-t border-border text-center text-xs font-semibold rounded p-1.5 ${meetsThresholds ? 'text-success bg-success/10' : 'text-warning bg-warning/10'}`}>
+            {meetsThresholds ? '✓ Meets Criteria' : '⚠ Below Target'}
           </div>
         )}
       </div>

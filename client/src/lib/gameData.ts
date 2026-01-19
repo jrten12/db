@@ -28,6 +28,32 @@ export const LTV_MAX = 90;
 export const INTEREST_MIN = 5.0; // At 50% LTV
 export const INTEREST_MAX = 12.0; // At 90% LTV
 
+// Property Management Settings
+export const PROPERTY_MANAGEMENT_FEE_PCT = 5; // Fixed 5% of rent revenue when hired
+
+// Time Penalties (in weeks)
+export const TIME_PENALTY_SELF_MANAGED = 1; // 1 week penalty if self-managing (no property manager)
+export const TIME_PENALTY_TENANT_PAYS_UTILITIES = 2; // 2 weeks to set up tenant-paid utilities
+
+// Calculate total time penalty for a rental deal based on management choices
+export const calculateTimePenalty = (inputs: ProFormaInputs): number => {
+  if (inputs.strategy !== 'rent') return 0;
+  
+  let penalty = 0;
+  
+  // Self-managed (no property manager) = 1 week penalty
+  if (!inputs.propertyManagement) {
+    penalty += TIME_PENALTY_SELF_MANAGED;
+  }
+  
+  // Tenant pays utilities (landlord NOT paying) = 2 week penalty to set up
+  if (!inputs.utilities) {
+    penalty += TIME_PENALTY_TENANT_PAYS_UTILITIES;
+  }
+  
+  return penalty;
+};
+
 // Curved risk premium formula: interest increases faster at higher LTV
 export const getInterestRateFromLTV = (ltv: number): number => {
   const normalizedLTV = Math.max(0, Math.min(1, (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)));
@@ -208,7 +234,8 @@ export const calculateProForma = (
   const maintenanceCost = expectedRent * (maintenancePct / 100);
   const capExCost = expectedRent * (capExPct / 100);
   const utilitiesCost = inputs.utilities ? utilitiesMonthly : 0;
-  const mgmtCost = inputs.propertyManagement ? expectedRent * (propertyManagementPct / 100) : 0;
+  const FIXED_PM_FEE_PCT = 5; // Property management is always 5% of rent when hired
+  const mgmtCost = inputs.propertyManagement ? expectedRent * (FIXED_PM_FEE_PCT / 100) : 0;
 
   const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
   const noiMonthly = effectiveRent - monthlyOpEx;

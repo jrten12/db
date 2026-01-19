@@ -332,7 +332,7 @@ export function TimeProgressionPanel({
                         <Button
                           size="sm"
                           variant="outline"
-                          className={`h-7 px-2 text-xs gap-1 ${canRefinance ? 'bg-blue-500/20 border-blue-500/50 text-blue-300 hover:bg-blue-500/30' : 'bg-gray-500/10 border-gray-500/30 text-gray-500'}`}
+                          className={`h-7 px-2 text-xs gap-1 font-bold ${canRefinance ? 'bg-blue-500/20 border-blue-500/50 text-blue-300 hover:bg-blue-500/30' : 'bg-gray-500/10 border-gray-500/30 text-gray-500'}`}
                           disabled={!canRefinance || refinancingDealId === deal.id}
                           onClick={(e) => {
                             if (canRefinance) {
@@ -347,7 +347,7 @@ export function TimeProgressionPanel({
                           ) : (
                             <>
                               <Landmark className="w-3.5 h-3.5" />
-                              <DollarSign className="w-3 h-3 -ml-1" />
+                              <span>Refi</span>
                             </>
                           )}
                         </Button>

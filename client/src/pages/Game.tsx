@@ -34,7 +34,10 @@ import {
   calculateProForma,
   convertPropertyToGameProperty,
   getInterestRateFromLTV,
-  getLoanFeesFromLTV
+  getLoanFeesFromLTV,
+  calculateTimePenalty,
+  TIME_PENALTY_SELF_MANAGED,
+  TIME_PENALTY_TENANT_PAYS_UTILITIES
 } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
 import { type Curveball, getTenantMessageForCurveball, curveballHasTenantMessage, getCurveballById } from '@/lib/curveballs';
@@ -647,6 +650,27 @@ export default function Game() {
       setGameRun(updatedGameRun);
       toast.warning('Cheap contractor: -2 weeks while they get started on the job.', { duration: 4000 });
     }
+    
+    // Apply rental management time penalties (self-managed and/or tenant-pays-utilities)
+    if (proFormaInputs.strategy === 'rent') {
+      const timePenalty = calculateTimePenalty(proFormaInputs);
+      if (timePenalty > 0) {
+        const penalties: string[] = [];
+        if (!proFormaInputs.propertyManagement) {
+          penalties.push(`Self-managing: -${TIME_PENALTY_SELF_MANAGED} week`);
+        }
+        if (!proFormaInputs.utilities) {
+          penalties.push(`Setting up tenant utilities: -${TIME_PENALTY_TENANT_PAYS_UTILITIES} weeks`);
+        }
+        const currentWeeks = gameRun.weeksRemaining - (isCheapContractor ? 2 : 0);
+        const updatedGameRun = await updateGameMutation.mutateAsync({
+          id: gameRun.id,
+          updates: { weeksRemaining: currentWeeks - timePenalty }
+        });
+        setGameRun(updatedGameRun);
+        toast.warning(penalties.join('. ') + '.', { duration: 4000 });
+      }
+    }
 
     try {
       const newDeal = await createDealMutation.mutateAsync({
@@ -866,10 +890,24 @@ export default function Game() {
           : existingTenants;
         
         if (allTenants.length > 0) {
+          // Helper to check if a deal is self-managed (no property manager)
+          const isDealSelfManaged = (dealId: number) => {
+            const deal = updatedDeals.find((d: Deal) => d.id === dealId);
+            if (!deal) return false;
+            const inputs = deal.proFormaInputs as ProFormaInputs;
+            return !inputs.propertyManagement; // true if NO property manager (self-managed)
+          };
+          
+          // Filter to only self-managed rentals (PM handles tenant communications for managed properties)
+          const selfManagedTenants = allTenants.filter(t => isDealSelfManaged(t.dealId));
+          
           // Check if any rental payment had a curveball with tenant messages
           let expenseMessageShown = false;
           
           for (const payment of result.rentalPayments) {
+            // Skip tenant texts for managed properties (PM handles this)
+            if (!isDealSelfManaged(payment.dealId)) continue;
+            
             // Check if curveball has a tenant message (now provided by server with correct personality)
             if (payment.curveball?.id) {
               // Use server-provided tenant message if available (ensures consistency with personality)
@@ -877,7 +915,7 @@ export default function Game() {
               
               if (serverTenantMessage) {
                 // Find the tenant for this deal
-                const tenantForDeal = allTenants.find(t => t.dealId === payment.dealId);
+                const tenantForDeal = selfManagedTenants.find(t => t.dealId === payment.dealId);
                 if (tenantForDeal) {
                   // Add context if this repair was caused by an undiscovered property issue
                   let finalMessage = serverTenantMessage;
@@ -904,7 +942,7 @@ export default function Game() {
                 }
                 
                 if (curveballHasTenantMessage(fullCurveball)) {
-                  const tenantForDeal = allTenants.find(t => t.dealId === payment.dealId);
+                  const tenantForDeal = selfManagedTenants.find(t => t.dealId === payment.dealId);
                   if (tenantForDeal) {
                     const personalityType = tenantForDeal.personalityType || 'generic';
                     const expenseMessage = getTenantMessageForCurveball(
@@ -928,9 +966,9 @@ export default function Game() {
           }
           
           // If no expense message was shown, occasionally show humor-only messages (15% chance)
-          // This is lower than before since expense messages provide more educational value
-          if (!expenseMessageShown && activeRentals.length > 0 && Math.random() < 0.15) {
-            const randomTenant = allTenants[Math.floor(Math.random() * allTenants.length)];
+          // Only for self-managed properties - PM handles tenant communications for managed properties
+          if (!expenseMessageShown && selfManagedTenants.length > 0 && Math.random() < 0.15) {
+            const randomTenant = selfManagedTenants[Math.floor(Math.random() * selfManagedTenants.length)];
             const speechPatterns = randomTenant.speechPatterns as string[] || [];
             if (speechPatterns.length > 0) {
               const message = getRandomMessage(speechPatterns);
@@ -1238,12 +1276,12 @@ export default function Game() {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-fixed"
-      style={{ backgroundImage: `url(${woodTexture})` }}
+      className="bg-cover bg-center bg-fixed"
+      style={{ backgroundImage: `url(${woodTexture})`, minHeight: '100vh' }}
       data-testid="game-screen"
     >
       {/* Fixed header at top of viewport */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-sm">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-sm pointer-events-auto">
         <StatusBar
           cash={gameRun.cash}
           weeksRemaining={gameRun.weeksRemaining}
@@ -1310,8 +1348,8 @@ export default function Game() {
                 Back to Market
               </button>
               
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1600px] mx-auto">
-                <div className="lg:col-span-8 xl:col-span-8">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 max-w-[1800px] mx-auto">
+                <div className="lg:col-span-9">
                   <ProFormaPanel
                     property={convertPropertyToGameProperty(selectedProperty)}
                     inputs={proFormaInputs}
@@ -1327,18 +1365,19 @@ export default function Game() {
                   />
                 </div>
 
-                <div className="lg:col-span-4 xl:col-span-4">
-                  <MetricsPanel 
-                    outputs={proFormaOutputs}
-                    isUnlocked={isProFormaComplete}
-                    onCommitDeal={handleCommitDeal}
-                    strategy={proFormaInputs.strategy}
-                    flipROI={flipMetrics.roi}
-                    isCommitting={isCommittingDeal}
-                    playerCash={gameRun?.cash ?? 0}
-                    flipProfit={flipMetrics.profit}
-                  />
-                  
+                <div className="lg:col-span-3 relative">
+                  <div className="lg:fixed lg:top-32 lg:w-[calc(25%-2rem)] lg:max-w-[280px]">
+                    <MetricsPanel 
+                      outputs={proFormaOutputs}
+                      isUnlocked={isProFormaComplete}
+                      onCommitDeal={handleCommitDeal}
+                      strategy={proFormaInputs.strategy}
+                      flipROI={flipMetrics.roi}
+                      isCommitting={isCommittingDeal}
+                      playerCash={gameRun?.cash ?? 0}
+                      flipProfit={flipMetrics.profit}
+                    />
+                  </div>
                 </div>
 
               </div>

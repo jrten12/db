@@ -34,6 +34,23 @@ export function TenantTextPopup({
     }
   }, [isOpen]);
 
+  // Auto-dismiss notification after 5 seconds if not opened
+  useEffect(() => {
+    if (showNotification && !showFullMessage) {
+      const timer = setTimeout(() => {
+        setShowNotification(false);
+        onClose();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showNotification, showFullMessage, onClose]);
+
+  const handleDismiss = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowNotification(false);
+    onClose();
+  };
+
   const handleNotificationClick = () => {
     setShowNotification(false);
     setShowFullMessage(true);
@@ -70,7 +87,16 @@ export function TenantTextPopup({
           onClick={handleNotificationClick}
           data-testid="tenant-notification"
         >
-          <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border-2 border-blue-400 p-4 min-w-[340px] max-w-[400px] ring-4 ring-blue-400/30">
+          <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border-2 border-blue-400 p-4 min-w-[340px] max-w-[400px] ring-4 ring-blue-400/30 relative">
+            {/* Dismiss button */}
+            <button
+              onClick={handleDismiss}
+              className="absolute -top-2 -right-2 w-7 h-7 bg-gray-600 hover:bg-gray-700 rounded-full flex items-center justify-center shadow-lg transition-colors z-10"
+              data-testid="dismiss-notification"
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
+            
             <div className="flex items-start gap-4">
               <div className="relative flex-shrink-0">
                 {tenantPortraitUrl ? (

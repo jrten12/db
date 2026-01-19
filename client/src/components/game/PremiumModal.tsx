@@ -7,6 +7,8 @@ interface PremiumModalProps {
   onPurchase: (type: 'cash' | 'weeks' | 'bundle', cashAmount: number, weeksAmount?: number) => void;
   currentCash: number;
   currentWeeks: number;
+  triggerReason?: 'no_weeks' | 'low_cash' | 'manual';
+  canClose?: boolean;
 }
 
 interface PremiumPackage {
@@ -102,11 +104,36 @@ const packages: PremiumPackage[] = [
   },
 ];
 
-export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, currentWeeks }: PremiumModalProps) {
+export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, currentWeeks, triggerReason = 'manual', canClose = true }: PremiumModalProps) {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [purchasing, setPurchasing] = useState(false);
 
   if (!isOpen) return null;
+  
+  // Get contextual messaging based on trigger reason
+  const getAlertMessage = () => {
+    if (triggerReason === 'no_weeks') {
+      return {
+        show: true,
+        title: "You're Out of Time!",
+        message: "You have 0 weeks remaining. Purchase more time to continue playing and close more deals.",
+        icon: Clock,
+        color: 'red',
+      };
+    }
+    if (triggerReason === 'low_cash') {
+      return {
+        show: true,
+        title: "Running Low on Cash!",
+        message: "Your cash is below $3,000. You may need a boost to close your next deal.",
+        icon: Wallet,
+        color: 'amber',
+      };
+    }
+    return { show: false, title: '', message: '', icon: Wallet, color: '' };
+  };
+  
+  const alert = getAlertMessage();
 
   const handlePurchase = async (pkg: PremiumPackage) => {
     setSelectedPackage(pkg.id);
@@ -137,16 +164,43 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
   return (
     <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto">
       <div className="flex flex-col items-center py-12 px-4 min-h-full">
-        <button
-          onClick={onClose}
-          className="fixed top-4 right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-10"
-          disabled={purchasing}
-          data-testid="button-close-premium"
-        >
-          <X className="w-6 h-6" />
-        </button>
+        {canClose && (
+          <button
+            onClick={onClose}
+            className="fixed top-4 right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-10"
+            disabled={purchasing}
+            data-testid="button-close-premium"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        )}
 
         <div className="w-full max-w-4xl">
+          {/* Alert Banner for triggered popups */}
+          {alert.show && (
+            <div className={`mb-6 p-4 rounded-xl border ${
+              alert.color === 'red' 
+                ? 'bg-red-500/20 border-red-500/40' 
+                : 'bg-amber-500/20 border-amber-500/40'
+            }`}>
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${
+                  alert.color === 'red' ? 'bg-red-500/30' : 'bg-amber-500/30'
+                }`}>
+                  <alert.icon className={`w-6 h-6 ${
+                    alert.color === 'red' ? 'text-red-400' : 'text-amber-400'
+                  }`} />
+                </div>
+                <div>
+                  <h3 className={`font-bold ${
+                    alert.color === 'red' ? 'text-red-300' : 'text-amber-300'
+                  }`}>{alert.title}</h3>
+                  <p className="text-gray-300 text-sm">{alert.message}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-yellow-500/20 to-orange-600/10 rounded-2xl border border-yellow-500/30 mb-4">

@@ -115,6 +115,9 @@ export default function Game() {
   const [locationFilter, setLocationFilter] = useState<LocationFilter>('all');
   const [moneyAnimationTrigger, setMoneyAnimationTrigger] = useState(0);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [premiumTriggerReason, setPremiumTriggerReason] = useState<'no_weeks' | 'low_cash' | 'manual'>('manual');
+  const [hasShownNoWeeksPopup, setHasShownNoWeeksPopup] = useState(false);
+  const [hasShownLowCashPopup, setHasShownLowCashPopup] = useState(false);
   const [showHallOfFame, setShowHallOfFame] = useState(false);
   const [showDebtPanel, setShowDebtPanel] = useState(false);
   const [playerName, setPlayerName] = useState<string | null>(null);
@@ -1160,6 +1163,27 @@ export default function Game() {
 
   // Check if player is bankrupt (cash below zero)
   const isBankrupt = gameRun && gameRun.cash < 0;
+  
+  // Derived state: is the player frozen (out of weeks)?
+  const isPlayerFrozen = gameRun?.weeksRemaining !== undefined && gameRun.weeksRemaining <= 0 && !isBankrupt;
+
+  // Auto-show premium popup when player runs out of weeks or cash is low
+  useEffect(() => {
+    if (!gameRun || isBankrupt) return;
+    
+    // Check for 0 weeks - highest priority, freezes game
+    if (gameRun.weeksRemaining <= 0 && !hasShownNoWeeksPopup && !showPremiumModal) {
+      setPremiumTriggerReason('no_weeks');
+      setShowPremiumModal(true);
+      setHasShownNoWeeksPopup(true);
+    }
+    // Check for low cash (below $3,000)
+    else if (gameRun.cash < 3000 && gameRun.weeksRemaining > 0 && !hasShownLowCashPopup && !showPremiumModal) {
+      setPremiumTriggerReason('low_cash');
+      setShowPremiumModal(true);
+      setHasShownLowCashPopup(true);
+    }
+  }, [gameRun?.weeksRemaining, gameRun?.cash, isBankrupt, hasShownNoWeeksPopup, hasShownLowCashPopup, showPremiumModal]);
 
   const handleBankruptReturnHome = useCallback(() => {
     // Reset game state and go back to name entry
@@ -1288,7 +1312,10 @@ export default function Game() {
           profitableDeals={gameRun.profitableDeals}
           goalDeals={gameRun.goalDeals}
           onOpenLedger={() => setShowLedger(true)}
-          onOpenPremium={() => setShowPremiumModal(true)}
+          onOpenPremium={() => {
+            setPremiumTriggerReason('manual');
+            setShowPremiumModal(true);
+          }}
           onOpenHallOfFame={() => setShowHallOfFame(true)}
           onAdvanceWeek={handleAdvanceWeek}
           isAdvancingWeek={isAdvancingWeek}
@@ -1522,10 +1549,15 @@ export default function Game() {
         {/* Premium Modal */}
         <PremiumModal
           isOpen={showPremiumModal}
-          onClose={() => setShowPremiumModal(false)}
+          onClose={() => {
+            setShowPremiumModal(false);
+            setPremiumTriggerReason('manual');
+          }}
           onPurchase={handlePremiumPurchase}
           currentCash={gameRun.cash}
           currentWeeks={gameRun.weeksRemaining}
+          triggerReason={premiumTriggerReason}
+          canClose={!isPlayerFrozen}
         />
 
         {/* Hall of Fame Modal */}

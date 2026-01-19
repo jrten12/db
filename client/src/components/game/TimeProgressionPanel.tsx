@@ -27,26 +27,38 @@ interface TimeProgressionPanelProps {
   onRefinanceRental?: (dealId: number) => Promise<void>;
 }
 
-function RentalFinancialDetails({ deal, propertyName }: { deal: Deal; propertyName: string }) {
+function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; propertyName: string; property?: any }) {
   const outputs = deal.proFormaOutputs as any;
   const inputs = deal.proFormaInputs as any;
   
   // Helper to format currency (whole dollars)
   const fmt = (n: number) => Math.round(n).toLocaleString();
   
-  const monthlyRent = outputs?.monthlyGrossRent || inputs?.expectedRent || 0;
+  // Use actual rent from outputs, OR calculate from property rent range if stored value is 0
+  // The realityAdjustmentMonthly tells us how much higher actual cash flow is vs what player assumed
+  let monthlyRent = outputs?.monthlyGrossRent || 0;
+  if (monthlyRent === 0 && property) {
+    // Calculate actual rent from property's rent range (midpoint with some variance)
+    monthlyRent = Math.round((property.rentMin + property.rentMax) / 2);
+  }
+  
   const monthlyVacancy = outputs?.monthlyVacancyLoss || 0;
   const monthlyOpEx = outputs?.monthlyOperatingExpenses || 0;
   const monthlyDebt = outputs?.monthlyDebtService || outputs?.debtServiceMonthly || 0;
-  const monthlyCashFlow = outputs?.cashFlowMonthly || 0;
+  
+  // Calculate actual monthly cash flow from weekly income (which is authoritative)
   const weeklyIncome = deal.weeklyIncome || 0;
+  const actualMonthlyCashFlow = weeklyIncome * (52 / 12);
+  
+  // Use the calculated value, or reality check if available, or stored value as fallback
+  const monthlyCashFlow = outputs?.realityCheck?.actualCashFlow || actualMonthlyCashFlow || outputs?.cashFlowMonthly || 0;
   
   const vacancyRate = outputs?.effectiveVacancyRate?.toFixed(1) || inputs?.vacancyRate || '?';
   const ltv = inputs?.ltv || 0;
   const purchasePrice = deal.purchasePrice || 0;
   
-  // Check if this is a problem deal (no rent but has mortgage)
-  const hasNoRent = monthlyRent === 0 && monthlyDebt > 0;
+  // Check if this is a problem deal (no rent but has mortgage) - only show if we truly have no rent data
+  const hasNoRent = monthlyRent === 0 && monthlyDebt > 0 && weeklyIncome <= 0;
   
   return (
     <div className="space-y-3 text-sm">
@@ -231,6 +243,11 @@ export function TimeProgressionPanel({
     const property = properties.find(p => p.id === propertyId);
     return property?.name || `#${propertyId}`;
   };
+  
+  const getProperty = (propertyId: number | null) => {
+    if (!propertyId) return undefined;
+    return properties.find(p => p.id === propertyId);
+  };
 
   const hasActiveProperties = activeRentals.length > 0 || flipsInRehab.length > 0 || flipsReadyToList.length > 0;
 
@@ -321,7 +338,7 @@ export function TimeProgressionPanel({
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-72 bg-slate-900 border-slate-700 text-white" align="start">
-                    <RentalFinancialDetails deal={deal} propertyName={propertyName} />
+                    <RentalFinancialDetails deal={deal} propertyName={propertyName} property={getProperty(deal.propertyId)} />
                   </PopoverContent>
                 </Popover>
                 <div className="flex items-center gap-1 flex-shrink-0">

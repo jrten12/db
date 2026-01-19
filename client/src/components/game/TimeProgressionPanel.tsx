@@ -44,7 +44,8 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
   
   const monthlyVacancy = outputs?.monthlyVacancyLoss || 0;
   const monthlyOpEx = outputs?.monthlyOperatingExpenses || 0;
-  const monthlyDebt = outputs?.monthlyDebtService || outputs?.debtServiceMonthly || 0;
+  // Use debtServiceMonthly (standard amortization) for consistency with DebtPanel
+  const monthlyDebt = outputs?.debtServiceMonthly || outputs?.monthlyDebtService || 0;
   
   // Calculate actual monthly cash flow from weekly income (which is authoritative)
   const weeklyIncome = deal.weeklyIncome || 0;

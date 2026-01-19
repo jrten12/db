@@ -956,7 +956,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         rentalPayments.push(result);
 
         if (curveball) {
-          curveballs.push(curveballWithMessage);
+          curveballs.push(curveball);
         }
       }
     }

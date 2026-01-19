@@ -1257,8 +1257,8 @@ export async function activateRentalProperty(
   // We use the stored values and apply reality check as an adjustment
   const proFormaOutputs = deal.proFormaOutputs as any;
   
-  // Use player's projected rent (before vacancy) from inputs
-  const monthlyGrossRent = proFormaInputs?.expectedRent || proFormaInputs?.monthlyRent || 0;
+  // Use ACTUAL rent (reality-checked) for stored values - this is what player actually receives
+  const monthlyGrossRent = actualRent;
   
   // === VACANCY TRACKING (unique per property) ===
   // Base vacancy rate from player's assumption
@@ -1322,8 +1322,9 @@ export async function activateRentalProperty(
       explanation: realityCheck.explanation,
       wasOptimistic: realityCheck.wasOptimistic,
     } : null,
-    // Store values for weekly processing
+    // Store ACTUAL values for weekly processing (reality-checked)
     monthlyGrossRent,
+    cashFlowMonthly: actualCashFlowMonthly, // Store actual cash flow for display
     realityAdjustmentMonthly,
   };
 

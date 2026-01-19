@@ -90,7 +90,7 @@ function RentalFinancialDetails({ deal, propertyName }: { deal: Deal; propertyNa
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-white font-medium">Weekly Cost</span>
+          <span className="text-white font-medium">Weekly Income</span>
           <span className={`font-bold ${weeklyIncome >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {weeklyIncome >= 0 ? '+' : ''}{fmt(weeklyIncome)}
           </span>

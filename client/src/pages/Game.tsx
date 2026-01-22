@@ -1300,11 +1300,11 @@ export default function Game() {
 
   return (
     <div 
-      className="bg-cover bg-center bg-fixed"
-      style={{ backgroundImage: `url(${woodTexture})`, minHeight: '100vh' }}
+      className="bg-cover bg-center bg-fixed min-h-screen min-h-[100dvh]"
+      style={{ backgroundImage: `url(${woodTexture})` }}
       data-testid="game-screen"
     >
-      {/* Fixed header at top of viewport */}
+      {/* Fixed header at top of viewport - safe area handled by StatusBar */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-sm pointer-events-auto">
         <StatusBar
           cash={gameRun.cash}
@@ -1322,8 +1322,8 @@ export default function Game() {
         />
       </div>
       
-      {/* Main content with top padding to account for fixed header */}
-      <div className="min-h-screen bg-black/30 pt-36 md:pt-28">
+      {/* Main content with top padding to account for fixed header + safe area */}
+      <div className="min-h-screen min-h-[100dvh] bg-black/30 pt-40 md:pt-32 momentum-scroll">
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">

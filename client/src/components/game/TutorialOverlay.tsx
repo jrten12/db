@@ -183,10 +183,10 @@ export function TutorialOverlay() {
         <div className="sticky top-0 right-0 z-10 flex justify-end p-2 pb-0">
           <button
             onClick={endTutorial}
-            className="w-8 h-8 rounded-full bg-slate-700/90 hover:bg-slate-600 active:bg-slate-500 border border-slate-600 flex items-center justify-center transition-colors"
+            className="touch-target w-11 h-11 rounded-full bg-slate-700/90 hover:bg-slate-600 active:bg-slate-500 border border-slate-600 flex items-center justify-center transition-all duration-150 ios-spring tap-scale"
             data-testid="button-end-tutorial"
           >
-            <X className="w-4 h-4 text-gray-300" />
+            <X className="w-5 h-5 text-gray-300" />
           </button>
         </div>
 

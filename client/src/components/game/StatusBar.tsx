@@ -105,8 +105,8 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
 
   return (
     <>
-      <div className="modern-status-bar safe-area-top sticky top-0 z-40" data-testid="status-bar">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+      <div className="modern-status-bar safe-area-top safe-area-x sticky top-0 z-40" data-testid="status-bar">
+        <div className="max-w-7xl mx-auto px-4 py-2">
           {/* Desktop Layout */}
           <div className="hidden md:flex items-center gap-6">
             {/* Logo */}
@@ -156,7 +156,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               <button
                 onClick={onAdvanceWeek}
                 disabled={isAdvancingWeek || weeksRemaining <= 0}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg shadow-lg transition-all hover:scale-105 disabled:hover:scale-100"
+                className="touch-target flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-lg transition-all duration-150 ios-spring tap-scale disabled:tap-scale-none"
                 data-testid="button-advance-week"
               >
                 {isAdvancingWeek ? (
@@ -186,22 +186,22 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
           {/* Mobile Layout */}
           <div className="md:hidden">
             {/* Top Row */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-2">
               <button
                 onClick={() => setMenuOpen(true)}
-                className="menu-button-mobile"
+                className="menu-button-mobile touch-target flex items-center justify-center tap-scale"
                 data-testid="button-menu-mobile"
               >
                 <Menu className="w-5 h-5" />
               </button>
               
               <Link href="/">
-                <div className="relative">
+                <div className="relative tap-scale">
                   <div className="absolute -inset-1 bg-emerald-500/20 rounded-xl blur-sm" />
                   <img 
                     src={logo} 
                     alt="Dealbreak" 
-                    className="relative h-14 w-14 rounded-lg shadow-2xl"
+                    className="relative h-12 w-12 rounded-lg shadow-2xl"
                     style={{
                       boxShadow: '0 6px 24px rgba(0,0,0,0.5), 0 0 0 2px rgba(16,185,129,0.3)',
                     }}
@@ -215,17 +215,17 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <button
                   onClick={onAdvanceWeek}
                   disabled={isAdvancingWeek || weeksRemaining <= 0}
-                  className="flex items-center justify-center w-9 h-9 bg-blue-500 hover:bg-blue-400 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all"
+                  className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-xl transition-all duration-150 ios-spring tap-scale"
                   data-testid="button-advance-week-mobile"
                 >
                   {isAdvancingWeek ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    <Loader2 className="w-5 h-5 animate-spin text-white" />
                   ) : (
-                    <Play className="w-4 h-4 text-white" />
+                    <Play className="w-5 h-5 text-white" />
                   )}
                 </button>
               ) : (
-                <div className="w-9" />
+                <div className="w-11" />
               )}
             </div>
             
@@ -233,7 +233,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             <div className="flex items-stretch justify-between gap-2">
               <button 
                 onClick={onOpenLedger}
-                className="stat-card-mobile stat-card-mobile-cash"
+                className="stat-card-mobile stat-card-mobile-cash touch-target-sm tap-scale"
                 data-testid="status-cash-mobile"
               >
                 <AnimatedNumber value={cashDisplay} prefix="$" className="mobile-cash-value" />
@@ -242,12 +242,12 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 </div>
               </button>
               
-              <div className="stat-card-mobile stat-card-mobile-time" data-testid="status-time-mobile">
+              <div className="stat-card-mobile stat-card-mobile-time touch-target-sm" data-testid="status-time-mobile">
                 <AnimatedNumber value={weeksRemaining} suffix="W" className="mobile-time-value" />
                 <div className="stat-label-mobile">Time</div>
               </div>
               
-              <div className="stat-card-mobile stat-card-mobile-goal" data-testid="status-goal-mobile">
+              <div className="stat-card-mobile stat-card-mobile-goal touch-target-sm" data-testid="status-goal-mobile">
                 <span className="mobile-goal-value">
                   <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
                 </span>
@@ -260,11 +260,11 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
 
       {/* Menu Overlay - rendered via portal to escape backdrop-filter containing block */}
       {menuOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md" data-testid="menu-overlay">
-          <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md safe-area-all" data-testid="menu-overlay">
+          <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] p-4">
             <button
               onClick={() => setMenuOpen(false)}
-              className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all"
+              className="absolute top-4 right-4 touch-target p-3 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-full text-white transition-all duration-150 ios-spring tap-scale safe-area-top safe-area-right"
               data-testid="button-close-menu"
             >
               <X className="w-6 h-6" />
@@ -282,13 +282,13 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               />
             </div>
 
-            <div className="space-y-4 w-full max-w-xs">
+            <div className="space-y-3 w-full max-w-xs">
               <button
                 onClick={() => {
                   setMenuOpen(false);
                   onOpenHallOfFame?.();
                 }}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-amber-500/20 to-yellow-600/20 hover:from-amber-500/30 hover:to-yellow-600/30 backdrop-blur-md rounded-xl border border-amber-500/30 text-amber-400 font-semibold transition-all"
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-amber-500/20 to-yellow-600/20 hover:from-amber-500/30 hover:to-yellow-600/30 active:from-amber-500/40 active:to-yellow-600/40 backdrop-blur-md rounded-xl border border-amber-500/30 text-amber-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
                 data-testid="button-hall-of-fame"
               >
                 <Trophy className="w-5 h-5" />
@@ -300,7 +300,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                   setMenuOpen(false);
                   onOpenPremium?.();
                 }}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 backdrop-blur-md rounded-xl border border-yellow-500/30 text-yellow-400 font-semibold transition-all"
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 active:from-yellow-500/40 active:to-orange-500/40 backdrop-blur-md rounded-xl border border-yellow-500/30 text-yellow-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
                 data-testid="button-premium"
               >
                 <Sparkles className="w-5 h-5" />
@@ -310,7 +310,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               <Link href="/">
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-xl border border-white/20 text-white font-semibold transition-all"
+                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-md rounded-xl border border-white/20 text-white font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
                   data-testid="button-main-menu"
                 >
                   <Home className="w-5 h-5" />
@@ -320,7 +320,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
 
               <button
                 onClick={() => setMenuOpen(false)}
-                className="w-full px-6 py-4 bg-emerald-500/20 hover:bg-emerald-500/30 backdrop-blur-md rounded-xl border border-emerald-500/30 text-emerald-400 font-semibold transition-all"
+                className="w-full px-6 py-4 bg-emerald-500/20 hover:bg-emerald-500/30 active:bg-emerald-500/40 backdrop-blur-md rounded-xl border border-emerald-500/30 text-emerald-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
                 data-testid="button-resume-game"
               >
                 Resume Game

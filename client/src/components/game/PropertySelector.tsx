@@ -68,14 +68,14 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
         </div>
       </div>
 
-      {/* Location Filter Tabs */}
-      <div className="flex items-center gap-2">
+      {/* Location Filter Tabs - iOS style with proper touch targets */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scroll-smooth-ios">
         <button
           onClick={() => onLocationFilterChange('all')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ios-spring touch-target-sm tap-scale flex-shrink-0 ${
             locationFilter === 'all'
               ? 'bg-gold text-slate-900'
-              : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+              : 'bg-white/5 text-gray-300 hover:bg-white/10 active:bg-white/15 border border-white/10'
           }`}
           data-testid="button-filter-all"
         >
@@ -86,10 +86,10 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
         </button>
         <button
           onClick={() => onLocationFilterChange('urban')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ios-spring touch-target-sm tap-scale flex-shrink-0 ${
             locationFilter === 'urban'
               ? 'bg-blue-500 text-white'
-              : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+              : 'bg-white/5 text-gray-300 hover:bg-white/10 active:bg-white/15 border border-white/10'
           }`}
           data-testid="button-filter-urban"
         >
@@ -101,10 +101,10 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
         </button>
         <button
           onClick={() => onLocationFilterChange('suburban')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ios-spring touch-target-sm tap-scale flex-shrink-0 ${
             locationFilter === 'suburban'
               ? 'bg-emerald-500 text-white'
-              : 'bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10'
+              : 'bg-white/5 text-gray-300 hover:bg-white/10 active:bg-white/15 border border-white/10'
           }`}
           data-testid="button-filter-suburban"
         >
@@ -161,14 +161,14 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
               onClick={() => !isUnavailable && !canSell && onSelect(property.id)}
               role={isUnavailable ? undefined : "button"}
               tabIndex={isUnavailable ? undefined : 0}
-              className={`group relative rounded-2xl overflow-hidden transition-all duration-300 text-left ${
+              className={`group relative rounded-2xl overflow-hidden text-left transition-transform duration-200 ios-spring ${
                 isUnavailable
                   ? 'opacity-85 cursor-default'
                   : canSell
                     ? 'opacity-100'
                     : isSelected
-                      ? 'ring-2 ring-gold scale-[1.02] shadow-xl shadow-gold/20 cursor-pointer'
-                      : 'hover:scale-[1.02] hover:shadow-xl hover:shadow-black/40 cursor-pointer'
+                      ? 'ring-2 ring-gold scale-[1.01] shadow-xl shadow-gold/20 cursor-pointer'
+                      : 'hover:scale-[1.015] active:scale-[0.98] hover:shadow-xl hover:shadow-black/40 cursor-pointer'
               }`}
               data-testid={`property-card-${property.id}`}
             >

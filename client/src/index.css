@@ -131,9 +131,74 @@
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-x: none;
     min-height: 100vh;
+    min-height: 100dvh;
     height: auto;
     overflow-x: hidden;
     overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@layer utilities {
+  .safe-area-top {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+  .safe-area-bottom {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .safe-area-left {
+    padding-left: max(0.5rem, env(safe-area-inset-left));
+  }
+  .safe-area-right {
+    padding-right: max(0.5rem, env(safe-area-inset-right));
+  }
+  .safe-area-x {
+    padding-left: max(0.5rem, env(safe-area-inset-left));
+    padding-right: max(0.5rem, env(safe-area-inset-right));
+  }
+  .safe-area-all {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    padding-left: max(0.5rem, env(safe-area-inset-left));
+    padding-right: max(0.5rem, env(safe-area-inset-right));
+  }
+  
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .touch-target-sm {
+    min-height: 36px;
+    min-width: 36px;
+  }
+  
+  .ios-spring {
+    transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .ios-bounce {
+    transition-timing-function: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  .ios-ease {
+    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  
+  .tap-scale {
+    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .tap-scale:active {
+    transform: scale(0.96);
+  }
+  
+  .scroll-smooth-ios {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+  }
+  
+  .momentum-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
   }
 }
 

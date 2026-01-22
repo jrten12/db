@@ -285,9 +285,6 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                       <span>Suburban</span>
                     </div>
                   )}
-                  <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${conditionBadge.color}`}>
-                    {conditionBadge.label}
-                  </div>
                   <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border text-gray-400 bg-gray-500/20 border-gray-500/30">
                     <Lock className="w-3 h-3" />
                     <span>Financials Unknown</span>

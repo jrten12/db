@@ -1317,13 +1317,13 @@ export default function Game() {
             setShowPremiumModal(true);
           }}
           onOpenHallOfFame={() => setShowHallOfFame(true)}
-          onAdvanceWeek={handleAdvanceWeek}
+          onAdvanceWeek={currentScreen === 'market' ? handleAdvanceWeek : undefined}
           isAdvancingWeek={isAdvancingWeek}
         />
       </div>
       
       {/* Main content with top padding to account for fixed header + safe area */}
-      <div className="min-h-screen min-h-[100dvh] bg-black/30 pt-40 md:pt-32 momentum-scroll">
+      <div className="min-h-screen min-h-[100dvh] bg-black/30 pt-40 md:pt-32 overflow-y-auto">
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">

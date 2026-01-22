@@ -552,11 +552,8 @@
   .cash-value {
     color: #10b981;
     text-shadow:
-      0 0 10px rgba(16,185,129,0.8),
-      0 0 20px rgba(16,185,129,0.6),
-      0 0 30px rgba(16,185,129,0.4),
+      0 0 6px rgba(16,185,129,0.4),
       0 2px 4px rgba(0,0,0,0.5);
-    filter: drop-shadow(0 0 8px rgba(16,185,129,0.5));
   }
 
   .number-prefix {
@@ -668,10 +665,8 @@
     @apply font-mono font-bold text-lg;
     color: #10b981;
     text-shadow:
-      0 0 8px rgba(16,185,129,0.8),
-      0 0 16px rgba(16,185,129,0.5),
+      0 0 4px rgba(16,185,129,0.3),
       0 2px 4px rgba(0,0,0,0.5);
-    filter: drop-shadow(0 0 6px rgba(16,185,129,0.5));
   }
 
   .mobile-time-value {

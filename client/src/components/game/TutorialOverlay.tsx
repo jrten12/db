@@ -76,10 +76,31 @@ export function TutorialOverlay() {
   if (!isActive || !currentStep) return null;
 
   const isCentered = currentStep.position === 'center' || !targetRect;
-  const tooltipWidth = isMobile ? Math.min(340, window.innerWidth - 32) : 480;
+  const tooltipWidth = isMobile ? Math.min(340, window.innerWidth - 24) : 480;
 
   const getTooltipStyle = (): React.CSSProperties => {
-    if (isCentered || isMobile) {
+    if (isMobile) {
+      if (isActionRequired) {
+        return {
+          position: 'fixed',
+          bottom: 'max(16px, env(safe-area-inset-bottom))',
+          left: '12px',
+          right: '12px',
+          width: 'auto',
+          maxWidth: 'none',
+        };
+      }
+      return {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: tooltipWidth,
+        maxWidth: 'calc(100vw - 24px)',
+      };
+    }
+    
+    if (isCentered) {
       return {
         position: 'fixed',
         top: '50%',

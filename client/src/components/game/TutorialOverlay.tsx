@@ -129,11 +129,11 @@ export function TutorialOverlay() {
   return (
     <div 
       ref={overlayRef}
-      className="fixed inset-0 z-[100]"
+      className={`fixed inset-0 z-[100] ${isActionRequired ? 'pointer-events-none' : ''}`}
       data-testid="tutorial-overlay"
     >
       <div 
-        className="absolute inset-0 bg-black/70"
+        className={`absolute inset-0 bg-black/70 ${isActionRequired ? 'pointer-events-none' : ''}`}
         onClick={(e) => {
           if (!isActionRequired) {
             e.stopPropagation();
@@ -155,26 +155,26 @@ export function TutorialOverlay() {
       )}
 
       <div 
-        className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl border border-purple-500/30 shadow-2xl shadow-purple-500/20 transition-all duration-300 max-h-[85vh] overflow-y-auto ${isAnimating ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
+        className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl border border-purple-500/30 shadow-2xl shadow-purple-500/20 transition-all duration-300 max-h-[80vh] overflow-y-auto pointer-events-auto ${isAnimating ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
         style={getTooltipStyle()}
         data-testid="tutorial-tooltip"
       >
-        <div className="absolute -top-2 -right-2 z-10">
+        <div className="sticky top-0 right-0 z-10 flex justify-end p-2 pb-0">
           <button
             onClick={endTutorial}
-            className="w-7 h-7 rounded-full bg-slate-700 hover:bg-slate-600 border border-slate-600 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-slate-700/90 hover:bg-slate-600 active:bg-slate-500 border border-slate-600 flex items-center justify-center transition-colors"
             data-testid="button-end-tutorial"
           >
-            <X className="w-3.5 h-3.5 text-gray-400" />
+            <X className="w-4 h-4 text-gray-300" />
           </button>
         </div>
 
-        <div className="p-4 md:p-5">
+        <div className="px-4 pb-4 pt-1 md:px-5 md:pb-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg flex-shrink-0">
               <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h3 className="text-white font-bold text-base md:text-lg truncate">{currentStep.title}</h3>
               <div className="text-purple-400 text-xs font-medium">
                 Step {stepIndex} of {totalSteps}

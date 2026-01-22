@@ -24,20 +24,6 @@ interface PropertySelectorProps {
   onSellProperty?: (dealId: number, strategy: 'rent' | 'flip') => void;
 }
 
-const getConditionBadge = (conditionTag: string) => {
-  switch (conditionTag) {
-    case 'Excellent':
-      return { label: 'Move-In Ready', color: 'text-emerald-400 bg-emerald-500/20 border-emerald-500/30' };
-    case 'Good':
-      return { label: 'Minor Updates', color: 'text-blue-400 bg-blue-500/20 border-blue-500/30' };
-    case 'Fair':
-      return { label: 'Needs Work', color: 'text-amber-400 bg-amber-500/20 border-amber-500/30' };
-    case 'Fixer-Upper':
-      return { label: 'Major Rehab', color: 'text-red-400 bg-red-500/20 border-red-500/30' };
-    default:
-      return { label: conditionTag, color: 'text-gray-400 bg-gray-500/20 border-gray-500/30' };
-  }
-};
 
 export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), propertyDeals = [], onSellProperty }: PropertySelectorProps) {
   const urbanCount = properties.filter(p => p.locationType === 'urban').length;
@@ -120,7 +106,6 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
         {filteredProperties.map((property, index) => {
           const propertyImage = getPropertyImage(property.name);
-          const conditionBadge = getConditionBadge(property.conditionTag);
           const isSelected = selectedId === property.id;
           const hasInvestigations = propertiesWithInvestigations.has(property.id);
           const dealInfo = propertyDeals.find(d => d.propertyId === property.id);

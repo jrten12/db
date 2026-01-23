@@ -229,8 +229,15 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
   const hasUnassigned = unassignedEntries.length > 0;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" data-testid="ledger-panel">
-      <div className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl">
+    <div 
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 pt-[calc(env(safe-area-inset-top,0px)+16px)]" 
+      data-testid="ledger-panel"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
             <Wallet className="w-6 h-6 text-emerald-400" />
@@ -238,10 +245,10 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
           </div>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+            className="p-3 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-xl transition-colors touch-target"
             data-testid="button-close-ledger"
           >
-            <X className="w-5 h-5 text-gray-400" />
+            <X className="w-6 h-6 text-white" />
           </button>
         </div>
 

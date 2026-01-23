@@ -230,12 +230,12 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
 
   return (
     <div 
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4 pt-[calc(env(safe-area-inset-top,0px)+16px)]" 
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center z-[60] p-4 pt-[calc(env(safe-area-inset-top,0px)+180px)] md:pt-8" 
       data-testid="ledger-panel"
       onClick={onClose}
     >
       <div 
-        className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl"
+        className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[calc(100vh-200px)] md:max-h-[85vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-700">

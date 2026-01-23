@@ -95,28 +95,50 @@ export interface ProFormaOutputs {
 // Default LTV at 75% (25% down payment, ~7.5% interest)
 export const DEFAULT_LTV = 75;
 
+// Market-based defaults to prevent silent zeros and accidental failures
+// These are reasonable starting points that users can edit
+export const MARKET_DEFAULTS = {
+  // Rental defaults (conservative, typical market assumptions)
+  vacancyRate: 7,           // 7% vacancy (~3.5 weeks/year empty)
+  maintenancePct: 8,        // 8% of rent for ongoing repairs
+  capExPct: 5,              // 5% of rent for big-ticket replacements
+  propertyManagementPct: 8, // 8% if using property manager
+  utilitiesMonthly: 150,    // $150/month if landlord pays
+  
+  // Flip defaults (conservative estimates)
+  contingencyPct: 15,       // 15% buffer for surprises
+  sellingCostsPct: 8,       // 8% for realtor + closing costs
+  rehabWeeks: 8,            // 8 weeks for typical rehab
+};
+
 // Default values with LTV-based financing
-// Player still needs to fill in strategy-specific fields
+// All required fields have market-based defaults to prevent silent zeros
 export const defaultProForma: ProFormaInputs = {
   strategy: 'rent',
-  expectedRent: null,
-  vacancyRate: null,
-  taxesAnnual: null,
-  insuranceAnnual: null,
-  maintenancePct: null,
-  capExPct: null,
+  expectedRent: null, // Must come from market study or player input
+  vacancyRate: MARKET_DEFAULTS.vacancyRate,
+  taxesAnnual: null, // Property-specific, calculated at ~1.5% of price
+  insuranceAnnual: null, // Property-specific, calculated at ~0.5% of price
+  maintenancePct: MARKET_DEFAULTS.maintenancePct,
+  capExPct: MARKET_DEFAULTS.capExPct,
   utilities: false,
-  utilitiesMonthly: null,
+  utilitiesMonthly: MARKET_DEFAULTS.utilitiesMonthly,
   propertyManagement: false,
-  propertyManagementPct: null,
-  rehabBudget: null,
-  rehabWeeks: null,
-  contingencyPct: null,
+  propertyManagementPct: MARKET_DEFAULTS.propertyManagementPct,
+  rehabBudget: null, // Must come from contractor walkthrough
+  rehabWeeks: MARKET_DEFAULTS.rehabWeeks,
+  contingencyPct: MARKET_DEFAULTS.contingencyPct,
   ltv: DEFAULT_LTV,
-  sellingCostsPct: null,
+  sellingCostsPct: MARKET_DEFAULTS.sellingCostsPct,
   contractorType: 'cheap',
   financeRehab: false, // Default to not financing rehab
 };
+
+// Helper to get property-specific defaults based on price
+export const getPropertyBasedDefaults = (price: number) => ({
+  taxesAnnual: Math.round(price * 0.015), // ~1.5% of price
+  insuranceAnnual: Math.round(price * 0.005), // ~0.5% of price
+});
 
 // Required fields for rent strategy (LTV handles financing automatically)
 export const requiredRentFields: (keyof ProFormaInputs)[] = [

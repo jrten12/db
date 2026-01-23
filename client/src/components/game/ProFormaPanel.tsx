@@ -349,7 +349,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const isComplete = isProFormaInputsComplete(inputs);
   const missingFields = getMissingFields(inputs);
   const requiredFields = inputs.strategy === 'rent' ? requiredRentFields : requiredFlipFields;
-  const filledCount = requiredFields.filter(field => isFilled(inputs[field as keyof ProFormaInputs])).length;
+  const filledCount = requiredFields.filter(field => {
+    const val = inputs[field as keyof ProFormaInputs];
+    return val !== null && val !== undefined;
+  }).length;
   const completionPct = Math.round((filledCount / requiredFields.length) * 100);
 
   // Check if all required fields have been touched by the user

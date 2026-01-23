@@ -294,6 +294,22 @@ export function TimeProgressionPanel({
         </div>
       )}
 
+      {/* Portfolio Cycle Indicator - Shows investment progression */}
+      {hasActiveProperties && (
+        <div className="flex items-center justify-center gap-1 text-[10px] text-gray-500 mb-2 px-2">
+          <span className="text-emerald-400">Deal</span>
+          <span>→</span>
+          <span className={totalWeeklyIncome > 0 ? 'text-green-400' : 'text-gray-400'}>Cash Flow</span>
+          <span>→</span>
+          <span className={activeRentals.some(d => {
+            const weeksHeld = gameRun.currentWeek - ((d as any).purchaseWeek ?? 0);
+            return weeksHeld >= SEASONING_WEEKS;
+          }) ? 'text-blue-400' : 'text-gray-400'}>Refinance</span>
+          <span>→</span>
+          <span className="text-amber-400">Scale</span>
+        </div>
+      )}
+
       {/* Active Properties - Compact List */}
       {hasActiveProperties && (
         <div className="space-y-2">
@@ -343,14 +359,14 @@ export function TimeProgressionPanel({
                   </PopoverContent>
                 </Popover>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  {/* Refinance (Cash-Out) button with bank icon */}
+                  {/* Refinance (Cash-Out) button - prominent on mobile */}
                   {onRefinanceRental && (
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
                           size="sm"
-                          variant="outline"
-                          className={`h-7 px-2 text-xs gap-1 font-bold ${canRefinance ? 'bg-blue-500/20 border-blue-500/50 text-blue-300 hover:bg-blue-500/30' : 'bg-gray-500/10 border-gray-500/30 text-gray-500'}`}
+                          variant={canRefinance ? "default" : "ghost"}
+                          className={canRefinance ? "gap-1.5" : "text-gray-500 gap-1.5"}
                           disabled={!canRefinance || refinancingDealId === deal.id}
                           onClick={(e) => {
                             if (canRefinance) {
@@ -361,22 +377,28 @@ export function TimeProgressionPanel({
                           data-testid={`button-refinance-rental-${deal.id}`}
                         >
                           {refinancingDealId === deal.id ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           ) : (
                             <>
-                              <Landmark className="w-3.5 h-3.5" />
+                              <Landmark className="w-4 h-4" />
                               <span>Refi</span>
                             </>
                           )}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-52 bg-slate-900 border-slate-700 text-white text-xs p-2">
+                      <PopoverContent className="w-64 bg-slate-900 border-slate-700 text-white text-sm p-3">
                         {canRefinance ? (
-                          <span className="text-blue-300">Cash-out refinance - tap to access your equity</span>
+                          <div className="space-y-2">
+                            <p className="text-blue-300 font-medium">Cash-Out Refinance Available</p>
+                            <p className="text-gray-300 text-xs">Tap to access your equity. Get cash back while keeping the property.</p>
+                          </div>
                         ) : weeksUntilRefinance > 0 ? (
-                          <span>Seasoning period: {weeksUntilRefinance} weeks until you can refinance</span>
+                          <div className="space-y-1">
+                            <p className="text-amber-400 font-medium">Seasoning Required</p>
+                            <p className="text-gray-300 text-xs">{weeksUntilRefinance} more weeks until you can refinance</p>
+                          </div>
                         ) : (
-                          <span>Refinancing not available</span>
+                          <span className="text-gray-400">Refinancing not available</span>
                         )}
                       </PopoverContent>
                     </Popover>

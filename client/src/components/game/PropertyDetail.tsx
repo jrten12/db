@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { formatCurrency } from '@/lib/gameData';
+import { formatCurrency, MARKET_DEFAULTS, getPropertyBasedDefaults } from '@/lib/gameData';
 import { getPropertyImage, getPropertyInteriorImages, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -239,6 +239,11 @@ interface PropertyDetailProps {
   completedDiligence?: string[];
   onDiligencePurchase?: (propertyId: number, diligenceType: string, cost: number, weeks: number) => void;
   cash?: number;
+  // Inline pro forma props (optional - for inline editing)
+  proFormaInputs?: any;
+  onProFormaInputsChange?: (inputs: any) => void;
+  touchedFields?: Set<any>;
+  onFieldTouch?: (field: any) => void;
 }
 
 export function PropertyDetail({
@@ -250,6 +255,10 @@ export function PropertyDetail({
   completedDiligence = [],
   onDiligencePurchase,
   cash = 30000,
+  proFormaInputs,
+  onProFormaInputsChange,
+  touchedFields,
+  onFieldTouch,
 }: PropertyDetailProps) {
   const [strategy, setStrategy] = useState<'rent' | 'flip'>('rent');
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
@@ -813,6 +822,134 @@ export function PropertyDetail({
                     </div>
                   </button>
                 </div>
+              </div>
+
+              {/* Inline Pro Forma Inputs - Editable when props provided */}
+              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-emerald-500/30">
+                <h3 className="text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <FileText className="w-4 h-4" /> Key Assumptions
+                  <span className="text-xs font-normal text-gray-400">(Editable - tap values to change)</span>
+                </h3>
+                
+                {strategy === 'rent' ? (
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-700/30 rounded-lg p-2">
+                      <div className="text-gray-400 mb-1">Vacancy Rate</div>
+                      <input
+                        type="number"
+                        value={proFormaInputs?.vacancyRate ?? MARKET_DEFAULTS.vacancyRate}
+                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, vacancyRate: parseFloat(e.target.value) || 0 })}
+                        onFocus={() => onFieldTouch?.('vacancyRate')}
+                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
+                        min="0"
+                        max="100"
+                        step="0.5"
+                      />
+                      <span className="text-gray-500 text-[10px]">% of time empty</span>
+                    </div>
+                    <div className="bg-slate-700/30 rounded-lg p-2">
+                      <div className="text-gray-400 mb-1">Maintenance</div>
+                      <input
+                        type="number"
+                        value={proFormaInputs?.maintenancePct ?? MARKET_DEFAULTS.maintenancePct}
+                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, maintenancePct: parseFloat(e.target.value) || 0 })}
+                        onFocus={() => onFieldTouch?.('maintenancePct')}
+                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
+                        min="0"
+                        max="50"
+                        step="0.5"
+                      />
+                      <span className="text-gray-500 text-[10px]">% of rent for repairs</span>
+                    </div>
+                    <div className="bg-slate-700/30 rounded-lg p-2">
+                      <div className="text-gray-400 mb-1">Annual Taxes</div>
+                      <input
+                        type="number"
+                        value={proFormaInputs?.taxesAnnual ?? getPropertyBasedDefaults(property.price).taxesAnnual}
+                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, taxesAnnual: parseFloat(e.target.value) || 0 })}
+                        onFocus={() => onFieldTouch?.('taxesAnnual')}
+                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
+                        min="0"
+                        step="100"
+                      />
+                      <span className="text-gray-500 text-[10px]">$/year property taxes</span>
+                    </div>
+                    <div className="bg-slate-700/30 rounded-lg p-2">
+                      <div className="text-gray-400 mb-1">Annual Insurance</div>
+                      <input
+                        type="number"
+                        value={proFormaInputs?.insuranceAnnual ?? getPropertyBasedDefaults(property.price).insuranceAnnual}
+                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, insuranceAnnual: parseFloat(e.target.value) || 0 })}
+                        onFocus={() => onFieldTouch?.('insuranceAnnual')}
+                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
+                        min="0"
+                        step="50"
+                      />
+                      <span className="text-gray-500 text-[10px]">$/year insurance</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-700/30 rounded-lg p-2">
+                      <div className="text-gray-400 mb-1">Contingency</div>
+                      <input
+                        type="number"
+                        value={proFormaInputs?.contingencyPct ?? MARKET_DEFAULTS.contingencyPct}
+                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, contingencyPct: parseFloat(e.target.value) || 0 })}
+                        onFocus={() => onFieldTouch?.('contingencyPct')}
+                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
+                        min="0"
+                        max="50"
+                        step="1"
+                      />
+                      <span className="text-gray-500 text-[10px]">% buffer for surprises</span>
+                    </div>
+                    <div className="bg-slate-700/30 rounded-lg p-2">
+                      <div className="text-gray-400 mb-1">Selling Costs</div>
+                      <input
+                        type="number"
+                        value={proFormaInputs?.sellingCostsPct ?? MARKET_DEFAULTS.sellingCostsPct}
+                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, sellingCostsPct: parseFloat(e.target.value) || 0 })}
+                        onFocus={() => onFieldTouch?.('sellingCostsPct')}
+                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
+                        min="0"
+                        max="20"
+                        step="0.5"
+                      />
+                      <span className="text-gray-500 text-[10px]">% for realtor + closing</span>
+                    </div>
+                    <div className="bg-slate-700/30 rounded-lg p-2">
+                      <div className="text-gray-400 mb-1">Est. Rehab Time</div>
+                      <input
+                        type="number"
+                        value={proFormaInputs?.rehabWeeks ?? MARKET_DEFAULTS.rehabWeeks}
+                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, rehabWeeks: parseInt(e.target.value) || 0 })}
+                        onFocus={() => onFieldTouch?.('rehabWeeks')}
+                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
+                        min="1"
+                        max="52"
+                        step="1"
+                      />
+                      <span className="text-gray-500 text-[10px]">weeks to complete work</span>
+                    </div>
+                    <div className="bg-slate-700/30 rounded-lg p-2">
+                      <div className="text-gray-400 mb-1">Annual Taxes</div>
+                      <input
+                        type="number"
+                        value={proFormaInputs?.taxesAnnual ?? getPropertyBasedDefaults(property.price).taxesAnnual}
+                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, taxesAnnual: parseFloat(e.target.value) || 0 })}
+                        onFocus={() => onFieldTouch?.('taxesAnnual')}
+                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
+                        min="0"
+                        step="100"
+                      />
+                      <span className="text-gray-500 text-[10px]">$/year property taxes</span>
+                    </div>
+                  </div>
+                )}
+                <p className="text-[10px] text-gray-500 mt-3">
+                  Tap "Build Pro Forma" for advanced options like LTV, CapEx, and property management.
+                </p>
               </div>
 
               {/* Deal Outcome Unknown */}

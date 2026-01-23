@@ -31,6 +31,7 @@ import {
   ProFormaInputs,
   ProFormaOutputs,
   defaultProForma,
+  getPropertyBasedDefaults,
   calculateProForma,
   convertPropertyToGameProperty,
   getInterestRateFromLTV,
@@ -463,6 +464,9 @@ export default function Game() {
       ? Math.round((effectiveRanges.timeline.min + effectiveRanges.timeline.max) / 2)
       : 8;
 
+    // Get property-specific defaults for taxes and insurance
+    const propertyDefaults = getPropertyBasedDefaults(selectedProperty.price);
+    
     setProFormaInputs(prev => ({
       ...prev,
       strategy,
@@ -470,6 +474,9 @@ export default function Game() {
       expectedRent: prev.expectedRent ?? rentEstimate,
       rehabBudget: prev.rehabBudget ?? rehabEstimate,
       rehabWeeks: prev.rehabWeeks ?? timelineEstimate,
+      // Apply property-based defaults for taxes/insurance if not already set
+      taxesAnnual: prev.taxesAnnual ?? propertyDefaults.taxesAnnual,
+      insuranceAnnual: prev.insuranceAnnual ?? propertyDefaults.insuranceAnnual,
     }));
     // Reset touched fields - user must interact with all fields
     // Mark only the fields chosen by buttons (strategy, financing, contractor) as touched
@@ -1426,7 +1433,7 @@ export default function Game() {
           )}
         </main>
 
-        {/* Property Detail Modal */}
+        {/* Property Detail Modal - with inline pro forma inputs */}
         {currentScreen === 'detail' && selectedProperty && (
           <PropertyDetail
             property={selectedProperty}
@@ -1437,6 +1444,10 @@ export default function Game() {
             completedDiligence={completedDiligence[selectedProperty.id] || []}
             onDiligencePurchase={handleDiligencePurchase}
             cash={gameRun?.cash || 0}
+            proFormaInputs={proFormaInputs}
+            onProFormaInputsChange={handleInputsChange}
+            touchedFields={touchedFields}
+            onFieldTouch={handleFieldTouch}
           />
         )}
 

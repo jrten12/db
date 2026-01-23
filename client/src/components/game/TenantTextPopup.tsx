@@ -83,11 +83,11 @@ export function TenantTextPopup({
             damping: 30,
             x: { delay: 0.3, duration: 0.4, repeat: 2, repeatDelay: 1 }
           }}
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] cursor-pointer"
+          className="fixed top-[calc(env(safe-area-inset-top,0px)+140px)] md:top-[calc(env(safe-area-inset-top,0px)+100px)] left-1/2 -translate-x-1/2 z-[100] cursor-pointer px-4"
           onClick={handleNotificationClick}
           data-testid="tenant-notification"
         >
-          <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border-2 border-blue-400 p-4 min-w-[340px] max-w-[400px] ring-4 ring-blue-400/30 relative">
+          <div className="bg-white backdrop-blur-xl rounded-2xl shadow-2xl border-2 border-blue-400 p-4 w-[calc(100vw-32px)] max-w-[400px] ring-4 ring-blue-400/30 relative">
             {/* Dismiss button */}
             <button
               onClick={handleDismiss}

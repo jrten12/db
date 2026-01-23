@@ -153,30 +153,29 @@ export function TutorialOverlay() {
       className={`fixed inset-0 z-[100] ${isActionRequired ? 'pointer-events-none' : ''}`}
       data-testid="tutorial-overlay"
     >
-      <div 
-        className={`absolute inset-0 bg-black/70 ${isActionRequired ? 'pointer-events-none' : ''}`}
-        onClick={(e) => {
-          if (!isActionRequired) {
-            e.stopPropagation();
-          }
-        }}
-      />
+      {/* Only show blocking background when no action required - otherwise allow clicks through */}
+      {!isActionRequired && (
+        <div 
+          className="absolute inset-0 bg-black/70"
+          onClick={(e) => e.stopPropagation()}
+        />
+      )}
 
       {!isCentered && !isMobile && targetRect && (
         <div 
-          className="absolute rounded-xl ring-4 ring-purple-500 ring-offset-2 ring-offset-transparent shadow-2xl shadow-purple-500/50 transition-all duration-300 pointer-events-none"
+          className="absolute rounded-xl ring-4 ring-cyan-400 ring-offset-2 ring-offset-transparent shadow-2xl shadow-cyan-400/50 transition-all duration-300 pointer-events-none"
           style={{
             top: targetRect.top - 4,
             left: targetRect.left - 4,
             width: targetRect.width + 8,
             height: targetRect.height + 8,
-            boxShadow: '0 0 0 9999px rgba(0,0,0,0.7), 0 0 30px rgba(168,85,247,0.4)',
+            boxShadow: '0 0 0 9999px rgba(0,0,0,0.7), 0 0 30px rgba(34,211,238,0.4)',
           }}
         />
       )}
 
       <div 
-        className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl border border-purple-500/30 shadow-2xl shadow-purple-500/20 transition-all duration-300 max-h-[80vh] overflow-y-auto pointer-events-auto ${isAnimating ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
+        className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl border border-cyan-400/30 shadow-2xl shadow-cyan-400/20 transition-all duration-300 max-h-[80vh] overflow-y-auto pointer-events-auto ${isAnimating ? 'scale-95 opacity-0' : 'scale-100 opacity-100'}`}
         style={getTooltipStyle()}
         data-testid="tutorial-tooltip"
       >
@@ -192,12 +191,12 @@ export function TutorialOverlay() {
 
         <div className="px-4 pb-4 pt-1 md:px-5 md:pb-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg flex-shrink-0">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg flex-shrink-0">
               <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="text-white font-bold text-base md:text-lg truncate">{currentStep.title}</h3>
-              <div className="text-purple-400 text-xs font-medium">
+              <div className="text-cyan-400 text-xs font-medium">
                 Step {stepIndex} of {totalSteps}
               </div>
             </div>
@@ -223,14 +222,14 @@ export function TutorialOverlay() {
 
           <div className="h-1.5 bg-slate-700 rounded-full mb-3 overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
+              className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-500"
               style={{ width: `${(stepIndex / totalSteps) * 100}%` }}
             />
           </div>
 
           {isActionRequired && currentStep.requiresAction && (
-            <div className="bg-purple-500/20 border border-purple-500/40 rounded-lg p-2 mb-3 text-center animate-pulse">
-              <span className="text-purple-300 text-sm font-medium">
+            <div className="bg-cyan-500/20 border border-cyan-400/40 rounded-lg p-2 mb-3 text-center animate-pulse">
+              <span className="text-cyan-300 text-sm font-medium">
                 {ACTION_LABELS[currentStep.requiresAction] || 'Complete the action to continue'}
               </span>
             </div>
@@ -265,7 +264,7 @@ export function TutorialOverlay() {
               disabled={isActionRequired}
               className={`${isActionRequired 
                 ? 'bg-gray-600 cursor-not-allowed' 
-                : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400'} text-white shadow-lg px-3`}
+                : 'bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400'} text-white shadow-lg px-3`}
               data-testid="button-next-step"
             >
               {stepIndex === totalSteps ? 'Finish' : 'Next'}

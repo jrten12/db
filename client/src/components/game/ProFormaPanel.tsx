@@ -526,65 +526,135 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           </div>
         )}
 
-        {/* PRO FORMA EDITOR BUTTON - Opens beautiful modal */}
-        <div className="bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-emerald-500/10 backdrop-blur rounded-2xl border-2 border-blue-500/30 overflow-hidden shadow-2xl">
-          <div className="p-8 text-center">
-            <div className="mb-6">
-              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/50 mb-4">
-                <Edit3 className="w-10 h-10 text-white" />
+        {/* INLINE PRO FORMA - Soft blue theme with large inputs */}
+        <div className="bg-gradient-to-br from-cyan-500/10 via-blue-500/10 to-sky-500/10 backdrop-blur rounded-2xl border-2 border-cyan-500/30 overflow-hidden shadow-2xl shadow-cyan-500/10">
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/40">
+                <Edit3 className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-white text-2xl font-bold mb-2">Build Your Pro Forma</h3>
-              <p className="text-gray-400 text-sm max-w-lg mx-auto">
-                Open the interactive spreadsheet editor to analyze this deal. See market data ranges, get guidance for each field, and build your financial model.
-              </p>
+              <div>
+                <h3 className="text-cyan-100 text-xl font-bold tracking-wide drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]">Your Pro Forma</h3>
+                <p className="text-cyan-300/70 text-sm">Enter your assumptions below</p>
+              </div>
             </div>
 
+            {/* Inline Editable Inputs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {inputs.strategy === 'rent' ? (
+                <>
+                  <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+                    <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Expected Rent</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">$</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        placeholder="1500"
+                        value={inputs.expectedRent === null ? '' : inputs.expectedRent}
+                        onChange={(e) => onInputsChange({ ...inputs, expectedRent: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
+                        onFocus={() => onFieldTouch?.('expectedRent')}
+                        className="w-full bg-slate-900/80 border-2 border-cyan-500/40 rounded-xl pl-10 pr-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 placeholder:text-slate-600"
+                        data-testid="input-expected-rent"
+                      />
+                    </div>
+                    <span className="text-cyan-400/60 text-xs mt-2 block">Monthly rent income</span>
+                  </div>
+                  <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+                    <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Vacancy Rate</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        placeholder="5"
+                        value={inputs.vacancyRate === null ? '' : inputs.vacancyRate}
+                        onChange={(e) => onInputsChange({ ...inputs, vacancyRate: e.target.value === '' ? null : (parseFloat(e.target.value) || 0) })}
+                        onFocus={() => onFieldTouch?.('vacancyRate')}
+                        className="w-full bg-slate-900/80 border-2 border-cyan-500/40 rounded-xl px-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 placeholder:text-slate-600"
+                        data-testid="input-vacancy-rate"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">%</span>
+                    </div>
+                    <span className="text-cyan-400/60 text-xs mt-2 block">Time property sits empty</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+                    <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Rehab Budget</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">$</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        placeholder="25000"
+                        value={inputs.rehabBudget === null ? '' : inputs.rehabBudget}
+                        onChange={(e) => onInputsChange({ ...inputs, rehabBudget: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
+                        onFocus={() => onFieldTouch?.('rehabBudget')}
+                        className="w-full bg-slate-900/80 border-2 border-cyan-500/40 rounded-xl pl-10 pr-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 placeholder:text-slate-600"
+                        data-testid="input-rehab-budget"
+                      />
+                    </div>
+                    <span className="text-cyan-400/60 text-xs mt-2 block">Total renovation costs</span>
+                  </div>
+                  <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+                    <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Contingency</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        placeholder="10"
+                        value={inputs.contingencyPct === null ? '' : inputs.contingencyPct}
+                        onChange={(e) => onInputsChange({ ...inputs, contingencyPct: e.target.value === '' ? null : (parseFloat(e.target.value) || 0) })}
+                        onFocus={() => onFieldTouch?.('contingencyPct')}
+                        className="w-full bg-slate-900/80 border-2 border-cyan-500/40 rounded-xl px-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 placeholder:text-slate-600"
+                        data-testid="input-contingency"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">%</span>
+                    </div>
+                    <span className="text-cyan-400/60 text-xs mt-2 block">Buffer for surprises</span>
+                  </div>
+                </>
+              )}
+              <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+                <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Loan-to-Value (LTV)</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    autoComplete="off"
+                    placeholder="75"
+                    value={inputs.ltv === null ? '' : inputs.ltv}
+                    onChange={(e) => onInputsChange({ ...inputs, ltv: e.target.value === '' ? 75 : Math.min(90, Math.max(50, parseFloat(e.target.value) || 50)) })}
+                    onFocus={() => onFieldTouch?.('ltv')}
+                    className="w-full bg-slate-900/80 border-2 border-cyan-500/40 rounded-xl px-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 placeholder:text-slate-600"
+                    data-testid="input-ltv"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">%</span>
+                </div>
+                <span className="text-cyan-400/60 text-xs mt-2 block">50-90% (higher = more leverage)</span>
+              </div>
+              <div className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl p-4 border border-cyan-400/40">
+                <label className="text-cyan-200 text-sm font-medium block mb-2">Total Cash Needed</label>
+                <div className="text-cyan-100 text-2xl font-mono font-bold drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]">
+                  {formatCurrency(liveOutputs.totalCashInvested)}
+                </div>
+                <span className="text-cyan-300/60 text-xs mt-2 block">Your upfront investment</span>
+              </div>
+            </div>
+
+            {/* More Options Button */}
             <button
               onClick={() => setIsEditorOpen(true)}
-              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mx-auto"
+              className="mt-4 w-full px-4 py-3 bg-slate-800/60 hover:bg-slate-700/60 text-cyan-300 font-medium text-sm rounded-xl border border-cyan-500/30 transition-all flex items-center justify-center gap-2"
             >
-              <Edit3 className="w-6 h-6" />
-              <span>Open Pro Forma Editor</span>
+              <Edit3 className="w-4 h-4" />
+              <span>More Options (Taxes, Insurance, CapEx...)</span>
             </button>
-
-            {/* Quick Summary of Current Inputs */}
-            {(inputs.expectedRent || inputs.rehabBudget || inputs.ltv) && (
-              <div className="mt-6 pt-6 border-t border-slate-700">
-                <p className="text-gray-500 text-xs uppercase tracking-wider mb-3">Current Assumptions</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-left">
-                  <div className="bg-slate-800/50 rounded-lg p-3">
-                    <div className="text-gray-500 text-xs">Strategy</div>
-                    <div className="text-white font-semibold text-sm capitalize">{inputs.strategy}</div>
-                  </div>
-                  {inputs.strategy === 'rent' && inputs.expectedRent && (
-                    <div className="bg-slate-800/50 rounded-lg p-3">
-                      <div className="text-gray-500 text-xs">Monthly Rent</div>
-                      <div className="text-emerald-400 font-mono font-semibold text-sm">{formatCurrency(inputs.expectedRent)}</div>
-                    </div>
-                  )}
-                  {inputs.strategy === 'rent' && inputs.vacancyRate !== null && (
-                    <div className="bg-slate-800/50 rounded-lg p-3">
-                      <div className="text-gray-500 text-xs">Vacancy Rate</div>
-                      <div className="text-white font-mono font-semibold text-sm">{inputs.vacancyRate}%</div>
-                    </div>
-                  )}
-                  {inputs.rehabBudget && (
-                    <div className="bg-slate-800/50 rounded-lg p-3">
-                      <div className="text-gray-500 text-xs">Rehab Budget</div>
-                      <div className="text-white font-mono font-semibold text-sm">{formatCurrency(inputs.rehabBudget)}</div>
-                    </div>
-                  )}
-                  <div className="bg-slate-800/50 rounded-lg p-3">
-                    <div className="text-gray-500 text-xs">Loan-to-Value</div>
-                    <div className="text-white font-mono font-semibold text-sm">{inputs.ltv}%</div>
-                  </div>
-                  <div className="bg-slate-800/50 rounded-lg p-3">
-                    <div className="text-gray-500 text-xs">Total Cash Needed</div>
-                    <div className="text-blue-400 font-mono font-semibold text-sm">{formatCurrency(liveOutputs.totalCashInvested)}</div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

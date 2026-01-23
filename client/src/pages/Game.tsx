@@ -1355,14 +1355,25 @@ export default function Game() {
                   locationFilter={locationFilter}
                   onLocationFilterChange={setLocationFilter}
                   propertiesWithInvestigations={new Set(investigations.map(inv => inv.propertyId))}
-                  propertyDeals={deals.map(d => ({ 
-                    dealId: d.id,
-                    propertyId: d.propertyId, 
-                    strategy: d.strategy as 'rent' | 'flip', 
-                    status: d.status,
-                    purchasePrice: d.purchasePrice || undefined
-                  }))}
+                  propertyDeals={deals.map(d => {
+                    const SEASONING_WEEKS = 8;
+                    const currentWeek = 52 - (gameRun?.weeksRemaining ?? 52);
+                    const weeksOwned = d.purchaseWeek != null ? currentWeek - d.purchaseWeek : 0;
+                    const canRefinance = d.status === 'active_rental' && 
+                                        weeksOwned >= SEASONING_WEEKS && 
+                                        (d.refinanceCount ?? 0) === 0;
+                    return { 
+                      dealId: d.id,
+                      propertyId: d.propertyId, 
+                      strategy: d.strategy as 'rent' | 'flip', 
+                      status: d.status,
+                      purchasePrice: d.purchasePrice || undefined,
+                      weeksOwned,
+                      canRefinance,
+                    };
+                  })}
                   onSellProperty={handleSellProperty}
+                  onRefinanceProperty={handleOpenRefinanceModal}
                 />
               </div>
               <div className="lg:col-span-3 xl:col-span-3 space-y-3">

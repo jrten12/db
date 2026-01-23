@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home, DollarSign } from 'lucide-react';
+import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home, DollarSign, Landmark } from 'lucide-react';
 import type { Property } from '@shared/schema';
 
 export type LocationFilter = 'all' | 'urban' | 'suburban';
@@ -11,6 +11,8 @@ export interface PropertyDealInfo {
   strategy: 'rent' | 'flip';
   status: string;
   purchasePrice?: number;
+  weeksOwned?: number;
+  canRefinance?: boolean;
 }
 
 interface PropertySelectorProps {
@@ -22,10 +24,11 @@ interface PropertySelectorProps {
   propertiesWithInvestigations?: Set<number>;
   propertyDeals?: PropertyDealInfo[];
   onSellProperty?: (dealId: number, strategy: 'rent' | 'flip') => void;
+  onRefinanceProperty?: (dealId: number) => void;
 }
 
 
-export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), propertyDeals = [], onSellProperty }: PropertySelectorProps) {
+export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), propertyDeals = [], onSellProperty, onRefinanceProperty }: PropertySelectorProps) {
   const urbanCount = properties.filter(p => p.locationType === 'urban').length;
   const suburbanCount = properties.filter(p => p.locationType === 'suburban').length;
   
@@ -204,22 +207,45 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                       <statusBadge.icon className="w-5 h-5 text-white" />
                       <span className="text-lg font-bold text-white uppercase tracking-wider">{statusBadge.label}</span>
                     </div>
-                    {/* Sell Button for owned properties */}
-                    {onSellProperty && dealInfo && (
-                      (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list')
-                    ) && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          onSellProperty(dealInfo.dealId, dealInfo.strategy);
-                        }}
-                        className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-base rounded-xl shadow-lg shadow-emerald-500/40 hover:shadow-emerald-400/60 transition-all duration-200 hover:scale-105 border-2 border-emerald-300"
-                        data-testid={`button-sell-${property.id}`}
-                      >
-                        <DollarSign className="w-6 h-6" />
-                        <span>SELL NOW</span>
-                      </button>
+                    {/* Action Buttons for owned properties */}
+                    {dealInfo && (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && (
+                      <div className="flex flex-col gap-2">
+                        {/* Refinance Button for active rentals */}
+                        {dealInfo.status === 'active_rental' && onRefinanceProperty && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              onRefinanceProperty(dealInfo.dealId);
+                            }}
+                            className={`flex items-center gap-2 px-5 py-2.5 font-bold text-sm rounded-xl shadow-lg transition-all duration-200 hover:scale-105 border-2 ${
+                              dealInfo.canRefinance 
+                                ? 'bg-blue-500 hover:bg-blue-400 text-white shadow-blue-500/40 border-blue-300' 
+                                : 'bg-gray-600 text-gray-300 border-gray-500 cursor-not-allowed'
+                            }`}
+                            disabled={!dealInfo.canRefinance}
+                            data-testid={`button-refi-${property.id}`}
+                          >
+                            <Landmark className="w-5 h-5" />
+                            <span>REFINANCE</span>
+                          </button>
+                        )}
+                        {/* Sell Button */}
+                        {onSellProperty && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              onSellProperty(dealInfo.dealId, dealInfo.strategy);
+                            }}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-500/40 hover:shadow-emerald-400/60 transition-all duration-200 hover:scale-105 border-2 border-emerald-300"
+                            data-testid={`button-sell-${property.id}`}
+                          >
+                            <DollarSign className="w-5 h-5" />
+                            <span>SELL NOW</span>
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}

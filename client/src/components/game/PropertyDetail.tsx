@@ -388,7 +388,7 @@ export function PropertyDetail({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm safe-area-all" data-testid="property-detail-modal">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-sm safe-area-all" data-testid="property-detail-modal">
       <div 
         className="w-full max-w-6xl max-h-[95vh] max-h-[95dvh] overflow-y-auto rounded-2xl shadow-2xl overscroll-contain touch-pan-y" 
         style={{

@@ -80,6 +80,11 @@ Preferred communication style: Simple, everyday language.
 - **State**: TanStack React Query (same as web)
 - **Bundle ID**: com.dealbreak.simulator
 - **Build**: EAS Build for TestFlight/App Store
+- **Monetization**: Google AdMob (react-native-google-mobile-ads)
+  - Banner, Interstitial, and Rewarded ad support
+  - Configuration: `mobile/src/lib/admob.ts`
+  - Hooks: `mobile/src/hooks/useAdMob.ts`
+  - Setup guide: `mobile/ADMOB_SETUP.md`
 
 ### Game Logic Architecture
 - Pro forma calculations handled client-side in `lib/gameData.ts`

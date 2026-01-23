@@ -553,6 +553,16 @@ export default function Game() {
     }
   }, [gameRun, properties, updateGameMutation, createInvestigationMutation, createLedgerMutation, completedDiligence]);
 
+  const handleNewGame = useCallback(() => {
+    sessionStorage.removeItem('currentGameRunId');
+    sessionStorage.removeItem('skippedDiligenceDeals');
+    setSkippedDiligenceDeals(new Set());
+    setGameRun(null);
+    setShowNameEntry(true);
+    setCurrentScreen('market');
+    clearSave();
+  }, []);
+
   const handleBackToMarket = useCallback(() => {
     setCurrentScreen('market');
     // Don't reset pro forma state - preserve user's work when going back
@@ -1326,6 +1336,7 @@ export default function Game() {
           onOpenHallOfFame={() => setShowHallOfFame(true)}
           onAdvanceWeek={currentScreen === 'market' ? handleAdvanceWeek : undefined}
           isAdvancingWeek={isAdvancingWeek}
+          onNewGame={handleNewGame}
         />
       </div>
       

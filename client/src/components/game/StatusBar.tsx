@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
-import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy, Play, Loader2 } from 'lucide-react';
+import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy, Play, Loader2, RotateCcw } from 'lucide-react';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
@@ -15,6 +15,7 @@ interface StatusBarProps {
   onOpenHallOfFame?: () => void;
   onAdvanceWeek?: () => void;
   isAdvancingWeek?: boolean;
+  onNewGame?: () => void;
 }
 
 function AnimatedNumber({ value, prefix = '', suffix = '', className = '' }: { 
@@ -98,7 +99,7 @@ function StatCard({
   );
 }
 
-export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onAdvanceWeek, isAdvancingWeek }: StatusBarProps) {
+export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onAdvanceWeek, isAdvancingWeek, onNewGame }: StatusBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const cashDisplay = Math.floor(cash).toLocaleString();
@@ -325,6 +326,20 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               >
                 Resume Game
               </button>
+
+              {onNewGame && (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onNewGame();
+                  }}
+                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-red-500/20 hover:bg-red-500/30 active:bg-red-500/40 backdrop-blur-md rounded-xl border border-red-500/30 text-red-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                  data-testid="button-new-game"
+                >
+                  <RotateCcw className="w-5 h-5" />
+                  New Game
+                </button>
+              )}
             </div>
 
             <div className="mt-8 flex gap-4">

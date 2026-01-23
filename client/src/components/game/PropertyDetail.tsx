@@ -824,131 +824,157 @@ export function PropertyDetail({
                 </div>
               </div>
 
-              {/* Inline Pro Forma Inputs - Editable when props provided */}
+              {/* Inline Pro Forma Inputs - Editable, iOS-optimized */}
               <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-emerald-500/30">
-                <h3 className="text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <FileText className="w-4 h-4" /> Key Assumptions
-                  <span className="text-xs font-normal text-gray-400">(Editable - tap values to change)</span>
+                <h3 className="text-emerald-400 text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <FileText className="w-4 h-4" /> Your Assumptions
                 </h3>
                 
                 {strategy === 'rent' ? (
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-slate-700/30 rounded-lg p-2">
-                      <div className="text-gray-400 mb-1">Vacancy Rate</div>
-                      <input
-                        type="number"
-                        value={proFormaInputs?.vacancyRate ?? MARKET_DEFAULTS.vacancyRate}
-                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, vacancyRate: parseFloat(e.target.value) || 0 })}
-                        onFocus={() => onFieldTouch?.('vacancyRate')}
-                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
-                        min="0"
-                        max="100"
-                        step="0.5"
-                      />
-                      <span className="text-gray-500 text-[10px]">% of time empty</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-700/40 rounded-xl p-3">
+                      <label className="text-gray-400 text-xs block mb-1.5">Vacancy Rate</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          value={proFormaInputs?.vacancyRate ?? MARKET_DEFAULTS.vacancyRate}
+                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, vacancyRate: parseFloat(e.target.value) || 0 })}
+                          onFocus={() => onFieldTouch?.('vacancyRate')}
+                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg px-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          data-testid="input-vacancy-rate"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                      </div>
+                      <span className="text-gray-500 text-[11px] mt-1 block">Time property sits empty</span>
                     </div>
-                    <div className="bg-slate-700/30 rounded-lg p-2">
-                      <div className="text-gray-400 mb-1">Maintenance</div>
-                      <input
-                        type="number"
-                        value={proFormaInputs?.maintenancePct ?? MARKET_DEFAULTS.maintenancePct}
-                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, maintenancePct: parseFloat(e.target.value) || 0 })}
-                        onFocus={() => onFieldTouch?.('maintenancePct')}
-                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
-                        min="0"
-                        max="50"
-                        step="0.5"
-                      />
-                      <span className="text-gray-500 text-[10px]">% of rent for repairs</span>
+                    <div className="bg-slate-700/40 rounded-xl p-3">
+                      <label className="text-gray-400 text-xs block mb-1.5">Maintenance</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          value={proFormaInputs?.maintenancePct ?? MARKET_DEFAULTS.maintenancePct}
+                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, maintenancePct: parseFloat(e.target.value) || 0 })}
+                          onFocus={() => onFieldTouch?.('maintenancePct')}
+                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg px-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          data-testid="input-maintenance"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                      </div>
+                      <span className="text-gray-500 text-[11px] mt-1 block">% of rent for repairs</span>
                     </div>
-                    <div className="bg-slate-700/30 rounded-lg p-2">
-                      <div className="text-gray-400 mb-1">Annual Taxes</div>
-                      <input
-                        type="number"
-                        value={proFormaInputs?.taxesAnnual ?? getPropertyBasedDefaults(property.price).taxesAnnual}
-                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, taxesAnnual: parseFloat(e.target.value) || 0 })}
-                        onFocus={() => onFieldTouch?.('taxesAnnual')}
-                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
-                        min="0"
-                        step="100"
-                      />
-                      <span className="text-gray-500 text-[10px]">$/year property taxes</span>
+                    <div className="bg-slate-700/40 rounded-xl p-3">
+                      <label className="text-gray-400 text-xs block mb-1.5">Annual Taxes</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="off"
+                          value={proFormaInputs?.taxesAnnual ?? getPropertyBasedDefaults(property.price).taxesAnnual}
+                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, taxesAnnual: parseFloat(e.target.value.replace(/,/g, '')) || 0 })}
+                          onFocus={() => onFieldTouch?.('taxesAnnual')}
+                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg pl-7 pr-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          data-testid="input-taxes"
+                        />
+                      </div>
+                      <span className="text-gray-500 text-[11px] mt-1 block">Property taxes per year</span>
                     </div>
-                    <div className="bg-slate-700/30 rounded-lg p-2">
-                      <div className="text-gray-400 mb-1">Annual Insurance</div>
-                      <input
-                        type="number"
-                        value={proFormaInputs?.insuranceAnnual ?? getPropertyBasedDefaults(property.price).insuranceAnnual}
-                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, insuranceAnnual: parseFloat(e.target.value) || 0 })}
-                        onFocus={() => onFieldTouch?.('insuranceAnnual')}
-                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
-                        min="0"
-                        step="50"
-                      />
-                      <span className="text-gray-500 text-[10px]">$/year insurance</span>
+                    <div className="bg-slate-700/40 rounded-xl p-3">
+                      <label className="text-gray-400 text-xs block mb-1.5">Annual Insurance</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="off"
+                          value={proFormaInputs?.insuranceAnnual ?? getPropertyBasedDefaults(property.price).insuranceAnnual}
+                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, insuranceAnnual: parseFloat(e.target.value.replace(/,/g, '')) || 0 })}
+                          onFocus={() => onFieldTouch?.('insuranceAnnual')}
+                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg pl-7 pr-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          data-testid="input-insurance"
+                        />
+                      </div>
+                      <span className="text-gray-500 text-[11px] mt-1 block">Insurance per year</span>
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-slate-700/30 rounded-lg p-2">
-                      <div className="text-gray-400 mb-1">Contingency</div>
-                      <input
-                        type="number"
-                        value={proFormaInputs?.contingencyPct ?? MARKET_DEFAULTS.contingencyPct}
-                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, contingencyPct: parseFloat(e.target.value) || 0 })}
-                        onFocus={() => onFieldTouch?.('contingencyPct')}
-                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
-                        min="0"
-                        max="50"
-                        step="1"
-                      />
-                      <span className="text-gray-500 text-[10px]">% buffer for surprises</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-700/40 rounded-xl p-3">
+                      <label className="text-gray-400 text-xs block mb-1.5">Contingency</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          value={proFormaInputs?.contingencyPct ?? MARKET_DEFAULTS.contingencyPct}
+                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, contingencyPct: parseFloat(e.target.value) || 0 })}
+                          onFocus={() => onFieldTouch?.('contingencyPct')}
+                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg px-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          data-testid="input-contingency"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                      </div>
+                      <span className="text-gray-500 text-[11px] mt-1 block">Buffer for surprises</span>
                     </div>
-                    <div className="bg-slate-700/30 rounded-lg p-2">
-                      <div className="text-gray-400 mb-1">Selling Costs</div>
-                      <input
-                        type="number"
-                        value={proFormaInputs?.sellingCostsPct ?? MARKET_DEFAULTS.sellingCostsPct}
-                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, sellingCostsPct: parseFloat(e.target.value) || 0 })}
-                        onFocus={() => onFieldTouch?.('sellingCostsPct')}
-                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
-                        min="0"
-                        max="20"
-                        step="0.5"
-                      />
-                      <span className="text-gray-500 text-[10px]">% for realtor + closing</span>
+                    <div className="bg-slate-700/40 rounded-xl p-3">
+                      <label className="text-gray-400 text-xs block mb-1.5">Selling Costs</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          value={proFormaInputs?.sellingCostsPct ?? MARKET_DEFAULTS.sellingCostsPct}
+                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, sellingCostsPct: parseFloat(e.target.value) || 0 })}
+                          onFocus={() => onFieldTouch?.('sellingCostsPct')}
+                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg px-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          data-testid="input-selling-costs"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                      </div>
+                      <span className="text-gray-500 text-[11px] mt-1 block">Realtor + closing costs</span>
                     </div>
-                    <div className="bg-slate-700/30 rounded-lg p-2">
-                      <div className="text-gray-400 mb-1">Est. Rehab Time</div>
-                      <input
-                        type="number"
-                        value={proFormaInputs?.rehabWeeks ?? MARKET_DEFAULTS.rehabWeeks}
-                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, rehabWeeks: parseInt(e.target.value) || 0 })}
-                        onFocus={() => onFieldTouch?.('rehabWeeks')}
-                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
-                        min="1"
-                        max="52"
-                        step="1"
-                      />
-                      <span className="text-gray-500 text-[10px]">weeks to complete work</span>
+                    <div className="bg-slate-700/40 rounded-xl p-3">
+                      <label className="text-gray-400 text-xs block mb-1.5">Rehab Time</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="off"
+                          value={proFormaInputs?.rehabWeeks ?? MARKET_DEFAULTS.rehabWeeks}
+                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, rehabWeeks: parseInt(e.target.value) || 0 })}
+                          onFocus={() => onFieldTouch?.('rehabWeeks')}
+                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg px-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          data-testid="input-rehab-weeks"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">wks</span>
+                      </div>
+                      <span className="text-gray-500 text-[11px] mt-1 block">Weeks to complete work</span>
                     </div>
-                    <div className="bg-slate-700/30 rounded-lg p-2">
-                      <div className="text-gray-400 mb-1">Annual Taxes</div>
-                      <input
-                        type="number"
-                        value={proFormaInputs?.taxesAnnual ?? getPropertyBasedDefaults(property.price).taxesAnnual}
-                        onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, taxesAnnual: parseFloat(e.target.value) || 0 })}
-                        onFocus={() => onFieldTouch?.('taxesAnnual')}
-                        className="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-emerald-400 font-mono font-semibold focus:border-emerald-500 focus:outline-none"
-                        min="0"
-                        step="100"
-                      />
-                      <span className="text-gray-500 text-[10px]">$/year property taxes</span>
+                    <div className="bg-slate-700/40 rounded-xl p-3">
+                      <label className="text-gray-400 text-xs block mb-1.5">Annual Taxes</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="off"
+                          value={proFormaInputs?.taxesAnnual ?? getPropertyBasedDefaults(property.price).taxesAnnual}
+                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, taxesAnnual: parseFloat(e.target.value.replace(/,/g, '')) || 0 })}
+                          onFocus={() => onFieldTouch?.('taxesAnnual')}
+                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg pl-7 pr-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          data-testid="input-taxes-flip"
+                        />
+                      </div>
+                      <span className="text-gray-500 text-[11px] mt-1 block">Property taxes per year</span>
                     </div>
                   </div>
                 )}
-                <p className="text-[10px] text-gray-500 mt-3">
-                  Tap "Build Pro Forma" for advanced options like LTV, CapEx, and property management.
+                <p className="text-xs text-gray-500 mt-4 text-center">
+                  Tap "Build Pro Forma" for LTV, CapEx, and property management options
                 </p>
               </div>
 

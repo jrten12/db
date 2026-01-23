@@ -65,7 +65,7 @@ export function IncomeNotification({ events, onDismiss }: IncomeNotificationProp
   }, [events, onDismiss]);
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2 pointer-events-none">
+    <div className="fixed top-[calc(env(safe-area-inset-top,0px)+180px)] right-4 z-50 space-y-2 pointer-events-none">
       <AnimatePresence mode="popLayout">
         {events.map((event, index) => {
           const Icon = getIconForType(event.type);

@@ -207,27 +207,22 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                       <statusBadge.icon className="w-5 h-5 text-white" />
                       <span className="text-lg font-bold text-white uppercase tracking-wider">{statusBadge.label}</span>
                     </div>
-                    {/* Action Buttons for owned properties */}
+                    {/* Action Buttons for owned properties - horizontal layout */}
                     {dealInfo && (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && (
-                      <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
                         {/* Refinance Button for active rentals */}
-                        {dealInfo.status === 'active_rental' && onRefinanceProperty && (
+                        {dealInfo.status === 'active_rental' && onRefinanceProperty && dealInfo.canRefinance && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               e.preventDefault();
                               onRefinanceProperty(dealInfo.dealId);
                             }}
-                            className={`flex items-center gap-2 px-5 py-2.5 font-bold text-sm rounded-xl shadow-lg transition-all duration-200 hover:scale-105 border-2 ${
-                              dealInfo.canRefinance 
-                                ? 'bg-blue-500 hover:bg-blue-400 text-white shadow-blue-500/40 border-blue-300' 
-                                : 'bg-gray-600 text-gray-300 border-gray-500 cursor-not-allowed'
-                            }`}
-                            disabled={!dealInfo.canRefinance}
+                            className="flex items-center gap-1.5 px-3 py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold text-xs rounded-lg shadow-lg transition-all border border-blue-300"
                             data-testid={`button-refi-${property.id}`}
                           >
-                            <Landmark className="w-5 h-5" />
-                            <span>REFINANCE</span>
+                            <Landmark className="w-4 h-4" />
+                            <span>REFI</span>
                           </button>
                         )}
                         {/* Sell Button */}
@@ -238,11 +233,11 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                               e.preventDefault();
                               onSellProperty(dealInfo.dealId, dealInfo.strategy);
                             }}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-500/40 hover:shadow-emerald-400/60 transition-all duration-200 hover:scale-105 border-2 border-emerald-300"
+                            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs rounded-lg shadow-lg transition-all border border-emerald-300"
                             data-testid={`button-sell-${property.id}`}
                           >
-                            <DollarSign className="w-5 h-5" />
-                            <span>SELL NOW</span>
+                            <DollarSign className="w-4 h-4" />
+                            <span>SELL</span>
                           </button>
                         )}
                       </div>

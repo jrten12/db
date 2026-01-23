@@ -1,0 +1,64 @@
+You are working on a general real estate simulation game that supports all property strategies, including flips and rentals / buy-and-hold.
+
+Do NOT create new core systems.
+Refinancing logic already exists and must not be rebuilt.
+
+Your task is to improve UX clarity, defaults, and discoverability across all property types, with special attention to preventing accidental failures caused by missing assumptions.
+
+⸻
+
+1. Pro Forma Integration
+	•	Re-embed the pro forma builder directly into the main deal evaluation page.
+	•	Avoid button-gated or modal access (e.g., a standalone purple button).
+	•	Maintain an inline, always-visible pro forma layout.
+
+⸻
+
+2. Prevent Silent Zeros (CRITICAL)
+	•	Silent zero values are not allowed for ANY property type (rental or flip).
+	•	No critical pro forma field may default to zero in a way that:
+	•	Produces unrealistic outcomes,
+	•	Causes accidental bankruptcy,
+	•	Or hides missing assumptions.
+	•	Replace zero defaults with reasonable, market-based assumptions for:
+	•	Rentals (vacancy, maintenance, management, capex, taxes, insurance),
+	•	Flips (renovation costs, holding costs, selling costs, timelines).
+	•	All defaults must be:
+	•	Clearly visible,
+	•	Fully editable by the user.
+	•	Use lightweight warnings or highlighted fields instead of hard blocking when assumptions are incomplete.
+
+⸻
+
+3. UI Continuity
+	•	Preserve the existing structural flow and mental model.
+	•	Favor incremental refinement over redesign.
+
+⸻
+
+4. Strategy Path Clarity
+	•	Clearly distinguish flip vs rental flows in the UI.
+	•	Ensure each path surfaces the correct financial logic and outcomes without hidden inputs.
+
+⸻
+
+5. Refinancing (Already Implemented)
+	•	Do NOT recreate refinancing logic.
+	•	Audit mobile layouts to ensure refinancing is:
+	•	Visible,
+	•	Discoverable,
+	•	Graphically featured (equity unlock / capital recycling).
+
+⸻
+
+6. Portfolio Scaling
+	•	Ensure users can manage multiple concurrent properties.
+	•	Make the progression loop visually explicit:
+	•	Deal → cash flow / equity → refinance (if applicable) → next deal.
+
+⸻
+
+7. Scope Discipline
+	•	The product is near final.
+	•	Focus on surfacing and polishing existing mechanics.
+	•	Do not introduce new gameplay systems unless strictly necessary to meet these requirement

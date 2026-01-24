@@ -22,6 +22,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         NSAllowsArbitraryLoads: false,
       },
       NSUserTrackingUsageDescription: 'This identifier will be used to deliver personalized ads to you.',
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {

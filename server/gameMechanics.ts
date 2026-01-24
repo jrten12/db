@@ -1158,31 +1158,23 @@ export async function activateRentalProperty(
 
   // Calculate ACTUAL rent from property ground truth (not player's assumption!)
   // CRITICAL: Rent is tied to PROPERTY CONDITION (rehab investment), not just market study!
+  // Uses SAME formula as flip sale price for consistency
   const didMarketStudy = completedDiligence.includes('market_study');
   const didContractorWalkthrough = completedDiligence.includes('contractor_walkthrough');
   const didInspection = completedDiligence.includes('inspection');
   
-  // Calculate rehab completion factor (0 to 1) - how much of needed work was done
-  // This directly affects what rent the property can command
+  // Calculate rehab completion factor using SAME FORMULA as flip logic
+  // This ensures consistent incentives between rent and flip strategies
   const rehabBudget = proFormaInputs?.rehabBudget || 0;
-  const rehabNeededMin = property.rehabMin || 0;
-  const rehabNeededMax = property.rehabMax || 0;
-  const rehabRange = rehabNeededMax - rehabNeededMin;
+  const contingencyPct = proFormaInputs?.contingencyPct || 0;
+  const actualRehabSpend = rehabBudget * (1 + contingencyPct / 100);
+  const rehabRange = (property.rehabMax || 0) - (property.rehabMin || 0);
   
-  // Completion factor: 0 = no rehab, 1 = full rehab (at max end of range)
-  // If property needs $45k-$85k rehab and player spent $65k, that's about 50% through the range
-  let rehabCompletionFactor: number;
-  if (rehabRange > 0) {
-    rehabCompletionFactor = Math.max(0, Math.min(1, (rehabBudget - rehabNeededMin) / rehabRange));
-    // If they spent LESS than minimum needed, they get a penalty (negative factor becomes 0)
-    if (rehabBudget < rehabNeededMin * 0.5) {
-      // Spent less than half of minimum needed - property is in poor condition
-      rehabCompletionFactor = rehabBudget / (rehabNeededMin * 2); // Scales from 0 to 0.25
-    }
-  } else {
-    // Property doesn't need significant rehab
-    rehabCompletionFactor = 1;
-  }
+  // SAME completion factor formula as flip logic for consistency
+  // 0 = no rehab, 1 = full rehab at max end of range
+  const rehabCompletionFactor = rehabRange > 0 
+    ? Math.max(0, Math.min(1, (actualRehabSpend - (property.rehabMin || 0)) / rehabRange))
+    : 1; // Property doesn't need significant rehab
   
   // ACTUAL RENT CALCULATION - tied to property condition (rehab) AND market knowledge
   let actualRent: number;
@@ -1191,38 +1183,47 @@ export async function activateRentalProperty(
   if (didMarketStudy) {
     // WITH market study: Player knows the rent range, but actual rent depends on condition
     // Rehab completion determines WHERE in the range the rent lands
-    // 0% rehab = near rentMin, 100% rehab = near rentMax
+    // 0% rehab = rent at rentMin, 100% rehab = rent near rentMax
     const conditionBasedRent = property.rentMin + (rehabCompletionFactor * rentRange);
     
-    // Add small ±5% market variance (not a big swing since they did their homework)
+    // Small ±5% market variance (not a big swing since they did their homework)
     const marketVariance = 0.95 + (Math.random() * 0.10);
     actualRent = Math.round(conditionBasedRent * marketVariance);
     
-    // If they skipped contractor walkthrough/inspection but property needs work,
-    // they might not realize the property is in worse shape than they think
-    // This could result in optimistic rent expectations that don't materialize
-    if (!didContractorWalkthrough && !didInspection && rehabNeededMin > 5000) {
-      // "Surprise" - property condition is worse than assumed
-      // Apply additional penalty of 5-15% on rent
-      const conditionPenalty = 0.85 + (Math.random() * 0.10);
+    // If they skipped contractor walkthrough/inspection but property needs significant work,
+    // they might not realize the property is in worse condition - "hidden damage" discovery
+    // Same consequence concept as flip surprise costs, but applied to rent potential
+    if (!didContractorWalkthrough && !didInspection && (property.rehabMin || 0) > 5000) {
+      // "Surprise" - property condition is worse than assumed, tenants pay less
+      const conditionPenalty = 0.85 + (Math.random() * 0.10); // 5-15% penalty
       actualRent = Math.round(actualRent * conditionPenalty);
     }
   } else {
     // WITHOUT market study: Player is flying blind on BOTH market AND condition
-    // Double uncertainty - they don't know the rent range or property condition
-    const rentMid = (property.rentMin + property.rentMax) / 2;
+    // This is a TRAP scenario - they can genuinely fail here
     
-    // Condition still matters - worse condition = lower rent
-    const conditionAdjustedMid = property.rentMin + (rehabCompletionFactor * rentRange * 0.5) + (rentMid * 0.5);
+    // Base rent is condition-dependent but with MAJOR uncertainty
+    const conditionBasedRent = property.rentMin + (rehabCompletionFactor * rentRange);
     
-    // Reality factor: 70% to 120% - skewed slightly negative because ignorance hurts
-    // (In reality, landlords who don't research usually overestimate rent potential)
-    const realityFactor = 0.70 + (Math.random() * 0.50);
-    actualRent = Math.round(conditionAdjustedMid * realityFactor);
+    // Reality factor: 60% to 110% - skewed NEGATIVE because ignorance hurts
+    // Players who skip diligence should face real consequences
+    const realityFactor = 0.60 + (Math.random() * 0.50);
+    actualRent = Math.round(conditionBasedRent * realityFactor);
+    
+    // If they ALSO skipped condition diligence on a property needing work,
+    // they're truly flying blind - additional penalty stacks
+    if (!didContractorWalkthrough && !didInspection && (property.rehabMin || 0) > 5000) {
+      const blindnessPenalty = 0.80 + (Math.random() * 0.15); // 5-20% additional penalty
+      actualRent = Math.round(actualRent * blindnessPenalty);
+    }
   }
   
-  // Ensure rent stays within realistic bounds (never below 80% of rentMin or above 110% of rentMax)
-  actualRent = Math.max(Math.round(property.rentMin * 0.80), Math.min(Math.round(property.rentMax * 1.10), actualRent));
+  // MINIMAL safety floor - allow true failure but prevent completely absurd values
+  // Players CAN get underwater if they skip diligence and make wrong assumptions
+  // Floor at 50% of rentMin (vs flip which has no floor) - this allows "trap" outcomes
+  const absoluteFloor = Math.round(property.rentMin * 0.50);
+  const absoluteCeiling = Math.round(property.rentMax * 1.10);
+  actualRent = Math.max(absoluteFloor, Math.min(absoluteCeiling, actualRent));
 
   // Calculate ACTUAL cash flow using actual rent + player's expense assumptions
   // (We test their rent assumption but honor their other choices)

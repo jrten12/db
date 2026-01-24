@@ -1,6 +1,7 @@
-import { X, Home, DollarSign, Wrench, Shield, Building2, Zap, User } from 'lucide-react';
+import { X, Home, DollarSign, Wrench, Shield, Building2, Zap, User, AlertTriangle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Deal, Property } from '@shared/schema';
+import { useMemo } from 'react';
 
 interface OperatingExpensesPopupProps {
   isOpen: boolean;
@@ -8,6 +9,25 @@ interface OperatingExpensesPopupProps {
   deal: Deal;
   property: Property;
 }
+
+// Map issue IDs to human-readable names
+const ISSUE_NAMES: Record<string, string> = {
+  'hvac_aging': 'HVAC System',
+  'hvac_failing': 'HVAC System',
+  'plumbing_galvanized': 'Plumbing',
+  'plumbing_leak': 'Plumbing',
+  'electrical_outdated': 'Electrical',
+  'electrical_panel': 'Electrical Panel',
+  'roof_aging': 'Roof',
+  'roof_damage': 'Roof Damage',
+  'foundation_cracks': 'Foundation',
+  'foundation_settling': 'Foundation',
+  'water_heater': 'Water Heater',
+  'termite_damage': 'Termite Damage',
+  'mold_issues': 'Mold',
+  'sewer_line': 'Sewer Line',
+  'windows_draft': 'Windows',
+};
 
 interface ExpenseLineItem {
   label: string;
@@ -28,6 +48,42 @@ export function OperatingExpensesPopup({
   const outputs = deal.proFormaOutputs as any;
   
   const monthlyRent = outputs?.monthlyGrossRent || inputs?.expectedRent || 0;
+  
+  // Calculate unfixed issues and repair risk
+  const repairAnalysis = useMemo(() => {
+    const discoveredIssues: string[] = inputs?.discoveredIssueIds || [];
+    const fixedIssues: string[] = inputs?.fixedIssueIds || [];
+    const unfixedIssues = discoveredIssues.filter((id: string) => !fixedIssues.includes(id));
+    
+    // Did they do diligence?
+    const didInspection = discoveredIssues.length > 0; // If they discovered issues, they did some diligence
+    const didRehab = fixedIssues.length > 0;
+    const allFixed = unfixedIssues.length === 0 && discoveredIssues.length > 0;
+    
+    // Calculate estimated extra repair cost from unfixed issues
+    // Each unfixed issue adds ~$50-150/month in expected repairs
+    const estimatedExtraMonthly = unfixedIssues.length * 75;
+    
+    // Get human-readable names for unfixed issues
+    const unfixedNames = unfixedIssues.map((id: string) => 
+      ISSUE_NAMES[id] || id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+    );
+    
+    // Unique category names (use Array.filter for dedup instead of Set spread)
+    const uniqueUnfixed = unfixedNames.filter((name, index) => unfixedNames.indexOf(name) === index);
+    
+    return {
+      discoveredIssues,
+      fixedIssues,
+      unfixedIssues,
+      didInspection,
+      didRehab,
+      allFixed,
+      estimatedExtraMonthly,
+      uniqueUnfixed,
+      hasRisk: unfixedIssues.length > 0,
+    };
+  }, [inputs]);
   
   const taxesAnnual = inputs?.taxesAnnual || 0;
   const insuranceAnnual = inputs?.insuranceAnnual || 0;
@@ -209,15 +265,77 @@ export function OperatingExpensesPopup({
                   </div>
                 </div>
                 
-                <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-3 text-sm">
-                  <p className="text-blue-200">
-                    <span className="font-medium">💡 Pro tip:</span> Property condition affects repair frequency. 
-                    A <span className={conditionColor}>{property.conditionTag || 'good'}</span> property 
-                    will have {property.conditionTag === 'turnkey' || property.conditionTag === 'excellent' || property.conditionTag === 'good'
-                      ? 'fewer unexpected repairs.'
-                      : 'more frequent repairs - budget accordingly!'}
-                  </p>
-                </div>
+                {/* Dynamic Pro Tip based on rehab/diligence status */}
+                {repairAnalysis.allFixed ? (
+                  // Player did diligence AND fixed all issues
+                  <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-3 text-sm space-y-2">
+                    <div className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-green-200 font-medium">Great job! You rehabbed this property.</p>
+                        <p className="text-green-300/70 text-xs mt-1">
+                          Your {repairAnalysis.fixedIssues.length} repair{repairAnalysis.fixedIssues.length > 1 ? 's' : ''} reduced 
+                          your maintenance risk. Expect fewer surprise repairs than a non-rehabbed unit.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : repairAnalysis.hasRisk ? (
+                  // Player has unfixed issues - show warnings
+                  <div className="bg-amber-900/30 border border-amber-500/30 rounded-lg p-3 text-sm space-y-3">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-amber-200 font-medium">
+                          Unfixed issues = higher repair costs
+                        </p>
+                        <p className="text-amber-300/70 text-xs mt-1">
+                          You skipped repairs on {repairAnalysis.unfixedIssues.length} item{repairAnalysis.unfixedIssues.length > 1 ? 's' : ''}.
+                          These will cause more frequent breakdowns.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Show specific unfixed items */}
+                    <div className="bg-amber-950/50 rounded p-2 space-y-1">
+                      <p className="text-xs text-amber-400 font-medium">Increased repair risk:</p>
+                      {repairAnalysis.uniqueUnfixed.map((name, i) => (
+                        <div key={i} className="flex items-center justify-between text-xs">
+                          <span className="text-amber-300">• {name}</span>
+                          <span className="text-red-400">+2-3x frequency</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-xs border-t border-amber-500/30 pt-2">
+                      <span className="text-amber-400">Est. extra repairs:</span>
+                      <span className="text-red-400 font-medium">
+                        ~${repairAnalysis.estimatedExtraMonthly}/mo additional risk
+                      </span>
+                    </div>
+                  </div>
+                ) : !repairAnalysis.didInspection ? (
+                  // Player didn't do inspection - unknown issues
+                  <div className="bg-slate-700/50 border border-slate-600/50 rounded-lg p-3 text-sm">
+                    <p className="text-slate-300">
+                      <span className="font-medium">⚠️ Unknown condition:</span> You skipped the inspection, 
+                      so hidden issues may cause surprise repairs. A{' '}
+                      <span className={conditionColor}>{property.conditionTag || 'good'}</span> property 
+                      {property.conditionTag === 'turnkey' || property.conditionTag === 'excellent' || property.conditionTag === 'good'
+                        ? ' should have fewer issues.'
+                        : ' likely has problems that will surface over time.'}
+                    </p>
+                  </div>
+                ) : (
+                  // Default - good condition, no issues discovered
+                  <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-3 text-sm">
+                    <p className="text-blue-200">
+                      <span className="font-medium">💡 Pro tip:</span> This{' '}
+                      <span className={conditionColor}>{property.conditionTag || 'good'}</span> property 
+                      has no major issues requiring repair. Expect normal maintenance costs typical for any rental unit.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

@@ -58,10 +58,10 @@ export default function Landing() {
               <div className="space-y-4">
                 <h1 className="text-[1.75rem] sm:text-3xl lg:text-4xl xl:text-[2.75rem] leading-[1.15] font-bold text-white tracking-tight">
                   $50,000. 52 weeks.<br />
-                  <span className="text-gray-300">Three profitable deals or you're out.</span>
+                  <span className="text-white/80">Three profitable deals or you're out.</span>
                 </h1>
 
-                <p className="text-gray-400 text-base sm:text-lg leading-relaxed max-w-[380px] mx-auto lg:mx-0">
+                <p className="text-gray-300 text-base sm:text-lg leading-relaxed max-w-[380px] mx-auto lg:mx-0">
                   The numbers don't lie, but they don't tell you everything. You decide what's missing, what's a risk, and when to walk away.
                 </p>
               </div>
@@ -93,39 +93,39 @@ export default function Landing() {
               {/* Feature highlights - better on desktop */}
               <div className="hidden lg:grid grid-cols-2 gap-4 pt-4">
                 <div className="flex items-start gap-3 text-left">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
                     <p className="text-white font-medium text-sm">Analyze Real Deals</p>
-                    <p className="text-gray-500 text-xs">Pro forma analysis with real numbers</p>
+                    <p className="text-gray-400 text-xs">Pro forma analysis with real numbers</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 text-left">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-5 h-5 text-emerald-500" />
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
                     <p className="text-white font-medium text-sm">Race Against Time</p>
-                    <p className="text-gray-500 text-xs">52 weeks to prove yourself</p>
+                    <p className="text-gray-400 text-xs">52 weeks to prove yourself</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 text-left">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                    <Target className="w-5 h-5 text-emerald-500" />
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+                    <Target className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
                     <p className="text-white font-medium text-sm">Find Hidden Defects</p>
-                    <p className="text-gray-500 text-xs">Inspection reveals the truth</p>
+                    <p className="text-gray-400 text-xs">Inspection reveals the truth</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 text-left">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                    <DollarSign className="w-5 h-5 text-emerald-500" />
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
+                    <DollarSign className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
                     <p className="text-white font-medium text-sm">Build Your Portfolio</p>
-                    <p className="text-gray-500 text-xs">Close deals to grow wealth</p>
+                    <p className="text-gray-400 text-xs">Close deals to grow wealth</p>
                   </div>
                 </div>
               </div>

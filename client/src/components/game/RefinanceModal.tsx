@@ -96,15 +96,21 @@ export function RefinanceModal({ isOpen, onClose, deal, property, gameRun, onRef
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg bg-slate-900 border-slate-700 text-white">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Building2 className="w-5 h-5 text-blue-400" />
-            Refinance {property.name}
-          </DialogTitle>
-          <DialogDescription className="text-slate-400">
-            Cash out your equity with a new loan based on current market value
-          </DialogDescription>
+      <DialogContent className="max-w-lg bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-slate-700 text-white">
+        <DialogHeader className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-lg border border-cyan-500/30">
+              <Building2 className="w-6 h-6 text-cyan-400" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-bold">
+                Refinance {property.name}
+              </DialogTitle>
+              <DialogDescription className="text-slate-400 text-sm">
+                Unlock your equity with a cash-out refinance
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         {loading ? (
@@ -148,7 +154,7 @@ export function RefinanceModal({ isOpen, onClose, deal, property, gameRun, onRef
             const loanBalance = options.currentLoanBalance || 0;
             const currentEquity = options.currentEquity || 0;
             const equityPercent = options.equityPercent || 0;
-            const maxLtv = 75; // Max LTV for refinance
+            const maxLtv = options.maxLtv || 80; // Use actual max LTV from options
             const refinanceFeeRate = 0.02; // 2% refinance fees
             
             // To cash out, they need: (newLoanAmount - fees) > currentLoanBalance
@@ -239,53 +245,60 @@ export function RefinanceModal({ isOpen, onClose, deal, property, gameRun, onRef
             );
           })()
         ) : (
-          <div className="space-y-6 py-2">
-            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-800/50 rounded-lg">
-              <div className="space-y-1">
-                <p className="text-xs text-slate-500 uppercase">Current Market Value</p>
-                <p className="text-lg font-semibold text-green-400">
-                  {formatCurrency(options.currentMarketValue || 0)}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {options.currentMarketValue && property.price 
-                    ? `+${((options.currentMarketValue / property.price - 1) * 100).toFixed(1)}% appreciation` 
-                    : ''}
-                </p>
+          <div className="space-y-5 py-2">
+            {/* Property Value Hero Section */}
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-green-900/40 via-emerald-900/30 to-cyan-900/40 border border-green-500/30 p-4">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-green-400/10 rounded-full blur-2xl" />
+              <div className="relative flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-green-400/80 uppercase tracking-wider font-medium">Market Value</p>
+                  <p className="text-3xl font-bold text-green-400">
+                    {formatCurrency(options.currentMarketValue || 0)}
+                  </p>
+                  {options.currentMarketValue && property.price && (
+                    <p className="text-sm text-green-300/70 mt-1">
+                      +{((options.currentMarketValue / property.price - 1) * 100).toFixed(1)}% appreciation
+                    </p>
+                  )}
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-cyan-400/80 uppercase tracking-wider font-medium">Your Equity</p>
+                  <p className="text-2xl font-bold text-cyan-400">
+                    {formatCurrency(options.currentEquity || 0)}
+                  </p>
+                  <p className="text-sm text-cyan-300/70 mt-1">
+                    {options.equityPercent}% position
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs text-slate-500 uppercase">Current Equity</p>
-                <p className="text-lg font-semibold text-blue-400">
-                  {formatCurrency(options.currentEquity || 0)}
-                </p>
-                <p className="text-xs text-slate-500">
-                  {options.equityPercent}% equity position
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-slate-500 uppercase">Your Rate</p>
-                <p className="text-lg font-semibold">
-                  {formatPercent(options.interestRate || 0)}
-                </p>
-                <p className="text-xs text-slate-500">
-                  Based on your financials
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-slate-500 uppercase">Current Loan Balance</p>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                <p className="text-xs text-slate-500 uppercase">Loan Balance</p>
                 <p className="text-lg font-semibold text-slate-300">
                   {formatCurrency(options.currentLoanBalance || 0)}
+                </p>
+              </div>
+              <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                <p className="text-xs text-slate-500 uppercase">Your Rate</p>
+                <p className="text-lg font-semibold text-blue-400">
+                  {formatPercent(options.interestRate || 0)}
                 </p>
               </div>
             </div>
 
             {/* LTV Selection Section */}
-            <div className="space-y-4 bg-slate-800/30 rounded-xl p-4 border border-slate-700">
+            <div className="space-y-4 bg-gradient-to-br from-blue-950/30 to-indigo-950/30 rounded-xl p-4 border border-blue-500/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Calculator className="w-4 h-4 text-blue-400" />
-                  <label className="font-semibold">Select Your Loan-to-Value</label>
+                  <label className="font-semibold">Choose Your Leverage</label>
                 </div>
-                <span className="text-2xl font-bold text-blue-400">{selectedLtv}%</span>
+                <div className="px-3 py-1 bg-blue-500/20 rounded-full border border-blue-400/30">
+                  <span className="text-xl font-bold text-blue-400">{selectedLtv}% LTV</span>
+                </div>
               </div>
               
               {options.ltvOptions && options.ltvOptions.length > 0 ? (
@@ -294,16 +307,16 @@ export function RefinanceModal({ isOpen, onClose, deal, property, gameRun, onRef
                     value={[selectedLtv]}
                     onValueChange={([val]) => setSelectedLtv(val)}
                     min={options.ltvOptions[0]?.ltv || options.minLtv || 50}
-                    max={options.ltvOptions[options.ltvOptions.length - 1]?.ltv || options.maxLtv || 80}
+                    max={options.ltvOptions[options.ltvOptions.length - 1]?.ltv || options.maxLtv || 90}
                     step={5}
                     className="py-2"
                   />
                   <div className="flex justify-between text-xs">
-                    <span className="text-green-400">
-                      {options.ltvOptions[0]?.ltv}% - Safe
+                    <span className="text-green-400 bg-green-500/10 px-2 py-0.5 rounded">
+                      {options.ltvOptions[0]?.ltv}% Conservative
                     </span>
-                    <span className="text-amber-400">
-                      {options.ltvOptions[options.ltvOptions.length - 1]?.ltv}% - Max Cash
+                    <span className="text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">
+                      {options.ltvOptions[options.ltvOptions.length - 1]?.ltv}% Max Cash
                     </span>
                   </div>
                 </>

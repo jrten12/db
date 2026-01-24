@@ -96,7 +96,7 @@ export function RefinanceModal({ isOpen, onClose, deal, property, gameRun, onRef
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-lg bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-slate-700 text-white">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-slate-700 text-white">
         <DialogHeader className="space-y-3">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-lg border border-cyan-500/30">

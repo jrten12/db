@@ -142,44 +142,102 @@ export function RefinanceModal({ isOpen, onClose, deal, property, gameRun, onRef
             </Button>
           </div>
         ) : noViableOptions ? (
-          <div className="py-6 space-y-4">
-            <div className="bg-red-900/30 border border-red-500/40 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-red-300">Not enough equity to cash out</p>
-                  <p className="text-sm text-red-200/70 mt-2">
-                    Your current loan balance ({formatCurrency(options.currentLoanBalance || 0)}) is too close to the property value. 
-                    After refinance fees, there's no cash left to take out.
+          (() => {
+            // Calculate what they need to cash out
+            const marketValue = options.currentMarketValue || 0;
+            const loanBalance = options.currentLoanBalance || 0;
+            const currentEquity = options.currentEquity || 0;
+            const equityPercent = options.equityPercent || 0;
+            const maxLtv = 75; // Max LTV for refinance
+            const refinanceFeeRate = 0.02; // 2% refinance fees
+            
+            // To cash out, they need: (newLoanAmount - fees) > currentLoanBalance
+            // newLoanAmount = marketValue * maxLtv
+            // So: marketValue * maxLtv * (1 - feeRate) > loanBalance
+            // Required equity % to break even: 1 - maxLtv + (maxLtv * feeRate) = 25% + 1.5% = ~26.5%
+            const minEquityNeeded = Math.round((1 - maxLtv / 100 + (maxLtv / 100 * refinanceFeeRate)) * 100);
+            
+            // How much do they need to pay down?
+            const maxLoanForCashOut = marketValue * (maxLtv / 100) * (1 - refinanceFeeRate);
+            const payDownNeeded = Math.max(0, loanBalance - maxLoanForCashOut);
+            
+            // OR: How much appreciation would they need?
+            // For current loan balance to allow cash out: loanBalance / (maxLtv/100 * (1-feeRate)) = requiredValue
+            const requiredValueForCashOut = loanBalance / ((maxLtv / 100) * (1 - refinanceFeeRate));
+            const appreciationNeeded = Math.max(0, requiredValueForCashOut - marketValue);
+            
+            return (
+              <div className="py-6 space-y-4">
+                <div className="bg-red-900/30 border border-red-500/40 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-red-300">Not enough equity to cash out</p>
+                      <p className="text-sm text-red-200/70 mt-2">
+                        You have {equityPercent}% equity, but you need at least <span className="text-amber-300 font-medium">{minEquityNeeded}%</span> to cash out after refinance fees.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Current situation */}
+                <div className="bg-slate-800/50 rounded-lg p-3 space-y-2">
+                  <p className="text-sm text-slate-400">Current situation:</p>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Market Value:</span>
+                      <span className="text-green-400">{formatCurrency(marketValue)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Loan Balance:</span>
+                      <span className="text-slate-300">{formatCurrency(loanBalance)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Your Equity:</span>
+                      <span className="text-blue-400">{formatCurrency(currentEquity)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Equity %:</span>
+                      <span className={equityPercent >= minEquityNeeded ? 'text-green-400' : 'text-amber-400'}>{equityPercent}%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* What they need to do */}
+                <div className="bg-cyan-900/20 border border-cyan-600/30 rounded-lg p-3 space-y-3">
+                  <p className="text-sm text-cyan-300 font-medium flex items-center gap-2">
+                    <Info className="w-4 h-4" />
+                    How to unlock cash-out refinancing:
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    {payDownNeeded > 0 && (
+                      <div className="flex items-start gap-2">
+                        <span className="text-cyan-400 font-medium">Option 1:</span>
+                        <span className="text-slate-300">
+                          Pay down <span className="text-cyan-300 font-medium">{formatCurrency(payDownNeeded)}</span> more of your loan principal
+                        </span>
+                      </div>
+                    )}
+                    {appreciationNeeded > 0 && (
+                      <div className="flex items-start gap-2">
+                        <span className="text-cyan-400 font-medium">Option 2:</span>
+                        <span className="text-slate-300">
+                          Wait for <span className="text-cyan-300 font-medium">{formatCurrency(appreciationNeeded)}</span> more appreciation ({((appreciationNeeded / marketValue) * 100).toFixed(1)}%)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 pt-1 border-t border-slate-700/50">
+                    Max refinance LTV is {maxLtv}% with {(refinanceFeeRate * 100).toFixed(0)}% fees, so you need &gt;{minEquityNeeded}% equity to get cash back.
                   </p>
                 </div>
+                
+                <Button onClick={onClose} variant="outline" className="w-full border-slate-600">
+                  Close
+                </Button>
               </div>
-            </div>
-            <div className="bg-slate-800/50 rounded-lg p-3 space-y-2">
-              <p className="text-sm text-slate-400">Current situation:</p>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Market Value:</span>
-                  <span className="text-green-400">{formatCurrency(options.currentMarketValue || 0)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Loan Balance:</span>
-                  <span className="text-slate-300">{formatCurrency(options.currentLoanBalance || 0)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Equity:</span>
-                  <span className="text-blue-400">{formatCurrency(options.currentEquity || 0)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Equity %:</span>
-                  <span className="text-blue-400">{options.equityPercent}%</span>
-                </div>
-              </div>
-            </div>
-            <Button onClick={onClose} variant="outline" className="w-full border-slate-600">
-              Close
-            </Button>
-          </div>
+            );
+          })()
         ) : (
           <div className="space-y-6 py-2">
             <div className="grid grid-cols-2 gap-4 p-4 bg-slate-800/50 rounded-lg">

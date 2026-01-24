@@ -21,6 +21,7 @@ export interface ProFormaInputs {
 
   financeRehab: boolean; // Include rehab costs in loan (acquisition + construction loan)
 
+  arvEstimate: number | null; // Player's estimated sale price for flips
 
   // Rehab issue tracking (optional - for properties with discovered issues)
   discoveredIssueIds?: string[];  // Issue IDs discovered during diligence
@@ -132,6 +133,7 @@ export const defaultProForma: ProFormaInputs = {
   sellingCostsPct: MARKET_DEFAULTS.sellingCostsPct,
   contractorType: 'cheap',
   financeRehab: false, // Default to not financing rehab
+  arvEstimate: null, // Player's estimated sale price for flips
 };
 
 // Helper to get property-specific defaults based on price

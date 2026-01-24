@@ -325,8 +325,9 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     (n(inputs.taxesAnnual) / 52) + (n(inputs.insuranceAnnual) / 52));
 
   const arvMid = (property.arvMin + property.arvMax) / 2;
-  const sellingCosts = arvMid * (n(inputs.sellingCostsPct) / 100);
-  const flipProfit = arvMid - allInBasis - (holdingCostPerWeek * n(inputs.rehabWeeks)) - sellingCosts;
+  const playerARV = inputs.arvEstimate !== null ? inputs.arvEstimate : arvMid;
+  const sellingCosts = playerARV * (n(inputs.sellingCostsPct) / 100);
+  const flipProfit = playerARV - allInBasis - (holdingCostPerWeek * n(inputs.rehabWeeks)) - sellingCosts;
   const flipROI = liveOutputs.totalCashInvested > 0 ? (flipProfit / liveOutputs.totalCashInvested) * 100 : 0;
 
   const isViable = inputs.strategy === 'rent' 
@@ -755,76 +756,110 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               </div>
             </div>
 
-            {/* Additional Fields - Taxes, Insurance, CapEx */}
-            <div className="mt-4 pt-4 border-t border-cyan-500/20">
-              <p className="text-cyan-400/70 text-xs uppercase tracking-wider mb-3">Operating Costs</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Annual Taxes - dynamic display with thinking prompts */}
-                <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
+            {/* FLIP: Estimated Sale Price (ARV) */}
+            {inputs.strategy === 'flip' && (
+              <div className="mt-4 pt-4 border-t border-amber-500/20">
+                <p className="text-amber-400/70 text-xs uppercase tracking-wider mb-3">Estimated Sale Price</p>
+                <div className="bg-gradient-to-r from-amber-900/30 to-orange-900/20 rounded-xl p-4 border border-amber-500/30">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-cyan-300/80 text-xs font-medium flex items-center gap-1.5">
-                      Annual Taxes
-                      <InfoTooltip term="taxesAnnual" />
+                    <label className="text-amber-300 text-sm font-medium flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      After Repair Value (ARV)
                     </label>
-                    <span className="text-cyan-400/50 text-[10px] bg-slate-700/50 px-1.5 py-0.5 rounded">1.5% rate</span>
+                    {!hasAppraisal && (
+                      <span className="text-amber-400/60 text-[10px] bg-amber-500/20 px-2 py-0.5 rounded-full">Speculative</span>
+                    )}
                   </div>
                   
-                  {/* Current tax based on purchase price */}
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-xs">Current (on ${(property.price / 1000).toFixed(0)}k):</span>
-                    <span className="text-cyan-300 font-mono font-bold">${Math.round(property.price * 0.015).toLocaleString()}</span>
+                    <span className="text-amber-100 text-2xl font-mono font-bold">
+                      ${(inputs.arvEstimate !== null ? inputs.arvEstimate : arvMid).toLocaleString()}
+                    </span>
                   </div>
                   
-                  {/* Post-rehab hint for flips */}
-                  {inputs.strategy === 'flip' && n(inputs.rehabBudget) > 0 && (
-                    <div className="bg-amber-500/10 rounded-lg p-2 mb-2 border border-amber-500/20">
-                      <div className="flex items-center gap-1.5 text-amber-400 text-[11px] mb-1">
-                        <HelpCircle className="w-3 h-3" />
-                        <span className="font-medium">Think about it...</span>
-                      </div>
+                  <input
+                    type="range"
+                    min={hasAppraisal ? property.arvMin : Math.round(property.arvMin * 0.85)}
+                    max={hasAppraisal ? property.arvMax : Math.round(property.arvMax * 1.15)}
+                    step={1000}
+                    value={inputs.arvEstimate !== null ? inputs.arvEstimate : arvMid}
+                    onChange={(e) => onInputsChange({ ...inputs, arvEstimate: parseInt(e.target.value) })}
+                    className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    data-testid="slider-arv-estimate"
+                  />
+                  <div className="flex justify-between text-xs text-amber-400/60 mt-1">
+                    <span>${(hasAppraisal ? property.arvMin : Math.round(property.arvMin * 0.85)).toLocaleString()}</span>
+                    <span className="text-amber-300">{hasAppraisal ? 'Based on comps' : 'Wide range - get appraisal!'}</span>
+                    <span>${(hasAppraisal ? property.arvMax : Math.round(property.arvMax * 1.15)).toLocaleString()}</span>
+                  </div>
+                  
+                  {!hasAppraisal && (
+                    <div className="mt-3 bg-amber-500/10 rounded-lg p-2 border border-amber-500/20">
                       <p className="text-amber-300/70 text-[10px] leading-relaxed">
-                        After ${(n(inputs.rehabBudget) / 1000).toFixed(0)}k rehab + permits, the county may reassess at ~${((property.price + n(inputs.rehabBudget) * 0.7) / 1000).toFixed(0)}k. What would taxes be then?
+                        Without a comp analysis, your ARV is a guess. Over-estimating the sale price is the #1 mistake new flippers make.
                       </p>
                     </div>
                   )}
-                  
-                  {/* Editable input for their answer */}
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">$</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="off"
-                      placeholder={Math.round(property.price * 0.015).toString()}
-                      value={inputs.taxesAnnual === null ? '' : inputs.taxesAnnual}
-                      onChange={(e) => onInputsChange({ ...inputs, taxesAnnual: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
-                      onFocus={() => onFieldTouch?.('taxesAnnual')}
-                      className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg pl-8 pr-3 py-2 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
-                      data-testid="input-taxes-annual"
-                    />
-                  </div>
-                  <span className="text-cyan-400/50 text-[10px] mt-1 block">Enter your estimate</span>
                 </div>
-                <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
-                  <label className="text-cyan-300/80 text-xs font-medium mb-1.5 flex items-center gap-1.5">
-                    Annual Insurance
-                    <InfoTooltip term="insuranceAnnual" />
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">$</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="off"
-                      placeholder={Math.round(property.price * 0.007).toString()}
-                      value={inputs.insuranceAnnual === null ? '' : inputs.insuranceAnnual}
-                      onChange={(e) => onInputsChange({ ...inputs, insuranceAnnual: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
-                      onFocus={() => onFieldTouch?.('insuranceAnnual')}
-                      className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg pl-8 pr-3 py-2.5 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
-                      data-testid="input-insurance-annual"
-                    />
+              </div>
+            )}
+
+            {/* RENTAL: Operating Costs - Taxes, Insurance, CapEx */}
+            {inputs.strategy === 'rent' && (
+              <div className="mt-4 pt-4 border-t border-cyan-500/20">
+                <p className="text-cyan-400/70 text-xs uppercase tracking-wider mb-3">Operating Costs</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Annual Taxes */}
+                  <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="text-cyan-300/80 text-xs font-medium flex items-center gap-1.5">
+                        Annual Taxes
+                        <InfoTooltip term="taxesAnnual" />
+                      </label>
+                      <span className="text-cyan-400/50 text-[10px] bg-slate-700/50 px-1.5 py-0.5 rounded">1.5% rate</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-400 text-xs">Current (on ${(property.price / 1000).toFixed(0)}k):</span>
+                      <span className="text-cyan-300 font-mono font-bold">${Math.round(property.price * 0.015).toLocaleString()}</span>
+                    </div>
+                    
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">$</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        placeholder={Math.round(property.price * 0.015).toString()}
+                        value={inputs.taxesAnnual === null ? '' : inputs.taxesAnnual}
+                        onChange={(e) => onInputsChange({ ...inputs, taxesAnnual: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
+                        onFocus={() => onFieldTouch?.('taxesAnnual')}
+                        className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg pl-8 pr-3 py-2 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
+                        data-testid="input-taxes-annual"
+                      />
+                    </div>
+                    <span className="text-cyan-400/50 text-[10px] mt-1 block">Enter your estimate</span>
                   </div>
-                </div>
+                  <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
+                    <label className="text-cyan-300/80 text-xs font-medium mb-1.5 flex items-center gap-1.5">
+                      Annual Insurance
+                      <InfoTooltip term="insuranceAnnual" />
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">$</span>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        placeholder={Math.round(property.price * 0.007).toString()}
+                        value={inputs.insuranceAnnual === null ? '' : inputs.insuranceAnnual}
+                        onChange={(e) => onInputsChange({ ...inputs, insuranceAnnual: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
+                        onFocus={() => onFieldTouch?.('insuranceAnnual')}
+                        className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg pl-8 pr-3 py-2.5 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
+                        data-testid="input-insurance-annual"
+                      />
+                    </div>
+                  </div>
                 
                 {/* Rental-specific: Maintenance and CapEx with sliders */}
                 {inputs.strategy === 'rent' && (
@@ -905,66 +940,64 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     </div>
                   </>
                 )}
-                
-                {/* Flip-specific: Permit costs */}
-                {inputs.strategy === 'flip' && (hasContractorWalkthrough || hasInspection) && (
-                  <div className="bg-amber-900/30 rounded-xl p-3 border border-amber-500/20 col-span-full">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Landmark className="w-4 h-4 text-amber-400" />
-                      <label className="text-amber-300 text-xs font-medium">Permit Costs (Required for Rehab)</label>
-                    </div>
-                    <div className="text-amber-100 text-lg font-mono font-bold">
-                      ${Math.round((inputs.rehabBudget || 0) * 0.03).toLocaleString()}
-                    </div>
-                    <span className="text-amber-400/60 text-xs">~3% of rehab budget for building permits</span>
-                  </div>
-                )}
               </div>
               
-              {inputs.strategy === 'rent' && (
-                <button
-                  onClick={() => onInputsChange({ ...inputs, propertyManagement: !inputs.propertyManagement })}
-                  className={`mt-3 w-full rounded-xl p-4 border-2 transition-all ${
-                    inputs.propertyManagement 
-                      ? 'bg-gradient-to-r from-emerald-600/30 to-cyan-600/30 border-emerald-500/50 shadow-lg shadow-emerald-500/20' 
-                      : 'bg-slate-800/40 border-slate-600/30 hover:border-cyan-500/30'
-                  }`}
-                  data-testid="toggle-property-management"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                        inputs.propertyManagement 
-                          ? 'bg-emerald-500/30 text-emerald-400' 
-                          : 'bg-slate-700/50 text-gray-500'
-                      }`}>
-                        <Building2 className="w-5 h-5" />
-                      </div>
-                      <div className="text-left">
-                        <div className={`font-semibold ${inputs.propertyManagement ? 'text-emerald-300' : 'text-gray-300'}`}>
-                          Property Manager
-                        </div>
-                        <div className="text-xs text-gray-500">10% of rent - handles everything</div>
-                      </div>
-                    </div>
-                    <div className={`w-12 h-7 rounded-full p-1 transition-all ${
-                      inputs.propertyManagement ? 'bg-emerald-500' : 'bg-slate-600'
+              <button
+                onClick={() => onInputsChange({ ...inputs, propertyManagement: !inputs.propertyManagement })}
+                className={`mt-3 w-full rounded-xl p-4 border-2 transition-all ${
+                  inputs.propertyManagement 
+                    ? 'bg-gradient-to-r from-emerald-600/30 to-cyan-600/30 border-emerald-500/50 shadow-lg shadow-emerald-500/20' 
+                    : 'bg-slate-800/40 border-slate-600/30 hover:border-cyan-500/30'
+                }`}
+                data-testid="toggle-property-management"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      inputs.propertyManagement 
+                        ? 'bg-emerald-500/30 text-emerald-400' 
+                        : 'bg-slate-700/50 text-gray-500'
                     }`}>
-                      <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                        inputs.propertyManagement ? 'translate-x-5' : 'translate-x-0'
-                      }`} />
+                      <Building2 className="w-5 h-5" />
+                    </div>
+                    <div className="text-left">
+                      <div className={`font-semibold ${inputs.propertyManagement ? 'text-emerald-300' : 'text-gray-300'}`}>
+                        Property Manager
+                      </div>
+                      <div className="text-xs text-gray-500">10% of rent - handles everything</div>
                     </div>
                   </div>
-                  {!inputs.propertyManagement && (
-                    <div className="mt-2 pt-2 border-t border-slate-600/30 flex items-center gap-2 text-amber-400/80">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-xs">Self-managing costs 1 week of your time</span>
-                    </div>
-                  )}
-                </button>
-              )}
+                  <div className={`w-12 h-7 rounded-full p-1 transition-all ${
+                    inputs.propertyManagement ? 'bg-emerald-500' : 'bg-slate-600'
+                  }`}>
+                    <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                      inputs.propertyManagement ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </div>
+                </div>
+                {!inputs.propertyManagement && (
+                  <div className="mt-2 pt-2 border-t border-slate-600/30 flex items-center gap-2 text-amber-400/80">
+                    <Clock className="w-4 h-4" />
+                    <span className="text-xs">Self-managing costs 1 week of your time</span>
+                  </div>
+                )}
+              </button>
             </div>
-          </div>
+          )}
+          
+          {/* FLIP: Permit costs (shown outside rental section) */}
+          {inputs.strategy === 'flip' && (hasContractorWalkthrough || hasInspection) && (
+            <div className="mt-4 bg-amber-900/30 rounded-xl p-3 border border-amber-500/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Landmark className="w-4 h-4 text-amber-400" />
+                <label className="text-amber-300 text-xs font-medium">Permit Costs (Required for Rehab)</label>
+              </div>
+              <div className="text-amber-100 text-lg font-mono font-bold">
+                ${Math.round((inputs.rehabBudget || 0) * 0.03).toLocaleString()}
+              </div>
+              <span className="text-amber-400/60 text-xs">~3% of rehab budget for building permits</span>
+            </div>
+          )}
         </div>
       </div>
 

@@ -35,7 +35,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   web: {
     favicon: './assets/favicon.png',
   },
-  extra: {},
+  extra: {
+    eas: {
+      projectId: 'ca795b33-d8b3-480f-95b6-f2219ff7c326',
+    },
+  },
   plugins: [
     [
       'react-native-google-mobile-ads',
@@ -49,6 +53,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     policy: 'appVersion',
   },
   updates: {
-    url: 'https://u.expo.dev/a91f4913-f26b-4027-969d-586dd1d699e4',
+    url: 'https://u.expo.dev/ca795b33-d8b3-480f-95b6-f2219ff7c326',
   },
 });

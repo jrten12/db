@@ -34,34 +34,35 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
   // Helper to format currency (whole dollars)
   const fmt = (n: number) => Math.round(n).toLocaleString();
   
-  // Use actual rent from outputs, OR calculate from property rent range if stored value is 0
-  // The realityAdjustmentMonthly tells us how much higher actual cash flow is vs what player assumed
-  let monthlyRent = outputs?.monthlyGrossRent || 0;
+  // Get actual values from reality check (truth) or fall back to player's pro forma assumptions
+  // Reality check values represent what actually happens in the market
+  const realityCheck = outputs?.realityCheck;
+  
+  // For rent: use reality check true rent (midpoint of range), or player's assumption, or calculated midpoint
+  let monthlyRent = realityCheck?.trueRent || outputs?.monthlyGrossRent || 0;
   if (monthlyRent === 0 && property) {
-    // Calculate actual rent from property's rent range (midpoint with some variance)
+    // Calculate actual rent from property's rent range midpoint
     monthlyRent = Math.round((property.rentMin + property.rentMax) / 2);
   }
   
-  const monthlyVacancy = outputs?.monthlyVacancyLoss || 0;
+  // For vacancy: use reality check actual vacancy rate, or player's assumption
+  const actualVacancyRate = realityCheck?.actualVacancyRate || (outputs?.effectiveVacancyRate / 100) || (inputs?.vacancyRate / 100) || 0;
+  const monthlyVacancy = monthlyRent * actualVacancyRate;
+  
   const monthlyOpEx = outputs?.monthlyOperatingExpenses || 0;
   // Use debtServiceMonthly (standard amortization) for consistency with DebtPanel
   const monthlyDebt = outputs?.debtServiceMonthly || outputs?.monthlyDebtService || 0;
   
-  // Reality adjustment: difference between what player assumed and actual market reality
-  // Positive = player was conservative (bonus), Negative = player was optimistic (penalty)
-  const realityAdjustment = outputs?.realityAdjustmentMonthly || 0;
-  
-  // Calculate actual monthly cash flow from weekly income (which is authoritative)
+  // Weekly income is the authoritative source of truth for actual cash flow
   const weeklyIncome = deal.weeklyIncome || 0;
-  const actualMonthlyCashFlow = weeklyIncome * (52 / 12);
   
-  // Calculate expected cash flow from visible line items so math adds up
-  const projectedCashFlow = monthlyRent - monthlyVacancy - monthlyOpEx - monthlyDebt;
+  // Monthly cash flow calculated from the actual weekly income
+  const monthlyCashFlow = realityCheck?.actualCashFlow || (weeklyIncome * (52 / 12)) || outputs?.cashFlowMonthly || 0;
   
-  // Use the calculated value, or reality check if available, or stored value as fallback
-  const monthlyCashFlow = outputs?.realityCheck?.actualCashFlow || actualMonthlyCashFlow || outputs?.cashFlowMonthly || 0;
-  
-  const vacancyRate = outputs?.effectiveVacancyRate?.toFixed(1) || inputs?.vacancyRate || '?';
+  // Display the actual vacancy rate (from reality check or player's assumption)
+  const displayVacancyRate = realityCheck?.actualVacancyRate 
+    ? (realityCheck.actualVacancyRate * 100).toFixed(1)
+    : outputs?.effectiveVacancyRate?.toFixed(1) || inputs?.vacancyRate || '?';
   const ltv = inputs?.ltv || 0;
   const purchasePrice = deal.purchasePrice || 0;
   
@@ -89,7 +90,7 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
         </div>
         {monthlyVacancy > 0 && (
           <div className="flex justify-between">
-            <span className="text-gray-400">Vacancy ({vacancyRate}%)</span>
+            <span className="text-gray-400">Vacancy ({displayVacancyRate}%)</span>
             <span className="text-red-400">-${fmt(Math.abs(monthlyVacancy))}</span>
           </div>
         )}
@@ -103,19 +104,6 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
           <span className="text-gray-400">Mortgage Payment</span>
           <span className="text-red-400">-${fmt(Math.abs(monthlyDebt))}</span>
         </div>
-        {realityAdjustment !== 0 && (
-          <div className="flex justify-between">
-            <span className="text-gray-400 flex items-center gap-1">
-              Market Adj.
-              <span className="text-xs text-gray-500">
-                ({realityAdjustment > 0 ? 'conservative' : 'optimistic'})
-              </span>
-            </span>
-            <span className={realityAdjustment >= 0 ? 'text-green-400' : 'text-red-400'}>
-              {realityAdjustment >= 0 ? '+' : ''}{fmt(realityAdjustment)}
-            </span>
-          </div>
-        )}
         <div className="flex justify-between border-t border-white/10 pt-1.5 mt-1.5">
           <span className="text-white font-medium">Monthly Cash Flow</span>
           <span className={`font-bold ${Math.round(monthlyCashFlow) >= 0 ? 'text-green-400' : 'text-red-400'}`}>

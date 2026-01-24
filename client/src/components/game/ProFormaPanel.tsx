@@ -647,28 +647,102 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               </div>
             </div>
 
-            {/* More Options Button */}
-            <button
-              onClick={() => setIsEditorOpen(true)}
-              className="mt-4 w-full px-4 py-3 bg-slate-800/60 hover:bg-slate-700/60 text-cyan-300 font-medium text-sm rounded-xl border border-cyan-500/30 transition-all flex items-center justify-center gap-2"
-            >
-              <Edit3 className="w-4 h-4" />
-              <span>More Options (Taxes, Insurance, CapEx...)</span>
-            </button>
+            {/* Additional Fields - Taxes, Insurance, CapEx */}
+            <div className="mt-4 pt-4 border-t border-cyan-500/20">
+              <p className="text-cyan-400/70 text-xs uppercase tracking-wider mb-3">Operating Costs</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
+                  <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">Annual Taxes</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">$</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      placeholder={Math.round(property.price * 0.015).toString()}
+                      value={inputs.taxesAnnual === null ? '' : inputs.taxesAnnual}
+                      onChange={(e) => onInputsChange({ ...inputs, taxesAnnual: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
+                      onFocus={() => onFieldTouch?.('taxesAnnual')}
+                      className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg pl-8 pr-3 py-2.5 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
+                      data-testid="input-taxes-annual"
+                    />
+                  </div>
+                </div>
+                <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
+                  <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">Annual Insurance</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">$</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      placeholder={Math.round(property.price * 0.007).toString()}
+                      value={inputs.insuranceAnnual === null ? '' : inputs.insuranceAnnual}
+                      onChange={(e) => onInputsChange({ ...inputs, insuranceAnnual: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
+                      onFocus={() => onFieldTouch?.('insuranceAnnual')}
+                      className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg pl-8 pr-3 py-2.5 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
+                      data-testid="input-insurance-annual"
+                    />
+                  </div>
+                </div>
+                {inputs.strategy === 'rent' && (
+                  <>
+                    <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
+                      <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">CapEx Reserve</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          placeholder="5"
+                          value={inputs.capExPct === null ? '' : inputs.capExPct}
+                          onChange={(e) => onInputsChange({ ...inputs, capExPct: e.target.value === '' ? null : (parseFloat(e.target.value) || 0) })}
+                          onFocus={() => onFieldTouch?.('capExPct')}
+                          className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg px-3 py-2.5 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
+                          data-testid="input-capex"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">%</span>
+                      </div>
+                    </div>
+                    <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
+                      <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">Maintenance</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          autoComplete="off"
+                          placeholder="5"
+                          value={inputs.maintenancePct === null ? '' : inputs.maintenancePct}
+                          onChange={(e) => onInputsChange({ ...inputs, maintenancePct: e.target.value === '' ? null : (parseFloat(e.target.value) || 0) })}
+                          onFocus={() => onFieldTouch?.('maintenancePct')}
+                          className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg px-3 py-2.5 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
+                          data-testid="input-maintenance"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">%</span>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              {inputs.strategy === 'rent' && (
+                <div className="mt-3 flex items-center gap-3 bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
+                  <input
+                    type="checkbox"
+                    id="propertyManagement"
+                    checked={inputs.propertyManagement || false}
+                    onChange={(e) => onInputsChange({ ...inputs, propertyManagement: e.target.checked })}
+                    className="w-5 h-5 rounded border-cyan-500/40 bg-slate-900/60 text-cyan-500 focus:ring-cyan-500/30"
+                  />
+                  <label htmlFor="propertyManagement" className="text-cyan-200 text-sm flex-1">
+                    Hire Property Manager (10% of rent)
+                  </label>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-
-      {/* Pro Forma Editor Modal */}
-      <ProFormaEditor
-        isOpen={isEditorOpen}
-        onClose={() => setIsEditorOpen(false)}
-        property={property}
-        inputs={inputs}
-        onInputsChange={onInputsChange}
-        completedDiligence={completedDiligence}
-        onFieldTouch={onFieldTouch}
-      />
 
       {/* LAYER 5: LIVE OUTCOMES */}
       <div className="xl:col-span-1">

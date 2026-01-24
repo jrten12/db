@@ -35,11 +35,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   web: {
     favicon: './assets/favicon.png',
   },
-  extra: {
-    eas: {
-      projectId: 'a91f4913-f26b-4027-969d-586dd1d699e4',
-    },
-  },
+  extra: {},
   plugins: [
     [
       'react-native-google-mobile-ads',

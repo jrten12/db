@@ -727,9 +727,33 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             <div className="mt-4 pt-4 border-t border-cyan-500/20">
               <p className="text-cyan-400/70 text-xs uppercase tracking-wider mb-3">Operating Costs</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Annual Taxes - editable with property info hint */}
+                {/* Annual Taxes - dynamic display with thinking prompts */}
                 <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
-                  <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">Annual Taxes</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-cyan-300/80 text-xs font-medium">Annual Taxes</label>
+                    <span className="text-cyan-400/50 text-[10px] bg-slate-700/50 px-1.5 py-0.5 rounded">1.5% rate</span>
+                  </div>
+                  
+                  {/* Current tax based on purchase price */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-400 text-xs">Current (on ${(property.price / 1000).toFixed(0)}k):</span>
+                    <span className="text-cyan-300 font-mono font-bold">${Math.round(property.price * 0.015).toLocaleString()}</span>
+                  </div>
+                  
+                  {/* Post-rehab hint for flips */}
+                  {inputs.strategy === 'flip' && n(inputs.rehabBudget) > 0 && (
+                    <div className="bg-amber-500/10 rounded-lg p-2 mb-2 border border-amber-500/20">
+                      <div className="flex items-center gap-1.5 text-amber-400 text-[11px] mb-1">
+                        <HelpCircle className="w-3 h-3" />
+                        <span className="font-medium">Think about it...</span>
+                      </div>
+                      <p className="text-amber-300/70 text-[10px] leading-relaxed">
+                        After ${(n(inputs.rehabBudget) / 1000).toFixed(0)}k rehab + permits, the county may reassess at ~${((property.price + n(inputs.rehabBudget) * 0.7) / 1000).toFixed(0)}k. What would taxes be then?
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Editable input for their answer */}
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">$</span>
                     <input
@@ -740,17 +764,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       value={inputs.taxesAnnual === null ? '' : inputs.taxesAnnual}
                       onChange={(e) => onInputsChange({ ...inputs, taxesAnnual: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
                       onFocus={() => onFieldTouch?.('taxesAnnual')}
-                      className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg pl-8 pr-3 py-2.5 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
+                      className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg pl-8 pr-3 py-2 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
                       data-testid="input-taxes-annual"
                     />
                   </div>
-                  <span className="text-cyan-400/60 text-xs mt-1 block">~1.5% of ${property.price.toLocaleString()}</span>
-                  {inputs.strategy === 'flip' && (hasContractorWalkthrough || hasInspection) && (
-                    <div className="mt-1.5 flex items-center gap-1">
-                      <AlertTriangle className="w-3 h-3 text-amber-400/80" />
-                      <span className="text-amber-400/80 text-xs">Rehab may increase assessed value</span>
-                    </div>
-                  )}
+                  <span className="text-cyan-400/50 text-[10px] mt-1 block">Enter your estimate</span>
                 </div>
                 <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
                   <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">Annual Insurance</label>

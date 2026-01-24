@@ -946,6 +946,9 @@ export function PropertyDetail({
             <AlertDialogTitle className="text-white text-lg">
               Confirm Investigation
             </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              Review the cost and time for this investigation before confirming.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           {pendingDiligence && (
             <div className="space-y-4 mt-2">

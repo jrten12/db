@@ -26,6 +26,7 @@ import { TutorialPrompt } from '@/components/game/TutorialPrompt';
 import { DebtPanel, DebtPanelTrigger } from '@/components/game/DebtPanel';
 import { RefinanceModal } from '@/components/game/RefinanceModal';
 import { OperatingExpensesPopup } from '@/components/game/OperatingExpensesPopup';
+import { DealCongratulations } from '@/components/game/DealCongratulations';
 import { useTutorial } from '@/contexts/TutorialContext';
 import {
   ProFormaInputs,
@@ -629,6 +630,23 @@ export default function Game() {
     loanAmount: number;
     strategy: 'rent' | 'flip';
   } | null>(null);
+  
+  const [dealCongrats, setDealCongrats] = useState<{
+    isOpen: boolean;
+    data: {
+      propertyName: string;
+      strategy: 'rent' | 'flip';
+      totalCashInvested: number;
+      ltv: number;
+      cashFlow?: number;
+      profit?: number;
+      roi?: number;
+      isFirstDeal?: boolean;
+      didDueDiligence?: boolean;
+      propertyPrice: number;
+      dealCount?: number;
+    } | null;
+  }>({ isOpen: false, data: null });
 
   const handleCommitDeal = useCallback(async () => {
     // Guard against double-clicks
@@ -1494,10 +1512,38 @@ export default function Game() {
           loanAmount={dealOutcome?.loanAmount || 0}
           strategy={dealOutcome?.strategy || 'rent'}
           onComplete={() => {
+            const isFirstDeal = deals.length === 0;
+            const didDueDiligence = selectedProperty ? 
+              (completedDiligence[selectedProperty.id] || []).length >= 2 : false;
+            
+            setDealCongrats({
+              isOpen: true,
+              data: {
+                propertyName: dealOutcome?.property.name || '',
+                strategy: dealOutcome?.strategy || 'rent',
+                totalCashInvested: proFormaOutputs?.totalCashInvested || 0,
+                ltv: proFormaInputs.ltv,
+                cashFlow: dealOutcome?.strategy === 'rent' ? proFormaOutputs?.cashFlowMonthly : undefined,
+                profit: dealOutcome?.strategy === 'flip' ? flipMetrics.profit : undefined,
+                roi: dealOutcome?.strategy === 'flip' ? flipMetrics.roi : undefined,
+                isFirstDeal,
+                didDueDiligence,
+                propertyPrice: dealOutcome?.property.price || 0,
+                dealCount: deals.length + 1,
+              }
+            });
+            
             setCurrentScreen('results');
             setIsCommittingDeal(false);
             setDealOutcome(null);
           }}
+        />
+        
+        {/* Deal Congratulations Popup */}
+        <DealCongratulations
+          isOpen={dealCongrats.isOpen}
+          onClose={() => setDealCongrats({ isOpen: false, data: null })}
+          dealData={dealCongrats.data}
         />
 
         {/* Ledger Panel Modal */}

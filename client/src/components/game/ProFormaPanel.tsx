@@ -526,7 +526,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           </div>
         )}
 
-        {/* INLINE PRO FORMA - Soft blue theme with large inputs */}
+        {/* INLINE PRO FORMA - Soft blue theme with sliders and ranges */}
         <div className="bg-gradient-to-br from-cyan-500/10 via-blue-500/10 to-sky-500/10 backdrop-blur rounded-2xl border-2 border-cyan-500/30 overflow-hidden shadow-2xl shadow-cyan-500/10">
           <div className="p-6">
             <div className="flex items-center gap-3 mb-6">
@@ -539,105 +539,181 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               </div>
             </div>
 
-            {/* Inline Editable Inputs */}
+            {/* Inline Editable Inputs with Sliders */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {inputs.strategy === 'rent' ? (
                 <>
+                  {/* Expected Rent - with range if market study done */}
                   <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
                     <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Expected Rent</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">$</span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="off"
-                        placeholder="1500"
-                        value={inputs.expectedRent === null ? '' : inputs.expectedRent}
-                        onChange={(e) => onInputsChange({ ...inputs, expectedRent: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
-                        onFocus={() => onFieldTouch?.('expectedRent')}
-                        className="w-full bg-slate-900/80 border-2 border-cyan-500/40 rounded-xl pl-10 pr-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 placeholder:text-slate-600"
-                        data-testid="input-expected-rent"
-                      />
-                    </div>
-                    <span className="text-cyan-400/60 text-xs mt-2 block">Monthly rent income</span>
+                    {hasMarketStudy ? (
+                      <>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-cyan-100 text-2xl font-mono font-bold">${inputs.expectedRent?.toLocaleString() || property.rentMin}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={property.rentMin}
+                          max={property.rentMax}
+                          step={50}
+                          value={inputs.expectedRent || property.rentMin}
+                          onChange={(e) => onInputsChange({ ...inputs, expectedRent: parseInt(e.target.value) })}
+                          className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                          data-testid="slider-expected-rent"
+                        />
+                        <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+                          <span>${property.rentMin.toLocaleString()}</span>
+                          <span className="text-cyan-300">Market Range</span>
+                          <span>${property.rentMax.toLocaleString()}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">$</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            placeholder="???"
+                            value={inputs.expectedRent === null ? '' : inputs.expectedRent}
+                            onChange={(e) => onInputsChange({ ...inputs, expectedRent: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
+                            onFocus={() => onFieldTouch?.('expectedRent')}
+                            className="w-full bg-slate-900/80 border-2 border-amber-500/40 rounded-xl pl-10 pr-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-amber-400 focus:outline-none placeholder:text-amber-600/50"
+                            data-testid="input-expected-rent"
+                          />
+                        </div>
+                        <span className="text-amber-400/80 text-xs mt-2 block flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> Complete Market Study to see range
+                        </span>
+                      </>
+                    )}
                   </div>
+                  
+                  {/* Vacancy Rate */}
                   <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
                     <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Vacancy Rate</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        autoComplete="off"
-                        placeholder="5"
-                        value={inputs.vacancyRate === null ? '' : inputs.vacancyRate}
-                        onChange={(e) => onInputsChange({ ...inputs, vacancyRate: e.target.value === '' ? null : (parseFloat(e.target.value) || 0) })}
-                        onFocus={() => onFieldTouch?.('vacancyRate')}
-                        className="w-full bg-slate-900/80 border-2 border-cyan-500/40 rounded-xl px-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 placeholder:text-slate-600"
-                        data-testid="input-vacancy-rate"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">%</span>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-cyan-100 text-2xl font-mono font-bold">{inputs.vacancyRate ?? 7}%</span>
                     </div>
-                    <span className="text-cyan-400/60 text-xs mt-2 block">Time property sits empty</span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={15}
+                      step={1}
+                      value={inputs.vacancyRate ?? 7}
+                      onChange={(e) => onInputsChange({ ...inputs, vacancyRate: parseInt(e.target.value) })}
+                      className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                      data-testid="slider-vacancy-rate"
+                    />
+                    <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+                      <span>0%</span>
+                      <span className="text-cyan-300">Typical: 5-7%</span>
+                      <span>15%</span>
+                    </div>
                   </div>
                 </>
               ) : (
                 <>
+                  {/* Rehab Budget - with range if walkthrough/inspection done */}
                   <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
                     <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Rehab Budget</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">$</span>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="off"
-                        placeholder="25000"
-                        value={inputs.rehabBudget === null ? '' : inputs.rehabBudget}
-                        onChange={(e) => onInputsChange({ ...inputs, rehabBudget: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
-                        onFocus={() => onFieldTouch?.('rehabBudget')}
-                        className="w-full bg-slate-900/80 border-2 border-cyan-500/40 rounded-xl pl-10 pr-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 placeholder:text-slate-600"
-                        data-testid="input-rehab-budget"
-                      />
-                    </div>
-                    <span className="text-cyan-400/60 text-xs mt-2 block">Total renovation costs</span>
+                    {hasContractorWalkthrough || hasInspection ? (
+                      <>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-cyan-100 text-2xl font-mono font-bold">${(inputs.rehabBudget || property.rehabMin)?.toLocaleString()}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={property.rehabMin}
+                          max={property.rehabMax}
+                          step={1000}
+                          value={inputs.rehabBudget || property.rehabMin}
+                          onChange={(e) => onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) })}
+                          className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                          data-testid="slider-rehab-budget"
+                        />
+                        <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+                          <span>${property.rehabMin.toLocaleString()}</span>
+                          <span className="text-cyan-300">Estimate Range</span>
+                          <span>${property.rehabMax.toLocaleString()}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">$</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            placeholder="???"
+                            value={inputs.rehabBudget === null ? '' : inputs.rehabBudget}
+                            onChange={(e) => onInputsChange({ ...inputs, rehabBudget: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
+                            onFocus={() => onFieldTouch?.('rehabBudget')}
+                            className="w-full bg-slate-900/80 border-2 border-amber-500/40 rounded-xl pl-10 pr-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-amber-400 focus:outline-none placeholder:text-amber-600/50"
+                            data-testid="input-rehab-budget"
+                          />
+                        </div>
+                        <span className="text-amber-400/80 text-xs mt-2 block flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> Complete Walkthrough or Inspection to see range
+                        </span>
+                      </>
+                    )}
                   </div>
+                  
+                  {/* Contingency */}
                   <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
                     <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Contingency</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        autoComplete="off"
-                        placeholder="10"
-                        value={inputs.contingencyPct === null ? '' : inputs.contingencyPct}
-                        onChange={(e) => onInputsChange({ ...inputs, contingencyPct: e.target.value === '' ? null : (parseFloat(e.target.value) || 0) })}
-                        onFocus={() => onFieldTouch?.('contingencyPct')}
-                        className="w-full bg-slate-900/80 border-2 border-cyan-500/40 rounded-xl px-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 placeholder:text-slate-600"
-                        data-testid="input-contingency"
-                      />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">%</span>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-cyan-100 text-2xl font-mono font-bold">{inputs.contingencyPct ?? 10}%</span>
                     </div>
-                    <span className="text-cyan-400/60 text-xs mt-2 block">Buffer for surprises</span>
+                    <input
+                      type="range"
+                      min={5}
+                      max={25}
+                      step={1}
+                      value={inputs.contingencyPct ?? 10}
+                      onChange={(e) => onInputsChange({ ...inputs, contingencyPct: parseInt(e.target.value) })}
+                      className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                      data-testid="slider-contingency"
+                    />
+                    <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+                      <span>5%</span>
+                      <span className="text-cyan-300">Buffer for surprises</span>
+                      <span>25%</span>
+                    </div>
                   </div>
                 </>
               )}
+              
+              {/* LTV Slider - always available */}
               <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
                 <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Loan-to-Value (LTV)</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    placeholder="75"
-                    value={inputs.ltv === null ? '' : inputs.ltv}
-                    onChange={(e) => onInputsChange({ ...inputs, ltv: e.target.value === '' ? 75 : Math.min(90, Math.max(50, parseFloat(e.target.value) || 50)) })}
-                    onFocus={() => onFieldTouch?.('ltv')}
-                    className="w-full bg-slate-900/80 border-2 border-cyan-500/40 rounded-xl px-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 placeholder:text-slate-600"
-                    data-testid="input-ltv"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">%</span>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-cyan-100 text-2xl font-mono font-bold">{inputs.ltv}%</span>
+                  <span className={`text-xs px-2 py-1 rounded ${inputs.ltv >= 80 ? 'bg-amber-500/20 text-amber-400' : 'bg-cyan-500/20 text-cyan-400'}`}>
+                    {inputs.ltv >= 80 ? 'High Leverage' : 'Conservative'}
+                  </span>
                 </div>
-                <span className="text-cyan-400/60 text-xs mt-2 block">50-90% (higher = more leverage)</span>
+                <input
+                  type="range"
+                  min={50}
+                  max={90}
+                  step={5}
+                  value={inputs.ltv}
+                  onChange={(e) => onInputsChange({ ...inputs, ltv: parseInt(e.target.value) })}
+                  className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                  data-testid="slider-ltv"
+                />
+                <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+                  <span>50%</span>
+                  <span className="text-cyan-300">More leverage = higher risk</span>
+                  <span>90%</span>
+                </div>
               </div>
+              
+              {/* Total Cash Needed */}
               <div className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl p-4 border border-cyan-400/40">
                 <label className="text-cyan-200 text-sm font-medium block mb-2">Total Cash Needed</label>
                 <div className="text-cyan-100 text-2xl font-mono font-bold drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]">
@@ -651,6 +727,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             <div className="mt-4 pt-4 border-t border-cyan-500/20">
               <p className="text-cyan-400/70 text-xs uppercase tracking-wider mb-3">Operating Costs</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Annual Taxes - editable with property info hint */}
                 <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
                   <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">Annual Taxes</label>
                   <div className="relative">
@@ -667,6 +744,13 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       data-testid="input-taxes-annual"
                     />
                   </div>
+                  <span className="text-cyan-400/60 text-xs mt-1 block">~1.5% of ${property.price.toLocaleString()}</span>
+                  {inputs.strategy === 'flip' && (hasContractorWalkthrough || hasInspection) && (
+                    <div className="mt-1.5 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3 text-amber-400/80" />
+                      <span className="text-amber-400/80 text-xs">Rehab may increase assessed value</span>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
                   <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">Annual Insurance</label>
@@ -685,59 +769,137 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     />
                   </div>
                 </div>
+                
+                {/* Rental-specific: Maintenance and CapEx with sliders */}
                 {inputs.strategy === 'rent' && (
                   <>
                     <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
-                      <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">CapEx Reserve</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          autoComplete="off"
-                          placeholder="5"
-                          value={inputs.capExPct === null ? '' : inputs.capExPct}
-                          onChange={(e) => onInputsChange({ ...inputs, capExPct: e.target.value === '' ? null : (parseFloat(e.target.value) || 0) })}
-                          onFocus={() => onFieldTouch?.('capExPct')}
-                          className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg px-3 py-2.5 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
-                          data-testid="input-capex"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">%</span>
-                      </div>
+                      <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">Maintenance</label>
+                      {hasContractorWalkthrough || hasInspection ? (
+                        <>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-cyan-100 text-lg font-mono font-bold">{inputs.maintenancePct ?? 5}%</span>
+                            <span className="text-cyan-400/60 text-xs">${Math.round((inputs.expectedRent || 0) * (inputs.maintenancePct ?? 5) / 100)}/mo</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={3}
+                            max={12}
+                            step={1}
+                            value={inputs.maintenancePct ?? 5}
+                            onChange={(e) => onInputsChange({ ...inputs, maintenancePct: parseInt(e.target.value) })}
+                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                            data-testid="slider-maintenance"
+                          />
+                          <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+                            <span>3%</span>
+                            <span className="text-cyan-300">Based on condition</span>
+                            <span>12%</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              autoComplete="off"
+                              placeholder="5"
+                              value={inputs.maintenancePct === null ? '' : inputs.maintenancePct}
+                              onChange={(e) => onInputsChange({ ...inputs, maintenancePct: e.target.value === '' ? null : (parseFloat(e.target.value) || 0) })}
+                              onFocus={() => onFieldTouch?.('maintenancePct')}
+                              className="w-full bg-slate-900/60 border border-amber-500/30 rounded-lg px-3 py-2.5 text-cyan-100 text-base font-mono font-bold focus:border-amber-400 focus:outline-none placeholder:text-amber-600/50"
+                              data-testid="input-maintenance"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">%</span>
+                          </div>
+                          <span className="text-amber-400/80 text-xs mt-1 block flex items-center gap-1">
+                            <Lock className="w-3 h-3" /> Walkthrough/Inspection reveals condition
+                          </span>
+                        </>
+                      )}
                     </div>
                     <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
-                      <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">Maintenance</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          autoComplete="off"
-                          placeholder="5"
-                          value={inputs.maintenancePct === null ? '' : inputs.maintenancePct}
-                          onChange={(e) => onInputsChange({ ...inputs, maintenancePct: e.target.value === '' ? null : (parseFloat(e.target.value) || 0) })}
-                          onFocus={() => onFieldTouch?.('maintenancePct')}
-                          className="w-full bg-slate-900/60 border border-cyan-500/30 rounded-lg px-3 py-2.5 text-cyan-100 text-base font-mono font-bold focus:border-cyan-400 focus:outline-none placeholder:text-slate-600"
-                          data-testid="input-maintenance"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">%</span>
+                      <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">CapEx Reserve</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-cyan-100 text-lg font-mono font-bold">{inputs.capExPct ?? 5}%</span>
+                        <span className="text-cyan-400/60 text-xs">${Math.round((inputs.expectedRent || 0) * (inputs.capExPct ?? 5) / 100)}/mo</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={3}
+                        max={15}
+                        step={1}
+                        value={inputs.capExPct ?? 5}
+                        onChange={(e) => onInputsChange({ ...inputs, capExPct: parseInt(e.target.value) })}
+                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                        data-testid="slider-capex"
+                      />
+                      <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+                        <span>3%</span>
+                        <span className="text-cyan-300">Major repairs fund</span>
+                        <span>15%</span>
                       </div>
                     </div>
                   </>
                 )}
+                
+                {/* Flip-specific: Permit costs */}
+                {inputs.strategy === 'flip' && (hasContractorWalkthrough || hasInspection) && (
+                  <div className="bg-amber-900/30 rounded-xl p-3 border border-amber-500/20 col-span-full">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Landmark className="w-4 h-4 text-amber-400" />
+                      <label className="text-amber-300 text-xs font-medium">Permit Costs (Required for Rehab)</label>
+                    </div>
+                    <div className="text-amber-100 text-lg font-mono font-bold">
+                      ${Math.round((inputs.rehabBudget || 0) * 0.03).toLocaleString()}
+                    </div>
+                    <span className="text-amber-400/60 text-xs">~3% of rehab budget for building permits</span>
+                  </div>
+                )}
               </div>
               
               {inputs.strategy === 'rent' && (
-                <div className="mt-3 flex items-center gap-3 bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
-                  <input
-                    type="checkbox"
-                    id="propertyManagement"
-                    checked={inputs.propertyManagement || false}
-                    onChange={(e) => onInputsChange({ ...inputs, propertyManagement: e.target.checked })}
-                    className="w-5 h-5 rounded border-cyan-500/40 bg-slate-900/60 text-cyan-500 focus:ring-cyan-500/30"
-                  />
-                  <label htmlFor="propertyManagement" className="text-cyan-200 text-sm flex-1">
-                    Hire Property Manager (10% of rent)
-                  </label>
-                </div>
+                <button
+                  onClick={() => onInputsChange({ ...inputs, propertyManagement: !inputs.propertyManagement })}
+                  className={`mt-3 w-full rounded-xl p-4 border-2 transition-all ${
+                    inputs.propertyManagement 
+                      ? 'bg-gradient-to-r from-emerald-600/30 to-cyan-600/30 border-emerald-500/50 shadow-lg shadow-emerald-500/20' 
+                      : 'bg-slate-800/40 border-slate-600/30 hover:border-cyan-500/30'
+                  }`}
+                  data-testid="toggle-property-management"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        inputs.propertyManagement 
+                          ? 'bg-emerald-500/30 text-emerald-400' 
+                          : 'bg-slate-700/50 text-gray-500'
+                      }`}>
+                        <Building2 className="w-5 h-5" />
+                      </div>
+                      <div className="text-left">
+                        <div className={`font-semibold ${inputs.propertyManagement ? 'text-emerald-300' : 'text-gray-300'}`}>
+                          Property Manager
+                        </div>
+                        <div className="text-xs text-gray-500">10% of rent - handles everything</div>
+                      </div>
+                    </div>
+                    <div className={`w-12 h-7 rounded-full p-1 transition-all ${
+                      inputs.propertyManagement ? 'bg-emerald-500' : 'bg-slate-600'
+                    }`}>
+                      <div className={`w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                        inputs.propertyManagement ? 'translate-x-5' : 'translate-x-0'
+                      }`} />
+                    </div>
+                  </div>
+                  {!inputs.propertyManagement && (
+                    <div className="mt-2 pt-2 border-t border-slate-600/30 flex items-center gap-2 text-amber-400/80">
+                      <Clock className="w-4 h-4" />
+                      <span className="text-xs">Self-managing costs 1 week of your time</span>
+                    </div>
+                  )}
+                </button>
               )}
             </div>
           </div>
@@ -1048,10 +1210,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   {onProceedWithoutDiligence && (
                     <button
                       onClick={onProceedWithoutDiligence}
-                      className="w-full px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-gray-300 text-xs transition-all border border-slate-600"
+                      className="w-full px-5 py-3 rounded-xl bg-gradient-to-r from-amber-600/80 to-orange-600/80 hover:from-amber-500 hover:to-orange-500 text-white font-semibold text-sm transition-all border-2 border-amber-400/50 shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
                       data-testid="button-proceed-without-diligence"
                     >
-                      Proceed Anyway (Not Recommended)
+                      <AlertTriangle className="w-4 h-4" />
+                      Proceed Without Full Diligence
                     </button>
                   )}
                 </div>

@@ -302,8 +302,11 @@ export function PropertyDetail({
   const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
 
   const handleDiligenceClick = (option: DiligenceOption) => {
+    console.log('Diligence clicked:', option.id, 'cost:', option.cost);
     if (!completedDiligence.includes(option.id)) {
+      console.log('Setting pending diligence...');
       setPendingDiligence(option);
+      console.log('Pending diligence set');
     }
   };
 

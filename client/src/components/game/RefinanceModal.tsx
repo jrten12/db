@@ -206,6 +206,10 @@ export function RefinanceModal({ isOpen, onClose, deal, property, gameRun, onRef
                       <span className="text-slate-500">Equity %:</span>
                       <span className={equityPercent >= minEquityNeeded ? 'text-green-400' : 'text-amber-400'}>{equityPercent}%</span>
                     </div>
+                    <div className="flex justify-between col-span-2 pt-1 border-t border-slate-700/50">
+                      <span className="text-slate-500">Current Debt Service:</span>
+                      <span className="text-amber-400">{formatCurrency(currentMonthlyPayment)}/mo</span>
+                    </div>
                   </div>
                 </div>
                 

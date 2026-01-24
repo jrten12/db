@@ -88,13 +88,9 @@ async function calculateRefinanceOptions(deal: Deal, gameRun: GameRun, allDeals:
   
   const finalRate = Math.max(5.5, Math.min(12, baseRate + dtiAdjustment + reserveAdjustment + equityAdjustment));
   
-  // Calculate max LTV based on financials
-  // Good financials = up to 90% LTV, poor = 70% LTV
-  // Base is 80%, with adjustments for financial health
-  let maxLtv = 80; // Base
-  if (dti < 40 && reserveMonths > 6) maxLtv = 90; // Excellent financials
-  else if (dti < 50 && reserveMonths > 3) maxLtv = 85; // Good financials
-  else if (dti > 60 || reserveMonths < 2) maxLtv = 70; // Poor financials
+  // Max LTV is always 90% - higher LTV just means higher interest rate
+  // All players can leverage up to 90% if they choose
+  const maxLtv = 90;
   
   // Min LTV should be enough to cover current loan
   const minLtvToCoverLoan = Math.ceil((currentLoanBalance / currentMarketValue) * 100) + 5;

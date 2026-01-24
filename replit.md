@@ -117,8 +117,13 @@ Preferred communication style: Simple, everyday language.
   - UI: TimeProgressionPanel shows active rentals with sell button and price estimate
   - Schema fields: `purchasePrice`, `salePrice`, `saleMultiplier` on deals table
   - Status changes: `active_rental` → `sold_rental` on sale completion
+- **Rehab Budget**: Slider allows $0 to max, supporting no-rehab flips or conservative assumptions
+  - Starts at $0, player can slide up to their chosen budget
+  - With diligence: Shows the contractor-estimated range as a hint above slider
+  - Without diligence: Wider range (up to 1.5x max) since player is guessing
+  - "No Rehab" badge appears when budget is $0
 - **Rehab Financing for Flips**: Toggle to include rehab costs in the loan (acquisition + construction loan)
-  - `financeRehab` toggle in pro forma financing section (flip strategy only)
+  - `financeRehab` toggle appears in pro forma when rehab budget > $0 (flip strategy only)
   - When enabled: loanBasis = purchasePrice + rehabCosts, reducing upfront cash needed
   - When disabled: rehab costs paid out of pocket as before
   - Educational messaging explains construction loan tradeoffs

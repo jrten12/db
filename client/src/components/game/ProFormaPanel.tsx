@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT } from '@/lib/gameData';
 import { getEffectiveRanges, EffectiveRanges } from '@/lib/propertyIssues';
-import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3 } from 'lucide-react';
+import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AssumptionInput, PercentAssumption } from './AssumptionInput';
 import { FormulaCanvas, MiniFormula } from './FormulaCanvas';
@@ -642,50 +642,42 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </>
               ) : (
                 <>
-                  {/* Rehab Budget - with range if walkthrough/inspection done */}
+                  {/* Rehab Budget - allows $0 to max, shows diligence range as hint */}
                   <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
                     <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Rehab Budget</label>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-cyan-100 text-2xl font-mono font-bold">${(inputs.rehabBudget ?? 0).toLocaleString()}</span>
+                      {(inputs.rehabBudget ?? 0) === 0 && (
+                        <span className="text-emerald-400/60 text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full">No Rehab</span>
+                      )}
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={hasContractorWalkthrough || hasInspection ? property.rehabMax : Math.round(property.rehabMax * 1.5)}
+                      step={1000}
+                      value={inputs.rehabBudget ?? 0}
+                      onChange={(e) => onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) })}
+                      onFocus={() => onFieldTouch?.('rehabBudget')}
+                      className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                      data-testid="slider-rehab-budget"
+                    />
                     {hasContractorWalkthrough || hasInspection ? (
-                      <>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-cyan-100 text-2xl font-mono font-bold">${(inputs.rehabBudget || property.rehabMin)?.toLocaleString()}</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={property.rehabMin}
-                          max={property.rehabMax}
-                          step={1000}
-                          value={inputs.rehabBudget || property.rehabMin}
-                          onChange={(e) => onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) })}
-                          className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                          data-testid="slider-rehab-budget"
-                        />
-                        <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
-                          <span>${property.rehabMin.toLocaleString()}</span>
-                          <span className="text-cyan-300">Estimate Range</span>
-                          <span>${property.rehabMax.toLocaleString()}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">$</span>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            autoComplete="off"
-                            placeholder="???"
-                            value={inputs.rehabBudget === null ? '' : inputs.rehabBudget}
-                            onChange={(e) => onInputsChange({ ...inputs, rehabBudget: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
-                            onFocus={() => onFieldTouch?.('rehabBudget')}
-                            className="w-full bg-slate-900/80 border-2 border-amber-500/40 rounded-xl pl-10 pr-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-amber-400 focus:outline-none placeholder:text-amber-600/50"
-                            data-testid="input-rehab-budget"
-                          />
-                        </div>
-                        <span className="text-amber-400/80 text-xs mt-2 block flex items-center gap-1">
-                          <Lock className="w-3 h-3" /> Complete Walkthrough or Inspection to see range
+                      <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+                        <span>$0</span>
+                        <span className="text-cyan-300">
+                          Diligence shows ${property.rehabMin.toLocaleString()}-${property.rehabMax.toLocaleString()}
                         </span>
-                      </>
+                        <span>${property.rehabMax.toLocaleString()}</span>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between text-xs text-amber-400/60 mt-1">
+                        <span>$0</span>
+                        <span className="flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> Diligence reveals true costs
+                        </span>
+                        <span>${Math.round(property.rehabMax * 1.5).toLocaleString()}</span>
+                      </div>
                     )}
                   </div>
                   
@@ -742,6 +734,51 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <span>90%</span>
                 </div>
               </div>
+              
+              {/* FLIP ONLY: Finance Rehab Toggle */}
+              {inputs.strategy === 'flip' && (inputs.rehabBudget ?? 0) > 0 && (
+                <div className="col-span-full">
+                  <button
+                    onClick={() => onInputsChange({ ...inputs, financeRehab: !inputs.financeRehab })}
+                    className={`w-full rounded-xl p-3 border-2 transition-all ${
+                      inputs.financeRehab 
+                        ? 'bg-gradient-to-r from-amber-600/30 to-orange-600/30 border-amber-500/50 shadow-lg shadow-amber-500/20' 
+                        : 'bg-slate-800/40 border-slate-600/30 hover:border-amber-500/30'
+                    }`}
+                    data-testid="toggle-finance-rehab"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          inputs.financeRehab 
+                            ? 'bg-amber-500/30 text-amber-400' 
+                            : 'bg-slate-700/50 text-gray-500'
+                        }`}>
+                          <Wallet className="w-4 h-4" />
+                        </div>
+                        <div className="text-left">
+                          <div className={`font-semibold text-sm ${inputs.financeRehab ? 'text-amber-300' : 'text-gray-300'}`}>
+                            Finance Rehab Costs
+                          </div>
+                          <div className="text-xs text-gray-500">Include rehab in loan (construction loan)</div>
+                        </div>
+                      </div>
+                      <div className={`w-10 h-6 rounded-full p-1 transition-all ${
+                        inputs.financeRehab ? 'bg-amber-500' : 'bg-slate-600'
+                      }`}>
+                        <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                          inputs.financeRehab ? 'translate-x-4' : 'translate-x-0'
+                        }`} />
+                      </div>
+                    </div>
+                    <p className={`text-xs mt-2 ${inputs.financeRehab ? 'text-amber-300/70' : 'text-gray-500'}`}>
+                      {inputs.financeRehab 
+                        ? `Rehab ($${(inputs.rehabBudget ?? 0).toLocaleString()}) added to loan - less cash upfront but higher interest`
+                        : 'Pay rehab out of pocket - needs more cash but saves on interest'}
+                    </p>
+                  </button>
+                </div>
+              )}
               
               {/* Total Cash Needed */}
               <div className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl p-4 border border-cyan-400/40">
@@ -1000,6 +1037,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           )}
         </div>
       </div>
+    </div>
 
       {/* LAYER 5: LIVE OUTCOMES */}
       <div className="xl:col-span-1">

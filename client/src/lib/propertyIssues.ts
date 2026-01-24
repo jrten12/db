@@ -22,8 +22,8 @@ export interface DiligenceOption {
 export const DILIGENCE_OPTIONS: DiligenceOption[] = [
   {
     id: 'market_study',
-    name: 'Market Rent Study (DIY)',
-    cost: 0,
+    name: 'Market Rent Study',
+    cost: 150,
     timeWeeks: 1,
     description: 'Research comparable rentals on Zillow, Apartments.com, and by calling property managers',
     reveals: 'Narrows rent estimate from speculation to market data',
@@ -31,8 +31,8 @@ export const DILIGENCE_OPTIONS: DiligenceOption[] = [
   },
   {
     id: 'appraisal',
-    name: 'Comparable Sales Analysis (Free)',
-    cost: 0,
+    name: 'Comparable Sales Analysis',
+    cost: 150,
     timeWeeks: 1,
     description: 'Get CMA from realtor or DIY research on Zillow/Redfin for recent sales comps',
     reveals: 'Narrows ARV estimate based on actual comps',

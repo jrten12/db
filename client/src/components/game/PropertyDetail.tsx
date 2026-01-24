@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
 import { formatCurrency, MARKET_DEFAULTS, getPropertyBasedDefaults } from '@/lib/gameData';
 import { getPropertyImage, getPropertyInteriorImages, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
@@ -625,12 +625,15 @@ export function PropertyDetail({
                 )}
               </div>
 
-              {/* Due Diligence Section */}
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700" data-testid="due-diligence-section">
-                <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <Search className="w-4 h-4" /> Due Diligence Options
+              {/* Due Diligence Section - Enhanced with gradients and colors */}
+              <div className="bg-gradient-to-br from-indigo-900/30 via-purple-900/20 to-slate-800/50 rounded-xl p-4 border border-indigo-500/30 shadow-lg shadow-indigo-500/10" data-testid="due-diligence-section">
+                <h3 className="text-indigo-300 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow shadow-indigo-500/50">
+                    <Search className="w-4 h-4 text-white" />
+                  </div>
+                  Due Diligence
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {DILIGENCE_OPTIONS.map((option) => {
                     const isCompleted = completedDiligence.includes(option.id);
                     const canAfford = cash >= option.cost;
@@ -638,35 +641,86 @@ export function PropertyDetail({
                     const colorMapping = DILIGENCE_COLOR_MAP[option.id];
                     const primaryColor = FINANCIAL_COLORS[colorMapping.primary];
                     
+                    const getGradientClasses = () => {
+                      if (isCompleted) {
+                        return 'bg-gradient-to-r from-emerald-600/30 to-green-600/20 border-emerald-500/50 shadow-lg shadow-emerald-500/20';
+                      }
+                      if (!canAfford) {
+                        return 'bg-slate-800/40 border-slate-700 opacity-50 cursor-not-allowed';
+                      }
+                      if (option.id === 'market_study') {
+                        return 'bg-gradient-to-r from-blue-600/20 to-cyan-600/10 border-blue-500/40 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/20';
+                      }
+                      if (option.id === 'appraisal') {
+                        return 'bg-gradient-to-r from-violet-600/20 to-purple-600/10 border-violet-500/40 hover:border-violet-400 hover:shadow-lg hover:shadow-violet-500/20';
+                      }
+                      if (option.id === 'contractor_walkthrough') {
+                        return 'bg-gradient-to-r from-amber-600/20 to-orange-600/10 border-amber-500/40 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-500/20';
+                      }
+                      if (option.id === 'inspection') {
+                        return 'bg-gradient-to-r from-rose-600/20 to-pink-600/10 border-rose-500/40 hover:border-rose-400 hover:shadow-lg hover:shadow-rose-500/20';
+                      }
+                      if (option.id === 'title_search') {
+                        return 'bg-gradient-to-r from-teal-600/20 to-cyan-600/10 border-teal-500/40 hover:border-teal-400 hover:shadow-lg hover:shadow-teal-500/20';
+                      }
+                      return `bg-slate-700/30 ${primaryColor.border} ${primaryColor.borderHover}`;
+                    };
+                    
+                    const getIconColor = () => {
+                      if (isCompleted) return 'text-emerald-400';
+                      if (!canAfford) return 'text-gray-500';
+                      if (option.id === 'market_study') return 'text-blue-400';
+                      if (option.id === 'appraisal') return 'text-violet-400';
+                      if (option.id === 'contractor_walkthrough') return 'text-amber-400';
+                      if (option.id === 'inspection') return 'text-rose-400';
+                      if (option.id === 'title_search') return 'text-teal-400';
+                      return 'text-gray-400';
+                    };
+                    
                     return (
                       <button
                         key={option.id}
                         onClick={() => handleDiligenceClick(option)}
                         disabled={isDisabled}
-                        className={`w-full text-left p-3 rounded-xl transition-all border ${
-                          isCompleted
-                            ? `${primaryColor.bg} ${primaryColor.border} ${primaryColor.text}`
-                            : !canAfford
-                            ? 'bg-slate-700/20 border-slate-700 text-gray-500 cursor-not-allowed'
-                            : `bg-slate-700/30 ${primaryColor.border} ${primaryColor.borderHover} text-gray-300`
-                        }`}
+                        className={`w-full text-left p-4 rounded-xl transition-all border-2 ${getGradientClasses()}`}
                         data-testid={`button-diligence-${option.id}`}
                       >
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {option.id === 'contractor_walkthrough' && <HardHat className={`w-4 h-4 ${isCompleted ? primaryColor.text : 'text-gray-400'}`} />}
-                            {option.id === 'inspection' && <Search className={`w-4 h-4 ${isCompleted ? primaryColor.text : 'text-gray-400'}`} />}
-                            {option.id === 'title_search' && <FileText className={`w-4 h-4 ${isCompleted ? primaryColor.text : 'text-gray-400'}`} />}
-                            <span className={`font-semibold text-sm ${isCompleted ? primaryColor.text : ''}`}>{option.name}</span>
-                            <DiligenceEducationTooltip diligenceId={option.id} />
+                          <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+                              isCompleted ? 'bg-emerald-500/30' : 'bg-slate-700/50'
+                            }`}>
+                              {option.id === 'market_study' && <TrendingUp className={`w-5 h-5 ${getIconColor()}`} />}
+                              {option.id === 'appraisal' && <DollarSign className={`w-5 h-5 ${getIconColor()}`} />}
+                              {option.id === 'contractor_walkthrough' && <HardHat className={`w-5 h-5 ${getIconColor()}`} />}
+                              {option.id === 'inspection' && <Search className={`w-5 h-5 ${getIconColor()}`} />}
+                              {option.id === 'title_search' && <FileText className={`w-5 h-5 ${getIconColor()}`} />}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className={`font-bold text-sm ${isCompleted ? 'text-emerald-300' : 'text-white'}`}>{option.name}</span>
+                                <DiligenceEducationTooltip diligenceId={option.id} />
+                              </div>
+                              <p className="text-xs text-gray-400 mt-0.5">{option.reveals}</p>
+                            </div>
                           </div>
                           {isCompleted ? (
-                            <Check className={`w-4 h-4 ${primaryColor.text}`} />
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/30 rounded-full">
+                              <Check className="w-4 h-4 text-emerald-400" />
+                              <span className="text-xs text-emerald-300 font-semibold">Done</span>
+                            </div>
                           ) : (
-                            <span className="text-xs text-gray-400">{formatCurrency(option.cost)} + {option.timeWeeks}w</span>
+                            <div className="text-right">
+                              <div className={`text-sm font-bold ${option.cost === 0 ? 'text-emerald-400' : 'text-white'}`}>
+                                {option.cost === 0 ? 'FREE' : formatCurrency(option.cost)}
+                              </div>
+                              <div className="text-xs text-gray-500 flex items-center gap-1 justify-end">
+                                <Clock className="w-3 h-3" />
+                                {option.timeWeeks} week
+                              </div>
+                            </div>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">{option.reveals}</p>
                       </button>
                     );
                   })}
@@ -822,160 +876,6 @@ export function PropertyDetail({
                     </div>
                   </button>
                 </div>
-              </div>
-
-              {/* Inline Pro Forma Inputs - Editable, iOS-optimized */}
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-emerald-500/30">
-                <h3 className="text-emerald-400 text-sm font-semibold uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <FileText className="w-4 h-4" /> Your Assumptions
-                </h3>
-                
-                {strategy === 'rent' ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-700/40 rounded-xl p-3">
-                      <label className="text-gray-400 text-xs block mb-1.5">Vacancy Rate</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          autoComplete="off"
-                          value={proFormaInputs?.vacancyRate ?? MARKET_DEFAULTS.vacancyRate}
-                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, vacancyRate: parseFloat(e.target.value) || 0 })}
-                          onFocus={() => onFieldTouch?.('vacancyRate')}
-                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg px-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                          data-testid="input-vacancy-rate"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-                      </div>
-                      <span className="text-gray-500 text-[11px] mt-1 block">Time property sits empty</span>
-                    </div>
-                    <div className="bg-slate-700/40 rounded-xl p-3">
-                      <label className="text-gray-400 text-xs block mb-1.5">Maintenance</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          autoComplete="off"
-                          value={proFormaInputs?.maintenancePct ?? MARKET_DEFAULTS.maintenancePct}
-                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, maintenancePct: parseFloat(e.target.value) || 0 })}
-                          onFocus={() => onFieldTouch?.('maintenancePct')}
-                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg px-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                          data-testid="input-maintenance"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-                      </div>
-                      <span className="text-gray-500 text-[11px] mt-1 block">% of rent for repairs</span>
-                    </div>
-                    <div className="bg-slate-700/40 rounded-xl p-3">
-                      <label className="text-gray-400 text-xs block mb-1.5">Annual Taxes</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          autoComplete="off"
-                          value={proFormaInputs?.taxesAnnual ?? getPropertyBasedDefaults(property.price).taxesAnnual}
-                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, taxesAnnual: parseFloat(e.target.value.replace(/,/g, '')) || 0 })}
-                          onFocus={() => onFieldTouch?.('taxesAnnual')}
-                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg pl-7 pr-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                          data-testid="input-taxes"
-                        />
-                      </div>
-                      <span className="text-gray-500 text-[11px] mt-1 block">Property taxes per year</span>
-                    </div>
-                    <div className="bg-slate-700/40 rounded-xl p-3">
-                      <label className="text-gray-400 text-xs block mb-1.5">Annual Insurance</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          autoComplete="off"
-                          value={proFormaInputs?.insuranceAnnual ?? getPropertyBasedDefaults(property.price).insuranceAnnual}
-                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, insuranceAnnual: parseFloat(e.target.value.replace(/,/g, '')) || 0 })}
-                          onFocus={() => onFieldTouch?.('insuranceAnnual')}
-                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg pl-7 pr-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                          data-testid="input-insurance"
-                        />
-                      </div>
-                      <span className="text-gray-500 text-[11px] mt-1 block">Insurance per year</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-slate-700/40 rounded-xl p-3">
-                      <label className="text-gray-400 text-xs block mb-1.5">Contingency</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          autoComplete="off"
-                          value={proFormaInputs?.contingencyPct ?? MARKET_DEFAULTS.contingencyPct}
-                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, contingencyPct: parseFloat(e.target.value) || 0 })}
-                          onFocus={() => onFieldTouch?.('contingencyPct')}
-                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg px-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                          data-testid="input-contingency"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-                      </div>
-                      <span className="text-gray-500 text-[11px] mt-1 block">Buffer for surprises</span>
-                    </div>
-                    <div className="bg-slate-700/40 rounded-xl p-3">
-                      <label className="text-gray-400 text-xs block mb-1.5">Selling Costs</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          inputMode="decimal"
-                          autoComplete="off"
-                          value={proFormaInputs?.sellingCostsPct ?? MARKET_DEFAULTS.sellingCostsPct}
-                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, sellingCostsPct: parseFloat(e.target.value) || 0 })}
-                          onFocus={() => onFieldTouch?.('sellingCostsPct')}
-                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg px-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                          data-testid="input-selling-costs"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
-                      </div>
-                      <span className="text-gray-500 text-[11px] mt-1 block">Realtor + closing costs</span>
-                    </div>
-                    <div className="bg-slate-700/40 rounded-xl p-3">
-                      <label className="text-gray-400 text-xs block mb-1.5">Rehab Time</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          autoComplete="off"
-                          value={proFormaInputs?.rehabWeeks ?? MARKET_DEFAULTS.rehabWeeks}
-                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, rehabWeeks: parseInt(e.target.value) || 0 })}
-                          onFocus={() => onFieldTouch?.('rehabWeeks')}
-                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg px-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                          data-testid="input-rehab-weeks"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">wks</span>
-                      </div>
-                      <span className="text-gray-500 text-[11px] mt-1 block">Weeks to complete work</span>
-                    </div>
-                    <div className="bg-slate-700/40 rounded-xl p-3">
-                      <label className="text-gray-400 text-xs block mb-1.5">Annual Taxes</label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          autoComplete="off"
-                          value={proFormaInputs?.taxesAnnual ?? getPropertyBasedDefaults(property.price).taxesAnnual}
-                          onChange={(e) => onProFormaInputsChange?.({ ...proFormaInputs, taxesAnnual: parseFloat(e.target.value.replace(/,/g, '')) || 0 })}
-                          onFocus={() => onFieldTouch?.('taxesAnnual')}
-                          className="w-full bg-slate-900/80 border-2 border-slate-600 rounded-lg pl-7 pr-3 py-2.5 text-emerald-400 text-lg font-mono font-bold focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                          data-testid="input-taxes-flip"
-                        />
-                      </div>
-                      <span className="text-gray-500 text-[11px] mt-1 block">Property taxes per year</span>
-                    </div>
-                  </div>
-                )}
-                <p className="text-xs text-gray-500 mt-4 text-center">
-                  Tap "Build Pro Forma" for LTV, CapEx, and property management options
-                </p>
               </div>
 
               {/* Deal Outcome Unknown */}

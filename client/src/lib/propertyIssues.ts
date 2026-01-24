@@ -41,7 +41,7 @@ export const DILIGENCE_OPTIONS: DiligenceOption[] = [
   {
     id: 'contractor_walkthrough',
     name: 'Contractor Walkthrough',
-    cost: 100,
+    cost: 200,
     timeWeeks: 1,
     description: 'Contractor evaluates property with you - faster, cheaper, focused on rehab costs. Most investors choose this OR inspection, not both.',
     reveals: 'Narrows rehab cost and timeline estimates, discovers structural issues',
@@ -50,7 +50,7 @@ export const DILIGENCE_OPTIONS: DiligenceOption[] = [
   {
     id: 'inspection',
     name: 'Property Inspection',
-    cost: 450,
+    cost: 900,
     timeWeeks: 1,
     description: 'Professional inspector provides detailed written report - more thorough but pricier. Most investors choose this OR contractor, not both.',
     reveals: 'Uncovers hidden defects: mold, pests, electrical, plumbing issues',
@@ -59,7 +59,7 @@ export const DILIGENCE_OPTIONS: DiligenceOption[] = [
   {
     id: 'title_search',
     name: 'Title Search (Optional)',
-    cost: 350,
+    cost: 700,
     timeWeeks: 1,
     description: 'Proactive title search before making offer - lender will do this at closing anyway, but finding issues early lets you walk away or renegotiate',
     reveals: 'Uncovers liens, encumbrances, or ownership issues before you commit',

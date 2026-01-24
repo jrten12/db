@@ -686,16 +686,14 @@ export async function processRentalIncome(
   const fixedOperatingExpenses = weeklyOperatingExpenses;
   const fixedDebtService = weeklyDebtService;
   
-  // Reality check adjustment (weekly): negative = player was optimistic, positive = conservative
-  // This reflects the difference between player's rent/vacancy assumptions and market reality
-  // Use Math.round for precision, and scale by rentMultiplier (no rent = no reality check applies)
-  const baseWeeklyRealityAdjustment = Math.round(realityAdjustmentMonthly / weeksPerMonth);
-  const weeklyRealityAdjustment = Math.round(baseWeeklyRealityAdjustment * rentMultiplier);
+  // NOTE: monthlyGrossRent already contains the ACTUAL market rent (set at activation)
+  // It is NOT the player's assumption - it's the true rent based on property condition, rehab, and market factors
+  // Therefore we do NOT need a separate reality adjustment - the rent IS already the reality!
   
   // Calculate actual net weekly income from components
-  // This is the TRUE cash impact: rent - vacancy - opex - debt + reality adjustment + curveball cash
+  // This is the TRUE cash impact: rent - vacancy - opex - debt + curveball cash
   // For legacy rentals, use storedWeeklyIncome if component breakdown is incomplete
-  const componentBasedNet = scaledGrossRent - scaledVacancyLoss - fixedOperatingExpenses - fixedDebtService + weeklyRealityAdjustment + cashImpact;
+  const componentBasedNet = scaledGrossRent - scaledVacancyLoss - fixedOperatingExpenses - fixedDebtService + cashImpact;
   
   // Use component-based calculation if we have the breakdown, otherwise fall back to stored value with curveball effects
   const hasCompleteBreakdown = monthlyGrossRent > 0 || monthlyVacancyLoss > 0 || monthlyOperatingExpenses > 0 || monthlyDebtService > 0;
@@ -745,11 +743,11 @@ export async function processRentalIncome(
   // rent - vacancy - opex - debt + cashImpact = netWeeklyIncome
   // (verified: we calculated netWeeklyIncome from these same components above)
   
-  // Credit: Net rent income (gross rent minus vacancy, plus reality adjustment)
-  // Reality adjustment is baked into the rent - shows actual market rent, not player's estimate
-  // This is cleaner than showing a confusing "market bonus" every week
+  // Credit: Net rent income (gross rent minus vacancy)
+  // The monthlyGrossRent already contains the ACTUAL market rent (not player's estimate)
+  // so we just need to apply vacancy - no separate reality adjustment needed
   const netRentAfterVacancy = scaledGrossRent - scaledVacancyLoss;
-  const actualRentReceived = netRentAfterVacancy + weeklyRealityAdjustment;
+  const actualRentReceived = netRentAfterVacancy;
   if (actualRentReceived > 0) {
     ledgerEntries.push({
       direction: 'credit',

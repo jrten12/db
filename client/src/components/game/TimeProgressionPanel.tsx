@@ -37,22 +37,16 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
   // AUTHORITATIVE: Weekly income from the deal is the source of truth
   // This is what the ledger actually records each week
   const weeklyIncome = deal.weeklyIncome || 0;
-  const monthlyCashFlow = weeklyIncome * (52 / 12); // Convert to monthly
   
-  // Get stored values from pro forma - these are what was used in calculation
+  // Get stored values from pro forma - these are the ACTUAL values (not player assumptions)
+  // monthlyGrossRent contains the real market rent based on property condition, rehab, etc.
   const monthlyRent = outputs?.monthlyGrossRent || 0;
   const monthlyVacancy = outputs?.monthlyVacancyLoss || 0;
   const monthlyOpEx = outputs?.monthlyOperatingExpenses || 0;
   const monthlyDebt = outputs?.debtServiceMonthly || outputs?.monthlyDebtService || 0;
   
-  // Calculate what the breakdown SHOULD show to match weekly income
-  // Line items: rent - vacancy - opex - debt = cash flow
-  const calculatedCashFlow = monthlyRent - monthlyVacancy - monthlyOpEx - monthlyDebt;
-  
-  // If there's a mismatch (due to reality adjustments), we need to show a "residual" 
-  // This happens when stored values don't quite match the authoritative weekly income
-  // (e.g., due to surprise costs, reality adjustments, etc.)
-  const residual = Math.round(monthlyCashFlow - calculatedCashFlow);
+  // Calculate monthly cash flow from components (these should match weeklyIncome * 4.33)
+  const monthlyCashFlow = monthlyRent - monthlyVacancy - monthlyOpEx - monthlyDebt;
   
   // Display the vacancy rate from stored outputs
   const displayVacancyRate = outputs?.effectiveVacancyRate?.toFixed(1) || inputs?.vacancyRate || '?';
@@ -97,17 +91,6 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
           <span className="text-gray-400">Mortgage Payment</span>
           <span className="text-red-400">-${fmt(Math.abs(monthlyDebt))}</span>
         </div>
-        {/* Show residual adjustment if line items don't add up to monthly cash flow */}
-        {Math.abs(residual) >= 5 && (
-          <div className="flex justify-between">
-            <span className="text-gray-500 text-xs">
-              {residual > 0 ? 'Reality bonus' : 'Reality penalty'}
-            </span>
-            <span className={residual >= 0 ? 'text-green-400/70' : 'text-red-400/70'}>
-              {residual >= 0 ? '+' : ''}{fmt(residual)}
-            </span>
-          </div>
-        )}
         <div className="flex justify-between border-t border-white/10 pt-1.5 mt-1.5">
           <span className="text-white font-medium">Monthly Cash Flow</span>
           <span className={`font-bold ${Math.round(monthlyCashFlow) >= 0 ? 'text-green-400' : 'text-red-400'}`}>

@@ -47,9 +47,16 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
   // Use debtServiceMonthly (standard amortization) for consistency with DebtPanel
   const monthlyDebt = outputs?.debtServiceMonthly || outputs?.monthlyDebtService || 0;
   
+  // Reality adjustment: difference between what player assumed and actual market reality
+  // Positive = player was conservative (bonus), Negative = player was optimistic (penalty)
+  const realityAdjustment = outputs?.realityAdjustmentMonthly || 0;
+  
   // Calculate actual monthly cash flow from weekly income (which is authoritative)
   const weeklyIncome = deal.weeklyIncome || 0;
   const actualMonthlyCashFlow = weeklyIncome * (52 / 12);
+  
+  // Calculate expected cash flow from visible line items so math adds up
+  const projectedCashFlow = monthlyRent - monthlyVacancy - monthlyOpEx - monthlyDebt;
   
   // Use the calculated value, or reality check if available, or stored value as fallback
   const monthlyCashFlow = outputs?.realityCheck?.actualCashFlow || actualMonthlyCashFlow || outputs?.cashFlowMonthly || 0;
@@ -96,6 +103,19 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
           <span className="text-gray-400">Mortgage Payment</span>
           <span className="text-red-400">-${fmt(Math.abs(monthlyDebt))}</span>
         </div>
+        {realityAdjustment !== 0 && (
+          <div className="flex justify-between">
+            <span className="text-gray-400 flex items-center gap-1">
+              Market Adj.
+              <span className="text-xs text-gray-500">
+                ({realityAdjustment > 0 ? 'conservative' : 'optimistic'})
+              </span>
+            </span>
+            <span className={realityAdjustment >= 0 ? 'text-green-400' : 'text-red-400'}>
+              {realityAdjustment >= 0 ? '+' : ''}{fmt(realityAdjustment)}
+            </span>
+          </div>
+        )}
         <div className="flex justify-between border-t border-white/10 pt-1.5 mt-1.5">
           <span className="text-white font-medium">Monthly Cash Flow</span>
           <span className={`font-bold ${Math.round(monthlyCashFlow) >= 0 ? 'text-green-400' : 'text-red-400'}`}>

@@ -33,6 +33,80 @@ const getInputClass = (filled: boolean, touched: boolean, isRequired: boolean, b
   return `${base} border-slate-700`;
 };
 
+// Educational term definitions for info popups
+const TERM_DEFINITIONS: Record<string, { title: string; description: string; gameImpact: string }> = {
+  expectedRent: {
+    title: "Expected Monthly Rent",
+    description: "What tenants will pay you each month. This is the #1 input that affects your cash flow and returns.",
+    gameImpact: "In the game: Market Study reveals the true rent range based on comparable properties. Without it, you're guessing blindly."
+  },
+  vacancyRate: {
+    title: "Vacancy Rate",
+    description: "Percentage of time your property sits empty between tenants. Even good landlords have turnover - tenants move, get evicted, or don't renew.",
+    gameImpact: "In the game: Urban properties have higher vacancy (7%) due to more options. Suburban areas have lower vacancy (5%). Your assumption vs. reality affects actual cash flow."
+  },
+  ltv: {
+    title: "Loan-to-Value (LTV)",
+    description: "How much of the purchase you're financing with a loan. 80% LTV means you put down 20% and borrow 80%. Higher LTV = more leverage but also higher interest rates and risk.",
+    gameImpact: "In the game: Higher LTV means less cash upfront, but higher monthly payments and interest. At 90% LTV, you're paying 12% interest. At 50% LTV, only 5%."
+  },
+  totalCashNeeded: {
+    title: "Total Cash Needed",
+    description: "Your upfront investment to close this deal: down payment + closing costs + loan fees + (if flipping) rehab costs unless financed.",
+    gameImpact: "In the game: This comes directly from your cash reserves. If you don't have enough, you can't do the deal!"
+  },
+  taxesAnnual: {
+    title: "Annual Property Taxes",
+    description: "Yearly taxes paid to the county based on assessed value. Usually 1-3% of property value depending on location. Check with the county assessor.",
+    gameImpact: "In the game: Taxes are fixed at 1.5% of purchase price. After rehab, the county may reassess higher. This reduces your net operating income."
+  },
+  insuranceAnnual: {
+    title: "Annual Insurance",
+    description: "Landlord/investor insurance covering the property and liability. More expensive than regular homeowner's insurance because of rental liability.",
+    gameImpact: "In the game: Insurance typically runs 0.5-1% of property value. This is a fixed operating cost that reduces your cash flow."
+  },
+  maintenancePct: {
+    title: "Maintenance Reserve",
+    description: "Ongoing repair costs as a percentage of rent. Budget for fixing leaky faucets, painting, minor repairs. Older properties need more maintenance.",
+    gameImpact: "In the game: Doing Contractor Walkthrough or Inspection reveals the true condition. Unfixed issues mean 2-3x more frequent repairs and higher costs!"
+  },
+  capExPct: {
+    title: "Capital Expenditures (CapEx)",
+    description: "Reserve fund for big-ticket replacements: roof, HVAC, water heater, appliances. Unlike maintenance, CapEx covers major systems that wear out.",
+    gameImpact: "In the game: Budget 5-10% of rent. This builds your reserve for inevitable major repairs. Skimping here means surprises later."
+  },
+  rehabBudget: {
+    title: "Rehab Budget",
+    description: "Total renovation cost to fix up the property. Includes materials, labor, permits, and unexpected issues.",
+    gameImpact: "In the game: Contractor Walkthrough reveals the true cost range. Without it, surprises can blow your budget by 20-50%!"
+  },
+  rehabWeeks: {
+    title: "Rehab Timeline",
+    description: "How long the renovation takes. Contractors are almost never early! Every week of rehab costs you carrying costs (loan interest, taxes, etc.).",
+    gameImpact: "In the game: Time is money. Longer rehabs eat into your profits. Fast contractors cost more but save time."
+  }
+};
+
+function InfoTooltip({ term }: { term: keyof typeof TERM_DEFINITIONS }) {
+  const def = TERM_DEFINITIONS[term];
+  if (!def) return null;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="text-cyan-400/60 hover:text-cyan-300 transition-colors p-0.5 -m-0.5 rounded-full hover:bg-cyan-500/10" type="button">
+          <HelpCircle className="w-4 h-4" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent side="top" align="start" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 p-4 z-[200]">
+        <h4 className="text-cyan-300 font-semibold text-sm mb-2">{def.title}</h4>
+        <p className="text-gray-300 text-xs mb-2">{def.description}</p>
+        <p className="text-cyan-400/80 text-xs italic border-t border-slate-600 pt-2 mt-2">{def.gameImpact}</p>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // Field hints for guidance
 const FIELD_HINTS: Record<string, string> = {
   expectedRent: "What monthly rent will you charge?",
@@ -52,60 +126,6 @@ const FIELD_HINTS: Record<string, string> = {
   loanOriginationPct: "Loan fees %",
 };
 
-const TERM_DEFINITIONS: Record<string, string> = {
-  purchasePrice: "The price you're paying to buy the property. This is your starting point for all calculations.",
-  closingCosts: "Fees paid when the sale is finalized - includes lender's title insurance (required), attorney fees, recording fees, transfer taxes, etc. Typically 2-4% of purchase price.",
-  rehabBudget: "The money you plan to spend fixing up the property - repairs, renovations, upgrades. Unknown until you do a Contractor Walkthrough.",
-  contingency: "Extra buffer for unexpected costs. Things always cost more than expected! 10-20% is common for experienced investors.",
-  allInBasis: "Total Project Cost - the full cost to acquire and renovate the property: purchase price + closing costs + rehab + contingency. This is your break-even point.",
-  arv: "After Repair Value (ARV) - what the property will be worth after you fix it up. Critical for flip deals. In real life, find comps on Zillow, Redfin, or your local MLS. Look for recently sold similar properties in the same neighborhood that have been renovated.",
-  downPayment: "Cash you put in upfront. The rest comes from your lender. Higher down payment = lower monthly payments but more cash tied up.",
-  interestRate: "The yearly cost of borrowing money, expressed as a percentage. Higher LTV means more risk for lenders, so they charge higher rates (5% at 50% LTV up to 12% at 90% LTV).",
-  loanTerm: "How long you have to pay back the loan. Longer terms = lower monthly payments but more total interest paid over time.",
-  expectedRent: "What tenants will pay monthly. Be conservative - overestimating rent is the #1 mistake new investors make. In real life, check Zillow Rent Zestimate, Rentometer, or Craigslist listings for comparable units in the area.",
-  vacancyRate: "Percentage of time the property sits empty between tenants. 5-10% is typical in most markets - that's about 2-5 weeks per year with no income.",
-  taxesAnnual: "Yearly property taxes paid to the county. Usually 1-3% of property value depending on location. Check the county assessor's website.",
-  insuranceAnnual: "Yearly insurance premium. Landlord/investor policies cost more than regular homeowner's insurance because of liability coverage.",
-  maintenancePct: "Ongoing repair costs as a percentage of rent. Budget 5-10% for maintenance reserves - things like fixing leaky faucets, painting, minor repairs. Older properties need more.",
-  capExPct: "Capital Expenditures (CapEx) - Big-ticket replacements like roof, HVAC, water heater, appliances. Unlike maintenance (ongoing repairs), CapEx covers major systems that wear out. Budget 8-12% of rent. This is separate from your rehab budget.",
-  utilities: "If you pay utilities (water, sewer, trash, gas/electric) instead of tenants, factor this in. Multi-family often has owner-paid utilities. Adds $100-200/month typically.",
-  propertyManagement: "Hiring a company to handle tenant screening, rent collection, repairs, and day-to-day operations. Typically 8-10% of collected rent.",
-  rehabWeeks: "How long the renovation will take. Add buffer time - contractors are almost never early! Unknown until you do a Contractor Walkthrough.",
-  holdingCosts: "Costs you pay while owning the property: loan payments, taxes, insurance, utilities. These add up fast during rehab - every week costs money!",
-  cashOnCash: "Cash-on-Cash Return (CoC) - Your annual cash profit divided by cash you invested. If you put in $50,000 and earn $5,000/year, that's 10% CoC. Target: 8%+ for rentals.",
-  capRate: "Capitalization Rate - Net Operating Income (NOI) divided by property value. Measures the property's return ignoring financing. 6-10% is typical. Higher = better return.",
-  cashFlow: "Money left over after ALL expenses and mortgage are paid each month. Positive = you're making money. Negative = you're losing money. Always aim for positive!",
-  roi: "Return on Investment - Your total profit divided by cash invested. For flips, aim for 20%+ to account for risk and surprises.",
-  flipProfit: "Your profit on a flip: Sale Price (ARV) minus all costs (purchase + closing + rehab + holding costs). What's left is what you pocket.",
-  noi: "Net Operating Income (NOI) - Annual rental income minus operating expenses (taxes, insurance, maintenance, management). Does NOT include mortgage payments.",
-  debtService: "Monthly mortgage payment including principal and interest. This comes out of your NOI to determine cash flow.",
-  leverage: "Using borrowed money (LTV = Loan-to-Value). Higher LTV means less cash down but higher interest rates and loan fees. Risk increases with leverage.",
-  loanOriginationFees: "Upfront fees to get the loan - points, origination fees, underwriting. Scales with LTV: 1% at 50% LTV up to 4% at 90% LTV. This is cash you need at closing.",
-  sellingCosts: "Cost to sell the property after rehab - realtor commission (5-6%), title insurance, transfer taxes, closing costs. Total is typically 8-10% of sale price. Many new flippers forget this!",
-  unknownRent: "Rent is unknown until you complete a Market Rent Study. Without it, you're just guessing what tenants will pay!",
-  unknownRehab: "Rehab costs and timeline are unknown until you complete a Contractor Walkthrough. Guessing renovation costs is dangerous!",
-  unknownArv: "After Repair Value is unknown until you complete a Comp Analysis. You need to know what similar fixed-up homes sold for.",
-  thresholdCoC: "8% Cash-on-Cash is the minimum for a good rental deal. Below this, your money might work harder in other investments.",
-  thresholdROI: "20% ROI is the minimum for a good flip. You need this margin to absorb surprises and still profit.",
-};
-
-function InfoTooltip({ term }: { term: keyof typeof TERM_DEFINITIONS }) {
-  const definition = TERM_DEFINITIONS[term];
-  if (!definition) return null;
-  
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button className="ml-1 text-gray-500 hover:text-gray-300 transition-colors touch-manipulation p-2 -m-1 active:opacity-70" type="button">
-          <HelpCircle className="w-3.5 h-3.5" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3 z-[100]">
-        <p>{definition}</p>
-      </PopoverContent>
-    </Popover>
-  );
-}
 
 function UnknownValueTooltip({ type, children }: { type: 'rent' | 'rehab' | 'arv' | 'timeline'; children: React.ReactNode }) {
   const tooltips = {
@@ -545,7 +565,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <>
                   {/* Expected Rent - with range if market study done */}
                   <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
-                    <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Expected Rent</label>
+                    <label className="text-cyan-300 text-sm font-medium mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)] flex items-center gap-2">
+                      Expected Rent
+                      <InfoTooltip term="expectedRent" />
+                    </label>
                     {hasMarketStudy ? (
                       <>
                         <div className="flex items-center justify-between mb-2">
@@ -592,7 +615,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   
                   {/* Vacancy Rate */}
                   <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
-                    <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Vacancy Rate</label>
+                    <label className="text-cyan-300 text-sm font-medium mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)] flex items-center gap-2">
+                      Vacancy Rate
+                      <InfoTooltip term="vacancyRate" />
+                    </label>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-cyan-100 text-2xl font-mono font-bold">{inputs.vacancyRate ?? 7}%</span>
                     </div>
@@ -689,7 +715,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               
               {/* LTV Slider - always available */}
               <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
-                <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Loan-to-Value (LTV)</label>
+                <label className="text-cyan-300 text-sm font-medium mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)] flex items-center gap-2">
+                  Loan-to-Value (LTV)
+                  <InfoTooltip term="ltv" />
+                </label>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-cyan-100 text-2xl font-mono font-bold">{inputs.ltv}%</span>
                   <span className={`text-xs px-2 py-1 rounded ${inputs.ltv >= 80 ? 'bg-amber-500/20 text-amber-400' : 'bg-cyan-500/20 text-cyan-400'}`}>
@@ -715,7 +744,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               
               {/* Total Cash Needed */}
               <div className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl p-4 border border-cyan-400/40">
-                <label className="text-cyan-200 text-sm font-medium block mb-2">Total Cash Needed</label>
+                <label className="text-cyan-200 text-sm font-medium mb-2 flex items-center gap-2">
+                  Total Cash Needed
+                  <InfoTooltip term="totalCashNeeded" />
+                </label>
                 <div className="text-cyan-100 text-2xl font-mono font-bold drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]">
                   {formatCurrency(liveOutputs.totalCashInvested)}
                 </div>
@@ -730,7 +762,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 {/* Annual Taxes - dynamic display with thinking prompts */}
                 <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-cyan-300/80 text-xs font-medium">Annual Taxes</label>
+                    <label className="text-cyan-300/80 text-xs font-medium flex items-center gap-1.5">
+                      Annual Taxes
+                      <InfoTooltip term="taxesAnnual" />
+                    </label>
                     <span className="text-cyan-400/50 text-[10px] bg-slate-700/50 px-1.5 py-0.5 rounded">1.5% rate</span>
                   </div>
                   
@@ -771,7 +806,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <span className="text-cyan-400/50 text-[10px] mt-1 block">Enter your estimate</span>
                 </div>
                 <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
-                  <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">Annual Insurance</label>
+                  <label className="text-cyan-300/80 text-xs font-medium mb-1.5 flex items-center gap-1.5">
+                    Annual Insurance
+                    <InfoTooltip term="insuranceAnnual" />
+                  </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-cyan-400/70 text-sm">$</span>
                     <input
@@ -792,7 +830,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 {inputs.strategy === 'rent' && (
                   <>
                     <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
-                      <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">Maintenance</label>
+                      <label className="text-cyan-300/80 text-xs font-medium mb-1.5 flex items-center gap-1.5">
+                        Maintenance
+                        <InfoTooltip term="maintenancePct" />
+                      </label>
                       {hasContractorWalkthrough || hasInspection ? (
                         <>
                           <div className="flex items-center justify-between mb-1">
@@ -838,7 +879,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       )}
                     </div>
                     <div className="bg-slate-800/40 rounded-xl p-3 border border-cyan-500/10">
-                      <label className="text-cyan-300/80 text-xs font-medium block mb-1.5">CapEx Reserve</label>
+                      <label className="text-cyan-300/80 text-xs font-medium mb-1.5 flex items-center gap-1.5">
+                        CapEx Reserve
+                        <InfoTooltip term="capExPct" />
+                      </label>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-cyan-100 text-lg font-mono font-bold">{inputs.capExPct ?? 5}%</span>
                         <span className="text-cyan-400/60 text-xs">${Math.round((inputs.expectedRent || 0) * (inputs.capExPct ?? 5) / 100)}/mo</span>

@@ -37,7 +37,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   extra: {
     eas: {
-      projectId: 'your-project-id',
+      projectId: 'a91f4913-f26b-4027-969d-586dd1d699e4',
     },
   },
   plugins: [
@@ -53,6 +53,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     policy: 'appVersion',
   },
   updates: {
-    url: 'https://u.expo.dev/your-project-id',
+    url: 'https://u.expo.dev/a91f4913-f26b-4027-969d-586dd1d699e4',
   },
 });

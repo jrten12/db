@@ -210,7 +210,7 @@ export default function Game() {
       const newRun = await api.createGameRun({
         playerName: name,
         difficulty: 'apprentice',
-        cash: 50000,
+        cash: STARTING_CASH,
         weeksRemaining: 52,
         profitableDeals: 0,
         goalDeals: 3,

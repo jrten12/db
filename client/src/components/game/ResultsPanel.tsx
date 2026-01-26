@@ -89,19 +89,19 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
       if (!isPositiveProfit) {
         explanations.push({
           type: 'error',
-          title: 'Flip Profit',
+          title: 'Projected Flip Profit',
           description: `Your all-in costs exceeded the ARV. This flip loses ${formatCurrency(Math.abs(flipProfit))}. Consider a lower purchase price or reduced rehab scope.`
         });
       } else if (flipProfit < 20000) {
         explanations.push({
           type: 'warning',
-          title: 'Flip Profit',
+          title: 'Projected Flip Profit',
           description: `Your projected profit of ${formatCurrency(flipProfit)} is relatively thin. Unexpected costs could eat into margins quickly.`
         });
       } else {
         explanations.push({
           type: 'tip',
-          title: 'Flip Profit',
+          title: 'Projected Flip Profit',
           description: `Strong projected profit of ${formatCurrency(flipProfit)}! This provides a healthy buffer for unexpected costs.`
         });
       }

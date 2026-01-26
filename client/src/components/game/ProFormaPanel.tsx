@@ -1230,7 +1230,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
                 <div className={`rounded-xl p-4 border ${canShowViability ? (flipProfit > 0 ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-red-500/20 border-red-500/50') : 'bg-slate-800/50 border-slate-700'}`}>
                   <div className={`text-xs uppercase tracking-wider font-semibold mb-1 ${canShowViability ? (flipProfit > 0 ? 'text-emerald-400' : 'text-red-400') : 'text-gray-400'}`}>
-                    Flip Profit
+                    Projected Flip Profit
                   </div>
                   {showFormulas && (
                     <div className="text-xs font-mono text-gray-400 mb-2">

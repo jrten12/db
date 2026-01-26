@@ -164,7 +164,7 @@ export function FormulaCanvas({ strategy, nodes }: FormulaCanvasProps) {
     <div className="bg-slate-900/80 rounded-xl border border-slate-700 p-4 space-y-3">
       <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-        Flip Profit Breakdown
+        Projected Flip Profit Breakdown
       </h4>
       
       <div className="space-y-2">

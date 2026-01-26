@@ -59,6 +59,81 @@ import societyHillWindows from '@assets/generated_images/society_hill_historic_w
 import fishtownSettling from '@assets/generated_images/fishtown_row_house_settling.png';
 import hillsideSeptic from '@assets/generated_images/hillside_retreat_septic_well.png';
 
+import oakwoodCottageKitchen from '@assets/generated_images/oakwood_cottage_kitchen.png';
+import oakwoodCottageBathroom from '@assets/generated_images/oakwood_cottage_bathroom.png';
+import oakwoodCottageLiving from '@assets/generated_images/oakwood_cottage_living.png';
+import riversideRanchKitchen from '@assets/generated_images/riverside_ranch_kitchen.png';
+import riversideRanchBathroom from '@assets/generated_images/riverside_ranch_bathroom.png';
+import riversideRanchLiving from '@assets/generated_images/riverside_ranch_living.png';
+import maplewoodColonialKitchen from '@assets/generated_images/maplewood_colonial_kitchen.png';
+import maplewoodColonialBathroom from '@assets/generated_images/maplewood_colonial_bathroom.png';
+import maplewoodColonialLiving from '@assets/generated_images/maplewood_colonial_living.png';
+import maplewoodColonialBasement from '@assets/generated_images/maplewood_colonial_basement.png';
+import downtownLoftKitchenUnique from '@assets/generated_images/downtown_loft_kitchen_unique.png';
+import downtownLoftBathroom from '@assets/generated_images/downtown_loft_bathroom.png';
+import downtownLoftLiving from '@assets/generated_images/downtown_loft_living.png';
+import elmwoodBungalowBathroom from '@assets/generated_images/elmwood_bungalow_bathroom.png';
+import elmwoodBungalowLiving from '@assets/generated_images/elmwood_bungalow_living.png';
+import hillsideRetreatKitchen from '@assets/generated_images/hillside_retreat_kitchen.png';
+import hillsideRetreatBathroom from '@assets/generated_images/hillside_retreat_bathroom.png';
+import hillsideRetreatLiving from '@assets/generated_images/hillside_retreat_living.png';
+import westsideManorKitchenUnique from '@assets/generated_images/westside_manor_kitchen_unique.png';
+import westsideManorBathroom from '@assets/generated_images/westside_manor_bathroom.png';
+import westsideManorLiving from '@assets/generated_images/westside_manor_living.png';
+import southStreetTwinKitchen from '@assets/generated_images/south_street_twin_kitchen.png';
+import southStreetTwinBathroom from '@assets/generated_images/south_street_twin_bathroom.png';
+import southStreetTwinBasement from '@assets/generated_images/south_street_twin_basement.png';
+import fishtownRowHouseKitchen from '@assets/generated_images/fishtown_row_house_kitchen.png';
+import fishtownRowHouseBathroom from '@assets/generated_images/fishtown_row_house_bathroom.png';
+import fishtownRowHouseLiving from '@assets/generated_images/fishtown_row_house_living.png';
+import portRichmondDuplexKitchen from '@assets/generated_images/port_richmond_duplex_kitchen.png';
+import portRichmondDuplexBathroom from '@assets/generated_images/port_richmond_duplex_bathroom.png';
+import portRichmondDuplexLiving from '@assets/generated_images/port_richmond_duplex_living.png';
+import kensingtonRowKitchen from '@assets/generated_images/kensington_row_kitchen.png';
+import kensingtonRowBathroom from '@assets/generated_images/kensington_row_bathroom.png';
+import northernLibertiesLoftLiving from '@assets/generated_images/northern_liberties_loft_living.png';
+import northernLibertiesLoftKitchen from '@assets/generated_images/northern_liberties_loft_kitchen.png';
+import northernLibertiesLoftBathroom from '@assets/generated_images/northern_liberties_loft_bathroom.png';
+import hudsonValleyFarmhouseKitchen from '@assets/generated_images/hudson_valley_farmhouse_kitchen.png';
+import hudsonValleyFarmhouseBathroom from '@assets/generated_images/hudson_valley_farmhouse_bathroom.png';
+import skylinePenthouseKitchen from '@assets/generated_images/skyline_penthouse_kitchen.png';
+import skylinePenthouseBathroom from '@assets/generated_images/skyline_penthouse_bathroom.png';
+import skylinePenthouseLiving from '@assets/generated_images/skyline_penthouse_living.png';
+import chestnutHillVictorianKitchen from '@assets/generated_images/chestnut_hill_victorian_kitchen.png';
+import chestnutHillVictorianBathroom from '@assets/generated_images/chestnut_hill_victorian_bathroom.png';
+import chestnutHillVictorianBasement from '@assets/generated_images/chestnut_hill_victorian_basement.png';
+import lakefrontEstateKitchen from '@assets/generated_images/lakefront_estate_kitchen.png';
+import lakefrontEstateBathroom from '@assets/generated_images/lakefront_estate_bathroom.png';
+import graduateHospitalBrownstoneKitchen from '@assets/generated_images/graduate_hospital_brownstone_kitchen.png';
+import graduateHospitalBrownstoneBathroom from '@assets/generated_images/graduate_hospital_brownstone_bathroom.png';
+import graduateHospitalBrownstoneLiving from '@assets/generated_images/graduate_hospital_brownstone_living.png';
+import rittenhouseSquareKitchen from '@assets/generated_images/rittenhouse_square_kitchen.png';
+import rittenhouseSquareBathroom from '@assets/generated_images/rittenhouse_square_bathroom.png';
+import rittenhouseSquareLiving from '@assets/generated_images/rittenhouse_square_living.png';
+import queenVillageKitchen from '@assets/generated_images/queen_village_kitchen.png';
+import queenVillageBathroom from '@assets/generated_images/queen_village_bathroom.png';
+import queenVillageBasement from '@assets/generated_images/queen_village_basement.png';
+import societyHillKitchen from '@assets/generated_images/society_hill_kitchen.png';
+import societyHillBathroom from '@assets/generated_images/society_hill_bathroom.png';
+import societyHillLiving from '@assets/generated_images/society_hill_living.png';
+import fairmountRowhomeKitchen from '@assets/generated_images/fairmount_rowhome_kitchen.png';
+import fairmountRowhomeBathroom from '@assets/generated_images/fairmount_rowhome_bathroom.png';
+import fairmountRowhomeLiving from '@assets/generated_images/fairmount_rowhome_living.png';
+import oldCityLoftKitchen from '@assets/generated_images/old_city_loft_kitchen.png';
+import oldCityLoftBathroom from '@assets/generated_images/old_city_loft_bathroom.png';
+import oldCityLoftLiving from '@assets/generated_images/old_city_loft_living.png';
+
+import elmwoodBungalowKitchenMain from '@assets/generated_images/elmwood_bungalow_kitchen_main.png';
+import southStreetTwinLiving from '@assets/generated_images/south_street_twin_living.png';
+import kensingtonRowLiving from '@assets/generated_images/kensington_row_living.png';
+import queenVillageLiving from '@assets/generated_images/queen_village_living.png';
+import fairmountRowhomeLivingMain from '@assets/generated_images/fairmount_rowhome_living_main.png';
+import portRichmondDuplexLivingMain from '@assets/generated_images/port_richmond_duplex_living_main.png';
+import northernLibertiesLoftKitchenMain from '@assets/generated_images/northern_liberties_loft_kitchen_main.png';
+import hudsonValleyFarmhouseLiving from '@assets/generated_images/hudson_valley_farmhouse_living.png';
+import chestnutHillVictorianLiving from '@assets/generated_images/chestnut_hill_victorian_living.png';
+import lakefrontEstateLiving from '@assets/generated_images/lakefront_estate_living.png';
+
 import issueRoofWear from '@assets/generated_images/worn_roof_shingles.png';
 import issueOutdatedHvac from '@assets/generated_images/outdated_hvac_system.png';
 import issueFoundationSettling from '@assets/generated_images/foundation_settling_cracks.png';
@@ -217,129 +292,126 @@ export const getPropertyImage = (propertyName: string): string => {
 };
 
 const propertySpecificInteriors: Record<string, Array<{ type: string; label: string; url: string }>> = {
-  'Elmwood Bungalow': [
-    { type: 'kitchen', label: 'Kitchen', url: elmwoodKitchenPipes },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomExtreme },
-    { type: 'living', label: 'Living Room', url: interiorLivingRoomExtreme },
-    { type: 'basement', label: 'Basement', url: interiorBasementExtreme },
-  ],
-  'Kensington Row': [
-    { type: 'living', label: 'Living Room', url: kensingtonDeferredMaint },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenExtreme },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomExtreme },
-    { type: 'basement', label: 'Basement', url: interiorBasementExtreme },
-  ],
-  'Old City Loft': [
-    { type: 'living', label: 'Living Room', url: oldCitySettling },
-    { type: 'basement', label: 'Basement', url: oldCityBasement },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenExtreme },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomExtreme },
-  ],
-  'Maplewood Colonial': [
-    { type: 'kitchen', label: 'Kitchen', url: maplewoodElectrical },
-    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
-    { type: 'basement', label: 'Basement', url: interiorBasementClean },
-  ],
   'Oakwood Cottage': [
+    { type: 'kitchen', label: 'Kitchen', url: oakwoodCottageKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: oakwoodCottageBathroom },
+    { type: 'living', label: 'Living Room', url: oakwoodCottageLiving },
     { type: 'basement', label: 'Basement', url: oakwoodHvac },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
   ],
   'Riverside Ranch': [
-    { type: 'living', label: 'Living Room', url: riversideFoundation },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
-    { type: 'basement', label: 'Basement', url: interiorBasementClean },
+    { type: 'kitchen', label: 'Kitchen', url: riversideRanchKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: riversideRanchBathroom },
+    { type: 'living', label: 'Living Room', url: riversideRanchLiving },
+    { type: 'basement', label: 'Basement', url: riversideFoundation },
   ],
-  'South Street Twin': [
-    { type: 'living', label: 'Living Room', url: southStreetWall },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
-    { type: 'basement', label: 'Basement', url: interiorBasementClean },
-  ],
-  'Port Richmond Duplex': [
-    { type: 'basement', label: 'Basement', url: portRichmondHvac },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
-  ],
-  'Queen Village Rowhouse': [
-    { type: 'living', label: 'Living Room', url: queenVillageBrick },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
-    { type: 'basement', label: 'Basement', url: interiorBasementClean },
-  ],
-  'Westside Manor': [
-    { type: 'kitchen', label: 'Kitchen', url: westsideCosmetic },
-    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
-    { type: 'basement', label: 'Basement', url: interiorBasementClean },
-  ],
-  'Fairmount Rowhome': [
-    { type: 'basement', label: 'Basement', url: fairmountDualSystems },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
-  ],
-  'Hillside Retreat': [
-    { type: 'basement', label: 'Utility Room', url: hillsideSeptic },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  'Maplewood Colonial': [
+    { type: 'kitchen', label: 'Kitchen', url: maplewoodColonialKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: maplewoodColonialBathroom },
+    { type: 'living', label: 'Living Room', url: maplewoodColonialLiving },
+    { type: 'basement', label: 'Basement', url: maplewoodColonialBasement },
   ],
   'Downtown Loft': [
-    { type: 'kitchen', label: 'Kitchen', url: downtownLoftPipes },
-    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+    { type: 'kitchen', label: 'Kitchen', url: downtownLoftKitchenUnique },
+    { type: 'bathroom', label: 'Bathroom', url: downtownLoftBathroom },
+    { type: 'living', label: 'Living Room', url: downtownLoftLiving },
   ],
-  'Northern Liberties Loft': [
-    { type: 'living', label: 'Living Room', url: northernLibertiesHvac },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  'Elmwood Bungalow': [
+    { type: 'kitchen', label: 'Kitchen', url: elmwoodBungalowKitchenMain },
+    { type: 'bathroom', label: 'Bathroom', url: elmwoodBungalowBathroom },
+    { type: 'living', label: 'Living Room', url: elmwoodBungalowLiving },
   ],
-  'Graduate Hospital Brownstone': [
-    { type: 'kitchen', label: 'Kitchen', url: graduateHospitalKitchen },
-    { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  'Hillside Retreat': [
+    { type: 'kitchen', label: 'Kitchen', url: hillsideRetreatKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: hillsideRetreatBathroom },
+    { type: 'living', label: 'Living Room', url: hillsideRetreatLiving },
+    { type: 'basement', label: 'Utility Room', url: hillsideSeptic },
   ],
-  'Rittenhouse Square Condo': [
-    { type: 'living', label: 'Living Room', url: rittenhouseHvac },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  'Westside Manor': [
+    { type: 'kitchen', label: 'Kitchen', url: westsideManorKitchenUnique },
+    { type: 'bathroom', label: 'Bathroom', url: westsideManorBathroom },
+    { type: 'living', label: 'Living Room', url: westsideManorLiving },
   ],
-  'Society Hill Colonial': [
-    { type: 'living', label: 'Living Room', url: societyHillWindows },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+  'South Street Twin': [
+    { type: 'kitchen', label: 'Kitchen', url: southStreetTwinKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: southStreetTwinBathroom },
+    { type: 'living', label: 'Living Room', url: southStreetTwinLiving },
+    { type: 'basement', label: 'Basement', url: southStreetTwinBasement },
   ],
   'Fishtown Row House': [
-    { type: 'living', label: 'Living Room', url: fishtownSettling },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
-    { type: 'basement', label: 'Basement', url: interiorBasementClean },
+    { type: 'kitchen', label: 'Kitchen', url: fishtownRowHouseKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: fishtownRowHouseBathroom },
+    { type: 'living', label: 'Living Room', url: fishtownRowHouseLiving },
+    { type: 'basement', label: 'Basement', url: fishtownSettling },
+  ],
+  'Port Richmond Duplex': [
+    { type: 'kitchen', label: 'Kitchen', url: portRichmondDuplexKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: portRichmondDuplexBathroom },
+    { type: 'living', label: 'Living Room', url: portRichmondDuplexLivingMain },
+    { type: 'basement', label: 'Basement', url: portRichmondHvac },
+  ],
+  'Kensington Row': [
+    { type: 'kitchen', label: 'Kitchen', url: kensingtonRowKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: kensingtonRowBathroom },
+    { type: 'living', label: 'Living Room', url: kensingtonRowLiving },
+  ],
+  'Northern Liberties Loft': [
+    { type: 'kitchen', label: 'Kitchen', url: northernLibertiesLoftKitchenMain },
+    { type: 'bathroom', label: 'Bathroom', url: northernLibertiesLoftBathroom },
+    { type: 'living', label: 'Living Room', url: northernLibertiesLoftLiving },
   ],
   'Hudson Valley Farmhouse': [
-    { type: 'living', label: 'Living Room', url: farmhouseInterior },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+    { type: 'kitchen', label: 'Kitchen', url: hudsonValleyFarmhouseKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: hudsonValleyFarmhouseBathroom },
+    { type: 'living', label: 'Living Room', url: hudsonValleyFarmhouseLiving },
   ],
   'Skyline Penthouse': [
-    { type: 'living', label: 'Living Room', url: penthouseInterior },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+    { type: 'kitchen', label: 'Kitchen', url: skylinePenthouseKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: skylinePenthouseBathroom },
+    { type: 'living', label: 'Living Room', url: skylinePenthouseLiving },
   ],
   'Chestnut Hill Victorian': [
-    { type: 'living', label: 'Grand Entry', url: victorianInterior },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
-    { type: 'basement', label: 'Basement', url: interiorBasementClean },
+    { type: 'kitchen', label: 'Kitchen', url: chestnutHillVictorianKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: chestnutHillVictorianBathroom },
+    { type: 'living', label: 'Grand Entry', url: chestnutHillVictorianLiving },
+    { type: 'basement', label: 'Basement', url: chestnutHillVictorianBasement },
   ],
   'Lakefront Estate': [
-    { type: 'living', label: 'Living Room', url: waterfrontInterior },
-    { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
-    { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
+    { type: 'kitchen', label: 'Kitchen', url: lakefrontEstateKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: lakefrontEstateBathroom },
+    { type: 'living', label: 'Living Room', url: lakefrontEstateLiving },
+  ],
+  'Graduate Hospital Brownstone': [
+    { type: 'kitchen', label: 'Kitchen', url: graduateHospitalBrownstoneKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: graduateHospitalBrownstoneBathroom },
+    { type: 'living', label: 'Living Room', url: graduateHospitalBrownstoneLiving },
+  ],
+  'Rittenhouse Square Condo': [
+    { type: 'kitchen', label: 'Kitchen', url: rittenhouseSquareKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: rittenhouseSquareBathroom },
+    { type: 'living', label: 'Living Room', url: rittenhouseSquareLiving },
+  ],
+  'Queen Village Rowhouse': [
+    { type: 'kitchen', label: 'Kitchen', url: queenVillageKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: queenVillageBathroom },
+    { type: 'living', label: 'Living Room', url: queenVillageLiving },
+    { type: 'basement', label: 'Basement', url: queenVillageBasement },
+  ],
+  'Society Hill Colonial': [
+    { type: 'kitchen', label: 'Kitchen', url: societyHillKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: societyHillBathroom },
+    { type: 'living', label: 'Living Room', url: societyHillLiving },
+  ],
+  'Fairmount Rowhome': [
+    { type: 'kitchen', label: 'Kitchen', url: fairmountRowhomeKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: fairmountRowhomeBathroom },
+    { type: 'living', label: 'Living Room', url: fairmountRowhomeLivingMain },
+    { type: 'basement', label: 'Basement', url: fairmountDualSystems },
+  ],
+  'Old City Loft': [
+    { type: 'kitchen', label: 'Kitchen', url: oldCityLoftKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: oldCityLoftBathroom },
+    { type: 'living', label: 'Living Room', url: oldCityLoftLiving },
+    { type: 'basement', label: 'Basement', url: oldCityBasement },
   ],
 };
 

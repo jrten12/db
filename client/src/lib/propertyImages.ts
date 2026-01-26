@@ -115,12 +115,12 @@ const propertyImages: Record<string, string> = {
   'Port Richmond Duplex': portRichmondDuplex,
   'Kensington Row': kensingtonRow,
   'Northern Liberties Loft': northernLibertiesLoft,
-  'Graduate Hospital Studio': graduateHospitalStudio,
-  'Queen Village Townhouse': queenVillageTownhouse,
+  'Graduate Hospital Brownstone': graduateHospitalStudio,
+  'Queen Village Rowhouse': queenVillageTownhouse,
   'Rittenhouse Square Condo': rittenhouseCondo,
-  'Fairmount Duplex': fairmountDuplex,
-  'Society Hill Apartment': societyHillApartment,
-  'Old City Brownstone': oldCityBrownstone,
+  'Fairmount Rowhome': fairmountDuplex,
+  'Society Hill Colonial': societyHillApartment,
+  'Old City Loft': oldCityBrownstone,
   'Hudson Valley Farmhouse': hudsonValleyFarmhouse,
   'Skyline Penthouse': skylinePenthouse,
   'Chestnut Hill Victorian': chestnutHillVictorian,
@@ -229,7 +229,7 @@ const propertySpecificInteriors: Record<string, Array<{ type: string; label: str
     { type: 'bathroom', label: 'Bathroom', url: interiorBathroomExtreme },
     { type: 'basement', label: 'Basement', url: interiorBasementExtreme },
   ],
-  'Old City Brownstone': [
+  'Old City Loft': [
     { type: 'living', label: 'Living Room', url: oldCitySettling },
     { type: 'basement', label: 'Basement', url: oldCityBasement },
     { type: 'kitchen', label: 'Kitchen', url: interiorKitchenExtreme },
@@ -265,7 +265,7 @@ const propertySpecificInteriors: Record<string, Array<{ type: string; label: str
     { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
     { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
   ],
-  'Queen Village Townhouse': [
+  'Queen Village Rowhouse': [
     { type: 'living', label: 'Living Room', url: queenVillageBrick },
     { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
     { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
@@ -277,7 +277,7 @@ const propertySpecificInteriors: Record<string, Array<{ type: string; label: str
     { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
     { type: 'basement', label: 'Basement', url: interiorBasementClean },
   ],
-  'Fairmount Duplex': [
+  'Fairmount Rowhome': [
     { type: 'basement', label: 'Basement', url: fairmountDualSystems },
     { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
     { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
@@ -299,7 +299,7 @@ const propertySpecificInteriors: Record<string, Array<{ type: string; label: str
     { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
     { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
   ],
-  'Graduate Hospital Studio': [
+  'Graduate Hospital Brownstone': [
     { type: 'kitchen', label: 'Kitchen', url: graduateHospitalKitchen },
     { type: 'living', label: 'Living Room', url: interiorLivingRoomDated },
     { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
@@ -309,7 +309,7 @@ const propertySpecificInteriors: Record<string, Array<{ type: string; label: str
     { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
     { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },
   ],
-  'Society Hill Apartment': [
+  'Society Hill Colonial': [
     { type: 'living', label: 'Living Room', url: societyHillWindows },
     { type: 'kitchen', label: 'Kitchen', url: interiorKitchenDated },
     { type: 'bathroom', label: 'Bathroom', url: interiorBathroomDated },

@@ -1425,13 +1425,25 @@ export async function activateRentalProperty(
 }
 
 /**
- * Start a flip rehab period
- * Sets deal to in_rehab status and tracks completion timeline
+ * Start a flip - either with rehab (in_rehab status) or without (ready_to_list immediately)
+ * If rehabWeeks is 0 (no renovation planned), property goes directly to ready_to_list
+ * This allows "quick flips" but at reduced sale price since no improvements were made
  */
 export async function startFlipRehab(
   deal: Deal,
   rehabWeeks: number
 ): Promise<Deal> {
+  // If no rehab planned (0 weeks), skip straight to ready_to_list
+  // Player can sell immediately but at reduced ARV (property wasn't improved)
+  if (rehabWeeks <= 0) {
+    const updatedDeal = await storage.updateDeal(deal.id, {
+      status: 'ready_to_list',
+      weeksUntilCompletion: 0,
+    });
+    return updatedDeal!;
+  }
+  
+  // Normal rehab path - requires time to complete renovations
   const updatedDeal = await storage.updateDeal(deal.id, {
     status: 'in_rehab',
     weeksUntilCompletion: rehabWeeks,

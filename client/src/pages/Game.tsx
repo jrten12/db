@@ -751,11 +751,13 @@ export default function Game() {
       });
 
       if (proFormaInputs.strategy === 'flip') {
-        const rehabWeeks = proFormaInputs.rehabWeeks ?? 0;
+        const rehabBudget = proFormaInputs.rehabBudget ?? 0;
         const hasAppraisal = (completedDiligence[selectedProperty.id] || []).includes('appraisal');
         
+        // If no rehab budget, timeline is 0 (skip rehab phase, go straight to ready-to-list)
+        const rehabWeeks = rehabBudget > 0 ? (proFormaInputs.rehabWeeks ?? 0) : 0;
+        
         if (hasAppraisal) {
-          const rehabBudget = proFormaInputs.rehabBudget ?? 0;
           const contingencyPct = proFormaInputs.contingencyPct ?? 0;
           const interestRate = getInterestRateFromLTV(proFormaInputs.ltv);
           const taxesAnnual = proFormaInputs.taxesAnnual ?? 0;
@@ -772,9 +774,13 @@ export default function Game() {
           setFlipMetrics({ profit: 0, roi: 0, holdWeeks: rehabWeeks, hasAppraisal: false });
         }
 
-        // Start flip rehab period
+        // Start flip - if no rehab budget, use 0 weeks (ready to list immediately)
         await api.startFlipRehab(newDeal.id, gameRun.id, rehabWeeks);
-        toast.success('Flip started! Check Time & Income panel to track progress.');
+        if (rehabBudget > 0) {
+          toast.success('Flip started! Renovations in progress. Check Time & Income panel.');
+        } else {
+          toast.success('Flip started! No renovations planned - ready to list immediately. Sale price will reflect property condition.');
+        }
       } else {
         // Activate rental property
         const rentalResult = await api.activateRental(newDeal.id, gameRun.id);

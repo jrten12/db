@@ -1436,7 +1436,7 @@ export default function Game() {
                     onInputsChange={handleInputsChange}
                     onCalculate={handleCalculate}
                     completedDiligence={completedDiligence[selectedProperty.id] || []}
-                    playerCash={gameRun?.cash ?? 50000}
+                    playerCash={gameRun?.cash ?? STARTING_CASH}
                     onReturnToProperty={handleReturnToProperty}
                     onProceedWithoutDiligence={handleProceedWithoutDiligence}
                     skippedDiligence={skippedDiligenceDeals.has(selectedProperty.id)}

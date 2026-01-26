@@ -87,8 +87,6 @@ export function OperatingExpensesPopup({
   
   const taxesAnnual = inputs?.taxesAnnual || 0;
   const insuranceAnnual = inputs?.insuranceAnnual || 0;
-  const maintenancePct = inputs?.maintenancePct || 5;
-  const capexPct = inputs?.capExPct || inputs?.capexPct || 5;
   const hasPropertyMgmt = inputs?.propertyManagement || false;
   const propertyMgmtPct = inputs?.propertyManagementPct || 10;
   const landlordPaysUtilities = inputs?.utilities || false;
@@ -96,13 +94,11 @@ export function OperatingExpensesPopup({
   
   const monthlyTaxes = taxesAnnual / 12;
   const monthlyInsurance = insuranceAnnual / 12;
-  const monthlyMaintenance = monthlyRent * (maintenancePct / 100);
-  const monthlyCapex = monthlyRent * (capexPct / 100);
   const monthlyMgmt = hasPropertyMgmt ? monthlyRent * (propertyMgmtPct / 100) : 0;
   const monthlyUtilities = landlordPaysUtilities ? utilitiesMonthly : 0;
   
-  const totalMonthlyOpex = monthlyTaxes + monthlyInsurance + monthlyMaintenance + 
-    monthlyCapex + monthlyMgmt + monthlyUtilities;
+  // Total operating expenses (simplified display - excludes maintenance/capEx reserves for clarity)
+  const totalMonthlyOpex = monthlyTaxes + monthlyInsurance + monthlyMgmt + monthlyUtilities;
   
   const weeksPerMonth = 4.33;
   
@@ -122,20 +118,6 @@ export function OperatingExpensesPopup({
       weeklyAmount: monthlyInsurance / weeksPerMonth,
       annualAmount: insuranceAnnual,
       note: 'Landlord policy',
-    },
-    {
-      label: 'Maintenance Reserve',
-      icon: <Wrench className="w-4 h-4" />,
-      monthlyAmount: monthlyMaintenance,
-      weeklyAmount: monthlyMaintenance / weeksPerMonth,
-      note: `${maintenancePct}% of rent - routine repairs`,
-    },
-    {
-      label: 'Capital Expenditures',
-      icon: <Home className="w-4 h-4" />,
-      monthlyAmount: monthlyCapex,
-      weeklyAmount: monthlyCapex / weeksPerMonth,
-      note: `${capexPct}% of rent - major replacements`,
     },
   ];
   

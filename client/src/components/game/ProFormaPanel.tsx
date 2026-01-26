@@ -713,25 +713,31 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <InfoTooltip term="ltv" />
                 </label>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-cyan-100 text-2xl font-mono font-bold">{inputs.ltv}%</span>
-                  <span className={`text-xs px-2 py-1 rounded ${inputs.ltv >= 80 ? 'bg-amber-500/20 text-amber-400' : 'bg-cyan-500/20 text-cyan-400'}`}>
-                    {inputs.ltv >= 80 ? 'High Leverage' : 'Conservative'}
+                  <span className={`text-2xl font-mono font-bold ${inputs.ltv > 90 ? 'text-red-400' : 'text-cyan-100'}`}>{inputs.ltv}%</span>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    inputs.ltv > 90 ? 'bg-red-500/30 text-red-400 animate-pulse' : 
+                    inputs.ltv >= 80 ? 'bg-amber-500/20 text-amber-400' : 
+                    'bg-cyan-500/20 text-cyan-400'
+                  }`}>
+                    {inputs.ltv > 90 ? 'EXTREME LEVERAGE' : inputs.ltv >= 80 ? 'High Leverage' : 'Conservative'}
                   </span>
                 </div>
                 <input
                   type="range"
                   min={50}
-                  max={90}
+                  max={100}
                   step={5}
                   value={inputs.ltv}
                   onChange={(e) => onInputsChange({ ...inputs, ltv: parseInt(e.target.value) })}
-                  className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                  className={`w-full h-3 rounded-lg appearance-none cursor-pointer ${inputs.ltv > 90 ? 'bg-red-900/50 accent-red-500' : 'bg-slate-700 accent-cyan-500'}`}
                   data-testid="slider-ltv"
                 />
                 <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
                   <span>50%</span>
-                  <span className="text-cyan-300">More leverage = higher risk</span>
-                  <span>90%</span>
+                  <span className={inputs.ltv > 90 ? 'text-red-400 font-semibold' : 'text-cyan-300'}>
+                    {inputs.ltv > 90 ? '⚠️ DANGER ZONE - Rates climb fast!' : 'More leverage = higher risk'}
+                  </span>
+                  <span className={inputs.ltv > 90 ? 'text-red-400' : ''}>100%</span>
                 </div>
               </div>
               

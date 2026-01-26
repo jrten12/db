@@ -103,12 +103,14 @@ Preferred communication style: Simple, everyday language.
 - **Dual-Path Due Diligence Gating**: Players can return to property detail (recommended) or proceed without full diligence (not recommended), with consequences tracked
 - **Utilities Trade-off**: Tenant pays utilities = saves money but +1 week vacancy to find tenants
 - Strategy options: Rent vs Flip with different financial models
-- **LTV-Based Financing**: Single LTV slider (50-90%) drives all financing terms
-  - Interest rate: 5% at 50% LTV, 12% at 90% LTV (curved risk premium formula)
-  - Loan fees: 1% at 50% LTV, 4% at 90% LTV (linear)
-  - Down payment: Automatically calculated as 100% - LTV
-  - Helper functions: `getInterestRateFromLTV()`, `getLoanFeesFromLTV()`, `getDownPaymentFromLTV()`
-  - Educational messaging shows leverage-risk tradeoffs
+- **LTV-Based Financing**: Single LTV slider (50-100%) drives all financing terms
+  - Interest rate: 5% at 50% LTV, ~7.4% at 90% LTV, 18% at 100% LTV (exponential curve in danger zone)
+  - Loan fees: 1% at 50% LTV, 4% at 90% LTV, 6% at 100% LTV (steep climb above 90%)
+  - Down payment: Automatically calculated as 100% - LTV (0% down at 100% LTV!)
+  - **Danger Zone (90-100% LTV)**: Visual warnings, red styling, rates climb exponentially
+  - **Player-State Adjustments**: Interest rate also factors in player's DTI, cash reserves, and asset coverage via `getInterestRateWithPlayerState()`
+  - Helper functions: `getInterestRateFromLTV()`, `getInterestRateWithPlayerState()`, `getLoanFeesFromLTV()`, `getDownPaymentFromLTV()`
+  - Educational messaging shows leverage-risk tradeoffs - 100% LTV is a "trap" for undisciplined players
 - Contractor options: Cheap vs Fast affecting timeline and costs
 - **First Purchase Protection**: Players cannot go bankrupt on their very first property purchase - transaction is blocked if insufficient funds. Subsequent purchases allow overdraft, triggering bankruptcy if cash goes negative.
 - **Rental Property Selling**: Players can sell active rental properties to convert equity back to cash

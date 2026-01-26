@@ -30,19 +30,34 @@ export interface ProFormaOutputs {
 }
 
 export const LTV_MIN = 50;
-export const LTV_MAX = 90;
+export const LTV_MAX = 100;
 export const INTEREST_MIN = 5.0;
-export const INTEREST_MAX = 12.0;
+export const INTEREST_MAX = 18.0; // Punishing rate for max leverage
 
+// Curved risk premium formula: interest increases exponentially at higher LTV
+// Above 90% LTV, rates climb steeply - this is the "leverage trap" zone
 export const getInterestRateFromLTV = (ltv: number): number => {
   const normalizedLTV = Math.max(0, Math.min(1, (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)));
-  const curvedFactor = Math.pow(normalizedLTV, 1.3);
-  return INTEREST_MIN + curvedFactor * (INTEREST_MAX - INTEREST_MIN);
+  let curvedFactor: number;
+  if (ltv <= 90) {
+    curvedFactor = Math.pow(normalizedLTV * (40/50), 1.3);
+  } else {
+    const dangerNormalized = (ltv - 90) / 10;
+    const baseAt90 = Math.pow(0.8, 1.3);
+    curvedFactor = baseAt90 + dangerNormalized * dangerNormalized * (1 - baseAt90) * 2;
+  }
+  return INTEREST_MIN + Math.min(curvedFactor, 1) * (INTEREST_MAX - INTEREST_MIN);
 };
 
+// Loan fees climb steeply above 90% LTV
 export const getLoanFeesFromLTV = (ltv: number): number => {
-  const normalizedLTV = (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN);
-  return 1 + normalizedLTV * 3;
+  if (ltv <= 90) {
+    const normalizedLTV = (ltv - LTV_MIN) / (90 - LTV_MIN);
+    return 1 + normalizedLTV * 3;
+  } else {
+    const dangerNormalized = (ltv - 90) / 10;
+    return 4 + dangerNormalized * 2;
+  }
 };
 
 export const getDownPaymentFromLTV = (ltv: number): number => {

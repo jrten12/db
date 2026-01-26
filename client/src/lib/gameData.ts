@@ -31,10 +31,11 @@ export interface ProFormaInputs {
 
 // LTV-based financing calculations
 // Higher LTV = higher risk = higher interest rate and fees
+// Players CAN go up to 100% LTV but rates climb steeply - it's a trap for undisciplined players
 export const LTV_MIN = 50;
-export const LTV_MAX = 90;
+export const LTV_MAX = 100;
 export const INTEREST_MIN = 5.0; // At 50% LTV
-export const INTEREST_MAX = 12.0; // At 90% LTV
+export const INTEREST_MAX = 18.0; // At 100% LTV - punishing rate for max leverage
 
 // Property Management Settings
 export const PROPERTY_MANAGEMENT_FEE_PCT = 5; // Fixed 5% of rent revenue when hired
@@ -62,17 +63,66 @@ export const calculateTimePenalty = (inputs: ProFormaInputs): number => {
   return penalty;
 };
 
-// Curved risk premium formula: interest increases faster at higher LTV
+// Curved risk premium formula: interest increases exponentially at higher LTV
+// Above 90% LTV, rates climb steeply - this is the "leverage trap" zone
 export const getInterestRateFromLTV = (ltv: number): number => {
   const normalizedLTV = Math.max(0, Math.min(1, (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)));
-  const curvedFactor = Math.pow(normalizedLTV, 1.3);
-  return INTEREST_MIN + curvedFactor * (INTEREST_MAX - INTEREST_MIN);
+  // Steeper curve above 90% LTV - exponential punishment for extreme leverage
+  let curvedFactor: number;
+  if (ltv <= 90) {
+    // Standard curve for 50-90% LTV range
+    curvedFactor = Math.pow(normalizedLTV * (40/50), 1.3); // Maps to ~7.4% at 90% LTV
+  } else {
+    // Steep exponential climb from 90-100% LTV (the danger zone)
+    const dangerNormalized = (ltv - 90) / 10; // 0 at 90%, 1 at 100%
+    const baseAt90 = Math.pow(0.8, 1.3); // ~0.73
+    curvedFactor = baseAt90 + dangerNormalized * dangerNormalized * (1 - baseAt90) * 2;
+  }
+  return INTEREST_MIN + Math.min(curvedFactor, 1) * (INTEREST_MAX - INTEREST_MIN);
 };
 
-// Loan origination fees: 1% at 50% LTV, 4% at 90% LTV (linear)
+// Dynamic interest rate that considers player's financial situation
+// This is the "real" rate that educated investors would see
+export interface PlayerFinancials {
+  cash: number;
+  totalMonthlyDebt: number;
+  totalMonthlyIncome: number;
+  totalAssetValue: number;
+}
+
+export const getInterestRateWithPlayerState = (ltv: number, playerFinancials: PlayerFinancials): number => {
+  const baseRate = getInterestRateFromLTV(ltv);
+  
+  // DTI adjustment: higher debt = higher rate
+  const dti = playerFinancials.totalMonthlyIncome > 0 
+    ? (playerFinancials.totalMonthlyDebt / playerFinancials.totalMonthlyIncome) * 100 
+    : 100;
+  const dtiAdjustment = dti > 50 ? (dti - 50) * 0.03 : 0; // +0.03% per point above 50% DTI
+  
+  // Cash reserves adjustment: more cash = lower rate
+  const reserveMonths = playerFinancials.cash / (playerFinancials.totalMonthlyDebt || 1000);
+  const reserveAdjustment = reserveMonths > 6 ? -0.5 : (reserveMonths < 3 ? 0.75 : 0);
+  
+  // Asset coverage adjustment: more assets relative to new debt = lower rate
+  const assetCoverage = playerFinancials.totalAssetValue / (playerFinancials.cash || 1);
+  const assetAdjustment = assetCoverage > 3 ? -0.25 : (assetCoverage < 1.5 ? 0.5 : 0);
+  
+  // Final rate with player-state adjustments, bounded to reasonable limits
+  return Math.max(4.5, Math.min(22, baseRate + dtiAdjustment + reserveAdjustment + assetAdjustment));
+};
+
+// Loan origination fees: 1% at 50% LTV, scaling up to 6% at 100% LTV
+// Fees climb steeply above 90% LTV as lenders charge premium for risky loans
 export const getLoanFeesFromLTV = (ltv: number): number => {
-  const normalizedLTV = (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN);
-  return 1 + normalizedLTV * 3;
+  if (ltv <= 90) {
+    // 1% at 50%, 4% at 90% (linear)
+    const normalizedLTV = (ltv - LTV_MIN) / (90 - LTV_MIN);
+    return 1 + normalizedLTV * 3;
+  } else {
+    // 4% at 90%, 6% at 100% (steeper climb)
+    const dangerNormalized = (ltv - 90) / 10;
+    return 4 + dangerNormalized * 2;
+  }
 };
 
 // Down payment is simply 100 - LTV

@@ -148,7 +148,7 @@ export default function Game() {
     property: Property;
   } | null>(null);
 
-  const STARTING_CASH = 50000;
+  const STARTING_CASH = 75000;
 
   // Income notifications
   const { events: incomeEvents, dismissEvent, addRentalPayment, addFlipProceeds, addCurveballBonus } = useIncomeNotifications();

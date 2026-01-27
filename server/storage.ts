@@ -828,16 +828,36 @@ export class DBStorage implements IStorage {
       "Old City Loft": { price: 518000, rentMin: 4350, rentMax: 5100, arvMin: 600000, arvMax: 690000, rehabMin: 21000, rehabMax: 39000 },
     };
 
+    // First fetch all properties from the database
+    const allProperties = await db.select().from(schema.properties);
+    console.log(`Found ${allProperties.length} properties in database`);
+
     const updatedProperties: string[] = [];
+    const skippedProperties: string[] = [];
 
-    for (const [name, values] of Object.entries(priceUpdates)) {
-      const result = await db
-        .update(schema.properties)
-        .set(values)
-        .where(eq(schema.properties.name, name));
+    // Update each property by ID (more reliable than name matching)
+    for (const prop of allProperties) {
+      const updates = priceUpdates[prop.name];
+      if (updates) {
+        // Check if price actually needs updating
+        if (prop.price !== updates.price) {
+          await db
+            .update(schema.properties)
+            .set(updates)
+            .where(eq(schema.properties.id, prop.id));
+          updatedProperties.push(prop.name);
+          console.log(`Updated ${prop.name}: $${prop.price.toLocaleString()} -> $${updates.price.toLocaleString()}`);
+        } else {
+          console.log(`${prop.name}: already at correct price $${updates.price.toLocaleString()}`);
+        }
+      } else {
+        skippedProperties.push(prop.name);
+        console.log(`Warning: No price update found for property "${prop.name}"`);
+      }
+    }
 
-      updatedProperties.push(name);
-      console.log(`Updated ${name}: $${values.price.toLocaleString()}`);
+    if (skippedProperties.length > 0) {
+      console.log(`Skipped ${skippedProperties.length} properties without price updates: ${skippedProperties.join(', ')}`);
     }
 
     return { updated: updatedProperties.length, properties: updatedProperties };

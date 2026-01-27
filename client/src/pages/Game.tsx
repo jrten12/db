@@ -164,6 +164,14 @@ export default function Game() {
   const [gameError, setGameError] = useState<Error | null>(null);
   const [savedGameInfo, setSavedGameInfo] = useState<ReturnType<typeof getSaveInfo>>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const mainContentRef = useRef<HTMLDivElement | null>(null);
+
+  // Scroll to top when switching to results screen
+  useEffect(() => {
+    if (currentScreen === 'results' && mainContentRef.current) {
+      mainContentRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [currentScreen]);
 
   useEffect(() => {
     try {
@@ -1365,7 +1373,7 @@ export default function Game() {
       </div>
       
       {/* Main content with top padding to account for fixed header + safe area */}
-      <div className="min-h-screen min-h-[100dvh] bg-black/30 pt-40 md:pt-32 overflow-y-auto">
+      <div ref={mainContentRef} className="min-h-screen min-h-[100dvh] bg-black/30 pt-40 md:pt-32 overflow-y-auto">
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">

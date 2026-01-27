@@ -1265,6 +1265,19 @@ export class DBStorage implements IStorage {
       throw new Error('Not enough equity to refinance - no cash out available');
     }
     
+    // Calculate new monthly payment for the refinanced loan
+    const newMonthlyRate = newInterestRate / 100 / 12;
+    const numPayments = 360; // 30-year fixed
+    const newMonthlyPayment = newLoanBalance * (newMonthlyRate * Math.pow(1 + newMonthlyRate, numPayments)) / (Math.pow(1 + newMonthlyRate, numPayments) - 1);
+    
+    // Update proFormaOutputs with new monthly debt service
+    const updatedProFormaOutputs = {
+      ...proFormaOutputs,
+      monthlyDebtService: newMonthlyPayment,
+      debtServiceMonthly: newMonthlyPayment,
+      loanAmount: newLoanBalance,
+    };
+    
     // Update deal with new loan info and reset debt tracking
     // When refinancing, the old loan is paid off and a new one starts
     const [updatedDeal] = await db
@@ -1278,6 +1291,7 @@ export class DBStorage implements IStorage {
         loanTermMonths: 360, // 30-year fixed for refinance
         refinanceCount: (deal.refinanceCount ?? 0) + 1,
         lastRefinanceWeek: currentWeek,
+        proFormaOutputs: updatedProFormaOutputs, // Update stored monthly payment
       })
       .where(eq(schema.deals.id, dealId))
       .returning();

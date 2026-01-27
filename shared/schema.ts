@@ -93,6 +93,7 @@ export const deals = pgTable("deals", {
   lastRefinanceWeek: integer("last_refinance_week"), // Week of last refinance
   totalPrincipalPaid: integer("total_principal_paid").default(0), // Cumulative principal paid
   totalInterestPaid: integer("total_interest_paid").default(0), // Cumulative interest paid
+  recentCurveballIds: jsonb("recent_curveball_ids").$type<string[]>().default([]), // Last 4 curveball IDs to prevent repetition
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
 });

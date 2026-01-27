@@ -12,6 +12,86 @@ export type TenantPersonalityType =
   | 'passive_aggressive'
   | 'chaos_magnet';
 
+// Property class based on monthly rent - affects tenant personality distribution
+export type PropertyClass = 'budget' | 'working' | 'middle' | 'upscale' | 'luxury';
+
+/**
+ * Determine property class from monthly rent
+ * Budget: < $1,800/mo - entry-level, often older properties
+ * Working: $1,800 - $2,500/mo - working class housing
+ * Middle: $2,500 - $4,000/mo - middle class housing  
+ * Upscale: $4,000 - $6,500/mo - upper-middle class
+ * Luxury: $6,500+/mo - premium properties
+ */
+export function getPropertyClass(monthlyRent: number): PropertyClass {
+  if (monthlyRent < 1800) return 'budget';
+  if (monthlyRent < 2500) return 'working';
+  if (monthlyRent < 4000) return 'middle';
+  if (monthlyRent < 6500) return 'upscale';
+  return 'luxury';
+}
+
+// Personality distribution by property class
+// Budget/working = more casual, direct communication
+// Upscale/luxury = more refined but occasionally demanding
+const PERSONALITY_WEIGHTS: Record<PropertyClass, Record<TenantPersonalityType, number>> = {
+  budget: {
+    corporate_brain: 1,
+    retired_micromanager: 2,
+    anxious_professional: 1,
+    new_money: 0,
+    law_curious: 1,
+    lonely_caller: 3,
+    control_seeker: 1,
+    passive_aggressive: 3,
+    chaos_magnet: 4,
+  },
+  working: {
+    corporate_brain: 2,
+    retired_micromanager: 2,
+    anxious_professional: 2,
+    new_money: 0,
+    law_curious: 1,
+    lonely_caller: 2,
+    control_seeker: 2,
+    passive_aggressive: 2,
+    chaos_magnet: 3,
+  },
+  middle: {
+    corporate_brain: 3,
+    retired_micromanager: 2,
+    anxious_professional: 3,
+    new_money: 1,
+    law_curious: 2,
+    lonely_caller: 2,
+    control_seeker: 2,
+    passive_aggressive: 2,
+    chaos_magnet: 1,
+  },
+  upscale: {
+    corporate_brain: 4,
+    retired_micromanager: 2,
+    anxious_professional: 2,
+    new_money: 3,
+    law_curious: 3,
+    lonely_caller: 1,
+    control_seeker: 3,
+    passive_aggressive: 1,
+    chaos_magnet: 0,
+  },
+  luxury: {
+    corporate_brain: 4,
+    retired_micromanager: 1,
+    anxious_professional: 1,
+    new_money: 4,
+    law_curious: 4,
+    lonely_caller: 1,
+    control_seeker: 3,
+    passive_aggressive: 1,
+    chaos_magnet: 0,
+  },
+};
+
 interface PersonalityConfig {
   speechPatterns: string[];
   portraitPrompt: string; // For image generation
@@ -150,7 +230,11 @@ export function generateTenantName(): string {
   return `${firstName} ${lastName}`;
 }
 
-export function getRandomPersonalityType(): TenantPersonalityType {
+/**
+ * Get a random personality type, optionally weighted by property class
+ * If monthlyRent is provided, personality distribution matches tenant demographics
+ */
+export function getRandomPersonalityType(monthlyRent?: number): TenantPersonalityType {
   const types: TenantPersonalityType[] = [
     'corporate_brain',
     'retired_micromanager',
@@ -162,7 +246,31 @@ export function getRandomPersonalityType(): TenantPersonalityType {
     'passive_aggressive',
     'chaos_magnet',
   ];
-  return types[Math.floor(Math.random() * types.length)];
+  
+  // If no rent provided, use equal weights
+  if (monthlyRent === undefined) {
+    return types[Math.floor(Math.random() * types.length)];
+  }
+  
+  // Use property class-based weights
+  const propertyClass = getPropertyClass(monthlyRent);
+  const weights = PERSONALITY_WEIGHTS[propertyClass];
+  
+  // Build weighted array
+  const weightedTypes: TenantPersonalityType[] = [];
+  for (const type of types) {
+    const weight = weights[type] || 0;
+    for (let i = 0; i < weight; i++) {
+      weightedTypes.push(type);
+    }
+  }
+  
+  // If somehow no weighted types (shouldn't happen), fall back to random
+  if (weightedTypes.length === 0) {
+    return types[Math.floor(Math.random() * types.length)];
+  }
+  
+  return weightedTypes[Math.floor(Math.random() * weightedTypes.length)];
 }
 
 export function getSpeechPatterns(personalityType: TenantPersonalityType): string[] {

@@ -946,7 +946,13 @@ export default function Game() {
         const rentalsNeedingTenants = activeRentals.filter(r => !tenantDealIds.has(r.id));
         for (const rental of rentalsNeedingTenants) {
           try {
-            const personalityType = getRandomPersonalityType();
+            // Get monthly rent from pro forma outputs to determine property class
+            // This affects tenant personality distribution (budget=casual, luxury=refined)
+            const proFormaOutputs = rental.proFormaOutputs as any;
+            const monthlyRent = proFormaOutputs?.monthlyGrossRent || proFormaOutputs?.grossRent || undefined;
+            
+            // Personality weighted by property class - budget tenants more casual, luxury more refined
+            const personalityType = getRandomPersonalityType(monthlyRent);
             const name = generateTenantName();
             const speechPatterns = getSpeechPatterns(personalityType);
             

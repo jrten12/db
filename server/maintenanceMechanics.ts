@@ -47,6 +47,23 @@ export function getUnfixedIssues(deal: Deal): string[] {
 }
 
 /**
+ * Tenant message templates by personality type
+ * Messages vary by personality and property class (budget=casual, luxury=refined)
+ */
+export interface TenantMessageTemplates {
+  corporate_brain?: string[];
+  retired_micromanager?: string[];
+  anxious_professional?: string[];
+  new_money?: string[];
+  law_curious?: string[];
+  lonely_caller?: string[];
+  control_seeker?: string[];
+  passive_aggressive?: string[];
+  chaos_magnet?: string[];
+  generic?: string[];  // Fallback for any personality
+}
+
+/**
  * Enhanced maintenance event with dynamic probability
  */
 export interface EnhancedMaintenanceEvent {
@@ -65,14 +82,22 @@ export interface EnhancedMaintenanceEvent {
   excludesHOA?: boolean;
   requiresSeptic?: boolean;
   requiresWell?: boolean;
+  
+  // Location type restrictions
+  requiresUrban?: boolean;
+  requiresSuburban?: boolean;
 
   // Related rehab issues that increase probability
   relatedIssueIds?: string[];
+  
+  // Tenant text message templates (for expense-linked messages)
+  tenantMessages?: TenantMessageTemplates;
 }
 
 /**
  * Enhanced maintenance events with realistic frequencies
  * Base probabilities are WEEKLY, much lower than current system
+ * Includes personality-appropriate tenant messages for each issue
  */
 export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
   // APPLIANCE ISSUES
@@ -86,6 +111,70 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     tenantIssue: true,
     description: 'The dishwasher stopped working and needs replacement.',
     emoji: '🔧',
+    tenantMessages: {
+      corporate_brain: ["dishwasher is EOL. wont power on. can we expedite replacement"],
+      retired_micromanager: ["Dishwasher stopped 2:47 PM. Made 3 clicking sounds then smoke smell. Video recorded."],
+      anxious_professional: ["dishwasher died!! is this an emergency? should i be worried about water damage??"],
+      new_money: ["dishwasher is done. any chance we can get a stainless upgrade that matches the fridge"],
+      chaos_magnet: ["dishwasher EXPLODED. ok not exploded but died mid-cycle. theres water everywhere. classic"],
+      passive_aggressive: ["dishwashers gone. been hand washing for 3 days now. its fine. builds character"],
+      lonely_caller: ["hey! dishwasher stopped working. not urgent! just wanted to let u know. how r u doing?"],
+      generic: ["hey dishwasher stopped working completely. wont turn on. need someone to look at it"],
+    },
+  },
+  {
+    id: 'refrigerator_issue',
+    name: 'Refrigerator Problem',
+    category: 'appliance',
+    baseProbability: 0.8,
+    costMin: 300,
+    costMax: 900,
+    tenantIssue: true,
+    description: 'The refrigerator is making strange noises and not cooling properly.',
+    emoji: '🧊',
+    tenantMessages: {
+      corporate_brain: ["fridge temp unstable. reading 48 degrees when set to 37. food safety concern"],
+      chaos_magnet: ["fridge is making a sound like a dying whale. also my milk is warm. great"],
+      anxious_professional: ["is the fridge supposed to be this warm inside?? my yogurts feel weird"],
+      new_money: ["fridge situation not ideal. had to throw out some expensive groceries"],
+      passive_aggressive: ["fridge seems to be on vacation. eating out more. its fine. love takeout"],
+      generic: ["hey fridge isnt cooling right. making weird noises. foods getting warm"],
+    },
+  },
+  {
+    id: 'stove_oven_repair',
+    name: 'Stove/Oven Repair',
+    category: 'appliance',
+    baseProbability: 0.6,
+    costMin: 200,
+    costMax: 600,
+    tenantIssue: true,
+    description: 'One of the stove burners or the oven element stopped working.',
+    emoji: '🍳',
+    tenantMessages: {
+      retired_micromanager: ["Back burner stopped at 5:32 PM. Front left still works. Others fine. Documenting."],
+      chaos_magnet: ["stove burner just died. while i was cooking. of course. thankfully nothing caught fire"],
+      lonely_caller: ["hey! back burner isnt working. no rush! just cooking more in the front now haha. hi!"],
+      generic: ["hey one of the stove burners stopped working. can someone come look at it"],
+    },
+  },
+  {
+    id: 'washer_dryer_issue',
+    name: 'Washer/Dryer Problem',
+    category: 'appliance',
+    baseProbability: 0.7,
+    costMin: 250,
+    costMax: 700,
+    tenantIssue: true,
+    description: 'The washer or dryer is malfunctioning.',
+    emoji: '👕',
+    tenantMessages: {
+      corporate_brain: ["dryer taking 3 cycles to dry. inefficiency concern. also lint trap is clear"],
+      chaos_magnet: ["washer is possessed. makes horrible banging noise. clothes came out MORE dirty??"],
+      passive_aggressive: ["dryers been taking 2 hours per load. getting lots of reading done waiting. its fine"],
+      new_money: ["washer situation untenable. been going to laundromat. not ideal for my schedule"],
+      generic: ["hey washer is acting up. not spinning right and clothes still soaking wet"],
+    },
   },
 
   // HVAC ISSUES
@@ -100,6 +189,16 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     description: 'The AC unit needs freon recharge and minor repairs.',
     emoji: '🌡️',
     relatedIssueIds: ['outdated_hvac', 'hvac_commercial', 'hvac_high_rise', 'hvac_replacement', 'dual_hvac'],
+    tenantMessages: {
+      corporate_brain: ["ac outputting warm air. home office at 84 degrees. productivity significantly impacted"],
+      retired_micromanager: ["AC cycling every 3 min instead of 12. Temp up 8 degrees since Tuesday. Hourly readings attached."],
+      anxious_professional: ["ac isnt working and its getting really hot?? is this a freon leak? are those dangerous??"],
+      new_money: ["ac situation is untenable. 82 degrees in here. can we fast track an hvac tech today"],
+      chaos_magnet: ["ac blowing HOT AIR. in the SUMMER. im literally melting. this place hates me"],
+      passive_aggressive: ["ac seems to be on vacation! been using a hand fan. very retro. no rush"],
+      law_curious: ["documenting ac failure. affects habitability. whats the typical response timeline here"],
+      generic: ["hey ac stopped cooling. running but blowing warm air. can someone come look at it"],
+    },
   },
   {
     id: 'hvac_major_repair',
@@ -112,6 +211,30 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     description: 'The HVAC system has a major component failure requiring significant repair.',
     emoji: '❄️',
     relatedIssueIds: ['outdated_hvac', 'hvac_commercial', 'hvac_high_rise', 'hvac_replacement'],
+    tenantMessages: {
+      corporate_brain: ["hvac completely down. major component failure. this is a p0 - habitability at stake"],
+      new_money: ["hvac is dead. staying at a hotel tonight. need this resolved asap"],
+      law_curious: ["documenting complete hvac failure. tenant rights re habitability are clear. timeline"],
+      generic: ["hey hvac system completely dead. no heat/cooling at all. need emergency service"],
+    },
+  },
+  {
+    id: 'furnace_issue',
+    name: 'Furnace Problem',
+    category: 'hvac',
+    baseProbability: 0.5,
+    costMin: 400,
+    costMax: 1200,
+    tenantIssue: true,
+    description: 'The furnace is not heating properly or making concerning noises.',
+    emoji: '🔥',
+    relatedIssueIds: ['outdated_hvac', 'hvac_replacement'],
+    tenantMessages: {
+      anxious_professional: ["furnace is making a weird clicking sound?? is that normal or should i be worried about like. explosions"],
+      retired_micromanager: ["Furnace cycling on/off every 4 minutes. Recorded 23 cycles today. Filter changed 2 weeks ago."],
+      chaos_magnet: ["furnace making scary sounds. like mechanical screaming. also its cold in here now"],
+      generic: ["hey furnace isnt heating right. making weird noises. getting cold in here"],
+    },
   },
 
   // PLUMBING ISSUES
@@ -126,6 +249,15 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     description: 'There\'s a small leak under the kitchen sink that needs repair.',
     emoji: '🚰',
     relatedIssueIds: ['plumbing_galvanized', 'plumbing_stack', 'plumbing_replacement'],
+    tenantMessages: {
+      corporate_brain: ["leak under kitchen sink. bucket deployed. lmk when u have bandwidth to address"],
+      retired_micromanager: ["Leak under sink found 3:22 PM. Dripping every 4 sec. ~2 cups per hour. Photos ready."],
+      anxious_professional: ["theres water under the kitchen sink!! is this mold level serious or just annoying level serious??"],
+      chaos_magnet: ["mysterious puddle under the sink. somethings leaking. not dramatic YET but give it time"],
+      passive_aggressive: ["been emptying a bucket every few hours for the leak. kinda meditative actually. whenever ur free"],
+      lonely_caller: ["hey! found a small leak under the sink. not urgent! just wanted to check in. how r u?"],
+      generic: ["hey theres a leak under the kitchen sink. not major but pooling. plumber needed?"],
+    },
   },
   {
     id: 'drain_clog',
@@ -137,6 +269,30 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     tenantIssue: true,
     description: 'The bathroom drain is running really slow and needs attention.',
     emoji: '🧰',
+    tenantMessages: {
+      retired_micromanager: ["Bathroom drain timing: 4 min 23 sec to empty vs normal 45 sec. Tried plunger 6 times."],
+      chaos_magnet: ["shower turned into a foot bath. drain so slow im standing in 4 inches of water by the end"],
+      passive_aggressive: ["drains running slow. been taking faster showers. good for the environment i guess"],
+      generic: ["hey bathroom drain is running really slow. tried plunger but no luck. plumber"],
+    },
+  },
+  {
+    id: 'toilet_issue',
+    name: 'Toilet Problem',
+    category: 'plumbing',
+    baseProbability: 0.9,
+    costMin: 150,
+    costMax: 400,
+    tenantIssue: true,
+    description: 'The toilet is running constantly or having flushing issues.',
+    emoji: '🚽',
+    tenantMessages: {
+      retired_micromanager: ["Toilet running continuously since 6:15 AM. Tried jiggling handle. Water bill concern."],
+      anxious_professional: ["toilet wont stop running?? is this using a lot of water?? is my bill gonna be insane??"],
+      chaos_magnet: ["toilet situation. its running. constantly. like its training for a marathon. help"],
+      passive_aggressive: ["toilets been running for days. very relaxing white noise actually. whenever u have time"],
+      generic: ["hey toilet keeps running after flushing. wasting water. can someone look at it"],
+    },
   },
   {
     id: 'water_heater_failure',
@@ -148,6 +304,15 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     tenantIssue: true,
     description: 'The water heater gave out and needs emergency replacement.',
     emoji: '💧',
+    tenantMessages: {
+      corporate_brain: ["no hot water. water heater failure. habitability blocker. eta on resolution"],
+      retired_micromanager: ["No hot water. Waited 47 min. Pilot light out wont relight. Tank cold to touch."],
+      anxious_professional: ["theres no hot water and im freaking out. is the water heater supposed to hiss?? explosion risk??"],
+      new_money: ["no hot water is a nonstarter. need this fixed today. cold showers literally not happening"],
+      chaos_magnet: ["water heater died. of course it did. was mid shower when it went ice cold. INSTANT"],
+      law_curious: ["documenting we have no hot water. habitability standards apply. whats the timeline here"],
+      generic: ["hey no hot water at all. think water heater broke. kinda urgent - can someone come today?"],
+    },
   },
   {
     id: 'plumbing_major',
@@ -323,6 +488,50 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     description: 'There\'s a pest issue that needs professional treatment.',
     emoji: '🐜',
     relatedIssueIds: ['termite_damage'],
+    tenantMessages: {
+      anxious_professional: ["saw some bugs in the kitchen?? are they dangerous?? should i be worried??"],
+      chaos_magnet: ["theres an ant army in my kitchen. theyre organized. theyre coming for my snacks"],
+      passive_aggressive: ["noticed some new roommates. tiny. many legs. very social. whenever u have time"],
+      generic: ["hey seeing some bugs around the kitchen. can we get pest control out here"],
+    },
+  },
+  {
+    id: 'mouse_problem',
+    name: 'Mouse Infestation',
+    category: 'pest',
+    baseProbability: 0.4,
+    costMin: 250,
+    costMax: 600,
+    tenantIssue: true,
+    description: 'There are signs of mice in the property.',
+    emoji: '🐭',
+    requiresSuburban: true,
+    tenantMessages: {
+      anxious_professional: ["heard scratching in the wall last night. probably just settling right?? RIGHT?? ok i saw a mouse"],
+      chaos_magnet: ["somethings living in my walls. heard it sneeze. DO MICE SNEEZE. saw one run across kitchen at 2am"],
+      retired_micromanager: ["Spotted mouse 3 times. Kitchen once, pantry twice. Set 4 traps. Theyre avoiding them. Exterminator needed."],
+      passive_aggressive: ["noticed some new roommates! small with tails. leaving little presents in the pantry"],
+      generic: ["hey saw a mouse in the kitchen. actually a few times now. exterminator"],
+    },
+  },
+  {
+    id: 'cockroach_issue',
+    name: 'Cockroach Problem',
+    category: 'pest',
+    baseProbability: 0.5,
+    costMin: 200,
+    costMax: 500,
+    tenantIssue: true,
+    description: 'Cockroaches have been spotted in the unit.',
+    emoji: '🪳',
+    requiresUrban: true,
+    tenantMessages: {
+      new_money: ["saw a roach. this is unacceptable. need pest control immediately"],
+      chaos_magnet: ["ROACH. saw a roach. it was HUGE. it looked at me. we made eye contact. help"],
+      law_curious: ["documenting cockroach sighting. this is a habitability issue. whats the timeline for treatment"],
+      passive_aggressive: ["saw our little friend again last night. hes getting comfortable. whenever u have time"],
+      generic: ["hey saw some roaches. can we get pest control scheduled"],
+    },
   },
   {
     id: 'termite_activity',
@@ -337,6 +546,162 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     relatedIssueIds: ['termite_damage'],
   },
 
+  // URBAN-SPECIFIC ISSUES
+  {
+    id: 'parking_issue',
+    name: 'Parking Problem',
+    category: 'hoa',
+    baseProbability: 0.5,
+    costMin: 150,
+    costMax: 400,
+    tenantIssue: true,
+    description: 'Parking situation changed requiring additional payment.',
+    emoji: '🅿️',
+    requiresUrban: true,
+    tenantMessages: {
+      control_seeker: ["parking situation changed. my spot was reassigned. need this resolved"],
+      new_money: ["parking is becoming impossible. had to pay for street parking twice this week"],
+      law_curious: ["parking was included in my lease. changes need to be documented"],
+      generic: ["hey parking situation changed. had to pay extra this week"],
+    },
+  },
+  {
+    id: 'noise_complaint_received',
+    name: 'Noise Complaint',
+    category: 'hoa',
+    baseProbability: 0.3,
+    costMin: 100,
+    costMax: 300,
+    tenantIssue: true,
+    description: 'Received a noise complaint from neighbors.',
+    emoji: '🔊',
+    requiresUrban: true,
+    tenantMessages: {
+      passive_aggressive: ["got a noise complaint. was playing music at 7pm on a saturday. sorry i guess"],
+      chaos_magnet: ["neighbor complained about noise. i was watching tv. at normal volume. at 8pm. this building"],
+      control_seeker: ["received noise complaint. it was unfounded. i have documentation of my activities that evening"],
+      generic: ["hey got a noise complaint from downstairs. trying to be quieter"],
+    },
+  },
+  {
+    id: 'package_theft',
+    name: 'Package Security Issue',
+    category: 'hoa',
+    baseProbability: 0.4,
+    costMin: 100,
+    costMax: 250,
+    tenantIssue: true,
+    description: 'Tenant\'s package was stolen from the building entrance.',
+    emoji: '📦',
+    requiresUrban: true,
+    tenantMessages: {
+      new_money: ["my package was stolen from the lobby. this building needs better security"],
+      law_curious: ["package stolen. building security is a landlord responsibility. documenting for records"],
+      chaos_magnet: ["package stolen. of course. it was my birthday present. to myself. from me. gone"],
+      generic: ["hey my package got stolen from out front. any way to improve security"],
+    },
+  },
+  {
+    id: 'building_entry_issue',
+    name: 'Building Access Problem',
+    category: 'hoa',
+    baseProbability: 0.3,
+    costMin: 150,
+    costMax: 400,
+    tenantIssue: true,
+    description: 'Building entry system or intercom not working properly.',
+    emoji: '🚪',
+    requiresUrban: true,
+    requiresHOA: true,
+    tenantMessages: {
+      control_seeker: ["building entry system is malfunctioning. security concern. need immediate fix"],
+      anxious_professional: ["buzzer not working?? i cant let people in. is this a security risk??"],
+      generic: ["hey the building intercom isnt working. cant buzz anyone in"],
+    },
+  },
+
+  // SUBURBAN-SPECIFIC ISSUES
+  {
+    id: 'driveway_repair',
+    name: 'Driveway Repair',
+    category: 'landscaping',
+    baseProbability: 0.3,
+    costMin: 400,
+    costMax: 1200,
+    tenantIssue: false,
+    description: 'Driveway has cracks or damage that needs repair.',
+    emoji: '🛣️',
+    requiresSuburban: true,
+    excludesHOA: true,
+  },
+  {
+    id: 'fence_repair',
+    name: 'Fence Repair',
+    category: 'landscaping',
+    baseProbability: 0.4,
+    costMin: 300,
+    costMax: 800,
+    tenantIssue: false,
+    description: 'Section of fence is damaged or leaning.',
+    emoji: '🏗️',
+    requiresSuburban: true,
+    excludesHOA: true,
+    tenantMessages: {
+      retired_micromanager: ["Fence panel leaning 15 degrees since Tuesday. Neighbor dog keeps visiting. Photos attached."],
+      lonely_caller: ["hey! fence fell over a bit. not urgent! kinda like the neighbor dog visits now haha"],
+      generic: ["hey part of the fence is falling over. needs repair"],
+    },
+  },
+  {
+    id: 'gutter_cleaning',
+    name: 'Gutter Maintenance',
+    category: 'landscaping',
+    baseProbability: 0.5,
+    costMin: 150,
+    costMax: 350,
+    tenantIssue: false,
+    description: 'Gutters are clogged and overflowing.',
+    emoji: '🍂',
+    requiresSuburban: true,
+    excludesHOA: true,
+  },
+  {
+    id: 'lawn_care_dispute',
+    name: 'Lawn Care Issue',
+    category: 'landscaping',
+    baseProbability: 0.4,
+    costMin: 150,
+    costMax: 400,
+    tenantIssue: true,
+    description: 'HOA or neighbor complaint about lawn condition.',
+    emoji: '🌱',
+    requiresSuburban: true,
+    excludesHOA: true,
+    tenantMessages: {
+      passive_aggressive: ["got a note from the neighbor about the lawn. very polite. very pointed. fun times"],
+      chaos_magnet: ["neighbor complained about the lawn. its been one week since i couldnt mow bc of rain. ONE WEEK"],
+      generic: ["hey got a complaint about the lawn. when can someone come do yard work"],
+    },
+  },
+  {
+    id: 'wildlife_issue',
+    name: 'Wildlife Encounter',
+    category: 'pest',
+    baseProbability: 0.3,
+    costMin: 200,
+    costMax: 500,
+    tenantIssue: true,
+    description: 'Wildlife (raccoons, possums, etc.) causing problems.',
+    emoji: '🦝',
+    requiresSuburban: true,
+    tenantMessages: {
+      chaos_magnet: ["theres a raccoon family living under the porch. they have a whole society. i think theyre organized"],
+      anxious_professional: ["is that raccoon dangerous?? its just staring at me when i leave for work"],
+      lonely_caller: ["hey! theres a possum visiting every night. hes kinda cute actually. but maybe not ideal?"],
+      generic: ["hey wildlife issue - animals getting into the garbage and under the porch"],
+    },
+  },
+
   // MISCELLANEOUS
   {
     id: 'key_replacement',
@@ -348,6 +713,30 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     tenantIssue: true,
     description: 'The tenant misplaced their keys and needs a lock rekey for safety.',
     emoji: '🗝️',
+    tenantMessages: {
+      anxious_professional: ["im so sorry i lost my keys. i never do this. im usually so organized. im so sorry"],
+      chaos_magnet: ["lost my keys. again. i know. i dont understand it either. they just vanish"],
+      passive_aggressive: ["keys gone. not sure where. probably somewhere obvious. could we rekey just in case"],
+      generic: ["hey lost my keys somewhere. can we get the locks rekeyed for safety"],
+    },
+  },
+  {
+    id: 'smoke_detector',
+    name: 'Smoke Detector Issue',
+    category: 'electrical',
+    baseProbability: 0.4,
+    costMin: 50,
+    costMax: 150,
+    tenantIssue: true,
+    description: 'Smoke detector is chirping or not working.',
+    emoji: '🔔',
+    tenantMessages: {
+      retired_micromanager: ["Smoke detector chirping since 3:15 AM. Replaced battery twice. Still chirping every 47 seconds."],
+      chaos_magnet: ["smoke detector has been chirping for 3 days. replaced the battery. its still chirping. at 3am. every night"],
+      anxious_professional: ["smoke detector keeps beeping?? is something wrong?? is there a fire i dont know about??"],
+      passive_aggressive: ["smoke detectors been chirping. nice alarm clock replacement. very consistent. 3am every night"],
+      generic: ["hey smoke detector keeps chirping even after new batteries. can someone look at it"],
+    },
   },
   {
     id: 'routine_maintenance',
@@ -359,6 +748,12 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     tenantIssue: true,
     description: 'Routine maintenance needed - filter changes, caulking, minor touch-ups.',
     emoji: '✅',
+    tenantMessages: {
+      corporate_brain: ["few minor items to flag: caulking in bathroom, filter needs change, weatherstrip on door"],
+      retired_micromanager: ["Maintenance list: 1. HVAC filter (90 days old). 2. Bathroom caulk peeling. 3. Door weatherstrip gap."],
+      lonely_caller: ["hey! just some small stuff. filter, caulking. nothing urgent! just wanted to say hi really haha"],
+      generic: ["hey few maintenance items - filter change, some caulking, minor stuff. nothing urgent"],
+    },
   },
 ];
 
@@ -381,15 +776,22 @@ export function getAdjustedProbability(
 
   if (event.requiresHOA && !isHOA) return 0;
   if (event.excludesHOA && isHOA) return 0;
+  
+  // 3. Check location type restrictions (urban vs suburban specific issues)
+  const isUrban = property.locationType === 'urban';
+  const isSuburban = property.locationType === 'suburban';
+  
+  if (event.requiresUrban && !isUrban) return 0;
+  if (event.requiresSuburban && !isSuburban) return 0;
 
   // Check for septic/well (suburban lower-priced properties)
-  const hasSeptic = property.locationType === 'suburban' && property.price < 250000;
-  const hasWell = property.locationType === 'suburban' && property.price < 200000;
+  const hasSeptic = isSuburban && property.price < 250000;
+  const hasWell = isSuburban && property.price < 200000;
 
   if (event.requiresSeptic && !hasSeptic) return 0;
   if (event.requiresWell && !hasWell) return 0;
 
-  // 3. Check for unfixed rehab issues
+  // 4. Check for unfixed rehab issues
   const unfixedIssues = getUnfixedIssues(deal);
 
   if (event.relatedIssueIds && event.relatedIssueIds.length > 0) {
@@ -408,17 +810,25 @@ export function getAdjustedProbability(
 
 /**
  * Roll for a maintenance event using enhanced mechanics
+ * Excludes recently-triggered events to prevent repetition
  */
 export function rollForEnhancedMaintenance(
   property: Property,
-  deal: Deal
+  deal: Deal,
+  excludeIds?: string[]
 ): any | null {
-  const applicableEvents = ENHANCED_MAINTENANCE_EVENTS
+  // Filter out recently-triggered events to prevent repetition
+  let applicableEvents = ENHANCED_MAINTENANCE_EVENTS
     .map(event => ({
       ...event,
       adjustedProbability: getAdjustedProbability(event, property, deal),
     }))
     .filter(event => event.adjustedProbability > 0);
+  
+  // Exclude recent curveballs to prevent repetition (e.g., same dishwasher breaking every week)
+  if (excludeIds && excludeIds.length > 0) {
+    applicableEvents = applicableEvents.filter(event => !excludeIds.includes(event.id));
+  }
 
   // Roll for each event independently
   for (const event of applicableEvents) {
@@ -444,4 +854,17 @@ export function rollForEnhancedMaintenance(
   }
 
   return null;
+}
+
+/**
+ * Update a deal's recent curveball history (keeps last 4 IDs)
+ */
+export function updateRecentCurveballIds(
+  currentIds: string[] | null | undefined,
+  newId: string
+): string[] {
+  const ids = currentIds || [];
+  const updated = [...ids, newId];
+  // Keep only the last 4 curveballs to prevent repeats while allowing variety
+  return updated.slice(-4);
 }

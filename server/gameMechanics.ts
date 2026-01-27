@@ -132,7 +132,7 @@ export function calculateWeeklyPrincipalPayment(
   };
 }
 
-import { rollForEnhancedMaintenance } from './maintenanceMechanics';
+import { rollForEnhancedMaintenance, updateRecentCurveballIds } from './maintenanceMechanics';
 
 /**
  * Title Issue Types that can occur when skipping title search
@@ -944,17 +944,24 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         // Get property for enhanced maintenance mechanics
         const property = await storage.getProperty(deal.propertyId);
 
+        // Get recent curveball IDs to prevent repetition (e.g., same dishwasher breaking weekly)
+        const recentCurveballIds = (deal.recentCurveballIds as string[] | null) || [];
+
         // Roll for maintenance events using enhanced mechanics
-        // This considers property quality, type, and unfixed rehab issues
+        // This considers property quality, type, unfixed rehab issues, and excludes recent events
         const curveball = property
-          ? rollForEnhancedMaintenance(property, deal)
-          : rollForCurveball('rental_monthly'); // Fallback to old system if property not found
+          ? rollForEnhancedMaintenance(property, deal, recentCurveballIds)
+          : rollForCurveball('rental_monthly', undefined, recentCurveballIds); // Fallback to old system if property not found
 
         const result = await processRentalIncome(deal, gameRun, curveball);
         rentalPayments.push(result);
 
         if (curveball) {
           curveballs.push(curveball);
+          
+          // Update deal's recent curveball history to prevent same issue repeating
+          const updatedRecentIds = updateRecentCurveballIds(recentCurveballIds, curveball.id);
+          await storage.updateDeal(deal.id, { recentCurveballIds: updatedRecentIds });
         }
       }
     }

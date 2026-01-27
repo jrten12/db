@@ -303,8 +303,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const allInBasis = property.price + closingCosts + n(inputs.rehabBudget) * (1 + n(inputs.contingencyPct) / 100);
   
   const liveOutputs = useMemo(() => {
-    return calculateProForma(inputs, property);
-  }, [inputs, property]);
+    return calculateProForma(inputs, property, playerFinancials);
+  }, [inputs, property, playerFinancials]);
 
   const tenantPaysUtilitiesVacancyPenalty = inputs.utilities ? 0 : 1.92;
   const effectiveVacancyRate = n(inputs.vacancyRate) + tenantPaysUtilitiesVacancyPenalty;
@@ -740,9 +740,47 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
                   <span>50%</span>
                   <span className={inputs.ltv > 90 ? 'text-red-400 font-semibold' : 'text-cyan-300'}>
-                    {inputs.ltv > 90 ? '⚠️ DANGER ZONE - Rates climb fast!' : 'More leverage = higher risk'}
+                    {inputs.ltv > 90 ? 'DANGER ZONE - Rates climb fast!' : 'More leverage = higher risk'}
                   </span>
                   <span className={inputs.ltv > 90 ? 'text-red-400' : ''}>100%</span>
+                </div>
+                
+                {/* Dynamic Interest Rate Display - shows rate based on LTV + player financial position */}
+                <div className={`mt-3 p-3 rounded-lg border ${
+                  derivedInterestRate > 12 ? 'bg-red-900/30 border-red-500/40' :
+                  derivedInterestRate > 8 ? 'bg-amber-900/20 border-amber-500/30' :
+                  'bg-slate-700/50 border-slate-600/30'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Percent className={`w-4 h-4 ${
+                        derivedInterestRate > 12 ? 'text-red-400' :
+                        derivedInterestRate > 8 ? 'text-amber-400' :
+                        'text-cyan-400'
+                      }`} />
+                      <span className="text-sm text-gray-300">Bank Rate</span>
+                    </div>
+                    <span className={`text-xl font-mono font-bold ${
+                      derivedInterestRate > 12 ? 'text-red-400' :
+                      derivedInterestRate > 8 ? 'text-amber-400' :
+                      'text-green-400'
+                    }`} data-testid="text-interest-rate">
+                      {derivedInterestRate.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {derivedInterestRate > 12 
+                      ? 'Extreme risk! Banks charging premium rates.'
+                      : derivedInterestRate > 8
+                      ? 'High leverage = higher rates from lenders.'
+                      : playerFinancials && playerFinancials.totalMonthlyIncome > 0
+                      ? 'Good financial position helps your rate.'
+                      : 'Based on your LTV and financial position.'}
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                    <span>Down: {derivedDownPaymentPct.toFixed(0)}%</span>
+                    <span>Loan Fees: {derivedLoanFeesPct.toFixed(1)}%</span>
+                  </div>
                 </div>
               </div>
               

@@ -620,9 +620,9 @@ export default function Game() {
   const handleInputsChange = useCallback((inputs: ProFormaInputs) => {
     setProFormaInputs(inputs);
     if (isProFormaComplete && selectedProperty) {
-      setProFormaOutputs(calculateProForma(inputs, selectedProperty));
+      setProFormaOutputs(calculateProForma(inputs, selectedProperty, playerFinancials));
     }
-  }, [isProFormaComplete, selectedProperty]);
+  }, [isProFormaComplete, selectedProperty, playerFinancials]);
 
   const handleFieldTouch = useCallback((fieldKey: keyof ProFormaInputs) => {
     setTouchedFields(prev => {
@@ -634,7 +634,7 @@ export default function Game() {
 
   const handleCalculate = useCallback(() => {
     if (selectedProperty) {
-      const outputs = calculateProForma(proFormaInputs, selectedProperty);
+      const outputs = calculateProForma(proFormaInputs, selectedProperty, playerFinancials);
       setProFormaOutputs(outputs);
       setIsProFormaComplete(true);
       setProFormaCompletions(prev => ({
@@ -644,7 +644,7 @@ export default function Game() {
       completeAction('lock_proforma');
       toast.success('Pro forma calculated!');
     }
-  }, [proFormaInputs, selectedProperty, completeAction]);
+  }, [proFormaInputs, selectedProperty, playerFinancials, completeAction]);
 
   const [isCommittingDeal, setIsCommittingDeal] = useState(false);
   const [isAdvancingWeek, setIsAdvancingWeek] = useState(false);

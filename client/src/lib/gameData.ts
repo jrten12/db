@@ -265,7 +265,8 @@ export const getMissingFields = (inputs: ProFormaInputs): string[] => {
 
 export const calculateProForma = (
   inputs: ProFormaInputs,
-  property: Property
+  property: Property,
+  playerFinancials?: PlayerFinancials
 ): ProFormaOutputs => {
   // Use 0 for null values during calculation (validation should prevent incomplete submissions)
   const expectedRent = inputs.expectedRent ?? 0;
@@ -283,10 +284,13 @@ export const calculateProForma = (
   const contingencyPct = inputs.contingencyPct ?? 0;
   const rehabWeeks = inputs.rehabWeeks ?? 4;
   
-  // Derive financing terms from LTV
+  // Derive financing terms from LTV, with player-state-aware interest rate when available
   const ltv = inputs.ltv;
   const downPaymentPct = getDownPaymentFromLTV(ltv);
-  const interestRate = getInterestRateFromLTV(ltv);
+  // Use player-state-aware interest rate if financials provided, otherwise base LTV rate
+  const interestRate = playerFinancials 
+    ? getInterestRateWithPlayerState(ltv, playerFinancials)
+    : getInterestRateFromLTV(ltv);
   const loanOriginationPct = getLoanFeesFromLTV(ltv);
 
   // For flips with financeRehab enabled, include rehab in the loan (acquisition + construction loan)

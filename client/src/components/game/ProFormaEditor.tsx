@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { X, HelpCircle, TrendingUp, DollarSign, Percent, Home, AlertTriangle, CheckCircle, Lock } from 'lucide-react';
-import { ProFormaInputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getLoanFeesFromLTV, getDownPaymentFromLTV } from '@/lib/gameData';
+import { ProFormaInputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PlayerFinancials } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { Property } from '@shared/schema';
@@ -274,9 +274,10 @@ interface ProFormaEditorProps {
   onInputsChange: (inputs: ProFormaInputs) => void;
   completedDiligence?: string[];
   onFieldTouch?: (fieldKey: keyof ProFormaInputs) => void;
+  playerFinancials?: PlayerFinancials;
 }
 
-export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChange, completedDiligence = [], onFieldTouch }: ProFormaEditorProps) {
+export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChange, completedDiligence = [], onFieldTouch, playerFinancials }: ProFormaEditorProps) {
   if (!isOpen) return null;
 
   const effectiveRanges = useMemo(() => getEffectiveRanges(
@@ -302,8 +303,8 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
   };
 
   const liveOutputs = useMemo(() => {
-    return calculateProForma(inputs, property);
-  }, [inputs, property]);
+    return calculateProForma(inputs, property, playerFinancials);
+  }, [inputs, property, playerFinancials]);
 
   const hasMarketStudy = completedDiligence.includes('market_study');
   const hasAppraisal = completedDiligence.includes('appraisal');

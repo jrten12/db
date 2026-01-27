@@ -793,6 +793,56 @@ export class DBStorage implements IStorage {
     }
   }
 
+  // Update all property prices to the new balanced economy values
+  async refreshPropertyPrices(): Promise<{ updated: number; properties: string[] }> {
+    const priceUpdates: Record<string, {
+      price: number;
+      rentMin: number;
+      rentMax: number;
+      arvMin: number;
+      arvMax: number;
+      rehabMin: number;
+      rehabMax: number;
+    }> = {
+      "Oakwood Cottage": { price: 218000, rentMin: 1950, rentMax: 2400, arvMin: 240000, arvMax: 270000, rehabMin: 7000, rehabMax: 17000 },
+      "Riverside Ranch": { price: 293000, rentMin: 2550, rentMax: 3000, arvMin: 360000, arvMax: 420000, rehabMin: 49000, rehabMax: 77000 },
+      "Maplewood Colonial": { price: 278000, rentMin: 2100, rentMax: 2700, arvMin: 330000, arvMax: 390000, rehabMin: 42000, rehabMax: 77000 },
+      "Downtown Loft": { price: 330000, rentMin: 3300, rentMax: 3900, arvMin: 375000, arvMax: 435000, rehabMin: 11000, rehabMax: 21000 },
+      "Elmwood Bungalow": { price: 188000, rentMin: 1800, rentMax: 2250, arvMin: 270000, arvMax: 315000, rehabMin: 63000, rehabMax: 119000 },
+      "Hillside Retreat": { price: 248000, rentMin: 2250, rentMax: 2700, arvMin: 300000, arvMax: 353000, rehabMin: 35000, rehabMax: 63000 },
+      "Westside Manor": { price: 413000, rentMin: 3600, rentMax: 4200, arvMin: 480000, arvMax: 540000, rehabMin: 56000, rehabMax: 91000 },
+      "South Street Twin": { price: 248000, rentMin: 2175, rentMax: 2625, arvMin: 300000, arvMax: 345000, rehabMin: 28000, rehabMax: 49000 },
+      "Fishtown Row House": { price: 293000, rentMin: 2700, rentMax: 3150, arvMin: 368000, arvMax: 420000, rehabMin: 21000, rehabMax: 39000 },
+      "Port Richmond Duplex": { price: 353000, rentMin: 3600, rentMax: 4200, arvMin: 420000, arvMax: 480000, rehabMin: 42000, rehabMax: 70000 },
+      "Kensington Row": { price: 218000, rentMin: 2025, rentMax: 2475, arvMin: 293000, arvMax: 338000, rehabMin: 49000, rehabMax: 84000 },
+      "Northern Liberties Loft": { price: 428000, rentMin: 3750, rentMax: 4350, arvMin: 495000, arvMax: 555000, rehabMin: 14000, rehabMax: 28000 },
+      "Hudson Valley Farmhouse": { price: 728000, rentMin: 5700, rentMax: 6750, arvMin: 870000, arvMax: 990000, rehabMin: 35000, rehabMax: 63000 },
+      "Skyline Penthouse": { price: 938000, rentMin: 8250, rentMax: 9750, arvMin: 1080000, arvMax: 1230000, rehabMin: 21000, rehabMax: 42000 },
+      "Chestnut Hill Victorian": { price: 818000, rentMin: 6300, rentMax: 7500, arvMin: 975000, arvMax: 1125000, rehabMin: 77000, rehabMax: 133000 },
+      "Lakefront Estate": { price: 1088000, rentMin: 8700, rentMax: 10500, arvMin: 1275000, arvMax: 1470000, rehabMin: 28000, rehabMax: 56000 },
+      "Graduate Hospital Brownstone": { price: 428000, rentMin: 3900, rentMax: 4500, arvMin: 510000, arvMax: 585000, rehabMin: 31000, rehabMax: 53000 },
+      "Rittenhouse Square Condo": { price: 593000, rentMin: 4800, rentMax: 5700, arvMin: 675000, arvMax: 780000, rehabMin: 17000, rehabMax: 35000 },
+      "Queen Village Rowhouse": { price: 338000, rentMin: 3150, rentMax: 3750, arvMin: 413000, arvMax: 473000, rehabMin: 39000, rehabMax: 67000 },
+      "Society Hill Colonial": { price: 713000, rentMin: 5700, rentMax: 6600, arvMin: 840000, arvMax: 960000, rehabMin: 49000, rehabMax: 77000 },
+      "Fairmount Rowhome": { price: 293000, rentMin: 2625, rentMax: 3150, arvMin: 360000, arvMax: 420000, rehabMin: 45000, rehabMax: 73000 },
+      "Old City Loft": { price: 518000, rentMin: 4350, rentMax: 5100, arvMin: 600000, arvMax: 690000, rehabMin: 21000, rehabMax: 39000 },
+    };
+
+    const updatedProperties: string[] = [];
+
+    for (const [name, values] of Object.entries(priceUpdates)) {
+      const result = await db
+        .update(schema.properties)
+        .set(values)
+        .where(eq(schema.properties.name, name));
+
+      updatedProperties.push(name);
+      console.log(`Updated ${name}: $${values.price.toLocaleString()}`);
+    }
+
+    return { updated: updatedProperties.length, properties: updatedProperties };
+  }
+
   // Deal methods
   async createDeal(deal: InsertDeal): Promise<Deal> {
     const [newDeal] = await db

@@ -151,6 +151,10 @@ export async function registerRoutes(
   // Update location types for existing properties (fixes production data)
   await storage.updatePropertyLocationTypes();
 
+  // Refresh property prices to new balanced economy values
+  await storage.refreshPropertyPrices();
+  console.log("Property prices refreshed to new balanced economy values");
+
   // Get all properties
   app.get("/api/properties", async (req, res) => {
     try {
@@ -159,6 +163,17 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error fetching properties:", error);
       res.status(500).json({ error: "Failed to fetch properties" });
+    }
+  });
+
+  // Admin: Manually refresh property prices (for debugging)
+  app.post("/api/admin/refresh-prices", async (req, res) => {
+    try {
+      const result = await storage.refreshPropertyPrices();
+      res.json({ success: true, message: `Updated ${result.updated} properties`, properties: result.properties });
+    } catch (error) {
+      console.error("Error refreshing property prices:", error);
+      res.status(500).json({ error: "Failed to refresh property prices" });
     }
   });
 

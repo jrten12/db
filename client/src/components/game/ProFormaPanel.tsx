@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT } from '@/lib/gameData';
+import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials } from '@/lib/gameData';
 import { getEffectiveRanges, EffectiveRanges } from '@/lib/propertyIssues';
 import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -176,6 +176,7 @@ interface ProFormaPanelProps {
   onCalculate: () => void;
   completedDiligence?: string[];
   playerCash?: number;
+  playerFinancials?: PlayerFinancials;
   onReturnToProperty?: () => void;
   onProceedWithoutDiligence?: () => void;
   skippedDiligence?: boolean;
@@ -183,7 +184,7 @@ interface ProFormaPanelProps {
   onFieldTouch?: (fieldKey: keyof ProFormaInputs) => void;
 }
 
-export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 75000, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false, touchedFields = new Set(), onFieldTouch }: ProFormaPanelProps) {
+export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 75000, playerFinancials, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false, touchedFields = new Set(), onFieldTouch }: ProFormaPanelProps) {
   const effectiveRanges = useMemo(() => getEffectiveRanges(
     {
       rentMin: property.rentRange?.[0] ?? property.rentMin ?? 1000,
@@ -317,7 +318,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const leverageRatio = inputs.ltv / 100;
   const leverageLevel = leverageRatio > 0.85 ? 'high' : leverageRatio > 0.7 ? 'moderate' : 'low';
   
-  const derivedInterestRate = getInterestRateFromLTV(inputs.ltv);
+  // Use player-state-aware interest rate if financials available, otherwise fall back to basic LTV rate
+  const defaultFinancials: PlayerFinancials = { cash: playerCash, totalMonthlyDebt: 0, totalMonthlyIncome: 0, totalAssetValue: 0 };
+  const derivedInterestRate = playerFinancials 
+    ? getInterestRateWithPlayerState(inputs.ltv, playerFinancials)
+    : getInterestRateFromLTV(inputs.ltv);
   const derivedLoanFeesPct = getLoanFeesFromLTV(inputs.ltv);
   const derivedDownPaymentPct = getDownPaymentFromLTV(inputs.ltv);
   
@@ -741,8 +746,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
               </div>
               
-              {/* FLIP ONLY: Finance Rehab Toggle */}
-              {inputs.strategy === 'flip' && (inputs.rehabBudget ?? 0) > 0 && (
+              {/* FLIP ONLY: Finance Rehab Toggle - requires contractor walkthrough */}
+              {inputs.strategy === 'flip' && (inputs.rehabBudget ?? 0) > 0 && completedDiligence.includes('contractor_walkthrough') && (
                 <div className="col-span-full">
                   <button
                     onClick={() => onInputsChange({ ...inputs, financeRehab: !inputs.financeRehab })}

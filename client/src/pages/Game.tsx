@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { StatusBar } from '@/components/game/StatusBar';
 import { ProFormaPanel } from '@/components/game/ProFormaPanel';
@@ -39,7 +39,8 @@ import {
   getLoanFeesFromLTV,
   calculateTimePenalty,
   TIME_PENALTY_SELF_MANAGED,
-  TIME_PENALTY_TENANT_PAYS_UTILITIES
+  TIME_PENALTY_TENANT_PAYS_UTILITIES,
+  PlayerFinancials
 } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
 import { type Curveball, getTenantMessageForCurveball, curveballHasTenantMessage, getCurveballById } from '@/lib/curveballs';
@@ -347,6 +348,31 @@ export default function Game() {
     queryFn: () => api.getDeals(gameRun!.id),
     enabled: !!gameRun?.id,
   });
+
+  // Calculate player financials for interest rate adjustments
+  const playerFinancials = useMemo((): PlayerFinancials => {
+    let totalMonthlyDebt = 0;
+    let totalMonthlyIncome = 0;
+    let totalAssetValue = 0;
+    
+    for (const deal of deals) {
+      if (deal.status === 'active_rental') {
+        const outputs = deal.proFormaOutputs as any;
+        totalMonthlyDebt += outputs?.monthlyDebtService || outputs?.debtServiceMonthly || 0;
+        totalMonthlyIncome += outputs?.monthlyGrossRent || 0;
+        // Asset value approximated as property purchase price
+        const property = properties?.find(p => p.id === deal.propertyId);
+        totalAssetValue += property?.price || 0;
+      }
+    }
+    
+    return {
+      cash: gameRun?.cash || 0,
+      totalMonthlyDebt,
+      totalMonthlyIncome,
+      totalAssetValue,
+    };
+  }, [deals, properties, gameRun?.cash]);
 
   useEffect(() => {
     if (!gameRun || gameRun.status !== 'active') return;
@@ -1445,6 +1471,7 @@ export default function Game() {
                     onCalculate={handleCalculate}
                     completedDiligence={completedDiligence[selectedProperty.id] || []}
                     playerCash={gameRun?.cash ?? STARTING_CASH}
+                    playerFinancials={playerFinancials}
                     onReturnToProperty={handleReturnToProperty}
                     onProceedWithoutDiligence={handleProceedWithoutDiligence}
                     skippedDiligence={skippedDiligenceDeals.has(selectedProperty.id)}

@@ -68,7 +68,7 @@ export function GameOverModal({
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-400">{weeksPlayed}</div>
-                    <div className="text-gray-400">Weeks Played</div>
+                    <div className="text-gray-400">Months Played</div>
                   </div>
                 </div>
               </div>
@@ -125,7 +125,7 @@ export function GameOverModal({
                 TIME'S UP
               </h1>
               <p className="text-gray-400 text-lg font-medium">
-                You've run out of weeks to complete your deals
+                You've run out of time to complete your deals
               </p>
             </div>
             
@@ -165,7 +165,7 @@ export function GameOverModal({
                   data-testid="button-buy-weeks"
                 >
                   <ShoppingBag className="w-5 h-5" />
-                  Buy More Weeks (Boost)
+                  Buy More Time (Boost)
                 </button>
               )}
               

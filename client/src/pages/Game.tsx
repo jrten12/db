@@ -428,7 +428,7 @@ export default function Game() {
       api.purchaseWeeks(gameRunId, amount),
     onSuccess: (updatedGameRun) => {
       setGameRun(updatedGameRun);
-      toast.success(`Added ${updatedGameRun.weeksRemaining} weeks!`);
+      toast.success(`Added ${updatedGameRun.weeksRemaining} months!`);
     },
   });
 
@@ -437,7 +437,7 @@ export default function Game() {
       api.purchaseBundle(gameRunId, cashAmount, weeksAmount),
     onSuccess: (updatedGameRun) => {
       setGameRun(updatedGameRun);
-      toast.success(`Bundle added! New cash: $${updatedGameRun.cash.toLocaleString()}, Weeks: ${updatedGameRun.weeksRemaining}`);
+      toast.success(`Bundle added! New cash: $${updatedGameRun.cash.toLocaleString()}, Months: ${updatedGameRun.weeksRemaining}`);
     },
   });
 
@@ -576,7 +576,7 @@ export default function Game() {
         [propertyId]: [...(prev[propertyId] || []), diligenceType],
       }));
       
-      const timeDisplay = weeks < 1 ? `${Math.round(weeks * 7)} days` : `${weeksToDeduct} week${weeksToDeduct !== 1 ? 's' : ''}`;
+      const timeDisplay = `${weeksToDeduct} month${weeksToDeduct !== 1 ? 's' : ''}`;
       
       if (cost > 0) {
         setMoneyAnimationTrigger(Date.now());
@@ -723,7 +723,7 @@ export default function Game() {
         updates: { weeksRemaining: gameRun.weeksRemaining - 2 }
       });
       setGameRun(updatedGameRun);
-      toast.warning('Cheap contractor: -2 weeks while they get started on the job.', { duration: 4000 });
+      toast.warning('Cheap contractor: -2 months while they get started on the job.', { duration: 4000 });
     }
     
     // Apply rental management time penalties (self-managed and/or tenant-pays-utilities)
@@ -732,10 +732,10 @@ export default function Game() {
       if (timePenalty > 0) {
         const penalties: string[] = [];
         if (!proFormaInputs.propertyManagement) {
-          penalties.push(`Self-managing: -${TIME_PENALTY_SELF_MANAGED} week`);
+          penalties.push(`Self-managing: -${TIME_PENALTY_SELF_MANAGED} month`);
         }
         if (!proFormaInputs.utilities) {
-          penalties.push(`Setting up tenant utilities: -${TIME_PENALTY_TENANT_PAYS_UTILITIES} weeks`);
+          penalties.push(`Setting up tenant utilities: -${TIME_PENALTY_TENANT_PAYS_UTILITIES} months`);
         }
         const currentWeeks = gameRun.weeksRemaining - (isCheapContractor ? 2 : 0);
         const updatedGameRun = await updateGameMutation.mutateAsync({
@@ -840,7 +840,7 @@ export default function Game() {
         const updatedGameRun = await api.getGameRun(gameRun.id);
         setGameRun(updatedGameRun);
 
-        toast.success('Rental activated! You will receive weekly income.');
+        toast.success('Rental activated! You will receive monthly income.');
         
         // Show trophy notifications if any were awarded
         if (rentalResult.awardedTrophies && rentalResult.awardedTrophies.length > 0) {
@@ -1072,9 +1072,9 @@ export default function Game() {
         console.error('Tenant feature error:', err);
       }
 
-      toast.success(`Week ${result.newWeek} complete!`);
+      toast.success(`Month ${result.newWeek} complete!`);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to advance week');
+      toast.error(error.message || 'Failed to advance month');
     } finally {
       setIsAdvancingWeek(false);
     }
@@ -1653,7 +1653,7 @@ export default function Game() {
               </div>
               
               <p className="text-xs text-gray-500 mb-4">
-                ⚠️ Sale takes 2 weeks. The final price is random — you could make or lose money!
+                Sale takes 2 months. The final price is random — you could make or lose money!
               </p>
               
               <div className="flex gap-3">

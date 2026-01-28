@@ -139,7 +139,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               </StatCard>
               
               <StatCard icon={Clock} label="TIME LEFT" variant="time" testId="status-time">
-                <AnimatedNumber value={weeksRemaining} suffix=" Weeks" className="time-value" />
+                <AnimatedNumber value={weeksRemaining} suffix=" Months" className="time-value" />
               </StatCard>
               
               <StatCard icon={Target} label="GOAL" variant="goal" testId="status-goal">
@@ -168,7 +168,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 ) : (
                   <>
                     <Play className="w-4 h-4" />
-                    <span>Next Week</span>
+                    <span>Next Month</span>
                   </>
                 )}
               </button>

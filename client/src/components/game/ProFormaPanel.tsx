@@ -82,7 +82,7 @@ const TERM_DEFINITIONS: Record<string, { title: string; description: string; gam
   },
   rehabWeeks: {
     title: "Rehab Timeline",
-    description: "How long the renovation takes. Contractors are almost never early! Every week of rehab costs you carrying costs (loan interest, taxes, etc.).",
+    description: "How long the renovation takes. Contractors are almost never early! Every month of rehab costs you carrying costs (loan interest, taxes, etc.).",
     gameImpact: "In the game: Time is money. Longer rehabs eat into your profits. Fast contractors cost more but save time."
   }
 };
@@ -146,7 +146,7 @@ function UnknownValueTooltip({ type, children }: { type: 'rent' | 'rehab' | 'arv
     },
     timeline: {
       title: "Timeline Unknown",
-      explanation: "You don't know how long repairs will take. Every extra week costs money in holding costs!",
+      explanation: "You don't know how long repairs will take. Every extra month costs money in holding costs!",
       action: "Complete a Contractor Walkthrough to get a realistic timeline from a professional.",
     },
   };
@@ -1066,7 +1066,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 {!inputs.propertyManagement && (
                   <div className="mt-2 pt-2 border-t border-slate-600/30 flex items-center gap-2 text-amber-400/80">
                     <Clock className="w-4 h-4" />
-                    <span className="text-xs">Self-managing costs 1 week of your time</span>
+                    <span className="text-xs">Self-managing costs 1 month of your time</span>
                   </div>
                 )}
               </button>
@@ -1269,7 +1269,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Holding Costs</div>
                   {showFormulas && (
                     <div className="text-xs font-mono text-gray-500 mb-2">
-                      ${holdingCostPerWeek.toLocaleString()}/week × {n(inputs.rehabWeeks)} weeks
+                      ${holdingCostPerWeek.toLocaleString()}/month × {n(inputs.rehabWeeks)} months
                     </div>
                   )}
                   <div className="text-2xl font-bold font-mono text-red-400">
@@ -1370,7 +1370,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <div className="bg-slate-800/50 rounded-xl p-3">
                     <div className="text-gray-400 text-xs">Hold Time</div>
                     <div className="text-white font-bold font-mono text-lg">
-                      {inputs.rehabWeeks}w
+                      {inputs.rehabWeeks}mo
                     </div>
                   </div>
                 </>

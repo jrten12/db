@@ -131,7 +131,7 @@ export function RefinanceModal({ isOpen, onClose, deal, property, gameRun, onRef
                   <p className="font-medium text-amber-300">{options?.reason}</p>
                   {options?.weeksUntilEligible && options.weeksUntilEligible > 0 && (
                     <p className="text-sm text-amber-200/70 mt-2">
-                      ⏳ {options.weeksUntilEligible} more weeks until eligible (seasoning period)
+                      {options.weeksUntilEligible} more months until eligible (seasoning period)
                     </p>
                   )}
                 </div>
@@ -140,7 +140,7 @@ export function RefinanceModal({ isOpen, onClose, deal, property, gameRun, onRef
             <div className="bg-slate-800/50 rounded-lg p-3 text-sm text-slate-400">
               <p className="flex items-center gap-2">
                 <Info className="w-4 h-4" />
-                Banks require a "seasoning period" of 8 weeks before refinancing to verify property performance.
+                Banks require a "seasoning period" of 8 months before refinancing to verify property performance.
               </p>
             </div>
             <Button onClick={onClose} variant="outline" className="w-full border-slate-600">

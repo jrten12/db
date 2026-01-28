@@ -87,8 +87,8 @@ const FINANCIAL_TERM_TOOLTIPS: Record<string, { title: string; definition: strin
   },
   timeline: {
     title: "Renovation Timeline",
-    definition: "How many weeks it takes to complete all renovations before you can rent or sell the property.",
-    whyItMatters: "Every week costs money - loan interest, taxes, insurance, utilities. A 4-week delay could cost $2,000-$4,000+.",
+    definition: "How many months it takes to complete all renovations before you can rent or sell the property.",
+    whyItMatters: "Every month costs money - loan interest, taxes, insurance, utilities. A 4-month delay could cost $2,000-$4,000+.",
     unknownAction: "Complete a Contractor Walkthrough for a realistic timeline.",
   },
 };
@@ -139,7 +139,7 @@ const UNKNOWN_VALUE_TOOLTIPS: Record<string, { title: string; explanation: strin
   },
   timeline: {
     title: "Timeline Unknown",
-    explanation: "Every week you hold a property costs money (loan interest, taxes, insurance). Underestimating timeline destroys profits.",
+    explanation: "Every month you hold a property costs money (loan interest, taxes, insurance). Underestimating timeline destroys profits.",
     action: "Complete a Contractor Walkthrough to get a realistic renovation timeline.",
   },
 };
@@ -360,13 +360,13 @@ export function PropertyDetail({
       return {
         level: 'Elevated',
         color: 'text-red-400',
-        explanation: `Delays could add ${revealedTimelineImpact > 0 ? `${revealedTimelineImpact}+` : '4-10'} weeks of holding costs. Each week adds ~$${Math.round((property.price * 0.05) / 52 + 200)} in interest, taxes, and insurance.`,
+        explanation: `Delays could add ${revealedTimelineImpact > 0 ? `${revealedTimelineImpact}+` : '4-10'} months of holding costs. Each month adds ~$${Math.round((property.price * 0.05) / 12 + 200)} in interest, taxes, and insurance.`,
       };
     } else if (timelineSpread > 3 || property.conditionTag === 'Fair') {
       return {
         level: 'Moderate',
         color: 'text-amber-400',
-        explanation: `Timeline variance of ${property.timelineMin}-${property.timelineMax} weeks. Budget for ${Math.ceil(timelineSpread / 2)} extra weeks of carrying costs (~$${Math.round(((property.price * 0.05) / 52 + 200) * Math.ceil(timelineSpread / 2))}).`,
+        explanation: `Timeline variance of ${property.timelineMin}-${property.timelineMax} months. Budget for ${Math.ceil(timelineSpread / 2)} extra months of carrying costs (~$${Math.round(((property.price * 0.05) / 12 + 200) * Math.ceil(timelineSpread / 2))}).`,
       };
     }
     return {
@@ -716,7 +716,7 @@ export function PropertyDetail({
                               </div>
                               <div className="text-xs text-gray-500 flex items-center gap-1 justify-end">
                                 <Clock className="w-3 h-3" />
-                                {option.timeWeeks} week
+                                {option.timeWeeks} month
                               </div>
                             </div>
                           )}
@@ -760,7 +760,7 @@ export function PropertyDetail({
                               </div>
                               <div className="flex items-center justify-between text-xs mt-1">
                                 <span className="text-gray-500">Timeline impact:</span>
-                                <span className="text-amber-400">+{issue.timelineImpactWeeks} weeks</span>
+                                <span className="text-amber-400">+{issue.timelineImpactWeeks} months</span>
                               </div>
                             </div>
                           </div>
@@ -826,7 +826,7 @@ export function PropertyDetail({
                   <div className="mt-3 pt-3 border-t border-slate-700">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Known repair timeline:</span>
-                      <span className="text-amber-400 font-semibold">+{getTotalTimelineImpact(revealedIssues)} weeks</span>
+                      <span className="text-amber-400 font-semibold">+{getTotalTimelineImpact(revealedIssues)} months</span>
                     </div>
                     <div className="flex justify-between text-sm mt-1">
                       <span className="text-gray-500">Known repair costs:</span>
@@ -855,7 +855,7 @@ export function PropertyDetail({
                     <Clock className={`w-6 h-6 ${contractor === 'cheap' ? 'text-blue-400' : 'text-gray-500'}`} />
                     <div className="text-center">
                       <div className={`font-semibold text-sm ${contractor === 'cheap' ? 'text-blue-300' : 'text-gray-400'}`}>Cheap & Slow</div>
-                      <div className="text-xs text-amber-400">-2 weeks penalty</div>
+                      <div className="text-xs text-amber-400">-2 months penalty</div>
                       <div className="text-xs text-emerald-400">Standard rehab cost</div>
                     </div>
                   </button>
@@ -962,7 +962,7 @@ export function PropertyDetail({
                 <div className="flex items-center justify-between text-sm mt-1">
                   <span className="text-gray-400">Time:</span>
                   <span className="text-amber-400 font-mono">
-                    -{pendingDiligence.timeWeeks} week{pendingDiligence.timeWeeks !== 1 ? 's' : ''}
+                    -{pendingDiligence.timeWeeks} month{pendingDiligence.timeWeeks !== 1 ? 's' : ''}
                   </span>
                 </div>
               </div>

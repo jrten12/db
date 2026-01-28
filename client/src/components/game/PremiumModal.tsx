@@ -67,7 +67,7 @@ const packages: PremiumPackage[] = [
   {
     id: 'weeks-small',
     type: 'weeks',
-    title: '10 Extra Weeks',
+    title: '10 Extra Months',
     description: 'More time to find opportunities',
     priceUSD: 0.99,
     weeksAmount: 10,
@@ -79,7 +79,7 @@ const packages: PremiumPackage[] = [
   {
     id: 'weeks-medium',
     type: 'weeks',
-    title: '25 Extra Weeks',
+    title: '25 Extra Months',
     description: 'Extended timeline for success',
     priceUSD: 1.99,
     weeksAmount: 25,
@@ -116,7 +116,7 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
       return {
         show: true,
         title: "You're Out of Time!",
-        message: "You have 0 weeks remaining. Purchase more time to continue playing and close more deals.",
+        message: "You have 0 months remaining. Purchase more time to continue playing and close more deals.",
         icon: Clock,
         color: 'red',
       };
@@ -217,8 +217,8 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
               <div className="text-white font-bold text-xl">${currentCash.toLocaleString()}</div>
             </div>
             <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl">
-              <div className="text-gray-400 text-sm mb-1">Weeks Remaining</div>
-              <div className="text-white font-bold text-xl">{currentWeeks} Weeks</div>
+              <div className="text-gray-400 text-sm mb-1">Months Remaining</div>
+              <div className="text-white font-bold text-xl">{currentWeeks} Months</div>
             </div>
           </div>
 
@@ -270,7 +270,7 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
                       {pkg.weeksAmount && (
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-400">Time Bonus:</span>
-                          <span className="text-blue-400 font-bold">+{pkg.weeksAmount} Weeks</span>
+                          <span className="text-blue-400 font-bold">+{pkg.weeksAmount} Months</span>
                         </div>
                       )}
                     </div>

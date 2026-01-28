@@ -98,7 +98,7 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-white font-medium">Weekly Income</span>
+          <span className="text-white font-medium">Monthly Income</span>
           <span className={`font-bold ${weeklyIncome >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {weeklyIncome >= 0 ? '+' : ''}{fmt(weeklyIncome)}
           </span>
@@ -155,11 +155,11 @@ function FlipFinancialDetails({ deal, propertyName }: { deal: Deal; propertyName
         </div>
         <div className="flex justify-between">
           <span className="text-gray-400">Timeline</span>
-          <span className="text-white">{rehabWeeks} weeks total</span>
+          <span className="text-white">{rehabWeeks} months total</span>
         </div>
         <div className="flex justify-between">
           <span className="text-amber-400 font-medium">Time Remaining</span>
-          <span className="text-amber-400 font-bold">{weeksLeft} weeks</span>
+          <span className="text-amber-400 font-bold">{weeksLeft} months</span>
         </div>
         <div className="flex justify-between border-t border-white/10 pt-1.5 mt-1.5">
           <span className="text-white font-medium">Projected Profit</span>
@@ -253,7 +253,7 @@ export function TimeProgressionPanel({
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-medium text-white">Week {gameRun.currentWeek}</span>
+          <span className="text-sm font-medium text-white">Month {gameRun.currentWeek}</span>
           <span className="text-xs text-gray-400">• {gameRun.weeksRemaining} left</span>
         </div>
         <Button
@@ -267,7 +267,7 @@ export function TimeProgressionPanel({
           ) : (
             <>
               <Play className="w-3 h-3 mr-1" />
-              Next Week
+              Next Month
             </>
           )}
         </Button>
@@ -281,10 +281,10 @@ export function TimeProgressionPanel({
             : 'bg-red-900/30 border border-red-500/30'
         }`}>
           <span className={`text-xs ${totalWeeklyIncome >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-            Weekly {totalWeeklyIncome >= 0 ? 'Income' : 'Loss'}
+            Monthly {totalWeeklyIncome >= 0 ? 'Income' : 'Loss'}
           </span>
           <span className={`text-sm font-bold ${totalWeeklyIncome >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-            {totalWeeklyIncome >= 0 ? '+' : ''}${totalWeeklyIncome.toLocaleString()}/wk
+            {totalWeeklyIncome >= 0 ? '+' : ''}${totalWeeklyIncome.toLocaleString()}/mo
           </span>
         </div>
       )}

@@ -17,7 +17,7 @@ export const tutorialSteps: TutorialStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to Dealbreak!',
-    content: 'Learn real estate investing by doing it. You have $50,000 and 52 weeks to complete 3 profitable deals.',
+    content: 'Learn real estate investing by doing it. You have $75,000 and 12 months to complete 3 profitable deals.',
     position: 'center',
     arc: 'orientation',
   },
@@ -81,13 +81,13 @@ export const tutorialSteps: TutorialStep[] = [
   {
     id: 'time_progression',
     title: 'Advance Time',
-    content: 'Click "Advance Week" to see your investments unfold. Rentals collect income. Flips progress through renovation.',
+    content: 'Click "Advance Month" to see your investments unfold. Rentals collect income. Flips progress through renovation.',
     targetTestId: 'time-progression-panel',
     position: 'top',
     arc: 'portfolio',
     financialConcept: {
       term: 'Holding Period',
-      explanation: 'How long you own an investment. Watch your cash and weeks remaining!',
+      explanation: 'How long you own an investment. Watch your cash and months remaining!',
     },
   },
   {

@@ -617,12 +617,15 @@ export default function Game() {
     toast.warning('Proceeding without full due diligence - hidden issues may surface later!');
   }, [selectedProperty]);
 
+  // Current week for market rate variability
+  const currentWeek = gameRun?.weeksRemaining ? 52 - gameRun.weeksRemaining : 1;
+
   const handleInputsChange = useCallback((inputs: ProFormaInputs) => {
     setProFormaInputs(inputs);
     if (isProFormaComplete && selectedProperty) {
-      setProFormaOutputs(calculateProForma(inputs, selectedProperty, playerFinancials));
+      setProFormaOutputs(calculateProForma(inputs, selectedProperty, playerFinancials, currentWeek));
     }
-  }, [isProFormaComplete, selectedProperty, playerFinancials]);
+  }, [isProFormaComplete, selectedProperty, playerFinancials, currentWeek]);
 
   const handleFieldTouch = useCallback((fieldKey: keyof ProFormaInputs) => {
     setTouchedFields(prev => {
@@ -634,7 +637,7 @@ export default function Game() {
 
   const handleCalculate = useCallback(() => {
     if (selectedProperty) {
-      const outputs = calculateProForma(proFormaInputs, selectedProperty, playerFinancials);
+      const outputs = calculateProForma(proFormaInputs, selectedProperty, playerFinancials, currentWeek);
       setProFormaOutputs(outputs);
       setIsProFormaComplete(true);
       setProFormaCompletions(prev => ({
@@ -644,7 +647,7 @@ export default function Game() {
       completeAction('lock_proforma');
       toast.success('Pro forma calculated!');
     }
-  }, [proFormaInputs, selectedProperty, playerFinancials, completeAction]);
+  }, [proFormaInputs, selectedProperty, playerFinancials, currentWeek, completeAction]);
 
   const [isCommittingDeal, setIsCommittingDeal] = useState(false);
   const [isAdvancingWeek, setIsAdvancingWeek] = useState(false);
@@ -1478,6 +1481,7 @@ export default function Game() {
                     completedDiligence={completedDiligence[selectedProperty.id] || []}
                     playerCash={gameRun?.cash ?? STARTING_CASH}
                     playerFinancials={playerFinancials}
+                    weekNumber={gameRun?.weeksRemaining ? 52 - gameRun.weeksRemaining : 1}
                     onReturnToProperty={handleReturnToProperty}
                     onProceedWithoutDiligence={handleProceedWithoutDiligence}
                     skippedDiligence={skippedDiligenceDeals.has(selectedProperty.id)}

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials } from '@/lib/gameData';
 import { getEffectiveRanges, EffectiveRanges } from '@/lib/propertyIssues';
-import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet } from 'lucide-react';
+import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet, ArrowDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AssumptionInput, PercentAssumption } from './AssumptionInput';
 import { FormulaCanvas, MiniFormula } from './FormulaCanvas';
@@ -177,6 +177,7 @@ interface ProFormaPanelProps {
   completedDiligence?: string[];
   playerCash?: number;
   playerFinancials?: PlayerFinancials;
+  weekNumber?: number; // Current game week for market rate variability
   onReturnToProperty?: () => void;
   onProceedWithoutDiligence?: () => void;
   skippedDiligence?: boolean;
@@ -184,7 +185,7 @@ interface ProFormaPanelProps {
   onFieldTouch?: (fieldKey: keyof ProFormaInputs) => void;
 }
 
-export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 75000, playerFinancials, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false, touchedFields = new Set(), onFieldTouch }: ProFormaPanelProps) {
+export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 75000, playerFinancials, weekNumber = 1, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false, touchedFields = new Set(), onFieldTouch }: ProFormaPanelProps) {
   const effectiveRanges = useMemo(() => getEffectiveRanges(
     {
       rentMin: property.rentRange?.[0] ?? property.rentMin ?? 1000,
@@ -303,8 +304,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const allInBasis = property.price + closingCosts + n(inputs.rehabBudget) * (1 + n(inputs.contingencyPct) / 100);
   
   const liveOutputs = useMemo(() => {
-    return calculateProForma(inputs, property, playerFinancials);
-  }, [inputs, property, playerFinancials]);
+    return calculateProForma(inputs, property, playerFinancials, weekNumber);
+  }, [inputs, property, playerFinancials, weekNumber]);
 
   const tenantPaysUtilitiesVacancyPenalty = inputs.utilities ? 0 : 1.92;
   const effectiveVacancyRate = n(inputs.vacancyRate) + tenantPaysUtilitiesVacancyPenalty;
@@ -319,10 +320,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const leverageLevel = leverageRatio > 0.85 ? 'high' : leverageRatio > 0.7 ? 'moderate' : 'low';
   
   // Use player-state-aware interest rate if financials available, otherwise fall back to basic LTV rate
+  // Include weekNumber for market rate variability
   const defaultFinancials: PlayerFinancials = { cash: playerCash, totalMonthlyDebt: 0, totalMonthlyIncome: 0, totalAssetValue: 0 };
   const derivedInterestRate = playerFinancials 
-    ? getInterestRateWithPlayerState(inputs.ltv, playerFinancials)
-    : getInterestRateFromLTV(inputs.ltv);
+    ? getInterestRateWithPlayerState(inputs.ltv, playerFinancials, weekNumber)
+    : getInterestRateFromLTV(inputs.ltv, weekNumber);
   const derivedLoanFeesPct = getLoanFeesFromLTV(inputs.ltv);
   const derivedDownPaymentPct = getDownPaymentFromLTV(inputs.ltv);
   
@@ -1111,7 +1113,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
                 {/* Arrow Down */}
                 <div className="flex justify-center">
-                  <div className="text-gray-600">↓</div>
+                  <div className="flex justify-center"><ArrowDown className="w-4 h-4 text-gray-600" /></div>
                 </div>
 
                 {/* Step 1B: Vacancy Reserve */}
@@ -1130,7 +1132,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
                 {/* Arrow Down */}
                 <div className="flex justify-center">
-                  <div className="text-gray-600">↓</div>
+                  <div className="flex justify-center"><ArrowDown className="w-4 h-4 text-gray-600" /></div>
                 </div>
 
                 {/* Result: Average Monthly Rent Income */}
@@ -1149,7 +1151,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
                 {/* Arrow Down */}
                 <div className="flex justify-center">
-                  <div className="text-gray-600">↓</div>
+                  <div className="flex justify-center"><ArrowDown className="w-4 h-4 text-gray-600" /></div>
                 </div>
 
                 {/* Step 2: Operating Expenses */}
@@ -1173,7 +1175,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
                 {/* Arrow Down */}
                 <div className="flex justify-center">
-                  <div className="text-gray-600">↓</div>
+                  <div className="flex justify-center"><ArrowDown className="w-4 h-4 text-gray-600" /></div>
                 </div>
 
                 {/* Step 3: NOI */}
@@ -1192,8 +1194,28 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
                 {/* Arrow Down */}
                 <div className="flex justify-center">
-                  <div className="text-gray-600">↓</div>
+                  <div className="flex justify-center"><ArrowDown className="w-4 h-4 text-gray-600" /></div>
                 </div>
+
+                {/* Debt Service - Always visible as its own prominent line */}
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-amber-500/30">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs uppercase tracking-wider font-semibold text-amber-400">Monthly Debt Service</div>
+                      <div className="text-gray-500 text-xs">Your mortgage payment</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold font-mono text-amber-300" data-testid="text-debt-service">
+                        -{formatCurrency(liveOutputs.debtServiceMonthly)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {derivedInterestRate.toFixed(1)}% rate / 30yr
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-center"><ArrowDown className="w-4 h-4 text-gray-600" /></div>
 
                 {/* Step 4: Cash Flow */}
                 <div className={`rounded-xl p-4 border ${canShowViability ? (isViable ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-red-500/20 border-red-500/50') : 'bg-slate-800/50 border-slate-700'}`} data-testid="cash-flow-display">
@@ -1211,7 +1233,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   </div>
                   {canShowViability ? (
                     <div className={`text-xs mt-1 ${isViable ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {isViable ? '✓ Money in your pocket each month' : '✗ Losing money each month'}
+                      {isViable ? 'Money in your pocket each month' : 'Losing money each month'}
                     </div>
                   ) : (
                     <div className="text-xs mt-1 text-amber-400 flex items-center gap-1">
@@ -1240,7 +1262,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
 
                 <div className="flex justify-center">
-                  <div className="text-gray-600">↓</div>
+                  <div className="flex justify-center"><ArrowDown className="w-4 h-4 text-gray-600" /></div>
                 </div>
 
                 <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
@@ -1257,7 +1279,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
 
                 <div className="flex justify-center">
-                  <div className="text-gray-600">↓</div>
+                  <div className="flex justify-center"><ArrowDown className="w-4 h-4 text-gray-600" /></div>
                 </div>
 
                 <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
@@ -1274,7 +1296,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
 
                 <div className="flex justify-center">
-                  <div className="text-gray-600">↓</div>
+                  <div className="flex justify-center"><ArrowDown className="w-4 h-4 text-gray-600" /></div>
                 </div>
 
                 <div className={`rounded-xl p-4 border ${canShowViability ? (flipProfit > 0 ? 'bg-emerald-500/20 border-emerald-500/50' : 'bg-red-500/20 border-red-500/50') : 'bg-slate-800/50 border-slate-700'}`}>
@@ -1292,7 +1314,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   </div>
                   {canShowViability ? (
                     <div className={`text-xs mt-1 ${flipProfit > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {flipProfit > 0 ? '✓ Profit on sale' : '✗ Losing money on this flip'}
+                      {flipProfit > 0 ? 'Profit on sale' : 'Losing money on this flip'}
                     </div>
                   ) : (
                     <div className="text-xs mt-1 text-amber-400 flex items-center gap-1">
@@ -1366,7 +1388,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 className="w-full px-5 py-4 rounded-xl font-bold text-lg transition-all bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-lg shadow-emerald-500/40 hover:shadow-emerald-500/60 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
                 data-testid="button-calculate"
               >
-                <span>✓</span> Ready to Buy
+                <CheckCircle className="w-4 h-4" /> Ready to Buy
               </button>
             ) : (
               <div className="w-full rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/50 p-4">

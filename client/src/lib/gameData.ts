@@ -34,8 +34,11 @@ export interface ProFormaInputs {
 // Players CAN go up to 100% LTV but rates climb steeply - it's a trap for undisciplined players
 export const LTV_MIN = 50;
 export const LTV_MAX = 100;
-export const INTEREST_MIN = 5.0; // At 50% LTV
-export const INTEREST_MAX = 18.0; // At 100% LTV - punishing rate for max leverage
+export const INTEREST_MIN = 4.0; // At 50% LTV - competitive rate for conservative leverage
+export const INTEREST_MAX = 12.0; // At 100% LTV - steep but not punitive for max leverage
+
+// Market rate variability - rates fluctuate +/- this amount randomly over time
+export const MARKET_RATE_SWING = 0.75; // +/- 0.75% market fluctuation
 
 // Property Management Settings
 export const PROPERTY_MANAGEMENT_FEE_PCT = 5; // Fixed 5% of rent revenue when hired
@@ -63,22 +66,39 @@ export const calculateTimePenalty = (inputs: ProFormaInputs): number => {
   return penalty;
 };
 
+// Generate a pseudo-random market rate adjustment based on week number
+// Creates believable rate variability without needing to store state
+export const getMarketRateAdjustment = (weekNumber: number): number => {
+  // Use week number to create a deterministic but seemingly random adjustment
+  // This creates a smooth wave-like pattern with some noise
+  const wave1 = Math.sin(weekNumber * 0.3) * 0.4;
+  const wave2 = Math.sin(weekNumber * 0.7 + 2) * 0.25;
+  const noise = Math.sin(weekNumber * 2.1 + 5) * 0.1;
+  return (wave1 + wave2 + noise) * MARKET_RATE_SWING;
+};
+
 // Curved risk premium formula: interest increases exponentially at higher LTV
 // Above 90% LTV, rates climb steeply - this is the "leverage trap" zone
-export const getInterestRateFromLTV = (ltv: number): number => {
+export const getInterestRateFromLTV = (ltv: number, weekNumber?: number): number => {
   const normalizedLTV = Math.max(0, Math.min(1, (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)));
-  // Steeper curve above 90% LTV - exponential punishment for extreme leverage
+  // Steeper curve above 90% LTV - higher rates for extreme leverage
   let curvedFactor: number;
   if (ltv <= 90) {
-    // Standard curve for 50-90% LTV range
-    curvedFactor = Math.pow(normalizedLTV * (40/50), 1.3); // Maps to ~7.4% at 90% LTV
+    // Standard curve for 50-90% LTV range: 4% at 50%, ~6.5% at 90%
+    curvedFactor = Math.pow(normalizedLTV * (40/50), 1.2);
   } else {
-    // Steep exponential climb from 90-100% LTV (the danger zone)
+    // Steep climb from 90-100% LTV (the danger zone): ~6.5% to 12%
     const dangerNormalized = (ltv - 90) / 10; // 0 at 90%, 1 at 100%
-    const baseAt90 = Math.pow(0.8, 1.3); // ~0.73
-    curvedFactor = baseAt90 + dangerNormalized * dangerNormalized * (1 - baseAt90) * 2;
+    const baseAt90 = Math.pow(0.8, 1.2); // Rate at 90% LTV
+    curvedFactor = baseAt90 + dangerNormalized * dangerNormalized * (1 - baseAt90) * 1.5;
   }
-  return INTEREST_MIN + Math.min(curvedFactor, 1) * (INTEREST_MAX - INTEREST_MIN);
+  
+  const baseRate = INTEREST_MIN + Math.min(curvedFactor, 1) * (INTEREST_MAX - INTEREST_MIN);
+  
+  // Apply market rate variability if week number provided
+  const marketAdjustment = weekNumber !== undefined ? getMarketRateAdjustment(weekNumber) : 0;
+  
+  return Math.max(INTEREST_MIN - 0.5, baseRate + marketAdjustment);
 };
 
 // Dynamic interest rate that considers player's financial situation
@@ -90,25 +110,25 @@ export interface PlayerFinancials {
   totalAssetValue: number;
 }
 
-export const getInterestRateWithPlayerState = (ltv: number, playerFinancials: PlayerFinancials): number => {
-  const baseRate = getInterestRateFromLTV(ltv);
+export const getInterestRateWithPlayerState = (ltv: number, playerFinancials: PlayerFinancials, weekNumber?: number): number => {
+  const baseRate = getInterestRateFromLTV(ltv, weekNumber);
   
-  // DTI adjustment: higher debt = higher rate
+  // DTI adjustment: higher debt = higher rate (reduced impact)
   const dti = playerFinancials.totalMonthlyIncome > 0 
     ? (playerFinancials.totalMonthlyDebt / playerFinancials.totalMonthlyIncome) * 100 
-    : 100;
-  const dtiAdjustment = dti > 50 ? (dti - 50) * 0.03 : 0; // +0.03% per point above 50% DTI
+    : 50; // Default to 50% DTI if no income (neutral)
+  const dtiAdjustment = dti > 50 ? (dti - 50) * 0.02 : (dti < 30 ? -0.25 : 0); // +0.02% per point above 50%, bonus for low DTI
   
-  // Cash reserves adjustment: more cash = lower rate
+  // Cash reserves adjustment: more cash = lower rate (gentler curve)
   const reserveMonths = playerFinancials.cash / (playerFinancials.totalMonthlyDebt || 1000);
-  const reserveAdjustment = reserveMonths > 6 ? -0.5 : (reserveMonths < 3 ? 0.75 : 0);
+  const reserveAdjustment = reserveMonths > 6 ? -0.35 : (reserveMonths < 3 ? 0.5 : 0);
   
   // Asset coverage adjustment: more assets relative to new debt = lower rate
   const assetCoverage = playerFinancials.totalAssetValue / (playerFinancials.cash || 1);
-  const assetAdjustment = assetCoverage > 3 ? -0.25 : (assetCoverage < 1.5 ? 0.5 : 0);
+  const assetAdjustment = assetCoverage > 3 ? -0.2 : (assetCoverage < 1.5 ? 0.35 : 0);
   
   // Final rate with player-state adjustments, bounded to reasonable limits
-  return Math.max(4.5, Math.min(22, baseRate + dtiAdjustment + reserveAdjustment + assetAdjustment));
+  return Math.max(3.5, Math.min(15, baseRate + dtiAdjustment + reserveAdjustment + assetAdjustment));
 };
 
 // Loan origination fees: 1% at 50% LTV, scaling up to 6% at 100% LTV
@@ -266,7 +286,8 @@ export const getMissingFields = (inputs: ProFormaInputs): string[] => {
 export const calculateProForma = (
   inputs: ProFormaInputs,
   property: Property,
-  playerFinancials?: PlayerFinancials
+  playerFinancials?: PlayerFinancials,
+  weekNumber?: number
 ): ProFormaOutputs => {
   // Use 0 for null values during calculation (validation should prevent incomplete submissions)
   const expectedRent = inputs.expectedRent ?? 0;
@@ -285,12 +306,13 @@ export const calculateProForma = (
   const rehabWeeks = inputs.rehabWeeks ?? 4;
   
   // Derive financing terms from LTV, with player-state-aware interest rate when available
+  // weekNumber allows for market rate variability over time
   const ltv = inputs.ltv;
   const downPaymentPct = getDownPaymentFromLTV(ltv);
   // Use player-state-aware interest rate if financials provided, otherwise base LTV rate
   const interestRate = playerFinancials 
-    ? getInterestRateWithPlayerState(ltv, playerFinancials)
-    : getInterestRateFromLTV(ltv);
+    ? getInterestRateWithPlayerState(ltv, playerFinancials, weekNumber)
+    : getInterestRateFromLTV(ltv, weekNumber);
   const loanOriginationPct = getLoanFeesFromLTV(ltv);
 
   // For flips with financeRehab enabled, include rehab in the loan (acquisition + construction loan)

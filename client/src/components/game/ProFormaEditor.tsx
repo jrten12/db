@@ -275,9 +275,10 @@ interface ProFormaEditorProps {
   completedDiligence?: string[];
   onFieldTouch?: (fieldKey: keyof ProFormaInputs) => void;
   playerFinancials?: PlayerFinancials;
+  weekNumber?: number;
 }
 
-export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChange, completedDiligence = [], onFieldTouch, playerFinancials }: ProFormaEditorProps) {
+export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChange, completedDiligence = [], onFieldTouch, playerFinancials, weekNumber = 1 }: ProFormaEditorProps) {
   if (!isOpen) return null;
 
   const effectiveRanges = useMemo(() => getEffectiveRanges(
@@ -303,8 +304,8 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
   };
 
   const liveOutputs = useMemo(() => {
-    return calculateProForma(inputs, property, playerFinancials);
-  }, [inputs, property, playerFinancials]);
+    return calculateProForma(inputs, property, playerFinancials, weekNumber);
+  }, [inputs, property, playerFinancials, weekNumber]);
 
   const hasMarketStudy = completedDiligence.includes('market_study');
   const hasAppraisal = completedDiligence.includes('appraisal');

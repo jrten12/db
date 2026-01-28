@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { ProFormaOutputs, formatCurrency } from '@/lib/gameData';
 import { TrendingDown, TrendingUp, AlertTriangle, HelpCircle, Lightbulb, X, Check } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -21,6 +22,13 @@ interface ExplanationItem {
 }
 
 export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, holdWeeks = 0, hasAppraisal = true, onContinue }: ResultsPanelProps) {
+  // Scroll to top when results panel mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
+
   const isPositiveCashFlow = outputs.cashFlowMonthly > 0;
   const isGoodCashOnCash = outputs.cashOnCash > 8;
   const isGoodCapRate = outputs.capRate > 6;

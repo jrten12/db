@@ -1261,36 +1261,33 @@ export async function activateRentalProperty(
   const actualCashFlowMonthly = noiMonthly - debtServiceMonthly;
   const weeklyIncome = calculateWeeklyIncome(actualCashFlowMonthly);
 
-  // Check for undiscovered property issues (surprise repair costs!)
+  // Track undiscovered issues for later consequences (maintenance problems, lower sale price)
+  // NO upfront surprise costs for rentals - issues surface through:
+  // 1. Higher maintenance event probability (3-5x via getAdjustedProbability)
+  // 2. Lower sale price when selling (buyer's inspector finds issues)
   const propertyName = property?.name || '';
   const undiscoveredIssues = getUndiscoveredIssues(propertyName, completedDiligence);
-  let surpriseCosts = undiscoveredIssues.length > 0 ? calculateSurpriseCosts(undiscoveredIssues) : 0;
   
   // Check for title issues (20% chance if title search was skipped)
+  // Title issues ARE immediate for rentals as they affect ownership
   const didTitleSearch = completedDiligence.includes('title_search');
   const titleIssue = checkForTitleIssue(didTitleSearch);
   let titleIssueName: string | undefined;
+  let titleCost = 0;
   if (titleIssue.hasIssue) {
-    surpriseCosts += titleIssue.cost;
+    titleCost = titleIssue.cost;
     titleIssueName = titleIssue.issueName;
   }
   
-  // Create ledger entry for surprise repair costs or title issues if any
+  // Only create ledger entry for title issues (immediate legal/ownership problem)
+  // Property condition issues will surface through maintenance mechanics
   let newCash = gameRun.cash;
-  if (surpriseCosts > 0) {
-    const repairIssueNames = undiscoveredIssues.map(i => i.name);
-    const allIssueNames = titleIssueName 
-      ? [...repairIssueNames, `Title issue: ${titleIssueName}`]
-      : repairIssueNames;
-    const issueDescription = allIssueNames.join(', ');
-    
+  if (titleCost > 0) {
     const ledgerEntry: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'> = {
       direction: 'debit',
       category: 'expense',
-      amount: surpriseCosts,
-      description: titleIssueName && repairIssueNames.length === 0
-        ? `📜 Title issue discovered: ${titleIssueName}`
-        : `⚠️ Issues discovered: ${issueDescription}`,
+      amount: titleCost,
+      description: `📜 Title issue discovered: ${titleIssueName}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
     };
@@ -1354,10 +1351,11 @@ export async function activateRentalProperty(
     : 0;
   
   // Store expense breakdown for weekly processing
+  // Note: titleCost is the only immediate cost - property issues surface through maintenance
   const updatedProFormaOutputs = {
     ...proFormaOutputs,
-    surpriseCosts,
-    totalCashInvested: (proFormaOutputs?.totalCashInvested || 0) + surpriseCosts,
+    surpriseCosts: titleCost, // Only title issues are immediate costs for rentals
+    totalCashInvested: (proFormaOutputs?.totalCashInvested || 0) + titleCost,
     // Vacancy tracking (unique per property)
     playerBaseVacancyRate,
     utilityVacancyPenalty: storedUtilityVacancyPenalty,
@@ -1423,7 +1421,7 @@ export async function activateRentalProperty(
 
   return {
     deal: updatedDeal!,
-    surpriseCosts,
+    surpriseCosts: titleCost, // Only title issues cause immediate costs for rentals
     surpriseIssues: allSurpriseIssues,
     titleIssue: titleIssue.hasIssue ? { name: titleIssueName!, cost: titleIssue.cost } : undefined,
     newCash,

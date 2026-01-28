@@ -1288,8 +1288,23 @@ export default function Game() {
       handleBankruptReturnHome();
       return;
     }
+    
+    // Get the old game run ID before we start
+    const oldGameRunId = gameRun?.id;
+    
     // Start a fresh game with the same player name
     try {
+      // First, cancel all in-flight queries to prevent race conditions
+      await queryClient.cancelQueries();
+      
+      // Remove old game-specific query data from cache to prevent stale data
+      if (oldGameRunId) {
+        queryClient.removeQueries({ queryKey: ['deals', oldGameRunId] });
+        queryClient.removeQueries({ queryKey: ['investigations', oldGameRunId] });
+        queryClient.removeQueries({ queryKey: ['ledger', oldGameRunId] });
+        queryClient.removeQueries({ queryKey: ['tenants', oldGameRunId] });
+      }
+      
       const newRun = await api.createGameRun({
         playerName: playerName,
         difficulty: 'apprentice',
@@ -1300,7 +1315,8 @@ export default function Game() {
         goalDeals: 3,
         status: 'active',
       });
-      setGameRun(newRun);
+      
+      // Reset all local state first
       setCurrentScreen('market');
       setSelectedPropertyId(null);
       setProFormaInputs(defaultProForma);
@@ -1308,13 +1324,23 @@ export default function Game() {
       setIsProFormaComplete(false);
       setCompletedDiligence({});
       setProFormaCompletions({});
-      queryClient.invalidateQueries();
+      
+      // Now set the new game run - this will trigger fresh queries with the new ID
+      setGameRun(newRun);
+      
+      // Don't invalidate properties - they're global and don't change between games
+      // Just invalidate queries that are game-specific (they'll use the new gameRun.id)
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
+      queryClient.invalidateQueries({ queryKey: ['investigations'] });
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      
       toast.success('New game started!');
     } catch (error) {
       toast.error('Failed to start new game');
       handleBankruptReturnHome();
     }
-  }, [playerName, queryClient, handleBankruptReturnHome]);
+  }, [playerName, gameRun?.id, queryClient, handleBankruptReturnHome]);
 
   if (isLoadingGame && !gameRun) {
     return (

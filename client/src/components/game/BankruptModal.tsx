@@ -49,7 +49,7 @@ export function BankruptModal({ cash, weeksPlayed, onReturnHome, onTryAgain }: B
               </div>
               
               <div className="text-gray-400 text-sm">
-                You ran out of money after <span className="text-white font-semibold">{weeksPlayed} weeks</span>
+                You ran out of money after <span className="text-white font-semibold">{weeksPlayed} months</span>
               </div>
               
               <div className="pt-2 border-t border-red-500/20">

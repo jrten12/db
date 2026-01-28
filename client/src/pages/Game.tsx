@@ -42,7 +42,7 @@ import {
   TIME_PENALTY_TENANT_PAYS_UTILITIES,
   PlayerFinancials
 } from '@/lib/gameData';
-import { getEffectiveRanges } from '@/lib/propertyIssues';
+import { getEffectiveRanges, getRevealedIssues } from '@/lib/propertyIssues';
 import { type Curveball, getTenantMessageForCurveball, curveballHasTenantMessage, getCurveballById } from '@/lib/curveballs';
 import { api } from '@/lib/api';
 import { saveGame, loadGame, getSaveInfo, clearSave } from '@/lib/saveGame';

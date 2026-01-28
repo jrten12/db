@@ -571,10 +571,26 @@ export default function Game() {
         weeksUsed: weeksToDeduct,
       });
       
+      const newCompletedDiligence = [...(completedDiligence[propertyId] || []), diligenceType];
+      
       setCompletedDiligence(prev => ({
         ...prev,
-        [propertyId]: [...(prev[propertyId] || []), diligenceType],
+        [propertyId]: newCompletedDiligence,
       }));
+      
+      // Update proFormaInputs with discovered issue IDs
+      // This enables the unfixed issues mechanic where discovered but unfixed issues cause more maintenance problems
+      if (property) {
+        const revealedIssues = getRevealedIssues(property.name, newCompletedDiligence);
+        const revealedIssueIds = revealedIssues.map(issue => issue.id);
+        
+        if (revealedIssueIds.length > 0) {
+          setProFormaInputs(prev => ({
+            ...prev,
+            discoveredIssueIds: revealedIssueIds,
+          }));
+        }
+      }
       
       const timeDisplay = `${weeksToDeduct} month${weeksToDeduct !== 1 ? 's' : ''}`;
       
@@ -621,11 +637,40 @@ export default function Game() {
   const currentWeek = gameRun?.weeksRemaining ? 52 - gameRun.weeksRemaining : 1;
 
   const handleInputsChange = useCallback((inputs: ProFormaInputs) => {
-    setProFormaInputs(inputs);
-    if (isProFormaComplete && selectedProperty) {
-      setProFormaOutputs(calculateProForma(inputs, selectedProperty, playerFinancials, currentWeek));
+    // Calculate fixedIssueIds based on rehab budget
+    // If rehab budget covers issue costs, those issues are considered "fixed"
+    let updatedInputs = inputs;
+    
+    if (selectedProperty && inputs.rehabBudget !== undefined && inputs.rehabBudget > 0) {
+      const discoveredIssueIds = inputs.discoveredIssueIds || [];
+      const revealedIssues = getRevealedIssues(selectedProperty.name, completedDiligence[selectedProperty.id] || []);
+      
+      // Calculate which issues are covered by the rehab budget
+      // Sort by cost (cheapest first) to maximize issues fixed per dollar
+      const sortedIssues = [...revealedIssues].sort((a, b) => a.costRangeMax - b.costRangeMax);
+      
+      let remainingBudget = inputs.rehabBudget;
+      const fixedIds: string[] = [];
+      
+      for (const issue of sortedIssues) {
+        // Use max cost to be conservative - issue is only "fixed" if budget covers worst case
+        if (remainingBudget >= issue.costRangeMax && discoveredIssueIds.includes(issue.id)) {
+          fixedIds.push(issue.id);
+          remainingBudget -= issue.costRangeMax;
+        }
+      }
+      
+      updatedInputs = { ...inputs, fixedIssueIds: fixedIds };
+    } else if (inputs.rehabBudget === 0 || inputs.rehabBudget === undefined) {
+      // No rehab budget means no issues are fixed
+      updatedInputs = { ...inputs, fixedIssueIds: [] };
     }
-  }, [isProFormaComplete, selectedProperty, playerFinancials, currentWeek]);
+    
+    setProFormaInputs(updatedInputs);
+    if (isProFormaComplete && selectedProperty) {
+      setProFormaOutputs(calculateProForma(updatedInputs, selectedProperty, playerFinancials, currentWeek));
+    }
+  }, [isProFormaComplete, selectedProperty, playerFinancials, currentWeek, completedDiligence]);
 
   const handleFieldTouch = useCallback((fieldKey: keyof ProFormaInputs) => {
     setTouchedFields(prev => {

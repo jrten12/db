@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, createContext, useContext } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -11,6 +11,20 @@ import Landing from "@/pages/Landing";
 import Game from "@/pages/Game";
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
+
+interface SplashContextType {
+  showSplashScreen: () => void;
+}
+
+const SplashContext = createContext<SplashContextType | null>(null);
+
+export function useSplash() {
+  const context = useContext(SplashContext);
+  if (!context) {
+    throw new Error('useSplash must be used within SplashProvider');
+  }
+  return context;
+}
 
 function Router() {
   return (
@@ -35,13 +49,19 @@ function App() {
     setShowSplash(false);
   };
 
+  const showSplashScreen = () => {
+    setShowSplash(true);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <TutorialProvider>
-          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-          <Toaster />
-          <Router />
+          <SplashContext.Provider value={{ showSplashScreen }}>
+            {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+            <Toaster />
+            <Router />
+          </SplashContext.Provider>
         </TutorialProvider>
       </TooltipProvider>
     </QueryClientProvider>

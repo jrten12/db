@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import splashLogo from '@assets/image_1769643759418.png';
+import splashLogo from '@assets/ChatGPT_Image_Jan_29,_2026,_12_02_57_AM_1769662997139.png';
 import splashJingle from '@assets/splash_jingle.wav';
 
 interface SplashScreenProps {
@@ -219,14 +219,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         <div 
           className={`flex flex-col items-center transition-all duration-1000 ${showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
         >
-          {/* "A Game By" text with glow */}
-          <p 
-            className="text-cyan-300/70 text-xs sm:text-sm tracking-[0.5em] uppercase mb-8 font-light animate-text-glow"
-            style={{ fontFamily: "'Inter', -apple-system, sans-serif" }}
-          >
-            A Game By
-          </p>
-          
           {/* Logo container with multiple glow layers */}
           <div className="relative animate-logo-float">
             {/* Outer glow ring */}
@@ -254,15 +246,15 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent animate-shine-sweep pointer-events-none" />
           </div>
           
-          {/* "Click to Continue" with enhanced animation */}
+          {/* "Click to Continue" with elegant animation */}
           <div 
-            className={`mt-12 transition-all duration-700 delay-700 ${showContent ? 'opacity-100' : 'opacity-0'}`}
+            className={`mt-16 transition-all duration-700 delay-700 ${showContent ? 'opacity-100' : 'opacity-0'}`}
           >
             <p 
-              className="text-cyan-400/60 text-[10px] sm:text-xs tracking-[0.3em] animate-text-pulse"
-              style={{ fontFamily: "'Inter', -apple-system, sans-serif" }}
+              className="text-white/40 text-[11px] sm:text-sm tracking-[0.25em] font-light animate-text-pulse"
+              style={{ fontFamily: "'SF Pro Display', 'Helvetica Neue', -apple-system, sans-serif" }}
             >
-              CLICK TO CONTINUE
+              TAP TO BEGIN
             </p>
           </div>
         </div>

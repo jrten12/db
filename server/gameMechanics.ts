@@ -667,11 +667,11 @@ export async function processRentalIncome(
     }
   }
   
-  // Convert to weekly values for display purposes
-  const weeklyGrossRent = Math.max(0, Math.floor(monthlyGrossRent / weeksPerMonth));
-  const weeklyVacancyLoss = Math.max(0, Math.floor(monthlyVacancyLoss / weeksPerMonth));
-  const weeklyOperatingExpenses = Math.max(0, Math.floor(monthlyOperatingExpenses / weeksPerMonth));
-  const weeklyDebtService = Math.max(0, Math.floor(monthlyDebtService / weeksPerMonth));
+  // Use monthly values directly for ledger display (each game turn = 1 month)
+  const weeklyGrossRent = Math.max(0, Math.round(monthlyGrossRent));
+  const weeklyVacancyLoss = Math.max(0, Math.round(monthlyVacancyLoss));
+  const weeklyOperatingExpenses = Math.max(0, Math.round(monthlyOperatingExpenses));
+  const weeklyDebtService = Math.max(0, Math.round(monthlyDebtService));
   
   // Calculate curveball effects
   let cashImpact = curveball?.cashImpact || 0;

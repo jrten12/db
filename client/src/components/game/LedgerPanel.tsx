@@ -321,7 +321,7 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
                           <span className={`text-xs font-semibold ${CATEGORY_COLORS[entry.category] || 'text-gray-400'}`}>
                             {CATEGORY_LABELS[entry.category] || entry.category}
                           </span>
-                          <span className="text-xs text-gray-500">Week {entry.gameWeek ?? '?'}</span>
+                          <span className="text-xs text-gray-500">Month {entry.gameWeek ?? '?'}</span>
                           {isClickable && (
                             <span className="text-xs text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">
                               Tap for breakdown

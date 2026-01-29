@@ -1,9 +1,12 @@
 import { Link } from 'wouter';
-import { ArrowRight, TrendingUp, Clock, Target, DollarSign, Search, BarChart3, Shield } from 'lucide-react';
+import { ArrowRight, TrendingUp, Clock, Target, DollarSign, Search, BarChart3, Shield, Play } from 'lucide-react';
 import heroImage from '@assets/image_1767847036185.png';
 import Footer from '@/components/Footer';
+import { useSplash } from '@/App';
 
 export default function Landing() {
+  const { showSplashScreen } = useSplash();
+  
   return (
     <div
       className="min-h-screen min-h-[100dvh] bg-[#0a0a0b] overflow-x-hidden"
@@ -250,9 +253,19 @@ export default function Landing() {
             <p className="text-gray-600 text-sm">
               A real estate decision simulator. Not financial advice.
             </p>
-            <p className="mt-2 text-gray-700 text-xs font-mono">
-              v1.65
-            </p>
+            <div className="mt-3 flex items-center justify-center gap-3">
+              <p className="text-gray-700 text-xs font-mono">
+                v1.65
+              </p>
+              <button
+                onClick={showSplashScreen}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.1] text-gray-500 hover:text-gray-400 text-[10px] transition-all"
+                data-testid="button-replay-intro"
+              >
+                <Play className="w-2.5 h-2.5" />
+                Intro
+              </button>
+            </div>
           </div>
         </main>
 

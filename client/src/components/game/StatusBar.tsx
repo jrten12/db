@@ -244,7 +244,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               </button>
               
               <div className="stat-card-mobile stat-card-mobile-time touch-target-sm" data-testid="status-time-mobile">
-                <AnimatedNumber value={weeksRemaining} suffix="W" className="mobile-time-value" />
+                <AnimatedNumber value={weeksRemaining} suffix="M" className="mobile-time-value" />
                 <div className="stat-label-mobile">Time</div>
               </div>
               
@@ -348,7 +348,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <div className="text-gray-500 text-xs">Cash</div>
               </div>
               <div className="menu-stat-card">
-                <span className="menu-time-value">{weeksRemaining}W</span>
+                <span className="menu-time-value">{weeksRemaining}M</span>
                 <div className="text-gray-500 text-xs">Left</div>
               </div>
               <div className="menu-stat-card">

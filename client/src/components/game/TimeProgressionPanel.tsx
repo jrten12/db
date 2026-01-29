@@ -254,7 +254,7 @@ export function TimeProgressionPanel({
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-blue-400" />
           <span className="text-sm font-medium text-white">Month {gameRun.currentWeek}</span>
-          <span className="text-xs text-gray-400">• {gameRun.weeksRemaining} left</span>
+          <span className="text-xs text-gray-400">• {gameRun.weeksRemaining} months left</span>
         </div>
         <Button
           onClick={handleAdvanceWeek}
@@ -390,7 +390,7 @@ export function TimeProgressionPanel({
                         ) : weeksUntilRefinance > 0 ? (
                           <div className="space-y-1">
                             <p className="text-amber-400 font-medium">Seasoning Required</p>
-                            <p className="text-gray-300 text-xs">{weeksUntilRefinance} more weeks until you can refinance</p>
+                            <p className="text-gray-300 text-xs">{weeksUntilRefinance} more months until you can refinance</p>
                           </div>
                         ) : (
                           <span className="text-gray-400">Refinancing not available</span>
@@ -440,7 +440,7 @@ export function TimeProgressionPanel({
                         <Info className="w-3 h-3 text-gray-500" />
                       </div>
                       <Badge variant="secondary" className="h-5 text-[10px] bg-amber-500/20 text-amber-300 border-amber-500/30">
-                        {weeksLeft}w left
+                        {weeksLeft}mo left
                       </Badge>
                     </div>
                     <Progress value={progress} className="h-1.5" />

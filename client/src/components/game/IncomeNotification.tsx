@@ -257,14 +257,14 @@ export function useIncomeNotifications() {
     totalExpenses: number,
     propertyName?: string
   ) => {
-    // Just show "Weekly cash flow" - the breakdown was confusing
+    // Just show "Monthly cash flow" - the breakdown was confusing
     const description = netIncome >= 0 
-      ? 'Weekly cash flow after expenses'
-      : 'Expenses exceeded rent this week';
+      ? 'Monthly cash flow after expenses'
+      : 'Expenses exceeded rent this month';
     addIncomeEvent({
       amount: netIncome,
       type: 'rental',
-      title: propertyName ? `${propertyName}` : 'Weekly Rental Income',
+      title: propertyName ? `${propertyName}` : 'Monthly Rental Income',
       description,
       emoji: '🏠',
       color: netIncome >= 0 ? 'green' : 'yellow',

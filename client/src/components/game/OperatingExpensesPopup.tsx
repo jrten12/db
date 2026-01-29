@@ -33,7 +33,6 @@ interface ExpenseLineItem {
   label: string;
   icon: React.ReactNode;
   monthlyAmount: number;
-  weeklyAmount: number;
   annualAmount?: number;
   note?: string;
 }
@@ -100,14 +99,11 @@ export function OperatingExpensesPopup({
   // Total operating expenses (simplified display - excludes maintenance/capEx reserves for clarity)
   const totalMonthlyOpex = monthlyTaxes + monthlyInsurance + monthlyMgmt + monthlyUtilities;
   
-  const weeksPerMonth = 4.33;
-  
   const expenseItems: ExpenseLineItem[] = [
     {
       label: 'Property Taxes',
       icon: <Building2 className="w-4 h-4" />,
       monthlyAmount: monthlyTaxes,
-      weeklyAmount: monthlyTaxes / weeksPerMonth,
       annualAmount: taxesAnnual,
       note: 'Based on assessed value',
     },
@@ -115,7 +111,6 @@ export function OperatingExpensesPopup({
       label: 'Insurance',
       icon: <Shield className="w-4 h-4" />,
       monthlyAmount: monthlyInsurance,
-      weeklyAmount: monthlyInsurance / weeksPerMonth,
       annualAmount: insuranceAnnual,
       note: 'Landlord policy',
     },
@@ -126,7 +121,6 @@ export function OperatingExpensesPopup({
       label: 'Property Management',
       icon: <User className="w-4 h-4" />,
       monthlyAmount: monthlyMgmt,
-      weeklyAmount: monthlyMgmt / weeksPerMonth,
       note: `${propertyMgmtPct}% of rent`,
     });
   }
@@ -136,7 +130,6 @@ export function OperatingExpensesPopup({
       label: 'Utilities',
       icon: <Zap className="w-4 h-4" />,
       monthlyAmount: monthlyUtilities,
-      weeklyAmount: monthlyUtilities / weeksPerMonth,
       note: 'Landlord pays',
     });
   }
@@ -221,9 +214,11 @@ export function OperatingExpensesPopup({
                           <div className="text-white font-semibold">
                             {formatCurrency(item.monthlyAmount)}/mo
                           </div>
-                          <div className="text-xs text-slate-400">
-                            {formatCurrency(item.weeklyAmount)}/wk
-                          </div>
+                          {item.annualAmount && (
+                            <div className="text-xs text-slate-400">
+                              {formatCurrency(item.annualAmount)}/yr
+                            </div>
+                          )}
                         </div>
                       </div>
                       {item.note && (
@@ -241,7 +236,7 @@ export function OperatingExpensesPopup({
                         {formatCurrency(totalMonthlyOpex)}/mo
                       </div>
                       <div className="text-sm text-slate-400">
-                        {formatCurrency(totalMonthlyOpex / weeksPerMonth)}/wk
+                        {formatCurrency(totalMonthlyOpex * 12)}/yr
                       </div>
                     </div>
                   </div>

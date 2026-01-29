@@ -222,8 +222,8 @@ export function TimeProgressionPanel({
   const flipsInRehab = deals.filter(d => d.status === 'in_rehab');
   const flipsReadyToList = deals.filter(d => d.status === 'ready_to_list');
 
-  // Calculate total weekly income
-  const totalWeeklyIncome = activeRentals.reduce((sum, deal) => sum + (deal.weeklyIncome || 0), 0);
+  // Calculate total monthly income (stored in weeklyIncome field for historical reasons)
+  const totalMonthlyIncome = activeRentals.reduce((sum, deal) => sum + (deal.weeklyIncome || 0), 0);
 
   const handleAdvanceWeek = async () => {
     setIsAdvancing(true);
@@ -273,18 +273,18 @@ export function TimeProgressionPanel({
         </Button>
       </div>
 
-      {/* Weekly Income Summary - Compact */}
-      {totalWeeklyIncome !== 0 && (
+      {/* Monthly Income Summary - Compact */}
+      {totalMonthlyIncome !== 0 && (
         <div className={`flex items-center justify-between rounded px-3 py-2 mb-3 ${
-          totalWeeklyIncome >= 0 
+          totalMonthlyIncome >= 0 
             ? 'bg-green-900/30 border border-green-500/30' 
             : 'bg-red-900/30 border border-red-500/30'
         }`}>
-          <span className={`text-xs ${totalWeeklyIncome >= 0 ? 'text-green-300' : 'text-red-300'}`}>
-            Monthly {totalWeeklyIncome >= 0 ? 'Income' : 'Loss'}
+          <span className={`text-xs ${totalMonthlyIncome >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+            Monthly {totalMonthlyIncome >= 0 ? 'Income' : 'Loss'}
           </span>
-          <span className={`text-sm font-bold ${totalWeeklyIncome >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-            {totalWeeklyIncome >= 0 ? '+' : ''}${totalWeeklyIncome.toLocaleString()}/mo
+          <span className={`text-sm font-bold ${totalMonthlyIncome >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {totalMonthlyIncome >= 0 ? '+' : ''}${totalMonthlyIncome.toLocaleString()}/mo
           </span>
         </div>
       )}
@@ -294,7 +294,7 @@ export function TimeProgressionPanel({
         <div className="flex items-center justify-center gap-1 text-[10px] text-gray-500 mb-2 px-2">
           <span className="text-emerald-400">Deal</span>
           <span>→</span>
-          <span className={totalWeeklyIncome > 0 ? 'text-green-400' : 'text-gray-400'}>Cash Flow</span>
+          <span className={totalMonthlyIncome > 0 ? 'text-green-400' : 'text-gray-400'}>Cash Flow</span>
           <span>→</span>
           <span className={activeRentals.some(d => {
             const weeksHeld = gameRun.currentWeek - ((d as any).purchaseWeek ?? 0);
@@ -344,7 +344,7 @@ export function TimeProgressionPanel({
                       <Home className={`w-3 h-3 flex-shrink-0 ${(deal.weeklyIncome || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`} />
                       <span className="text-xs text-white truncate">{propertyName}</span>
                       <span className={`text-xs font-medium ${(deal.weeklyIncome || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {(deal.weeklyIncome || 0) >= 0 ? '+' : ''}${(deal.weeklyIncome || 0).toLocaleString()}/wk
+                        {(deal.weeklyIncome || 0) >= 0 ? '+' : ''}${(deal.weeklyIncome || 0).toLocaleString()}/mo
                       </span>
                       <Info className="w-3 h-3 text-gray-500" />
                     </button>

@@ -5,6 +5,7 @@ import { getPropertyImage, getPropertyInteriorImages, getIssueImage } from '@/li
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { playProformaChime } from '@/hooks/useClickSound';
 import type { Property } from '@shared/schema';
 
 const FINANCIAL_COLORS = {
@@ -905,7 +906,10 @@ export function PropertyDetail({
               <div className="space-y-3">
                 {/* PRIMARY: View Pro Forma */}
                 <button 
-                  onClick={() => onOpenProForma(strategy, contractor)}
+                  onClick={() => {
+                    playProformaChime();
+                    onOpenProForma(strategy, contractor);
+                  }}
                   className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-xl font-bold text-base transition-all shadow-lg shadow-emerald-500/30"
                   data-testid="button-pro-forma"
                 >

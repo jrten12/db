@@ -1,20 +1,38 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 const CLICK_SOUND_URL = '/click.wav';
+const PROFORMA_CHIME_URL = '/proforma-chime.wav';
 
-let globalAudio: HTMLAudioElement | null = null;
+let globalClickAudio: HTMLAudioElement | null = null;
+let globalProformaAudio: HTMLAudioElement | null = null;
 
-function getAudio(): HTMLAudioElement {
-  if (!globalAudio) {
-    globalAudio = new Audio(CLICK_SOUND_URL);
-    globalAudio.volume = 0.3;
+function getClickAudio(): HTMLAudioElement {
+  if (!globalClickAudio) {
+    globalClickAudio = new Audio(CLICK_SOUND_URL);
+    globalClickAudio.volume = 0.3;
   }
-  return globalAudio;
+  return globalClickAudio;
+}
+
+function getProformaAudio(): HTMLAudioElement {
+  if (!globalProformaAudio) {
+    globalProformaAudio = new Audio(PROFORMA_CHIME_URL);
+    globalProformaAudio.volume = 0.5;
+  }
+  return globalProformaAudio;
 }
 
 export function playClickSound() {
   try {
-    const audio = getAudio();
+    const audio = getClickAudio();
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  } catch (e) {}
+}
+
+export function playProformaChime() {
+  try {
+    const audio = getProformaAudio();
     audio.currentTime = 0;
     audio.play().catch(() => {});
   } catch (e) {}

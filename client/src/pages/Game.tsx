@@ -305,7 +305,8 @@ export default function Game() {
   const { data: properties = [], isLoading: isLoadingProps } = useQuery({
     queryKey: ['properties'],
     queryFn: api.getProperties,
-    staleTime: 60000, // Refetch properties every minute instead of caching forever
+    staleTime: 0, // Always refetch properties to ensure we have the latest list
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes but always refetch
   });
 
   const updateGameMutation = useMutation({

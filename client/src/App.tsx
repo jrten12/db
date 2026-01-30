@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TutorialProvider } from "@/contexts/TutorialContext";
 import { SplashScreen } from "@/components/SplashScreen";
+import { useGlobalClickSound } from "@/hooks/useClickSound";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Game from "@/pages/Game";
@@ -39,6 +40,8 @@ function Router() {
 }
 
 function App() {
+  useGlobalClickSound();
+  
   const [showSplash, setShowSplash] = useState(() => {
     const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
     return !hasSeenSplash;

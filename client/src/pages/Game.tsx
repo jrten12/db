@@ -1689,6 +1689,7 @@ export default function Game() {
             onProFormaInputsChange={handleInputsChange}
             touchedFields={touchedFields}
             onFieldTouch={handleFieldTouch}
+            gameRunId={gameRun?.id}
           />
         )}
 

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
 import { formatCurrency, MARKET_DEFAULTS, getPropertyBasedDefaults } from '@/lib/gameData';
-import { getPropertyImage, getPropertyInteriorImages, getIssueImage } from '@/lib/propertyImages';
-import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
+import { getPropertyImage, getConditionAdjustedInteriors, getIssueImage } from '@/lib/propertyImages';
+import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getRandomizedPropertyIssues, getRevealedRandomizedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { playProformaChime } from '@/hooks/useClickSound';
@@ -245,6 +245,7 @@ interface PropertyDetailProps {
   onProFormaInputsChange?: (inputs: any) => void;
   touchedFields?: Set<any>;
   onFieldTouch?: (field: any) => void;
+  gameRunId?: number;
 }
 
 export function PropertyDetail({
@@ -260,6 +261,7 @@ export function PropertyDetail({
   onProFormaInputsChange,
   touchedFields,
   onFieldTouch,
+  gameRunId,
 }: PropertyDetailProps) {
   const [strategy, setStrategy] = useState<'rent' | 'flip'>('rent');
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
@@ -268,7 +270,8 @@ export function PropertyDetail({
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
 
   const propertyImage = getPropertyImage(property.name);
-  const interiorImages = getPropertyInteriorImages(property.name);
+  // Use condition-adjusted interiors: lower-tier properties get dated/worn images
+  const interiorImages = getConditionAdjustedInteriors(property.name, property.conditionTag, property.price);
 
   // Build complete image gallery: exterior + working interior images
   const allImages = [
@@ -298,8 +301,13 @@ export function PropertyDetail({
     setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
   };
 
-  const allIssues = getPropertyIssues(property.name);
-  const revealedIssues = getRevealedIssues(property.name, completedDiligence);
+  // Use randomized issues if we have a gameRunId, otherwise fall back to static issues
+  const allIssues = gameRunId 
+    ? getRandomizedPropertyIssues(gameRunId, property.id, property.propertyType, property.conditionTag)
+    : getPropertyIssues(property.name);
+  const revealedIssues = gameRunId
+    ? getRevealedRandomizedIssues(gameRunId, property.id, property.propertyType, property.conditionTag, completedDiligence)
+    : getRevealedIssues(property.name, completedDiligence);
   const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
 
   const handleDiligenceClick = (option: DiligenceOption) => {

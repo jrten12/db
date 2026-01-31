@@ -415,8 +415,81 @@ const propertySpecificInteriors: Record<string, Array<{ type: string; label: str
   ],
 };
 
+// Condition tiers for interior selection
+// Lower tier = worse condition = dated interiors
+const conditionTiers: Record<string, number> = {
+  'Fixer-Upper': 1,
+  'Needs Repairs': 1,
+  'Needs-work': 1,
+  'Dated': 2,
+  'Fair': 2,
+  'Cosmetic': 3,
+  'Good': 3,
+  'Turnkey': 4,
+  'Excellent': 4,
+};
+
+// Price tiers (in thousands) for interior quality
+function getPriceTier(price: number): number {
+  if (price < 250000) return 1;       // Budget - dated interiors
+  if (price < 400000) return 2;       // Moderate - mixed
+  if (price < 600000) return 3;       // Mid-range - decent
+  return 4;                           // Luxury - nice interiors
+}
+
+// Dated/worn interior images for lower-tier properties
+const datedInteriors: Record<string, string> = {
+  kitchen: interiorKitchenDated,
+  bathroom: interiorBathroomDated,
+  living: interiorLivingRoomDated,
+  basement: interiorBasementClean,
+};
+
+// Fixer-upper/extreme condition images
+const fixerUpperInteriors: Record<string, string> = {
+  kitchen: interiorKitchenExtreme,
+  bathroom: interiorBathroomExtreme,
+  living: interiorLivingRoomExtreme,
+  basement: interiorBasementExtreme,
+};
+
 export const getPropertyInteriorImages = (propertyName: string): Array<{ type: string; label: string; url: string }> => {
   return propertySpecificInteriors[propertyName] || [];
+};
+
+// Get condition-appropriate interior images
+export const getConditionAdjustedInteriors = (
+  propertyName: string,
+  conditionTag: string,
+  price: number
+): Array<{ type: string; label: string; url: string }> => {
+  const specificInteriors = propertySpecificInteriors[propertyName];
+  if (!specificInteriors) return [];
+  
+  const conditionTier = conditionTiers[conditionTag] || 3;
+  const priceTier = getPriceTier(price);
+  
+  // Calculate overall quality tier (1-4, where 1 is worst)
+  const qualityTier = Math.round((conditionTier + priceTier) / 2);
+  
+  // For quality tier 1-2, substitute with dated/worn interiors
+  if (qualityTier <= 2) {
+    return specificInteriors.map(img => {
+      // Use fixer-upper images for tier 1, dated for tier 2
+      const replacementPool = qualityTier === 1 ? fixerUpperInteriors : datedInteriors;
+      const replacement = replacementPool[img.type];
+      
+      // If we have a replacement for this room type, use it
+      // Otherwise keep the original (for basements, utility rooms, etc.)
+      if (replacement && (img.type === 'kitchen' || img.type === 'bathroom' || img.type === 'living')) {
+        return { ...img, url: replacement };
+      }
+      return img;
+    });
+  }
+  
+  // For quality tier 3-4, use the property-specific interiors (nice photos)
+  return specificInteriors;
 };
 
 export const hasInteriorImages = (propertyName: string): boolean => {

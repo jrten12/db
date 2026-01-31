@@ -251,3 +251,33 @@ export const insertTenantSchema = createInsertSchema(tenants).omit({
 
 export type Tenant = typeof tenants.$inferSelect;
 export type InsertTenant = z.infer<typeof insertTenantSchema>;
+
+// Coupons/promo codes for free months and cash
+export const coupons = pgTable("coupons", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  cashAmount: integer("cash_amount").notNull().default(0),
+  monthsAmount: integer("months_amount").notNull().default(0),
+  usageLimit: integer("usage_limit"), // null = unlimited
+  usageCount: integer("usage_count").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const couponRedemptions = pgTable("coupon_redemptions", {
+  id: serial("id").primaryKey(),
+  couponId: integer("coupon_id").notNull().references(() => coupons.id),
+  gameRunId: integer("game_run_id").notNull().references(() => gameRuns.id),
+  redeemedAt: timestamp("redeemed_at").defaultNow().notNull(),
+});
+
+export const insertCouponSchema = createInsertSchema(coupons).omit({
+  id: true,
+  usageCount: true,
+  createdAt: true,
+});
+
+export type Coupon = typeof coupons.$inferSelect;
+export type InsertCoupon = z.infer<typeof insertCouponSchema>;
+export type CouponRedemption = typeof couponRedemptions.$inferSelect;

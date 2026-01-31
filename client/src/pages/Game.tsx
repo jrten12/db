@@ -1841,8 +1841,19 @@ export default function Game() {
             setPremiumTriggerReason('manual');
           }}
           onPurchase={handlePremiumPurchase}
+          onCouponRedeemed={(cashAdded, monthsAdded) => {
+            // Refresh game run data to reflect new values
+            queryClient.invalidateQueries({ queryKey: ['/api/games', gameRun.id] });
+            // Update local state
+            setGameRun(prev => prev ? {
+              ...prev,
+              cash: prev.cash + cashAdded,
+              weeksRemaining: prev.weeksRemaining + monthsAdded,
+            } : prev);
+          }}
           currentCash={gameRun.cash}
           currentWeeks={gameRun.weeksRemaining}
+          gameRunId={gameRun.id}
           triggerReason={premiumTriggerReason}
           canClose={!isPlayerFrozen}
           onEndGame={isPlayerFrozen ? handleBankruptReturnHome : undefined}

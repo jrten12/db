@@ -40,6 +40,8 @@ Preferred communication style: Simple, everyday language.
 - **PropertyInvestigations**: Due diligence purchases tracking what's been revealed
 - **HallOfFamePlayers**: Persistent player records that survive game resets
 - **PlayerTrophies**: Trophy awards linked to players for achievements
+- **Coupons**: Promo codes that give players free cash and/or months
+- **CouponRedemptions**: Tracks which coupons have been used per game run
 
 ### Project Structure
 ```

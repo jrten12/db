@@ -1102,5 +1102,171 @@ export async function registerRoutes(
     }
   });
 
+  // ============ COUPON ROUTES ============
+
+  // Validation schema for coupon redemption
+  const redeemCouponSchema = z.object({
+    code: z.string().min(1).max(50),
+    gameRunId: z.number().int().positive(),
+  });
+
+  // Redeem a coupon code
+  app.post("/api/coupons/redeem", purchaseLimiter, async (req, res) => {
+    try {
+      const validatedData = redeemCouponSchema.parse(req.body);
+      const { code, gameRunId } = validatedData;
+
+      // Look up the coupon
+      const coupon = await storage.getCouponByCode(code.trim());
+      
+      if (!coupon) {
+        return res.status(404).json({ error: "Invalid coupon code" });
+      }
+
+      // Check if active
+      if (!coupon.isActive) {
+        return res.status(400).json({ error: "This coupon is no longer active" });
+      }
+
+      // Check expiration
+      if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+        return res.status(400).json({ error: "This coupon has expired" });
+      }
+
+      // Check usage limit
+      if (coupon.usageLimit !== null && coupon.usageCount >= coupon.usageLimit) {
+        return res.status(400).json({ error: "This coupon has reached its usage limit" });
+      }
+
+      // Check if already redeemed in this game
+      const alreadyRedeemed = await storage.hasRedeemedCoupon(coupon.id, gameRunId);
+      if (alreadyRedeemed) {
+        return res.status(400).json({ error: "You've already redeemed this coupon in this game" });
+      }
+
+      // Redeem the coupon
+      const result = await storage.redeemCoupon(coupon.id, gameRunId);
+      
+      res.json({
+        success: true,
+        cashAdded: result.cashAdded,
+        monthsAdded: result.monthsAdded,
+        newCash: result.gameRun.cash,
+        newWeeks: result.gameRun.weeksRemaining,
+      });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Invalid request data", details: error.errors });
+      }
+      console.error("Error redeeming coupon:", error);
+      // Return the actual error message for user-facing errors
+      res.status(400).json({ error: error.message || "Failed to redeem coupon" });
+    }
+  });
+
+  // Validation schemas for coupon operations
+  const createCouponSchema = z.object({
+    code: z.string().min(3).max(50).regex(/^[A-Z0-9_-]+$/i, "Code must be alphanumeric with underscores/hyphens"),
+    cashAmount: z.number().int().min(0).default(0),
+    monthsAmount: z.number().int().min(0).default(0),
+    usageLimit: z.number().int().min(1).nullable().optional(),
+    expiresAt: z.string().datetime().nullable().optional(),
+  });
+
+  const updateCouponSchema = z.object({
+    isActive: z.boolean().optional(),
+    usageLimit: z.number().int().min(1).nullable().optional(),
+    expiresAt: z.string().datetime().nullable().optional(),
+  });
+
+  // Admin authentication middleware
+  const checkAdminKey = (req: any, res: any): boolean => {
+    // Check header first (preferred), then body
+    const adminKey = req.headers['x-admin-key'] || req.body?.adminKey;
+    const envAdminKey = process.env.ADMIN_KEY;
+    
+    // Only allow if ADMIN_KEY env var is set and matches
+    if (!envAdminKey || adminKey !== envAdminKey) {
+      res.status(401).json({ error: "Unauthorized" });
+      return false;
+    }
+    return true;
+  };
+
+  // Admin: Create a new coupon
+  app.post("/api/admin/coupons", async (req, res) => {
+    try {
+      if (!checkAdminKey(req, res)) return;
+
+      const validatedData = createCouponSchema.parse(req.body);
+
+      // Check if code already exists
+      const existing = await storage.getCouponByCode(validatedData.code);
+      if (existing) {
+        return res.status(400).json({ error: "Coupon code already exists" });
+      }
+
+      const coupon = await storage.createCoupon({
+        code: validatedData.code.toUpperCase().trim(),
+        cashAmount: validatedData.cashAmount,
+        monthsAmount: validatedData.monthsAmount,
+        usageLimit: validatedData.usageLimit ?? null,
+        isActive: true,
+        expiresAt: validatedData.expiresAt ? new Date(validatedData.expiresAt) : null,
+      });
+
+      res.json(coupon);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error creating coupon:", error);
+      res.status(500).json({ error: "Failed to create coupon" });
+    }
+  });
+
+  // Admin: List all coupons
+  app.get("/api/admin/coupons", async (req, res) => {
+    try {
+      // Check admin key from header
+      const adminKey = req.headers['x-admin-key'];
+      const envAdminKey = process.env.ADMIN_KEY;
+      
+      if (!envAdminKey || adminKey !== envAdminKey) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const coupons = await storage.getAllCoupons();
+      res.json(coupons);
+    } catch (error) {
+      console.error("Error listing coupons:", error);
+      res.status(500).json({ error: "Failed to list coupons" });
+    }
+  });
+
+  // Admin: Update coupon (toggle active, change limits, etc.)
+  app.patch("/api/admin/coupons/:id", async (req, res) => {
+    try {
+      if (!checkAdminKey(req, res)) return;
+
+      const couponId = parseInt(req.params.id);
+      const { adminKey, ...body } = req.body;
+      
+      const validatedData = updateCouponSchema.parse(body);
+      const updatePayload: any = { ...validatedData };
+      if (validatedData.expiresAt) {
+        updatePayload.expiresAt = new Date(validatedData.expiresAt);
+      }
+      const coupon = await storage.updateCoupon(couponId, updatePayload);
+      res.json(coupon);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error updating coupon:", error);
+      res.status(500).json({ error: "Failed to update coupon" });
+    }
+  });
+
   return httpServer;
 }

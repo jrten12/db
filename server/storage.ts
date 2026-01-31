@@ -21,7 +21,10 @@ import type {
   PlayerTrophy,
   InsertPlayerTrophy,
   Tenant,
-  InsertTenant
+  InsertTenant,
+  Coupon,
+  InsertCoupon,
+  CouponRedemption
 } from "@shared/schema";
 
 const pool = new Pool({
@@ -88,6 +91,14 @@ export interface IStorage {
   
   // Curveball methods
   getLastCurveballForDeal(dealId: number): Promise<string | undefined>;
+
+  // Coupon methods
+  createCoupon(coupon: InsertCoupon): Promise<Coupon>;
+  getCouponByCode(code: string): Promise<Coupon | undefined>;
+  getAllCoupons(): Promise<Coupon[]>;
+  updateCoupon(id: number, updates: Partial<InsertCoupon>): Promise<Coupon | undefined>;
+  redeemCoupon(couponId: number, gameRunId: number): Promise<{ coupon: Coupon; gameRun: GameRun; cashAdded: number; monthsAdded: number }>;
+  hasRedeemedCoupon(couponId: number, gameRunId: number): Promise<boolean>;
 }
 
 export class DBStorage implements IStorage {
@@ -1605,6 +1616,119 @@ export class DBStorage implements IStorage {
       .orderBy(desc(schema.curveballEvents.gameWeek))
       .limit(1);
     return event?.curveballId;
+  }
+
+  // Coupon methods
+  async createCoupon(coupon: InsertCoupon): Promise<Coupon> {
+    const [created] = await db
+      .insert(schema.coupons)
+      .values(coupon)
+      .returning();
+    return created;
+  }
+
+  async getCouponByCode(code: string): Promise<Coupon | undefined> {
+    const [coupon] = await db
+      .select()
+      .from(schema.coupons)
+      .where(eq(schema.coupons.code, code.toUpperCase()))
+      .limit(1);
+    return coupon;
+  }
+
+  async getAllCoupons(): Promise<Coupon[]> {
+    return await db
+      .select()
+      .from(schema.coupons)
+      .orderBy(desc(schema.coupons.createdAt));
+  }
+
+  async updateCoupon(id: number, updates: Partial<InsertCoupon>): Promise<Coupon | undefined> {
+    const [updated] = await db
+      .update(schema.coupons)
+      .set(updates)
+      .where(eq(schema.coupons.id, id))
+      .returning();
+    return updated;
+  }
+
+  async hasRedeemedCoupon(couponId: number, gameRunId: number): Promise<boolean> {
+    const [redemption] = await db
+      .select()
+      .from(schema.couponRedemptions)
+      .where(and(
+        eq(schema.couponRedemptions.couponId, couponId),
+        eq(schema.couponRedemptions.gameRunId, gameRunId)
+      ))
+      .limit(1);
+    return !!redemption;
+  }
+
+  async redeemCoupon(couponId: number, gameRunId: number): Promise<{ coupon: Coupon; gameRun: GameRun; cashAdded: number; monthsAdded: number }> {
+    // Use a transaction for atomic redemption
+    return await db.transaction(async (tx) => {
+      // Get coupon with a row lock (select for update pattern via transaction)
+      const [coupon] = await tx
+        .select()
+        .from(schema.coupons)
+        .where(eq(schema.coupons.id, couponId));
+      
+      if (!coupon) throw new Error('Coupon not found');
+      
+      // Re-check usage limit within transaction
+      if (coupon.usageLimit !== null && coupon.usageCount >= coupon.usageLimit) {
+        throw new Error('Coupon has reached its usage limit');
+      }
+      
+      const [gameRun] = await tx
+        .select()
+        .from(schema.gameRuns)
+        .where(eq(schema.gameRuns.id, gameRunId));
+      
+      if (!gameRun) throw new Error('Game run not found');
+
+      // Check if already redeemed within transaction
+      const [existingRedemption] = await tx
+        .select()
+        .from(schema.couponRedemptions)
+        .where(and(
+          eq(schema.couponRedemptions.couponId, couponId),
+          eq(schema.couponRedemptions.gameRunId, gameRunId)
+        ))
+        .limit(1);
+      
+      if (existingRedemption) {
+        throw new Error('Coupon already redeemed in this game');
+      }
+
+      // Record redemption
+      await tx
+        .insert(schema.couponRedemptions)
+        .values({ couponId, gameRunId });
+
+      // Increment usage count atomically
+      await tx
+        .update(schema.coupons)
+        .set({ usageCount: coupon.usageCount + 1 })
+        .where(eq(schema.coupons.id, couponId));
+
+      // Update game run with bonuses
+      const [updatedGameRun] = await tx
+        .update(schema.gameRuns)
+        .set({
+          cash: gameRun.cash + coupon.cashAmount,
+          weeksRemaining: gameRun.weeksRemaining + coupon.monthsAmount,
+        })
+        .where(eq(schema.gameRuns.id, gameRunId))
+        .returning();
+
+      return {
+        coupon,
+        gameRun: updatedGameRun,
+        cashAdded: coupon.cashAmount,
+        monthsAdded: coupon.monthsAmount,
+      };
+    });
   }
 }
 

@@ -1,12 +1,15 @@
-import { X, Wallet, Clock, Sparkles } from 'lucide-react';
+import { X, Wallet, Clock, Sparkles, Ticket, Check, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import { apiRequest } from '@/lib/queryClient';
 
 interface PremiumModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPurchase: (type: 'cash' | 'weeks' | 'bundle', cashAmount: number, weeksAmount?: number) => void;
+  onCouponRedeemed?: (cashAdded: number, monthsAdded: number) => void;
   currentCash: number;
   currentWeeks: number;
+  gameRunId?: number;
   triggerReason?: 'no_weeks' | 'low_cash' | 'manual';
   canClose?: boolean;
   onEndGame?: () => void;
@@ -105,9 +108,14 @@ const packages: PremiumPackage[] = [
   },
 ];
 
-export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, currentWeeks, triggerReason = 'manual', canClose = true, onEndGame }: PremiumModalProps) {
+export function PremiumModal({ isOpen, onClose, onPurchase, onCouponRedeemed, currentCash, currentWeeks, gameRunId, triggerReason = 'manual', canClose = true, onEndGame }: PremiumModalProps) {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+  const [showCouponInput, setShowCouponInput] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponSuccess, setCouponSuccess] = useState<{ cash: number; months: number } | null>(null);
 
   // Sort packages based on what the player needs most
   const sortedPackages = [...packages].sort((a, b) => {
@@ -174,6 +182,44 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
       console.error('Purchase failed:', error);
       setPurchasing(false);
       setSelectedPackage(null);
+    }
+  };
+
+  const handleCouponRedeem = async () => {
+    if (!couponCode.trim() || !gameRunId) return;
+    
+    setCouponLoading(true);
+    setCouponError(null);
+    setCouponSuccess(null);
+
+    try {
+      const response = await apiRequest('POST', '/api/coupons/redeem', {
+        code: couponCode.trim(),
+        gameRunId,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCouponSuccess({ cash: data.cashAdded, months: data.monthsAdded });
+        setCouponCode('');
+        
+        // Notify parent component
+        if (onCouponRedeemed) {
+          onCouponRedeemed(data.cashAdded, data.monthsAdded);
+        }
+
+        // Close modal after success if not frozen
+        if (canClose) {
+          setTimeout(() => {
+            onClose();
+          }, 2000);
+        }
+      }
+    } catch (error: any) {
+      setCouponError(error.message || 'Failed to redeem coupon');
+    } finally {
+      setCouponLoading(false);
     }
   };
 
@@ -304,8 +350,71 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
             })}
           </div>
 
+          {/* Coupon Code Section */}
+          {gameRunId && (
+            <div className="mt-6 pt-6 border-t border-white/10">
+              <button
+                onClick={() => {
+                  setShowCouponInput(!showCouponInput);
+                  setCouponError(null);
+                  setCouponSuccess(null);
+                }}
+                className="flex items-center gap-2 mx-auto text-gray-400 hover:text-white transition-colors"
+                data-testid="button-toggle-coupon"
+              >
+                <Ticket className="w-5 h-5" />
+                <span>{showCouponInput ? 'Hide Coupon Code' : 'Have a Coupon Code?'}</span>
+              </button>
+
+              {showCouponInput && (
+                <div className="mt-4 max-w-md mx-auto">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="Enter coupon code"
+                      className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500/50"
+                      disabled={couponLoading}
+                      data-testid="input-coupon-code"
+                    />
+                    <button
+                      onClick={handleCouponRedeem}
+                      disabled={couponLoading || !couponCode.trim()}
+                      className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl font-bold text-black transition-all"
+                      data-testid="button-redeem-coupon"
+                    >
+                      {couponLoading ? '...' : 'Redeem'}
+                    </button>
+                  </div>
+
+                  {couponError && (
+                    <div className="mt-3 flex items-center gap-2 text-red-400 text-sm">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{couponError}</span>
+                    </div>
+                  )}
+
+                  {couponSuccess && (
+                    <div className="mt-3 p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl">
+                      <div className="flex items-center gap-2 text-emerald-400">
+                        <Check className="w-5 h-5" />
+                        <span className="font-bold">Coupon Redeemed!</span>
+                      </div>
+                      <div className="mt-1 text-sm text-emerald-300">
+                        {couponSuccess.cash > 0 && <span>+${couponSuccess.cash.toLocaleString()} cash</span>}
+                        {couponSuccess.cash > 0 && couponSuccess.months > 0 && <span> and </span>}
+                        {couponSuccess.months > 0 && <span>+{couponSuccess.months} months</span>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Info Note */}
-          <div className="text-center text-gray-500 text-sm">
+          <div className="text-center text-gray-500 text-sm mt-6">
             <p>Premium purchases coming soon!</p>
             <p className="mt-1">These boosts will be available after payment integration</p>
           </div>

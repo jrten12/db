@@ -42,3 +42,8 @@ waitForPort = 5000
 mockupState = "FULLSTACK"
 integrations = ["javascript_openai_ai_integrations:2.0.0"]
 expertMode = true
+
+[userenv]
+
+[userenv.shared]
+ADMIN_KEY = "dealbreak-admin-2024"

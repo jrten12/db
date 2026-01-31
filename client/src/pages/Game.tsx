@@ -27,6 +27,7 @@ import { DebtPanel, DebtPanelTrigger } from '@/components/game/DebtPanel';
 import { RefinanceModal } from '@/components/game/RefinanceModal';
 import { OperatingExpensesPopup } from '@/components/game/OperatingExpensesPopup';
 import { DealCongratulations } from '@/components/game/DealCongratulations';
+import { PropertySoldAnimation } from '@/components/game/PropertySoldAnimation';
 import { useTutorial } from '@/contexts/TutorialContext';
 import {
   ProFormaInputs,
@@ -748,6 +749,19 @@ export default function Game() {
     } | null;
   }>({ isOpen: false, data: null });
 
+  const [propertySoldAnim, setPropertySoldAnim] = useState<{
+    isOpen: boolean;
+    data: {
+      propertyName: string;
+      salePrice: number;
+      purchasePrice: number;
+      mortgagePayoff: number;
+      netProceeds: number;
+      saleProfit: number;
+      isRental: boolean;
+    } | null;
+  }>({ isOpen: false, data: null });
+
   const handleCommitDeal = useCallback(async () => {
     // Guard against double-clicks
     if (isCommittingDeal) {
@@ -1152,18 +1166,23 @@ export default function Game() {
       // Update game state with new cash and weeks
       setGameRun(result.gameRun);
       
-      // Find property name for toast
+      // Find property name for animation
       const deal = deals.find(d => d.id === dealId);
       const property = properties.find(p => p.id === deal?.propertyId);
       
-      const profitSign = result.saleProfit >= 0 ? '+' : '';
-      const mortgageInfo = result.mortgagePayoff > 0 
-        ? ` (paid off $${result.mortgagePayoff.toLocaleString()} mortgage)` 
-        : '';
-      toast.success(
-        `Sold ${property?.name || 'property'} for $${result.salePrice.toLocaleString()}${mortgageInfo}. Net: $${result.netProceeds.toLocaleString()} (${profitSign}$${result.saleProfit.toLocaleString()} profit)`,
-        { duration: 6000 }
-      );
+      // Show cool sold animation
+      setPropertySoldAnim({
+        isOpen: true,
+        data: {
+          propertyName: property?.name || 'Property',
+          salePrice: result.salePrice,
+          purchasePrice: deal?.purchasePrice || property?.price || 0,
+          mortgagePayoff: result.mortgagePayoff,
+          netProceeds: result.netProceeds,
+          saleProfit: result.saleProfit,
+          isRental: true,
+        }
+      });
       
       queryClient.invalidateQueries({ queryKey: ['deals'] });
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
@@ -1181,15 +1200,23 @@ export default function Game() {
       // Update game state with new cash and weeks
       setGameRun(result.gameRun);
       
-      // Find property name for toast
+      // Find property name for animation
       const deal = deals.find(d => d.id === dealId);
       const property = properties.find(p => p.id === deal?.propertyId);
       
-      const profitSign = result.saleProfit >= 0 ? '+' : '';
-      toast.success(
-        `Flipped ${property?.name || 'property'} for $${result.salePrice.toLocaleString()} (${profitSign}$${result.saleProfit.toLocaleString()})`,
-        { duration: 5000 }
-      );
+      // Show cool sold animation
+      setPropertySoldAnim({
+        isOpen: true,
+        data: {
+          propertyName: property?.name || 'Property',
+          salePrice: result.salePrice,
+          purchasePrice: deal?.purchasePrice || property?.price || 0,
+          mortgagePayoff: result.mortgagePayoff || 0,
+          netProceeds: result.netProceeds || result.salePrice,
+          saleProfit: result.saleProfit,
+          isRental: false,
+        }
+      });
       
       // Show trophy notifications if any were awarded
       if (result.awardedTrophies && result.awardedTrophies.length > 0) {
@@ -1718,6 +1745,13 @@ export default function Game() {
           isOpen={dealCongrats.isOpen}
           onClose={() => setDealCongrats({ isOpen: false, data: null })}
           dealData={dealCongrats.data}
+        />
+
+        {/* Property Sold Animation */}
+        <PropertySoldAnimation
+          isOpen={propertySoldAnim.isOpen}
+          onClose={() => setPropertySoldAnim({ isOpen: false, data: null })}
+          saleData={propertySoldAnim.data}
         />
 
         {/* Ledger Panel Modal */}

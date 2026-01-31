@@ -53,12 +53,12 @@ const getColorClasses = (color?: string) => {
 };
 
 export function IncomeNotification({ events, onDismiss }: IncomeNotificationProps) {
-  // Auto-dismiss after 4 seconds
+  // Auto-dismiss after 1.5 seconds (quick flash)
   useEffect(() => {
     events.forEach((event) => {
       const timer = setTimeout(() => {
         onDismiss(event.id);
-      }, 4000);
+      }, 1500);
 
       return () => clearTimeout(timer);
     });

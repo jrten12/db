@@ -82,11 +82,7 @@ export default function Landing() {
                   </div>
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08]">
                     <Clock className="w-4 h-4 text-amber-400" />
-                    <span className="text-white/90 text-sm font-medium">12 Months</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08]">
-                    <Target className="w-4 h-4 text-blue-400" />
-                    <span className="text-white/90 text-sm font-medium">3 Deals</span>
+                    <span className="text-white/90 text-sm font-medium">52 Months</span>
                   </div>
                 </div>
 

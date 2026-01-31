@@ -66,10 +66,25 @@ export function RefinanceModal({ isOpen, onClose, deal, property, gameRun, onRef
   }, [deal]);
   
   // Calculate dynamic interest rate based on LTV (higher LTV = higher risk = higher rate)
+  // Uses exponential curve above 80% LTV to simulate lender risk aversion
   const getDynamicRate = (ltv: number, baseRate: number) => {
-    // LTV risk adjustment: +0.5% for each 10% LTV above 65%
-    const ltvPremium = ltv > 65 ? ((ltv - 65) / 10) * 0.5 : 0;
-    return Math.min(12, baseRate + ltvPremium);
+    let ltvPremium = 0;
+    
+    if (ltv <= 65) {
+      // Conservative leverage: no premium
+      ltvPremium = 0;
+    } else if (ltv <= 80) {
+      // Moderate leverage: linear premium, +0.5% per 10% LTV
+      ltvPremium = ((ltv - 65) / 10) * 0.5;
+    } else {
+      // High leverage (80-90%): exponential curve - rates climb steeply
+      const basePremiumAt80 = 0.75; // Premium accumulated at 80%
+      const dangerFactor = (ltv - 80) / 10; // 0 at 80%, 1 at 90%
+      // Exponential climb: each 5% above 80% adds progressively more
+      ltvPremium = basePremiumAt80 + (dangerFactor * dangerFactor * 2.5);
+    }
+    
+    return Math.min(14, baseRate + ltvPremium);
   };
   
   const dynamicRate = selectedOption && options?.interestRate 

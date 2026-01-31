@@ -739,7 +739,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   type="range"
                   min={50}
                   max={100}
-                  step={5}
+                  step={1}
                   value={inputs.ltv}
                   onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, ltv: parseInt(e.target.value) }); }}
                   className="w-full h-3 rounded-lg appearance-none cursor-pointer"

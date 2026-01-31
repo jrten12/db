@@ -48,6 +48,11 @@ export function useGlobalClickSound() {
         return;
       }
       
+      // Exclude sliders and range inputs from click sounds
+      if (target.closest('input[type="range"]') || target.closest('[role="slider"]')) {
+        return;
+      }
+      
       const isInteractive = 
         target.closest('button') ||
         target.closest('a') ||

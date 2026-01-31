@@ -354,7 +354,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-white/10 flex-shrink-0 ml-2"
+            className="text-white hover:text-white transition-colors p-3 rounded-full bg-slate-800/80 hover:bg-slate-700 active:bg-slate-600 flex-shrink-0 ml-2"
           >
             <X className="w-6 h-6" />
           </button>

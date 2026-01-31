@@ -412,10 +412,10 @@ export function PropertyDetail({
           </h2>
           <button 
             onClick={onClose}
-            className="touch-target p-2 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-full text-white transition-all duration-150 ios-spring tap-scale"
+            className="touch-target p-3 bg-slate-800/80 hover:bg-slate-700 active:bg-slate-600 rounded-full text-white transition-all duration-150 ios-spring tap-scale"
             data-testid="button-close-detail"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 

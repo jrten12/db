@@ -9,6 +9,7 @@ interface PremiumModalProps {
   currentWeeks: number;
   triggerReason?: 'no_weeks' | 'low_cash' | 'manual';
   canClose?: boolean;
+  onEndGame?: () => void;
 }
 
 interface PremiumPackage {
@@ -104,7 +105,7 @@ const packages: PremiumPackage[] = [
   },
 ];
 
-export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, currentWeeks, triggerReason = 'manual', canClose = true }: PremiumModalProps) {
+export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, currentWeeks, triggerReason = 'manual', canClose = true, onEndGame }: PremiumModalProps) {
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [purchasing, setPurchasing] = useState(false);
 
@@ -308,6 +309,22 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
             <p>Premium purchases coming soon!</p>
             <p className="mt-1">These boosts will be available after payment integration</p>
           </div>
+
+          {/* End Game Button - Only show when game is frozen (can't close) */}
+          {!canClose && onEndGame && (
+            <div className="mt-8 pt-6 border-t border-white/10">
+              <div className="text-center mb-4">
+                <p className="text-gray-400 text-sm">Don't want to continue?</p>
+              </div>
+              <button
+                onClick={onEndGame}
+                className="w-full max-w-md mx-auto block py-4 px-6 rounded-xl font-bold text-lg transition-all bg-slate-700 hover:bg-slate-600 text-white border border-slate-600"
+                data-testid="button-end-game"
+              >
+                See Final Results
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

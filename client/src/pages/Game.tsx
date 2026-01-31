@@ -1845,6 +1845,7 @@ export default function Game() {
           currentWeeks={gameRun.weeksRemaining}
           triggerReason={premiumTriggerReason}
           canClose={!isPlayerFrozen}
+          onEndGame={isPlayerFrozen ? handleBankruptReturnHome : undefined}
         />
 
         {/* Hall of Fame Modal */}

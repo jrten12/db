@@ -47,9 +47,6 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
           <h2 className="font-display text-2xl md:text-3xl font-bold text-white tracking-wide">
             Property Market
           </h2>
-          <p className="text-gray-400 text-sm mt-1 max-w-md">
-            Most of these will fail. Which would you bet your assumptions on?
-          </p>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur rounded-full border border-white/10">
           <Eye className="w-4 h-4 text-gray-400" />

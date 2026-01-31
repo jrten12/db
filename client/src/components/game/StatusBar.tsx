@@ -184,77 +184,56 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             </button>
           </div>
 
-          {/* Mobile Layout */}
-          <div className="md:hidden">
-            {/* Top Row */}
-            <div className="flex items-center justify-between mb-2">
-              <button
-                onClick={() => setMenuOpen(true)}
-                className="menu-button-mobile touch-target flex items-center justify-center tap-scale"
-                data-testid="button-menu-mobile"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-              
-              <Link href="/">
-                <div className="relative tap-scale">
-                  <div className="absolute -inset-1 bg-emerald-500/20 rounded-xl blur-sm" />
-                  <img 
-                    src={logo} 
-                    alt="Dealbreak" 
-                    className="relative h-12 w-12 rounded-lg shadow-2xl"
-                    style={{
-                      boxShadow: '0 6px 24px rgba(0,0,0,0.5), 0 0 0 2px rgba(16,185,129,0.3)',
-                    }}
-                    data-testid="game-logo-mobile"
-                  />
-                </div>
-              </Link>
-              
-              {/* Advance Week Button - Mobile */}
-              {onAdvanceWeek ? (
-                <button
-                  onClick={onAdvanceWeek}
-                  disabled={isAdvancingWeek || weeksRemaining <= 0}
-                  className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-xl transition-all duration-150 ios-spring tap-scale"
-                  data-testid="button-advance-week-mobile"
-                >
-                  {isAdvancingWeek ? (
-                    <Loader2 className="w-5 h-5 animate-spin text-white" />
-                  ) : (
-                    <Play className="w-5 h-5 text-white" />
-                  )}
-                </button>
-              ) : (
-                <div className="w-11" />
-              )}
-            </div>
+          {/* Mobile Layout - Condensed Single Row */}
+          <div className="md:hidden flex items-center gap-2">
+            {/* Menu Button */}
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="menu-button-mobile touch-target flex items-center justify-center tap-scale flex-shrink-0"
+              data-testid="button-menu-mobile"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
             
-            {/* Mobile Stats */}
-            <div className="flex items-stretch justify-between gap-2">
+            {/* Stats Row */}
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <button 
                 onClick={onOpenLedger}
-                className="stat-card-mobile stat-card-mobile-cash touch-target-sm tap-scale"
+                className="stat-card-mobile-compact stat-card-mobile-cash touch-target-sm tap-scale flex-1"
                 data-testid="status-cash-mobile"
               >
-                <AnimatedNumber value={cashDisplay} prefix="$" className="mobile-cash-value" />
-                <div className="stat-label-mobile">
-                  <Wallet className="w-3 h-3" /> Cash
-                </div>
+                <AnimatedNumber value={cashDisplay} prefix="$" className="mobile-cash-value-compact" />
+                <div className="stat-label-mobile-compact">Cash</div>
               </button>
               
-              <div className="stat-card-mobile stat-card-mobile-time touch-target-sm" data-testid="status-time-mobile">
-                <AnimatedNumber value={weeksRemaining} suffix="M" className="mobile-time-value" />
-                <div className="stat-label-mobile">Time</div>
+              <div className="stat-card-mobile-compact stat-card-mobile-time touch-target-sm flex-1" data-testid="status-time-mobile">
+                <AnimatedNumber value={weeksRemaining} suffix="M" className="mobile-time-value-compact" />
+                <div className="stat-label-mobile-compact">Time</div>
               </div>
               
-              <div className="stat-card-mobile stat-card-mobile-goal touch-target-sm" data-testid="status-goal-mobile">
-                <span className="mobile-goal-value">
+              <div className="stat-card-mobile-compact stat-card-mobile-goal touch-target-sm flex-1" data-testid="status-goal-mobile">
+                <span className="mobile-goal-value-compact">
                   <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
                 </span>
-                <div className="stat-label-mobile">Deals</div>
+                <div className="stat-label-mobile-compact">Deals</div>
               </div>
             </div>
+            
+            {/* Advance Week Button - Mobile */}
+            {onAdvanceWeek && (
+              <button
+                onClick={onAdvanceWeek}
+                disabled={isAdvancingWeek || weeksRemaining <= 0}
+                className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
+                data-testid="button-advance-week-mobile"
+              >
+                {isAdvancingWeek ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-white" />
+                ) : (
+                  <Play className="w-5 h-5 text-white" />
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>

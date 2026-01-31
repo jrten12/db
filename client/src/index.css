@@ -682,6 +682,36 @@
     color: rgba(255,255,255,0.5);
   }
 
+  /* Compact Mobile Stats - Single Row Layout */
+  .stat-card-mobile-compact {
+    @apply px-2 py-1.5 rounded-md text-center transition-all duration-300;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .stat-card-mobile-compact.stat-card-mobile-cash {
+    background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 100%);
+    border: 1px solid rgba(16,185,129,0.25);
+  }
+
+  .mobile-cash-value-compact {
+    @apply font-mono font-bold text-sm;
+    color: #10b981;
+  }
+
+  .mobile-time-value-compact {
+    @apply font-bold text-sm text-white;
+  }
+
+  .mobile-goal-value-compact {
+    @apply font-bold text-sm;
+  }
+
+  .stat-label-mobile-compact {
+    @apply text-[10px] leading-tight;
+    color: rgba(255,255,255,0.4);
+  }
+
   .menu-stat-card {
     @apply px-4 py-2 rounded-lg text-center;
     background: rgba(255,255,255,0.05);

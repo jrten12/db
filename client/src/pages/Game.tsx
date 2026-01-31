@@ -625,6 +625,10 @@ export default function Game() {
     setGameRun(null);
     setShowNameEntry(true);
     setCurrentScreen('market');
+    // Reset premium popup flags so they don't trigger on fresh game
+    setShowPremiumModal(false);
+    setHasShownNoWeeksPopup(false);
+    setHasShownLowCashPopup(false);
     clearSave();
   }, [gameRun]);
 
@@ -1352,6 +1356,10 @@ export default function Game() {
     setIsProFormaComplete(false);
     setCompletedDiligence({});
     setProFormaCompletions({});
+    // Reset premium popup flags so they don't trigger on fresh game
+    setShowPremiumModal(false);
+    setHasShownNoWeeksPopup(false);
+    setHasShownLowCashPopup(false);
     queryClient.invalidateQueries();
   }, [queryClient, gameRun]);
 
@@ -1409,6 +1417,10 @@ export default function Game() {
       setIsProFormaComplete(false);
       setCompletedDiligence({});
       setProFormaCompletions({});
+      // Reset premium popup flags so they don't trigger on fresh game
+      setShowPremiumModal(false);
+      setHasShownNoWeeksPopup(false);
+      setHasShownLowCashPopup(false);
       
       // Now set the new game run - this will trigger fresh queries with the new ID
       setGameRun(newRun);

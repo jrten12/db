@@ -235,7 +235,7 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
       onClick={onClose}
     >
       <div 
-        className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[calc(100vh-200px)] md:max-h-[85vh] flex flex-col shadow-2xl"
+        className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[calc(100vh-80px)] md:max-h-[90vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-700">

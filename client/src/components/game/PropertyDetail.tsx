@@ -391,7 +391,7 @@ export function PropertyDetail({
   return (
     <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[calc(env(safe-area-inset-top,0px)+60px)] md:pt-8 md:items-center p-2 md:p-4 bg-black/80 backdrop-blur-sm safe-area-x" data-testid="property-detail-modal">
       <div 
-        className="w-full max-w-6xl max-h-[calc(100vh-200px)] md:max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl overscroll-contain touch-pan-y" 
+        className="w-full max-w-6xl max-h-[calc(100vh-80px)] md:max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl overscroll-contain touch-pan-y" 
         style={{
           background: 'linear-gradient(145deg, #0f172a 0%, #1e293b 100%)',
           WebkitOverflowScrolling: 'touch',

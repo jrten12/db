@@ -516,6 +516,7 @@ export function PropertyDetail({
                       }`}
                       type="button"
                       data-testid={`thumbnail-${index}`}
+                      data-no-click-sound
                     >
                       <img
                         src={img.url}
@@ -685,6 +686,7 @@ export function PropertyDetail({
                         disabled={isDisabled}
                         className={`w-full text-left p-4 rounded-xl transition-all border-2 ${getGradientClasses()}`}
                         data-testid={`button-diligence-${option.id}`}
+                        data-no-click-sound
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">

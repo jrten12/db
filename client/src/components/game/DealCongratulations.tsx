@@ -248,6 +248,7 @@ export function DealCongratulations({ isOpen, onClose, dealData }: DealCongratul
                 <Button
                   onClick={onClose}
                   className={`w-full py-6 text-lg font-bold bg-gradient-to-r ${message.color} hover:opacity-90 transition-opacity`}
+                  data-no-click-sound
                 >
                   Continue
                 </Button>

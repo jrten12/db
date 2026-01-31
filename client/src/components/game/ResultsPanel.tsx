@@ -495,6 +495,7 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
             border: '2px solid #22c55e',
           }}
           data-testid="button-continue-results"
+          data-no-click-sound
         >
           Continue
         </button>

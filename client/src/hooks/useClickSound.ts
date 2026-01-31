@@ -42,6 +42,12 @@ export function useGlobalClickSound() {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
+      
+      // Check if element or any parent has opted out of click sounds
+      if (target.closest('[data-no-click-sound]')) {
+        return;
+      }
+      
       const isInteractive = 
         target.closest('button') ||
         target.closest('a') ||

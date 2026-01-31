@@ -261,6 +261,7 @@ export function TimeProgressionPanel({
           disabled={isAdvancing || gameRun.weeksRemaining <= 0}
           size="sm"
           className="bg-blue-600 hover:bg-blue-700 h-8"
+          data-no-click-sound
         >
           {isAdvancing ? (
             <Loader2 className="w-3 h-3 animate-spin" />
@@ -370,6 +371,7 @@ export function TimeProgressionPanel({
                             }
                           }}
                           data-testid={`button-refinance-rental-${deal.id}`}
+                          data-no-click-sound
                         >
                           {refinancingDealId === deal.id ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -407,6 +409,7 @@ export function TimeProgressionPanel({
                     disabled={!canSell || sellingDealId === deal.id}
                     onClick={() => handleSellRental(deal.id)}
                     data-testid={`button-sell-rental-${deal.id}`}
+                    data-no-click-sound
                   >
                     {sellingDealId === deal.id ? (
                       <Loader2 className="w-3 h-3 animate-spin" />

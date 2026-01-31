@@ -126,6 +126,7 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
                     : 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white shadow-emerald-500/30'
                 }`}
                 data-testid="button-commit-deal"
+                data-no-click-sound
               >
                 {isCommitting ? (
                   <>

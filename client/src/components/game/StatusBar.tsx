@@ -159,6 +159,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 disabled={isAdvancingWeek || weeksRemaining <= 0}
                 className="touch-target flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-lg transition-all duration-150 ios-spring tap-scale disabled:tap-scale-none"
                 data-testid="button-advance-week"
+                data-no-click-sound
               >
                 {isAdvancingWeek ? (
                   <>

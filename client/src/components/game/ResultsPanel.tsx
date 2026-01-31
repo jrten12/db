@@ -22,11 +22,18 @@ interface ExplanationItem {
 }
 
 export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, holdWeeks = 0, hasAppraisal = true, onContinue }: ResultsPanelProps) {
-  // Scroll to top when results panel mounts
+  // Scroll to top and play sound when results panel mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+    
+    // Play results alert sound
+    const audio = new Audio('/sounds/results-alert.wav');
+    audio.volume = 0.5;
+    audio.play().catch(() => {
+      // Ignore autoplay errors - some browsers block audio without user interaction
+    });
   }, []);
 
   const isPositiveCashFlow = outputs.cashFlowMonthly > 0;

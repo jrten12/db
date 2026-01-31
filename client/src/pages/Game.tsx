@@ -605,7 +605,20 @@ export default function Game() {
     }
   }, [gameRun, properties, updateGameMutation, createInvestigationMutation, createLedgerMutation, completedDiligence]);
 
-  const handleNewGame = useCallback(() => {
+  const handleNewGame = useCallback(async () => {
+    // Record game end stats to Hall of Fame if there's an active game
+    if (gameRun?.id) {
+      try {
+        const finalCash = gameRun.cash;
+        const weeksRemaining = gameRun.weeksRemaining;
+        const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 3);
+        await api.endGame(gameRun.id, won, finalCash, weeksRemaining);
+        console.log('Game stats recorded to Hall of Fame');
+      } catch (err) {
+        console.error('Failed to record game stats:', err);
+      }
+    }
+    
     sessionStorage.removeItem('currentGameRunId');
     sessionStorage.removeItem('skippedDiligenceDeals');
     setSkippedDiligenceDeals(new Set());
@@ -613,7 +626,7 @@ export default function Game() {
     setShowNameEntry(true);
     setCurrentScreen('market');
     clearSave();
-  }, []);
+  }, [gameRun]);
 
   const handleBackToMarket = useCallback(() => {
     setCurrentScreen('market');
@@ -1315,7 +1328,20 @@ export default function Game() {
     }
   }, [gameRun?.weeksRemaining, gameRun?.cash, isBankrupt, hasShownNoWeeksPopup, hasShownLowCashPopup, showPremiumModal]);
 
-  const handleBankruptReturnHome = useCallback(() => {
+  const handleBankruptReturnHome = useCallback(async () => {
+    // Record game end stats to Hall of Fame before resetting
+    if (gameRun?.id) {
+      try {
+        const finalCash = gameRun.cash;
+        const weeksRemaining = gameRun.weeksRemaining;
+        const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 3);
+        await api.endGame(gameRun.id, won, finalCash, weeksRemaining);
+        console.log('Game stats recorded to Hall of Fame');
+      } catch (err) {
+        console.error('Failed to record game stats:', err);
+      }
+    }
+    
     // Reset game state and go back to name entry
     setGameRun(null);
     setShowNameEntry(true);
@@ -1327,7 +1353,7 @@ export default function Game() {
     setCompletedDiligence({});
     setProFormaCompletions({});
     queryClient.invalidateQueries();
-  }, [queryClient]);
+  }, [queryClient, gameRun]);
 
   const handleBankruptTryAgain = useCallback(async () => {
     if (!playerName) {
@@ -1337,6 +1363,19 @@ export default function Game() {
     
     // Get the old game run ID before we start
     const oldGameRunId = gameRun?.id;
+    
+    // Record game end stats to Hall of Fame before starting new game
+    if (oldGameRunId && gameRun) {
+      try {
+        const finalCash = gameRun.cash;
+        const weeksRemaining = gameRun.weeksRemaining;
+        const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 3);
+        await api.endGame(oldGameRunId, won, finalCash, weeksRemaining);
+        console.log('Game stats recorded to Hall of Fame');
+      } catch (err) {
+        console.error('Failed to record game stats:', err);
+      }
+    }
     
     // Start a fresh game with the same player name
     try {

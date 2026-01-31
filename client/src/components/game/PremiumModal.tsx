@@ -108,6 +108,21 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [purchasing, setPurchasing] = useState(false);
 
+  // Sort packages based on what the player needs most
+  const sortedPackages = [...packages].sort((a, b) => {
+    // If out of time, show weeks packages first
+    if (triggerReason === 'no_weeks' || currentWeeks <= 0) {
+      if (a.type === 'weeks' && b.type !== 'weeks') return -1;
+      if (a.type !== 'weeks' && b.type === 'weeks') return 1;
+    }
+    // If low on cash, show cash packages first
+    if (triggerReason === 'low_cash' || currentCash < 3000) {
+      if (a.type === 'cash' && b.type !== 'cash') return -1;
+      if (a.type !== 'cash' && b.type === 'cash') return 1;
+    }
+    return 0;
+  });
+
   if (!isOpen) return null;
   
   // Get contextual messaging based on trigger reason
@@ -224,7 +239,7 @@ export function PremiumModal({ isOpen, onClose, onPurchase, currentCash, current
 
           {/* Packages Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            {packages.map((pkg) => {
+            {sortedPackages.map((pkg) => {
               const Icon = pkg.icon;
               const isSelected = selectedPackage === pkg.id;
               const isPurchasing = purchasing && isSelected;

@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials } from '@/lib/gameData';
-import { getEffectiveRanges, EffectiveRanges } from '@/lib/propertyIssues';
+import { getEffectiveRanges, EffectiveRanges, getRevealedIssues, type PropertyIssue } from '@/lib/propertyIssues';
 import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet, ArrowDown } from 'lucide-react';
+import { ItemizedRepairsPanel } from './ItemizedRepairsPanel';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AssumptionInput, PercentAssumption } from './AssumptionInput';
 import { FormulaCanvas, MiniFormula } from './FormulaCanvas';
@@ -207,6 +208,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     completedDiligence
   ), [property, completedDiligence]);
 
+  const revealedIssues = useMemo(() => {
+    return getRevealedIssues(property.name, completedDiligence);
+  }, [property.name, completedDiligence]);
+
   const [expandedSections, setExpandedSections] = useState({
     foundation: true,
     capital: true,
@@ -351,6 +356,27 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const hasAppraisal = completedDiligence.includes('appraisal');
   const hasContractorWalkthrough = completedDiligence.includes('contractor_walkthrough');
   const hasInspection = completedDiligence.includes('inspection');
+  const hasDiligenceForIssues = hasContractorWalkthrough || hasInspection;
+
+  const handleSelectedIssuesChange = useCallback((selectedIds: string[]) => {
+    const selectedIssues = revealedIssues.filter(i => selectedIds.includes(i.id));
+    const totalCostMin = selectedIssues.reduce((sum, i) => {
+      const costMult = inputs.contractorType === 'cheap' ? 0.85 : 1.25;
+      return sum + Math.round(i.costRangeMin * costMult);
+    }, 0);
+    const totalCostMax = selectedIssues.reduce((sum, i) => {
+      const costMult = inputs.contractorType === 'cheap' ? 0.95 : 1.4;
+      return sum + Math.round(i.costRangeMax * costMult);
+    }, 0);
+    const avgCost = Math.round((totalCostMin + totalCostMax) / 2);
+    
+    onInputsChange({
+      ...inputs,
+      fixedIssueIds: selectedIds,
+      discoveredIssueIds: revealedIssues.map(i => i.id),
+      rehabBudget: avgCost,
+    });
+  }, [revealedIssues, inputs, onInputsChange]);
   
   const missingDiligence = {
     rent: !hasMarketStudy,
@@ -655,44 +681,66 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </>
               ) : (
                 <>
-                  {/* Rehab Budget - allows $0 to max, shows diligence range as hint */}
-                  <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
-                    <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Rehab Budget</label>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-cyan-100 text-2xl font-mono font-bold">${(inputs.rehabBudget ?? 0).toLocaleString()}</span>
-                      {(inputs.rehabBudget ?? 0) === 0 && (
-                        <span className="text-emerald-400/60 text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full">No Rehab</span>
+                  {/* Itemized Repairs Panel - shows when diligence done */}
+                  {hasDiligenceForIssues && revealedIssues.length > 0 ? (
+                    <div className="col-span-full">
+                      <ItemizedRepairsPanel
+                        issues={revealedIssues}
+                        selectedIssueIds={inputs.fixedIssueIds || []}
+                        onSelectionChange={handleSelectedIssuesChange}
+                        contractorType={inputs.contractorType}
+                      />
+                      {(inputs.rehabBudget ?? 0) > 0 && (
+                        <div className="mt-3 p-3 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <span className="text-cyan-300 text-sm">Total Rehab Budget:</span>
+                            <span className="text-cyan-100 text-xl font-mono font-bold">${(inputs.rehabBudget ?? 0).toLocaleString()}</span>
+                          </div>
+                        </div>
                       )}
                     </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={hasContractorWalkthrough || hasInspection ? property.rehabMax : Math.round(property.rehabMax * 1.5)}
-                      step={1000}
-                      value={inputs.rehabBudget ?? 0}
-                      onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) }); }}
-                      onFocus={() => onFieldTouch?.('rehabBudget')}
-                      className="w-full h-3 rounded-lg appearance-none cursor-pointer"
-                      data-testid="slider-rehab-budget"
-                    />
-                    {hasContractorWalkthrough || hasInspection ? (
-                      <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
-                        <span>$0</span>
-                        <span className="text-cyan-300">
-                          Diligence shows ${property.rehabMin.toLocaleString()}-${property.rehabMax.toLocaleString()}
-                        </span>
-                        <span>${property.rehabMax.toLocaleString()}</span>
+                  ) : (
+                    <>
+                      {/* Rehab Budget slider - shown when no diligence or no issues */}
+                      <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+                        <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Rehab Budget</label>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-cyan-100 text-2xl font-mono font-bold">${(inputs.rehabBudget ?? 0).toLocaleString()}</span>
+                          {(inputs.rehabBudget ?? 0) === 0 && (
+                            <span className="text-emerald-400/60 text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full">No Rehab</span>
+                          )}
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={hasContractorWalkthrough || hasInspection ? property.rehabMax : Math.round(property.rehabMax * 1.5)}
+                          step={1000}
+                          value={inputs.rehabBudget ?? 0}
+                          onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) }); }}
+                          onFocus={() => onFieldTouch?.('rehabBudget')}
+                          className="w-full h-3 rounded-lg appearance-none cursor-pointer"
+                          data-testid="slider-rehab-budget"
+                        />
+                        {hasContractorWalkthrough || hasInspection ? (
+                          <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+                            <span>$0</span>
+                            <span className="text-cyan-300">
+                              Diligence shows ${property.rehabMin.toLocaleString()}-${property.rehabMax.toLocaleString()}
+                            </span>
+                            <span>${property.rehabMax.toLocaleString()}</span>
+                          </div>
+                        ) : (
+                          <div className="flex justify-between text-xs text-amber-400/60 mt-1">
+                            <span>$0</span>
+                            <span className="flex items-center gap-1">
+                              <Lock className="w-3 h-3" /> Diligence reveals true costs
+                            </span>
+                            <span>${Math.round(property.rehabMax * 1.5).toLocaleString()}</span>
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex justify-between text-xs text-amber-400/60 mt-1">
-                        <span>$0</span>
-                        <span className="flex items-center gap-1">
-                          <Lock className="w-3 h-3" /> Diligence reveals true costs
-                        </span>
-                        <span>${Math.round(property.rehabMax * 1.5).toLocaleString()}</span>
-                      </div>
-                    )}
-                  </div>
+                    </>
+                  )}
                   
                   {/* Contingency */}
                   <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">

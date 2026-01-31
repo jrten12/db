@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials } from '@/lib/gameData';
 import { getEffectiveRanges, EffectiveRanges } from '@/lib/propertyIssues';
 import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet, ArrowDown } from 'lucide-react';
@@ -7,6 +7,12 @@ import { AssumptionInput, PercentAssumption } from './AssumptionInput';
 import { FormulaCanvas, MiniFormula } from './FormulaCanvas';
 import { ProFormaEditor } from './ProFormaEditor';
 import type { Property } from '@shared/schema';
+
+const triggerHaptic = () => {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(4);
+  }
+};
 
 // Helper to safely get numeric value (default to 0 for calculations)
 const n = (val: number | null): number => val ?? 0;
@@ -588,8 +594,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                           max={property.rentMax}
                           step={50}
                           value={inputs.expectedRent || property.rentMin}
-                          onChange={(e) => onInputsChange({ ...inputs, expectedRent: parseInt(e.target.value) })}
-                          className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                          onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, expectedRent: parseInt(e.target.value) }); }}
+                          className="w-full h-3 rounded-lg appearance-none cursor-pointer"
                           data-testid="slider-expected-rent"
                         />
                         <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
@@ -636,8 +642,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       max={15}
                       step={1}
                       value={inputs.vacancyRate ?? 7}
-                      onChange={(e) => onInputsChange({ ...inputs, vacancyRate: parseInt(e.target.value) })}
-                      className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                      onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, vacancyRate: parseInt(e.target.value) }); }}
+                      className="w-full h-3 rounded-lg appearance-none cursor-pointer"
                       data-testid="slider-vacancy-rate"
                     />
                     <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
@@ -664,9 +670,9 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       max={hasContractorWalkthrough || hasInspection ? property.rehabMax : Math.round(property.rehabMax * 1.5)}
                       step={1000}
                       value={inputs.rehabBudget ?? 0}
-                      onChange={(e) => onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) })}
+                      onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) }); }}
                       onFocus={() => onFieldTouch?.('rehabBudget')}
-                      className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                      className="w-full h-3 rounded-lg appearance-none cursor-pointer"
                       data-testid="slider-rehab-budget"
                     />
                     {hasContractorWalkthrough || hasInspection ? (
@@ -700,8 +706,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       max={25}
                       step={1}
                       value={inputs.contingencyPct ?? 10}
-                      onChange={(e) => onInputsChange({ ...inputs, contingencyPct: parseInt(e.target.value) })}
-                      className="w-full h-3 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                      onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, contingencyPct: parseInt(e.target.value) }); }}
+                      className="w-full h-3 rounded-lg appearance-none cursor-pointer"
                       data-testid="slider-contingency"
                     />
                     <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
@@ -735,8 +741,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   max={100}
                   step={5}
                   value={inputs.ltv}
-                  onChange={(e) => onInputsChange({ ...inputs, ltv: parseInt(e.target.value) })}
-                  className={`w-full h-3 rounded-lg appearance-none cursor-pointer ${inputs.ltv > 90 ? 'bg-red-900/50 accent-red-500' : 'bg-slate-700 accent-cyan-500'}`}
+                  onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, ltv: parseInt(e.target.value) }); }}
+                  className="w-full h-3 rounded-lg appearance-none cursor-pointer"
                   data-testid="slider-ltv"
                 />
                 <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
@@ -871,8 +877,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     max={hasAppraisal ? property.arvMax : Math.round(property.arvMax * 1.15)}
                     step={1000}
                     value={inputs.arvEstimate !== null ? inputs.arvEstimate : arvMid}
-                    onChange={(e) => onInputsChange({ ...inputs, arvEstimate: parseInt(e.target.value) })}
-                    className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, arvEstimate: parseInt(e.target.value) }); }}
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                     data-testid="slider-arv-estimate"
                   />
                   <div className="flex justify-between text-xs text-amber-400/60 mt-1">
@@ -969,8 +975,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                             max={12}
                             step={1}
                             value={inputs.maintenancePct ?? 5}
-                            onChange={(e) => onInputsChange({ ...inputs, maintenancePct: parseInt(e.target.value) })}
-                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                            onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, maintenancePct: parseInt(e.target.value) }); }}
+                            className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                             data-testid="slider-maintenance"
                           />
                           <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
@@ -1016,8 +1022,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         max={15}
                         step={1}
                         value={inputs.capExPct ?? 5}
-                        onChange={(e) => onInputsChange({ ...inputs, capExPct: parseInt(e.target.value) })}
-                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                        onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, capExPct: parseInt(e.target.value) }); }}
+                        className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                         data-testid="slider-capex"
                       />
                       <div className="flex justify-between text-xs text-cyan-400/60 mt-1">

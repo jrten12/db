@@ -1,6 +1,36 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { User, Trophy, Save, PlayCircle, RefreshCcw, Loader2 } from 'lucide-react';
 import type { GameRun } from '@shared/schema';
+
+// Sound effects for ASMR keyboard typing and button clicks
+const playKeySound = (() => {
+  let audioPool: HTMLAudioElement[] = [];
+  let poolIndex = 0;
+  const POOL_SIZE = 5;
+  
+  // Pre-create audio elements for smooth playback
+  if (typeof window !== 'undefined') {
+    for (let i = 0; i < POOL_SIZE; i++) {
+      const audio = new Audio('/sounds/key_type.wav');
+      audio.volume = 0.15; // Subtle ASMR volume
+      audioPool.push(audio);
+    }
+  }
+  
+  return () => {
+    if (audioPool.length === 0) return;
+    const audio = audioPool[poolIndex];
+    audio.currentTime = 0;
+    audio.play().catch(() => {}); // Ignore autoplay errors
+    poolIndex = (poolIndex + 1) % POOL_SIZE;
+  };
+})();
+
+const playUkuleleStrum = () => {
+  const audio = new Audio('/sounds/ukulele_strum.wav');
+  audio.volume = 0.5;
+  audio.play().catch(() => {});
+};
 
 interface PlayerNameModalProps {
   isOpen: boolean;
@@ -47,6 +77,9 @@ export function PlayerNameModal({
       setError('Name must be 20 characters or less');
       return;
     }
+    
+    // Play ukulele strum on successful Continue click
+    playUkuleleStrum();
     
     setIsChecking(true);
     setError('');
@@ -177,6 +210,10 @@ export function PlayerNameModal({
                 type="text"
                 value={playerName}
                 onChange={(e) => {
+                  // Play ASMR key sound for each keystroke
+                  if (e.target.value.length > playerName.length) {
+                    playKeySound();
+                  }
                   setPlayerName(e.target.value);
                   setError('');
                 }}

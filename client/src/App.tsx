@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { TutorialProvider } from "@/contexts/TutorialContext";
 import { SplashScreen } from "@/components/SplashScreen";
 import { useGlobalClickSound } from "@/hooks/useClickSound";
+import { MusicProvider } from "@/hooks/useMusicPlayer";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Game from "@/pages/Game";
@@ -59,13 +60,15 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <TutorialProvider>
-          <SplashContext.Provider value={{ showSplashScreen }}>
-            {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-            <Toaster />
-            <Router />
-          </SplashContext.Provider>
-        </TutorialProvider>
+        <MusicProvider>
+          <TutorialProvider>
+            <SplashContext.Provider value={{ showSplashScreen }}>
+              {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+              <Toaster />
+              <Router />
+            </SplashContext.Provider>
+          </TutorialProvider>
+        </MusicProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

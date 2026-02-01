@@ -1,11 +1,12 @@
 import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
-import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy, Play, Loader2, RotateCcw } from 'lucide-react';
+import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy, Play, Loader2, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ProgressRing } from './ProgressRing';
 import { WeekTimeline } from './WeekTimeline';
 import { playAdvanceWeekSound } from '@/hooks/useClickSound';
+import { useMusic } from '@/hooks/useMusicPlayer';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 
 interface StatusBarProps {
@@ -130,6 +131,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
   const prevCash = useRef(cash);
   const prevWeeks = useRef(weeksRemaining);
   const prevDeals = useRef(profitableDeals);
+  const { isPlaying: isMusicPlaying, toggleMusic } = useMusic();
 
   // Detect value changes and trigger pulses
   useEffect(() => {
@@ -386,6 +388,15 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 data-testid="button-resume-game"
               >
                 Resume Game
+              </button>
+
+              <button
+                onClick={toggleMusic}
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-purple-500/20 hover:bg-purple-500/30 active:bg-purple-500/40 backdrop-blur-md rounded-xl border border-purple-500/30 text-purple-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                data-testid="button-toggle-music"
+              >
+                {isMusicPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                {isMusicPlaying ? 'Music On' : 'Music Off'}
               </button>
 
               {onNewGame && (

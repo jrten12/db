@@ -1,11 +1,13 @@
 import { Link } from 'wouter';
-import { ArrowRight, TrendingUp, Clock, Target, DollarSign, Search, BarChart3, Shield, Play } from 'lucide-react';
+import { ArrowRight, TrendingUp, Clock, Target, DollarSign, Search, BarChart3, Shield, Play, Volume2, VolumeX } from 'lucide-react';
 import heroImage from '@assets/image_1767847036185.png';
 import Footer from '@/components/Footer';
 import { useSplash } from '@/App';
+import { useMusic } from '@/hooks/useMusicPlayer';
 
 export default function Landing() {
   const { showSplashScreen } = useSplash();
+  const { isPlaying: isMusicPlaying, toggleMusic } = useMusic();
   
   return (
     <div
@@ -34,14 +36,23 @@ export default function Landing() {
               </div>
               <span className="text-white font-semibold text-lg tracking-tight">Dealbreak</span>
             </div>
-            <Link href="/game">
+            <div className="flex items-center gap-2">
               <button
-                className="px-5 py-2.5 bg-white/[0.08] hover:bg-white/[0.12] active:bg-white/[0.16] text-white rounded-full font-medium text-sm border border-white/[0.08] transition-all active:scale-[0.97] backdrop-blur-sm"
-                data-testid="button-play-free-header"
+                onClick={toggleMusic}
+                className="p-2.5 bg-white/[0.08] hover:bg-white/[0.12] active:bg-white/[0.16] text-white rounded-full border border-white/[0.08] transition-all active:scale-[0.97] backdrop-blur-sm"
+                data-testid="button-toggle-music-landing"
               >
-                Play Now
+                {isMusicPlaying ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
               </button>
-            </Link>
+              <Link href="/game">
+                <button
+                  className="px-5 py-2.5 bg-white/[0.08] hover:bg-white/[0.12] active:bg-white/[0.16] text-white rounded-full font-medium text-sm border border-white/[0.08] transition-all active:scale-[0.97] backdrop-blur-sm"
+                  data-testid="button-play-free-header"
+                >
+                  Play Now
+                </button>
+              </Link>
+            </div>
           </div>
         </header>
 

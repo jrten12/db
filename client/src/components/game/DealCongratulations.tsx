@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, TrendingUp, Home, DollarSign, Sparkles, Star, Zap, Target, Award, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Confetti } from './Confetti';
 
 interface DealCongratulationsProps {
   isOpen: boolean;
@@ -160,7 +161,9 @@ export function DealCongratulations({ isOpen, onClose, dealData }: DealCongratul
   const IconComponent = message.icon;
 
   return (
-    <AnimatePresence>
+    <>
+      <Confetti isActive={isOpen} particleCount={60} duration={4000} />
+      <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -257,5 +260,6 @@ export function DealCongratulations({ isOpen, onClose, dealData }: DealCongratul
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 }

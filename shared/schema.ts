@@ -96,6 +96,8 @@ export const deals = pgTable("deals", {
   totalPrincipalPaid: integer("total_principal_paid").default(0), // Cumulative principal paid
   totalInterestPaid: integer("total_interest_paid").default(0), // Cumulative interest paid
   recentCurveballIds: jsonb("recent_curveball_ids").$type<string[]>().default([]), // Last 4 curveball IDs to prevent repetition
+  contractorWalkthroughCompleted: boolean("contractor_walkthrough_completed").default(false), // Whether contractor walkthrough was done post-purchase
+  contractorWalkthroughData: jsonb("contractor_walkthrough_data"), // Repair items discovered during walkthrough
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
 });

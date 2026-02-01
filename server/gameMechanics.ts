@@ -14,7 +14,7 @@ import * as schema from '@shared/schema';
 import { db } from './storage';
 import { eq } from 'drizzle-orm';
 import { rollForCurveball, rollForCurveballWithIssues, type PropertyContext, type CurveballResult, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
-import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue, getPropertyIssues } from '@shared/propertyIssues';
+import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue, getPropertyIssues, getRandomizedPropertyIssues } from '@shared/propertyIssues';
 
 /**
  * Loan Amortization Utilities
@@ -1455,4 +1455,171 @@ export async function startFlipRehab(
   });
 
   return updatedDeal!;
+}
+
+/**
+ * Contractor Walkthrough for Owned Rentals
+ * 
+ * Allows players to discover property issues post-purchase by hiring a contractor.
+ * Costs $400-800 and reveals itemized repairs with costs typically 30-50% higher
+ * than pre-purchase due diligence would have found (reactive vs proactive repairs).
+ */
+export interface ContractorWalkthroughItem {
+  id: string;
+  name: string;
+  severity: 'mild' | 'moderate' | 'severe';
+  originalCost: number;       // What it would have cost via due diligence
+  contractorCost: number;     // Higher cost for post-purchase discovery
+  timelineWeeks: number;
+  description: string;
+  markup: number;             // Percentage markup applied
+}
+
+export interface ContractorWalkthroughResult {
+  walkthroughFee: number;
+  repairItems: ContractorWalkthroughItem[];
+  totalRepairCost: number;
+  totalOriginalCost: number;
+  averageMarkup: number;
+}
+
+function seededRandom(seed: number): () => number {
+  let state = seed;
+  return () => {
+    state = (state * 1103515245 + 12345) & 0x7fffffff;
+    return state / 0x7fffffff;
+  };
+}
+
+export async function performContractorWalkthrough(
+  dealId: number,
+  gameRunId: number
+): Promise<{ success: boolean; result?: ContractorWalkthroughResult; error?: string }> {
+  // Get the deal
+  const deal = await storage.getDeal(dealId);
+  if (!deal) {
+    return { success: false, error: 'Deal not found' };
+  }
+
+  // Must be an active rental
+  if (deal.status !== 'active_rental') {
+    return { success: false, error: 'Property must be an active rental' };
+  }
+
+  // Must not have already done walkthrough
+  if (deal.contractorWalkthroughCompleted) {
+    return { success: false, error: 'Contractor walkthrough already completed' };
+  }
+
+  // Get game run and property
+  const gameRun = await storage.getGameRun(gameRunId);
+  if (!gameRun) {
+    return { success: false, error: 'Game run not found' };
+  }
+
+  const property = await storage.getProperty(deal.propertyId);
+  if (!property) {
+    return { success: false, error: 'Property not found' };
+  }
+
+  // Generate walkthrough fee ($400-800)
+  const random = seededRandom(dealId * 1000 + gameRun.currentWeek);
+  const walkthroughFee = Math.round(400 + random() * 400);
+
+  // Check if player can afford
+  if (gameRun.cash < walkthroughFee) {
+    return { success: false, error: `Insufficient funds. Need $${walkthroughFee.toLocaleString()}` };
+  }
+
+  // Get issues that would be discovered by contractor walkthrough
+  // Use randomized issues based on property type, or fall back to static issues
+  const allIssues = getRandomizedPropertyIssues(gameRunId, deal.propertyId, property.propertyType, property.conditionTag);
+  const contractorIssues = allIssues.filter(issue => 
+    issue.discoveredBy.includes('contractor_walkthrough')
+  );
+
+  // Generate repair items with markup (30-50% higher than original)
+  const repairItems: ContractorWalkthroughItem[] = contractorIssues.map((issue, index) => {
+    const itemRandom = seededRandom(dealId * 100 + index);
+    
+    // Original cost would be from due diligence (mid-range)
+    const originalCost = Math.round((issue.costRangeMin + issue.costRangeMax) / 2);
+    
+    // Markup typically 30-50%, with rare exceptions for realism
+    const markupChance = itemRandom();
+    let markup: number;
+    if (markupChance < 0.05) {
+      // 5% chance of NO markup (very lucky find)
+      markup = 0;
+    } else if (markupChance < 0.15) {
+      // 10% chance of small markup (15-25%)
+      markup = 15 + itemRandom() * 10;
+    } else {
+      // 85% chance of significant markup (30-50%) - the typical case
+      markup = 30 + itemRandom() * 20;
+    }
+    
+    const contractorCost = Math.round(originalCost * (1 + markup / 100));
+    
+    return {
+      id: issue.id,
+      name: issue.name,
+      severity: issue.severity,
+      originalCost,
+      contractorCost,
+      timelineWeeks: issue.timelineImpactWeeks,
+      description: issue.description,
+      markup: Math.round(markup),
+    };
+  });
+
+  const totalRepairCost = repairItems.reduce((sum, item) => sum + item.contractorCost, 0);
+  const totalOriginalCost = repairItems.reduce((sum, item) => sum + item.originalCost, 0);
+  const averageMarkup = totalOriginalCost > 0 
+    ? Math.round(((totalRepairCost - totalOriginalCost) / totalOriginalCost) * 100) 
+    : 0;
+
+  const result: ContractorWalkthroughResult = {
+    walkthroughFee,
+    repairItems,
+    totalRepairCost,
+    totalOriginalCost,
+    averageMarkup,
+  };
+
+  // Deduct walkthrough fee from cash
+  const newCash = gameRun.cash - walkthroughFee;
+  await storage.updateGameRun(gameRunId, { cash: newCash });
+
+  // Create ledger entry for the walkthrough fee
+  const ledgerEntry: InsertLedgerEntry = {
+    gameRunId,
+    direction: 'debit',
+    category: 'expense',
+    amount: walkthroughFee,
+    balanceAfter: newCash,
+    description: `Contractor walkthrough - ${property.name}`,
+    propertyId: property.id,
+    dealId: deal.id,
+    gameWeek: gameRun.currentWeek,
+  };
+  await storage.createLedgerEntry(ledgerEntry);
+
+  // Update deal with walkthrough completion
+  await storage.updateDeal(dealId, {
+    contractorWalkthroughCompleted: true,
+    contractorWalkthroughData: result,
+  });
+
+  // Also record this as an investigation for consistency
+  await storage.createPropertyInvestigation({
+    gameRunId,
+    propertyId: property.id,
+    investigationType: 'contractor_walkthrough',
+    revealedData: result,
+    cost: walkthroughFee,
+    weeksUsed: 0, // Happens instantly
+  });
+
+  return { success: true, result };
 }

@@ -1102,6 +1102,85 @@ export async function registerRoutes(
     }
   });
 
+  // ============ CONTRACTOR WALKTHROUGH ROUTES ============
+
+  // Perform contractor walkthrough on an owned rental
+  app.post("/api/deals/:dealId/contractor-walkthrough", dealLimiter, async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.dealId);
+      const { gameRunId } = req.body;
+
+      if (!gameRunId) {
+        return res.status(400).json({ error: "gameRunId is required" });
+      }
+
+      const result = await gameMechanics.performContractorWalkthrough(dealId, gameRunId);
+      
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error performing contractor walkthrough:", error);
+      res.status(500).json({ error: "Failed to perform contractor walkthrough" });
+    }
+  });
+
+  // Get walkthrough quote (fee preview without committing)
+  app.get("/api/deals/:dealId/contractor-walkthrough-quote", async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.dealId);
+      const gameRunId = parseInt(req.query.gameRunId as string);
+
+      if (!gameRunId) {
+        return res.status(400).json({ error: "gameRunId query param is required" });
+      }
+
+      const deal = await storage.getDeal(dealId);
+      if (!deal) {
+        return res.status(404).json({ error: "Deal not found" });
+      }
+
+      if (deal.status !== 'active_rental') {
+        return res.status(400).json({ error: "Property must be an active rental", eligible: false });
+      }
+
+      if (deal.contractorWalkthroughCompleted) {
+        return res.json({ 
+          eligible: false, 
+          completed: true,
+          data: deal.contractorWalkthroughData
+        });
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        return res.status(404).json({ error: "Game run not found" });
+      }
+
+      // Generate deterministic quote based on deal ID and current week
+      const seed = dealId * 1000 + gameRun.currentWeek;
+      let state = seed;
+      const random = () => {
+        state = (state * 1103515245 + 12345) & 0x7fffffff;
+        return state / 0x7fffffff;
+      };
+      const walkthroughFee = Math.round(400 + random() * 400);
+
+      res.json({
+        eligible: true,
+        completed: false,
+        walkthroughFee,
+        canAfford: gameRun.cash >= walkthroughFee,
+        currentCash: gameRun.cash,
+      });
+    } catch (error) {
+      console.error("Error getting walkthrough quote:", error);
+      res.status(500).json({ error: "Failed to get walkthrough quote" });
+    }
+  });
+
   // ============ COUPON ROUTES ============
 
   // Validation schema for coupon redemption

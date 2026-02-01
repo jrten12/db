@@ -1,8 +1,9 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home, DollarSign, Landmark, Castle, Building, Warehouse } from 'lucide-react';
+import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home, DollarSign, Landmark, Castle, Building, Warehouse, HardHat } from 'lucide-react';
 import type { Property } from '@shared/schema';
 import { useState, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
 
 // Property type icon mapping
 const PROPERTY_TYPE_CONFIG: Record<string, { icon: typeof Home; className: string; label: string }> = {
@@ -32,6 +33,7 @@ export interface PropertyDealInfo {
   purchasePrice?: number;
   weeksOwned?: number;
   canRefinance?: boolean;
+  contractorWalkthroughCompleted?: boolean;
 }
 
 interface PropertySelectorProps {
@@ -44,10 +46,11 @@ interface PropertySelectorProps {
   propertyDeals?: PropertyDealInfo[];
   onSellProperty?: (dealId: number, strategy: 'rent' | 'flip') => void;
   onRefinanceProperty?: (dealId: number) => void;
+  onContractorWalkthrough?: (dealId: number) => void;
 }
 
 
-export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), propertyDeals = [], onSellProperty, onRefinanceProperty }: PropertySelectorProps) {
+export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), propertyDeals = [], onSellProperty, onRefinanceProperty, onContractorWalkthrough }: PropertySelectorProps) {
   const urbanCount = properties.filter(p => p.locationType === 'urban').length;
   const suburbanCount = properties.filter(p => p.locationType === 'suburban').length;
   
@@ -233,6 +236,22 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                     {/* Action Buttons for owned properties - horizontal layout */}
                     {dealInfo && (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && (
                       <div className="flex items-center gap-2">
+                        {/* Contractor Walkthrough Button for active rentals */}
+                        {dealInfo.status === 'active_rental' && onContractorWalkthrough && !dealInfo.contractorWalkthroughCompleted && (
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              onContractorWalkthrough(dealInfo.dealId);
+                            }}
+                            className="bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs shadow-lg border border-amber-300"
+                            data-testid={`button-walkthrough-${property.id}`}
+                          >
+                            <HardHat className="w-4 h-4 mr-1.5" />
+                            INSPECT
+                          </Button>
+                        )}
                         {/* Refinance Button for active rentals */}
                         {dealInfo.status === 'active_rental' && onRefinanceProperty && dealInfo.canRefinance && (
                           <button

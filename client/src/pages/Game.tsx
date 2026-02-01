@@ -28,6 +28,7 @@ import { TutorialOverlay } from '@/components/game/TutorialOverlay';
 import { TutorialPrompt } from '@/components/game/TutorialPrompt';
 import { DebtPanel, DebtPanelTrigger } from '@/components/game/DebtPanel';
 import { RefinanceModal } from '@/components/game/RefinanceModal';
+import { ContractorWalkthroughModal } from '@/components/game/ContractorWalkthroughModal';
 import { OperatingExpensesPopup } from '@/components/game/OperatingExpensesPopup';
 import { DealCongratulations } from '@/components/game/DealCongratulations';
 import { PropertySoldAnimation } from '@/components/game/PropertySoldAnimation';
@@ -143,6 +144,12 @@ export default function Game() {
   
   // Refinance modal state
   const [refinancingDeal, setRefinancingDeal] = useState<{
+    deal: Deal;
+    property: Property;
+  } | null>(null);
+  
+  // Contractor walkthrough modal state
+  const [walkthroughDeal, setWalkthroughDeal] = useState<{
     deal: Deal;
     property: Property;
   } | null>(null);
@@ -1244,6 +1251,26 @@ export default function Game() {
     setRefinancingDeal({ deal, property });
   }, [deals, properties]);
 
+  // Open contractor walkthrough modal
+  const handleOpenWalkthroughModal = useCallback((dealId: number) => {
+    const deal = deals.find(d => d.id === dealId);
+    if (!deal) return;
+    
+    const property = properties.find(p => p.id === deal.propertyId);
+    if (!property) return;
+    
+    setWalkthroughDeal({ deal, property });
+  }, [deals, properties]);
+
+  // Handle walkthrough completion - refresh deals
+  const handleWalkthroughComplete = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['deals'] });
+    queryClient.invalidateQueries({ queryKey: ['ledger'] });
+    if (gameRun) {
+      api.getGameRun(gameRun.id).then(setGameRun).catch(console.error);
+    }
+  }, [queryClient, gameRun]);
+
   // Execute refinance with selected LTV from modal
   const handleExecuteRefinance = useCallback(async (dealId: number, selectedLtv: number) => {
     if (!gameRun) return;
@@ -1614,10 +1641,12 @@ export default function Game() {
                       purchasePrice: d.purchasePrice || undefined,
                       weeksOwned,
                       canRefinance,
+                      contractorWalkthroughCompleted: d.contractorWalkthroughCompleted ?? false,
                     };
                   })}
                   onSellProperty={handleSellProperty}
                   onRefinanceProperty={handleOpenRefinanceModal}
+                  onContractorWalkthrough={handleOpenWalkthroughModal}
                 />
               </div>
               <div className="lg:col-span-3 xl:col-span-3 space-y-3">
@@ -1961,6 +1990,18 @@ export default function Game() {
             property={refinancingDeal.property}
             gameRun={gameRun}
             onRefinance={handleExecuteRefinance}
+          />
+        )}
+
+        {/* Contractor Walkthrough Modal */}
+        {walkthroughDeal && gameRun && (
+          <ContractorWalkthroughModal
+            isOpen={!!walkthroughDeal}
+            onClose={() => setWalkthroughDeal(null)}
+            deal={walkthroughDeal.deal}
+            property={walkthroughDeal.property}
+            gameRun={gameRun}
+            onComplete={handleWalkthroughComplete}
           />
         )}
         

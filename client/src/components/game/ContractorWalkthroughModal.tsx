@@ -40,6 +40,8 @@ interface WalkthroughResult {
     totalRepairCost: number;
     totalOriginalCost: number;
     averageMarkup: number;
+    foundTreasure?: boolean;
+    treasureAmount?: number;
   };
   error?: string;
 }
@@ -51,6 +53,8 @@ interface ContractorWalkthroughModalProps {
   property: Property;
   gameRun: GameRun;
   onComplete: () => void;
+  onTreasureFound?: (amount: number, propertyName: string) => void;
+  onStartRepairs?: (dealId: number) => void;
 }
 
 type ViewState = 'quote' | 'performing' | 'results' | 'already_done';
@@ -61,8 +65,11 @@ export function ContractorWalkthroughModal({
   deal, 
   property, 
   gameRun,
-  onComplete 
+  onComplete,
+  onTreasureFound,
+  onStartRepairs
 }: ContractorWalkthroughModalProps) {
+  const [startingRepairs, setStartingRepairs] = useState(false);
   const [loading, setLoading] = useState(true);
   const [viewState, setViewState] = useState<ViewState>('quote');
   const [quote, setQuote] = useState<WalkthroughQuote | null>(null);
@@ -119,6 +126,13 @@ export function ContractorWalkthroughModal({
         setResult(data.result);
         setViewState('results');
         onComplete();
+        
+        // If treasure was found, trigger the treasure modal after a short delay
+        if (data.result.foundTreasure && data.result.treasureAmount && onTreasureFound) {
+          setTimeout(() => {
+            onTreasureFound(data.result!.treasureAmount!, property.name);
+          }, 500);
+        }
       } else {
         setError(data.error || 'Walkthrough failed');
         setViewState('quote');
@@ -394,12 +408,57 @@ export function ContractorWalkthroughModal({
                   </>
                 )}
 
+                {result.repairItems.length > 0 && onStartRepairs && viewState !== 'already_done' && (
+                  <div className="space-y-2">
+                    <Button
+                      className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+                      onClick={async () => {
+                        setStartingRepairs(true);
+                        try {
+                          const response = await apiRequest('POST', `/api/deals/${deal.id}/rental-rehab`, {
+                            gameRunId: gameRun.id,
+                          });
+                          const data = await response.json();
+                          if (data.success) {
+                            onStartRepairs(deal.id);
+                            onComplete();
+                            onClose();
+                          } else {
+                            setError(data.error || 'Failed to start repairs');
+                          }
+                        } catch (err: any) {
+                          setError(err.message || 'Failed to start repairs');
+                        } finally {
+                          setStartingRepairs(false);
+                        }
+                      }}
+                      disabled={startingRepairs}
+                      data-testid="button-start-repairs"
+                    >
+                      {startingRepairs ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Starting Repairs...
+                        </>
+                      ) : (
+                        <>
+                          <Wrench className="w-4 h-4 mr-2" />
+                          Start Repairs (Tenant Moves Out)
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-center text-slate-400">
+                      Tenant will receive 1 month break fee. No rent during repairs.
+                    </p>
+                  </div>
+                )}
+
                 <Button
                   className="w-full h-12 bg-slate-700 hover:bg-slate-600"
                   onClick={onClose}
                   data-testid="button-walkthrough-done"
                 >
-                  {viewState === 'already_done' ? 'Close' : 'Got It'}
+                  {viewState === 'already_done' ? 'Close' : result.repairItems.length > 0 ? 'Maybe Later' : 'Got It'}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </motion.div>

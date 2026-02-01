@@ -29,6 +29,7 @@ import { TutorialPrompt } from '@/components/game/TutorialPrompt';
 import { DebtPanel, DebtPanelTrigger } from '@/components/game/DebtPanel';
 import { RefinanceModal } from '@/components/game/RefinanceModal';
 import { ContractorWalkthroughModal } from '@/components/game/ContractorWalkthroughModal';
+import { GoldTreasureModal } from '@/components/game/GoldTreasureModal';
 import { OperatingExpensesPopup } from '@/components/game/OperatingExpensesPopup';
 import { DealCongratulations } from '@/components/game/DealCongratulations';
 import { PropertySoldAnimation } from '@/components/game/PropertySoldAnimation';
@@ -158,6 +159,13 @@ export default function Game() {
   const [opexPopupData, setOpexPopupData] = useState<{
     deal: Deal;
     property: Property;
+  } | null>(null);
+  
+  // Gold treasure discovery state (1/300 chance during contractor walkthrough)
+  const [treasureData, setTreasureData] = useState<{
+    amount: number;
+    propertyName: string;
+    context: 'diligence' | 'walkthrough';
   } | null>(null);
 
   const STARTING_CASH = 75000;
@@ -2002,8 +2010,24 @@ export default function Game() {
             property={walkthroughDeal.property}
             gameRun={gameRun}
             onComplete={handleWalkthroughComplete}
+            onTreasureFound={(amount, propertyName) => {
+              setTreasureData({ amount, propertyName, context: 'walkthrough' });
+            }}
+            onStartRepairs={() => {
+              queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
+              queryClient.invalidateQueries({ queryKey: ['/api/game-runs'] });
+            }}
           />
         )}
+        
+        {/* Gold Treasure Modal (extremely rare 1/300 discovery) */}
+        <GoldTreasureModal
+          isOpen={!!treasureData}
+          onClose={() => setTreasureData(null)}
+          amount={treasureData?.amount || 0}
+          propertyName={treasureData?.propertyName || ''}
+          discoveryContext={treasureData?.context || 'walkthrough'}
+        />
         
         {/* Operating Expenses Popup */}
         {opexPopupData && (

@@ -98,6 +98,17 @@ export const deals = pgTable("deals", {
   recentCurveballIds: jsonb("recent_curveball_ids").$type<string[]>().default([]), // Last 4 curveball IDs to prevent repetition
   contractorWalkthroughCompleted: boolean("contractor_walkthrough_completed").default(false), // Whether contractor walkthrough was done post-purchase
   contractorWalkthroughData: jsonb("contractor_walkthrough_data"), // Repair items discovered during walkthrough
+  // Rental rehab tracking (post-purchase renovations for owned rentals)
+  rentalRehabActive: boolean("rental_rehab_active").default(false), // Whether rehab is in progress
+  rentalRehabWeeksRemaining: integer("rental_rehab_weeks_remaining"), // Weeks until rehab completes
+  rentalRehabBaseWeeks: integer("rental_rehab_base_weeks"), // Original estimate before variance
+  rentalRehabCostBase: integer("rental_rehab_cost_base"), // Original estimate
+  rentalRehabCostActual: integer("rental_rehab_cost_actual"), // Final cost after overruns
+  rentalRehabVariancePct: integer("rental_rehab_variance_pct"), // Timeline variance applied (+/- %)
+  rentalRehabStartWeek: integer("rental_rehab_start_week"), // Week when rehab started
+  rentalRehabItems: jsonb("rental_rehab_items"), // Items being repaired
+  tenantDisplaced: boolean("tenant_displaced").default(false), // Tenant moved out for rehab
+  tenantBreakFee: integer("tenant_break_fee"), // Break fee paid to tenant
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
 });

@@ -753,7 +753,7 @@ export async function processRentalIncome(
       direction: 'credit',
       category: 'income',
       amount: actualRentReceived,
-      description: `🏠 Rent - ${propertyName}`,
+      description: `Rent - ${propertyName}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
       gameWeek: gameRun.currentWeek,
@@ -764,7 +764,7 @@ export async function processRentalIncome(
       direction: 'debit',
       category: 'expense',
       amount: Math.abs(actualRentReceived),
-      description: `🏠 Rent shortfall - ${propertyName}`,
+      description: `Rent shortfall - ${propertyName}`,
       propertyId: deal.propertyId,
       dealId: deal.id,
       gameWeek: gameRun.currentWeek,
@@ -996,6 +996,68 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     }
   }
 
+  // Process rental rehab progress - count down weeks for properties under renovation
+  for (const deal of deals) {
+    if (deal.status === 'active_rental' && deal.rentalRehabActive && deal.rentalRehabWeeksRemaining) {
+      const weeksLeft = deal.rentalRehabWeeksRemaining - 1;
+      const property = await storage.getProperty(deal.propertyId);
+
+      if (weeksLeft <= 0) {
+        // Rental rehab is complete! Property ready for new tenant
+        // Recalculate rent - property is now in better condition
+        const proFormaInputs = deal.proFormaInputs as any;
+        const proFormaOutputs = deal.proFormaOutputs as any;
+        
+        // Improved rent after rehab (use postRehab range if available, otherwise boost original)
+        let newMonthlyRent: number;
+        if (property?.postRehabRentMax) {
+          // Use post-rehab rent range (midpoint)
+          newMonthlyRent = Math.floor((property.postRehabRentMin! + property.postRehabRentMax) / 2);
+        } else if (property) {
+          // Boost original rent by 15-25% (property condition improved)
+          const originalRent = Math.floor((property.rentMin + property.rentMax) / 2);
+          newMonthlyRent = Math.round(originalRent * (1.15 + Math.random() * 0.10));
+        } else {
+          // Fallback: use stored rent + 20%
+          newMonthlyRent = Math.round((proFormaOutputs?.monthlyGrossRent || 1500) * 1.20);
+        }
+
+        // Calculate new weekly income
+        const newWeeklyIncome = calculateWeeklyIncome(newMonthlyRent - (proFormaOutputs?.monthlyOpEx || 0));
+
+        await storage.updateDeal(deal.id, {
+          rentalRehabActive: false,
+          rentalRehabWeeksRemaining: 0,
+          tenantDisplaced: false,
+          weeklyIncome: Math.max(0, newWeeklyIncome), // Re-enable rent collection
+          proFormaOutputs: {
+            ...proFormaOutputs,
+            monthlyGrossRent: newMonthlyRent,
+            postRehabCompleted: true,
+          },
+        });
+
+        // Create ledger entry for rehab completion
+        await storage.createLedgerEntry({
+          gameRunId,
+          direction: 'credit',
+          category: 'income',
+          amount: 0, // Informational entry
+          balanceAfter: gameRun.cash,
+          description: `Rental rehab complete - ${property?.name || 'Property'} (new rent: $${newMonthlyRent.toLocaleString()}/mo)`,
+          propertyId: deal.propertyId,
+          dealId: deal.id,
+          gameWeek: gameRun.currentWeek + 1,
+        });
+      } else {
+        // Update weeks remaining
+        await storage.updateDeal(deal.id, {
+          rentalRehabWeeksRemaining: weeksLeft,
+        });
+      }
+    }
+  }
+
   // Advance game week
   const newWeek = gameRun.currentWeek + 1;
   const newWeeksRemaining = gameRun.weeksRemaining - 1;
@@ -1207,21 +1269,35 @@ export async function activateRentalProperty(
     }
   } else {
     // WITHOUT market study: Player is flying blind on BOTH market AND condition
-    // This is a TRAP scenario - they can genuinely fail here
+    // This is risky but NOT guaranteed failure - sometimes you get lucky
     
-    // Base rent is condition-dependent but with MAJOR uncertainty
+    // Base rent is condition-dependent but with uncertainty
     const conditionBasedRent = property.rentMin + (rehabCompletionFactor * rentRange);
     
-    // Reality factor: 60% to 110% - skewed NEGATIVE because ignorance hurts
-    // Players who skip diligence should face real consequences
-    const realityFactor = 0.60 + (Math.random() * 0.50);
+    // Reality factor: Most of the time (75%) rent is lower due to ignorance
+    // But ~25% of the time the property might perform at or above expectations (lucky!)
+    const luckyRoll = Math.random();
+    let realityFactor: number;
+    if (luckyRoll < 0.25) {
+      // 25% chance: Player got lucky - property performs well (90-115%)
+      realityFactor = 0.90 + (Math.random() * 0.25);
+    } else if (luckyRoll < 0.50) {
+      // 25% chance: Property performs okay - slight discount (80-95%)
+      realityFactor = 0.80 + (Math.random() * 0.15);
+    } else {
+      // 50% chance: Property underperforms as expected for no diligence (60-85%)
+      realityFactor = 0.60 + (Math.random() * 0.25);
+    }
     actualRent = Math.round(conditionBasedRent * realityFactor);
     
     // If they ALSO skipped condition diligence on a property needing work,
-    // they're truly flying blind - additional penalty stacks
+    // additional penalty - but still not 100% guaranteed underwater
     if (!didContractorWalkthrough && !didInspection && (property.rehabMin || 0) > 5000) {
-      const blindnessPenalty = 0.80 + (Math.random() * 0.15); // 5-20% additional penalty
-      actualRent = Math.round(actualRent * blindnessPenalty);
+      // 80% chance of blindness penalty, 20% chance of no extra penalty
+      if (Math.random() < 0.80) {
+        const blindnessPenalty = 0.85 + (Math.random() * 0.12); // 3-15% additional penalty
+        actualRent = Math.round(actualRent * blindnessPenalty);
+      }
     }
   }
   
@@ -1481,6 +1557,8 @@ export interface ContractorWalkthroughResult {
   totalRepairCost: number;
   totalOriginalCost: number;
   averageMarkup: number;
+  foundTreasure?: boolean;
+  treasureAmount?: number;
 }
 
 function seededRandom(seed: number): () => number {
@@ -1579,16 +1657,27 @@ export async function performContractorWalkthrough(
     ? Math.round(((totalRepairCost - totalOriginalCost) / totalOriginalCost) * 100) 
     : 0;
 
+  // HIDDEN TREASURE: 1/300 chance (~0.33%) of finding gold bars under floorboards!
+  // This is exceedingly rare but exciting when it happens
+  const treasureRoll = seededRandom(dealId * 7777 + gameRun.currentWeek * 13)();
+  const foundTreasure = treasureRoll < (1 / 300);
+  const treasureAmount = foundTreasure ? 100000 : 0;
+
   const result: ContractorWalkthroughResult = {
     walkthroughFee,
     repairItems,
     totalRepairCost,
     totalOriginalCost,
     averageMarkup,
+    foundTreasure,
+    treasureAmount,
   };
 
-  // Deduct walkthrough fee from cash
-  const newCash = gameRun.cash - walkthroughFee;
+  // Deduct walkthrough fee from cash, add treasure if found
+  let newCash = gameRun.cash - walkthroughFee;
+  if (foundTreasure) {
+    newCash += treasureAmount;
+  }
   await storage.updateGameRun(gameRunId, { cash: newCash });
 
   // Create ledger entry for the walkthrough fee
@@ -1604,6 +1693,22 @@ export async function performContractorWalkthrough(
     gameWeek: gameRun.currentWeek,
   };
   await storage.createLedgerEntry(ledgerEntry);
+
+  // If treasure found, create a credit ledger entry for the gold!
+  if (foundTreasure) {
+    const treasureLedgerEntry: InsertLedgerEntry = {
+      gameRunId,
+      direction: 'credit',
+      category: 'income',
+      amount: treasureAmount,
+      balanceAfter: newCash,
+      description: `HIDDEN TREASURE! Gold bars found under floorboards - ${property.name}`,
+      propertyId: property.id,
+      dealId: deal.id,
+      gameWeek: gameRun.currentWeek,
+    };
+    await storage.createLedgerEntry(treasureLedgerEntry);
+  }
 
   // Update deal with walkthrough completion
   await storage.updateDeal(dealId, {
@@ -1622,4 +1727,174 @@ export async function performContractorWalkthrough(
   });
 
   return { success: true, result };
+}
+
+/**
+ * Initiate Rental Rehab
+ * 
+ * Starts repairs on an active rental property based on contractor walkthrough findings.
+ * - Tenant is displaced with 1 month break fee
+ * - Property becomes vacant during rehab
+ * - Timeline varies by issue type with contractor schedule variance
+ * - Occasional cost overruns
+ */
+export interface RentalRehabResult {
+  success: boolean;
+  error?: string;
+  totalCost?: number;
+  breakFee?: number;
+  estimatedWeeks?: number;
+  actualWeeks?: number;
+  timelineVariance?: string; // 'early' | 'on_time' | 'late'
+  costOverrun?: number;
+}
+
+export async function initiateRentalRehab(
+  dealId: number,
+  gameRunId: number
+): Promise<RentalRehabResult> {
+  // Validate deal exists and is an active rental
+  const deal = await storage.getDeal(dealId);
+  if (!deal) {
+    return { success: false, error: 'Deal not found' };
+  }
+  if (deal.gameRunId !== gameRunId) {
+    return { success: false, error: 'Deal does not belong to this game' };
+  }
+  if (deal.status !== 'active_rental') {
+    return { success: false, error: 'Property must be an active rental' };
+  }
+  if (!deal.contractorWalkthroughCompleted) {
+    return { success: false, error: 'Must complete contractor walkthrough first' };
+  }
+  if (deal.rentalRehabActive) {
+    return { success: false, error: 'Rehab already in progress' };
+  }
+
+  // Get walkthrough data
+  const walkthroughData = deal.contractorWalkthroughData as ContractorWalkthroughResult | null;
+  if (!walkthroughData || !walkthroughData.repairItems || walkthroughData.repairItems.length === 0) {
+    return { success: false, error: 'No repair items found from walkthrough' };
+  }
+
+  const gameRun = await storage.getGameRun(gameRunId);
+  if (!gameRun) {
+    return { success: false, error: 'Game run not found' };
+  }
+
+  const property = await storage.getProperty(deal.propertyId);
+  if (!property) {
+    return { success: false, error: 'Property not found' };
+  }
+
+  // Calculate tenant break fee (1 month of current rent)
+  const monthlyRent = (deal.weeklyIncome || 0) * 4.33;
+  const breakFee = Math.round(monthlyRent);
+
+  // Calculate base rehab cost and timeline from walkthrough items
+  const baseCost = walkthroughData.totalRepairCost;
+  
+  // Timeline: Use MAX of all item timelines (work done in parallel where possible)
+  const baseWeeks = Math.max(...walkthroughData.repairItems.map(item => item.timelineWeeks), 1);
+
+  // TIMELINE VARIANCE: Contractors can run early, on-time, or late
+  // 15% under time (-1-2 weeks), 25% on time, 60% over time (+1-3 weeks)
+  const timelineRoll = seededRandom(dealId * 999 + gameRun.currentWeek)();
+  let timelineVariance: 'early' | 'on_time' | 'late';
+  let varianceWeeks: number;
+  
+  if (timelineRoll < 0.15) {
+    // 15% chance: Early finish (contractor ahead of schedule)
+    timelineVariance = 'early';
+    varianceWeeks = -Math.floor(1 + seededRandom(dealId * 888)() * Math.min(2, baseWeeks - 1));
+  } else if (timelineRoll < 0.40) {
+    // 25% chance: On time
+    timelineVariance = 'on_time';
+    varianceWeeks = 0;
+  } else {
+    // 60% chance: Running late
+    timelineVariance = 'late';
+    varianceWeeks = Math.ceil(1 + seededRandom(dealId * 777)() * 2); // +1-3 weeks
+  }
+  
+  const actualWeeks = Math.max(1, baseWeeks + varianceWeeks);
+
+  // COST OVERRUNS: 20% chance of cost increase
+  const overrunRoll = seededRandom(dealId * 666 + gameRun.currentWeek * 7)();
+  let costOverrun = 0;
+  if (overrunRoll < 0.20) {
+    // 10-25% cost increase
+    const overrunPct = 10 + seededRandom(dealId * 555)() * 15;
+    costOverrun = Math.round(baseCost * (overrunPct / 100));
+  }
+  
+  const actualCost = baseCost + costOverrun;
+  const totalCost = breakFee + actualCost;
+
+  // Check if player can afford
+  if (gameRun.cash < totalCost) {
+    return { 
+      success: false, 
+      error: `Insufficient funds. Need $${totalCost.toLocaleString()} (${breakFee.toLocaleString()} break fee + $${actualCost.toLocaleString()} repairs)`
+    };
+  }
+
+  // Deduct costs from cash
+  const newCash = gameRun.cash - totalCost;
+  await storage.updateGameRun(gameRunId, { cash: newCash });
+
+  // Create ledger entries
+  const ledgerEntries: InsertLedgerEntry[] = [
+    {
+      gameRunId,
+      direction: 'debit',
+      category: 'expense',
+      amount: breakFee,
+      balanceAfter: gameRun.cash - breakFee,
+      description: `Tenant break fee (1 month rent) - ${property.name}`,
+      propertyId: property.id,
+      dealId: deal.id,
+      gameWeek: gameRun.currentWeek,
+    },
+    {
+      gameRunId,
+      direction: 'debit',
+      category: 'expense',
+      amount: actualCost,
+      balanceAfter: newCash,
+      description: `Rental rehab started - ${property.name}${costOverrun > 0 ? ` (includes $${costOverrun.toLocaleString()} overrun)` : ''}`,
+      propertyId: property.id,
+      dealId: deal.id,
+      gameWeek: gameRun.currentWeek,
+    }
+  ];
+
+  for (const entry of ledgerEntries) {
+    await storage.createLedgerEntry(entry);
+  }
+
+  // Update deal to rental rehab state
+  await storage.updateDeal(dealId, {
+    rentalRehabActive: true,
+    rentalRehabWeeksRemaining: actualWeeks,
+    rentalRehabBaseWeeks: baseWeeks,
+    rentalRehabCostBase: baseCost,
+    rentalRehabCostActual: actualCost,
+    rentalRehabVariancePct: Math.round((varianceWeeks / baseWeeks) * 100),
+    rentalRehabStartWeek: gameRun.currentWeek,
+    rentalRehabItems: walkthroughData.repairItems,
+    tenantDisplaced: true,
+    tenantBreakFee: breakFee,
+    weeklyIncome: 0, // No rent during rehab (vacant)
+  });
+
+  return {
+    success: true,
+    totalCost,
+    breakFee,
+    estimatedWeeks: baseWeeks,
+    actualWeeks,
+    timelineVariance,
+    costOverrun: costOverrun > 0 ? costOverrun : undefined,
+  };
 }

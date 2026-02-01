@@ -1181,6 +1181,29 @@ export async function registerRoutes(
     }
   });
 
+  // Initiate rental rehab (repairs on owned rental property)
+  app.post("/api/deals/:dealId/rental-rehab", dealLimiter, async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.dealId);
+      const { gameRunId } = req.body;
+
+      if (!gameRunId) {
+        return res.status(400).json({ error: "gameRunId is required" });
+      }
+
+      const result = await gameMechanics.initiateRentalRehab(dealId, gameRunId);
+      
+      if (!result.success) {
+        return res.status(400).json({ error: result.error });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error initiating rental rehab:", error);
+      res.status(500).json({ error: "Failed to initiate rental rehab" });
+    }
+  });
+
   // ============ COUPON ROUTES ============
 
   // Validation schema for coupon redemption

@@ -164,9 +164,6 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
     <>
       <div className="modern-status-bar safe-area-top safe-area-x sticky top-0 z-40" data-testid="status-bar">
         <div className="max-w-7xl mx-auto px-3 py-1.5 md:px-4 md:py-2">
-      <div className="modern-status-bar status-bar-shimmer safe-area-top safe-area-x sticky top-0 z-40" data-testid="status-bar">
-        <div className="max-w-7xl mx-auto px-4 py-2">
-
           {/* Desktop Layout */}
           <div className="hidden md:flex items-center gap-6">
             {/* Logo */}

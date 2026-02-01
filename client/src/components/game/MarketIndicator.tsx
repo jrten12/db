@@ -186,54 +186,57 @@ export function MarketBar({ condition, className = '', compact = false }: Market
 
       {showInfo && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
-          style={{ paddingTop: 'env(safe-area-inset-top, 20px)', paddingBottom: 'env(safe-area-inset-bottom, 20px)' }}
+          className="fixed inset-0 z-[9999] bg-black/80"
           onClick={() => setShowInfo(false)}
         >
           <div 
-            className="bg-slate-900 border border-slate-700 rounded-xl w-[90%] max-w-xs p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 border border-slate-600 rounded-xl w-[85%] max-w-[280px] p-3 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-base font-bold text-white">Market Conditions</h3>
-              <button
-                onClick={() => setShowInfo(false)}
-                className="p-1 rounded-full hover:bg-white/10 transition-colors"
-                data-testid="button-close-market-info"
-              >
-                <X className="w-5 h-5 text-white/60" />
-              </button>
-            </div>
+            <button
+              onClick={() => setShowInfo(false)}
+              className="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center bg-slate-700 border border-slate-500 rounded-full shadow-lg"
+              data-testid="button-close-market-info"
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
             
-            <p className="text-xs text-slate-300 mb-2">
+            <h3 className="text-sm font-bold text-white mb-2">Market Conditions</h3>
+            
+            <p className="text-[11px] text-slate-300 mb-2">
               Affects flip sale prices. Changes monthly.
             </p>
             
-            <div className="space-y-1.5 text-xs">
+            <div className="space-y-1 text-[11px]">
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 flex-shrink-0" />
-                <span className="text-slate-300"><strong className="text-cyan-300">Excellent</strong> +15%</span>
+                <div className="w-2 h-2 rounded-full bg-cyan-400" />
+                <span className="text-cyan-300 font-medium">Excellent</span>
+                <span className="text-slate-400">+15%</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                <span className="text-slate-300"><strong className="text-emerald-400">Good</strong> +10%</span>
+                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="text-emerald-400 font-medium">Good</span>
+                <span className="text-slate-400">+10%</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 flex-shrink-0" />
-                <span className="text-slate-300"><strong className="text-yellow-400">Neutral</strong> Fair value</span>
+                <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                <span className="text-yellow-400 font-medium">Neutral</span>
+                <span className="text-slate-400">Fair</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-orange-500 flex-shrink-0" />
-                <span className="text-slate-300"><strong className="text-orange-400">Poor</strong> -10%</span>
+                <div className="w-2 h-2 rounded-full bg-orange-500" />
+                <span className="text-orange-400 font-medium">Poor</span>
+                <span className="text-slate-400">-10%</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0" />
-                <span className="text-slate-300"><strong className="text-red-400">Terrible</strong> -15%</span>
+                <div className="w-2 h-2 rounded-full bg-red-500" />
+                <span className="text-red-400 font-medium">Terrible</span>
+                <span className="text-slate-400">-15%</span>
               </div>
             </div>
             
-            <p className="text-slate-400 text-[10px] mt-2 pt-2 border-t border-slate-700">
-              Tip: Sell flips in good markets for max profit!
+            <p className="text-slate-500 text-[10px] mt-2 pt-2 border-t border-slate-700">
+              Time your flip sales for better markets!
             </p>
           </div>
         </div>

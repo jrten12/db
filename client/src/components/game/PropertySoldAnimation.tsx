@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Home, DollarSign, TrendingUp, Banknote, PartyPopper, Sparkles, BadgeDollarSign, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
+import { playSaleCompleteSound } from '@/hooks/useClickSound';
 
 interface PropertySoldAnimationProps {
   isOpen: boolean;
@@ -89,6 +90,7 @@ export function PropertySoldAnimation({ isOpen, onClose, saleData }: PropertySol
 
   useEffect(() => {
     if (isOpen) {
+      playSaleCompleteSound();
       setShowDetails(false);
       const timer = setTimeout(() => setShowDetails(true), 800);
       return () => clearTimeout(timer);

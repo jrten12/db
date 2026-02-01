@@ -5,12 +5,14 @@ const PROFORMA_CHIME_URL = '/proforma-chime.wav';
 const PURCHASE_CONFIRM_URL = '/purchase-confirm.wav';
 const ADVANCE_WEEK_URL = '/advance-week.wav';
 const BANKRUPT_URL = '/bankrupt.wav';
+const SALE_COMPLETE_URL = '/sale-complete.wav';
 
 let globalClickAudio: HTMLAudioElement | null = null;
 let globalProformaAudio: HTMLAudioElement | null = null;
 let globalPurchaseConfirmAudio: HTMLAudioElement | null = null;
 let globalAdvanceWeekAudio: HTMLAudioElement | null = null;
 let globalBankruptAudio: HTMLAudioElement | null = null;
+let globalSaleCompleteAudio: HTMLAudioElement | null = null;
 
 function getClickAudio(): HTMLAudioElement {
   if (!globalClickAudio) {
@@ -95,6 +97,24 @@ function getBankruptAudio(): HTMLAudioElement {
 export function playBankruptSound() {
   try {
     const audio = getBankruptAudio();
+    // Stop any currently playing sound to prevent layering
+    audio.pause();
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  } catch (e) {}
+}
+
+function getSaleCompleteAudio(): HTMLAudioElement {
+  if (!globalSaleCompleteAudio) {
+    globalSaleCompleteAudio = new Audio(SALE_COMPLETE_URL);
+    globalSaleCompleteAudio.volume = 0.6;
+  }
+  return globalSaleCompleteAudio;
+}
+
+export function playSaleCompleteSound() {
+  try {
+    const audio = getSaleCompleteAudio();
     // Stop any currently playing sound to prevent layering
     audio.pause();
     audio.currentTime = 0;

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'framer-motion';
 import { StatusBar } from '@/components/game/StatusBar';
 import { ProFormaPanel } from '@/components/game/ProFormaPanel';
 import { MetricsPanel } from '@/components/game/MetricsPanel';
@@ -13,6 +14,8 @@ import { TimeProgressionPanel } from '@/components/game/TimeProgressionPanel';
 import { IncomeNotification, useIncomeNotifications } from '@/components/game/IncomeNotification';
 import { TenantIssuePopup, type TenantIssueEvent } from '@/components/game/TenantIssuePopup';
 import { TenantTextPopup } from '@/components/game/TenantTextPopup';
+import { AnimatedBackground } from '@/components/game/AnimatedBackground';
+import { WeekTimeline } from '@/components/game/WeekTimeline';
 import { generateTenantName, getRandomPersonalityType, getSpeechPatterns, getRandomMessage } from '@/lib/tenantGenerator';
 import type { Tenant } from '@shared/schema';
 import { PremiumModal } from '@/components/game/PremiumModal';
@@ -1453,12 +1456,27 @@ export default function Game() {
     );
   }
 
+  // Screen transition variants
+  const screenVariants = {
+    initial: { opacity: 0, x: 30, scale: 0.98 },
+    animate: { opacity: 1, x: 0, scale: 1 },
+    exit: { opacity: 0, x: -30, scale: 0.98 }
+  };
+
+  const screenTransition = {
+    duration: 0.3,
+    ease: [0.16, 1, 0.3, 1]
+  };
+
   return (
-    <div 
+    <div
       className="bg-cover bg-center bg-fixed min-h-screen min-h-[100dvh]"
       style={{ backgroundImage: `url(${woodTexture})` }}
       data-testid="game-screen"
     >
+      {/* Animated Background */}
+      <AnimatedBackground />
+
       {/* Fixed header at top of viewport - safe area handled by StatusBar */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-sm pointer-events-auto">
         <StatusBar
@@ -1483,8 +1501,17 @@ export default function Game() {
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">
+          <AnimatePresence mode="wait">
           {currentScreen === 'market' && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1800px] mx-auto">
+            <motion.div
+              key="market"
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={screenVariants}
+              transition={screenTransition}
+              className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1800px] mx-auto"
+            >
               <div className="lg:col-span-9 xl:col-span-9">
                 <PropertySelector
                   properties={properties}
@@ -1524,16 +1551,30 @@ export default function Game() {
                   onSellFlip={handleSellFlip}
                   onRefinanceRental={handleOpenRefinanceModal}
                 />
-                <DebtPanelTrigger 
-                  deals={deals} 
-                  onClick={() => setShowDebtPanel(true)} 
+                {/* Week Timeline Visualization */}
+                <div className="bg-slate-900/80 backdrop-blur rounded-xl p-4 border border-slate-700">
+                  <WeekTimeline
+                    currentWeek={52 - (gameRun?.weeksRemaining ?? 52)}
+                    totalWeeks={52}
+                  />
+                </div>
+                <DebtPanelTrigger
+                  deals={deals}
+                  onClick={() => setShowDebtPanel(true)}
                 />
               </div>
-            </div>
+            </motion.div>
           )}
 
           {currentScreen === 'proforma' && selectedProperty && (
-            <>
+            <motion.div
+              key="proforma"
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={screenVariants}
+              transition={screenTransition}
+            >
               <button 
                 onClick={handleBackToMarket}
                 className="mb-4 px-4 py-2 bg-card hover:bg-muted text-foreground rounded-lg text-sm font-medium border border-border transition-colors"
@@ -1577,11 +1618,19 @@ export default function Game() {
                 </div>
 
               </div>
-            </>
+            </motion.div>
           )}
 
           {currentScreen === 'results' && proFormaOutputs && (
-            <div className="max-w-4xl mx-auto">
+            <motion.div
+              key="results"
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={screenVariants}
+              transition={screenTransition}
+              className="max-w-4xl mx-auto"
+            >
               <ResultsPanel
                 strategy={proFormaInputs.strategy}
                 outputs={proFormaOutputs}
@@ -1591,8 +1640,9 @@ export default function Game() {
                 hasAppraisal={flipMetrics.hasAppraisal}
                 onContinue={handleContinueFromResults}
               />
-            </div>
+            </motion.div>
           )}
+          </AnimatePresence>
         </main>
 
         {/* Property Detail Modal - with inline pro forma inputs */}

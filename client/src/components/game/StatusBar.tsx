@@ -3,6 +3,8 @@ import { Link } from 'wouter';
 import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy, Play, Loader2, RotateCcw } from 'lucide-react';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { ProgressRing } from './ProgressRing';
+import { WeekTimeline } from './WeekTimeline';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 
 interface StatusBarProps {
@@ -18,34 +20,45 @@ interface StatusBarProps {
   onNewGame?: () => void;
 }
 
-function AnimatedNumber({ value, prefix = '', suffix = '', className = '' }: { 
-  value: number | string; 
-  prefix?: string; 
+function AnimatedNumber({ value, prefix = '', suffix = '', className = '', variant = 'default' }: {
+  value: number | string;
+  prefix?: string;
   suffix?: string;
   className?: string;
+  variant?: 'default' | 'cash' | 'time' | 'goal';
 }) {
   const [isFlipping, setIsFlipping] = useState(false);
+  const [countDirection, setCountDirection] = useState<'up' | 'down' | null>(null);
   const prevValue = useRef(value);
-  
+
   useEffect(() => {
+    const currentNum = typeof value === 'number' ? value : parseFloat(String(value).replace(/,/g, ''));
+    const prevNum = typeof prevValue.current === 'number' ? prevValue.current : parseFloat(String(prevValue.current).replace(/,/g, ''));
+
     if (String(value) !== String(prevValue.current)) {
       setIsFlipping(true);
+      setCountDirection(currentNum > prevNum ? 'up' : 'down');
       prevValue.current = value;
-      const timeout = setTimeout(() => setIsFlipping(false), 400);
+      const timeout = setTimeout(() => {
+        setIsFlipping(false);
+        setCountDirection(null);
+      }, 400);
       return () => clearTimeout(timeout);
     }
   }, [value]);
 
   const valueStr = String(value);
   const digits = valueStr.split('');
-  
+
+  const countClass = countDirection === 'up' ? 'count-up' : countDirection === 'down' ? 'count-down' : '';
+
   return (
-    <span className={`animated-number ${className}`}>
+    <span className={`animated-number ${className} ${countClass}`}>
       {prefix && <span className="number-prefix">{prefix}</span>}
       <span className={`flip-number-container ${isFlipping ? 'flipping' : ''}`}>
         {digits.map((digit, i) => (
-          <span 
-            key={i} 
+          <span
+            key={i}
             className="flip-digit"
             style={{ animationDelay: `${i * 20}ms` }}
           >
@@ -58,20 +71,22 @@ function AnimatedNumber({ value, prefix = '', suffix = '', className = '' }: {
   );
 }
 
-function StatCard({ 
-  icon: Icon, 
-  label, 
-  children, 
+function StatCard({
+  icon: Icon,
+  label,
+  children,
   variant = 'default',
   onClick,
-  testId
-}: { 
-  icon: React.ElementType; 
-  label: string; 
+  testId,
+  pulse = false
+}: {
+  icon: React.ElementType;
+  label: string;
   children: ReactNode;
   variant?: 'default' | 'cash' | 'time' | 'goal';
   onClick?: () => void;
   testId?: string;
+  pulse?: boolean;
 }) {
   const variants = {
     default: 'stat-card-default',
@@ -80,11 +95,18 @@ function StatCard({
     goal: 'stat-card-goal'
   };
 
+  const pulseVariants = {
+    default: '',
+    cash: 'hud-pulse-cash',
+    time: 'hud-pulse-time',
+    goal: 'hud-pulse-goal'
+  };
+
   const Component = onClick ? 'button' : 'div';
-  
+
   return (
-    <Component 
-      className={`stat-card ${variants[variant]}`}
+    <Component
+      className={`stat-card ${variants[variant]} ${pulse ? pulseVariants[variant] : ''}`}
       onClick={onClick}
       data-testid={testId}
     >
@@ -101,12 +123,46 @@ function StatCard({
 
 export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onAdvanceWeek, isAdvancingWeek, onNewGame }: StatusBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cashPulse, setCashPulse] = useState(false);
+  const [timePulse, setTimePulse] = useState(false);
+  const [goalPulse, setGoalPulse] = useState(false);
+  const prevCash = useRef(cash);
+  const prevWeeks = useRef(weeksRemaining);
+  const prevDeals = useRef(profitableDeals);
+
+  // Detect value changes and trigger pulses
+  useEffect(() => {
+    if (cash !== prevCash.current) {
+      setCashPulse(true);
+      prevCash.current = cash;
+      const timeout = setTimeout(() => setCashPulse(false), 600);
+      return () => clearTimeout(timeout);
+    }
+  }, [cash]);
+
+  useEffect(() => {
+    if (weeksRemaining !== prevWeeks.current) {
+      setTimePulse(true);
+      prevWeeks.current = weeksRemaining;
+      const timeout = setTimeout(() => setTimePulse(false), 600);
+      return () => clearTimeout(timeout);
+    }
+  }, [weeksRemaining]);
+
+  useEffect(() => {
+    if (profitableDeals !== prevDeals.current) {
+      setGoalPulse(true);
+      prevDeals.current = profitableDeals;
+      const timeout = setTimeout(() => setGoalPulse(false), 800);
+      return () => clearTimeout(timeout);
+    }
+  }, [profitableDeals]);
 
   const cashDisplay = Math.floor(cash).toLocaleString();
 
   return (
     <>
-      <div className="modern-status-bar safe-area-top safe-area-x sticky top-0 z-40" data-testid="status-bar">
+      <div className="modern-status-bar status-bar-shimmer safe-area-top safe-area-x sticky top-0 z-40" data-testid="status-bar">
         <div className="max-w-7xl mx-auto px-4 py-2">
           {/* Desktop Layout */}
           <div className="hidden md:flex items-center gap-6">
@@ -114,9 +170,9 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             <Link href="/">
               <div className="relative group cursor-pointer">
                 <div className="absolute -inset-1 bg-emerald-500/20 rounded-2xl blur-md group-hover:bg-emerald-500/30 transition-colors" />
-                <img 
-                  src={logo} 
-                  alt="Dealbreak: Real Estate Simulator" 
+                <img
+                  src={logo}
+                  alt="Dealbreak: Real Estate Simulator"
                   className="relative h-20 w-20 rounded-xl shadow-2xl transition-all duration-300 group-hover:scale-105"
                   style={{
                     boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 0 2px rgba(16,185,129,0.3)',
@@ -125,31 +181,37 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 />
               </div>
             </Link>
-            
+
             {/* Stats */}
             <div className="flex items-center gap-3 flex-1">
-              <StatCard 
-                icon={Wallet} 
-                label="CASH" 
+              <StatCard
+                icon={Wallet}
+                label="CASH"
                 variant="cash"
                 onClick={onOpenLedger}
                 testId="status-cash"
+                pulse={cashPulse}
               >
-                <AnimatedNumber value={cashDisplay} prefix="$" className="cash-value" />
+                <AnimatedNumber value={cashDisplay} prefix="$" className="cash-value" variant="cash" />
               </StatCard>
-              
-              <StatCard icon={Clock} label="TIME LEFT" variant="time" testId="status-time">
-                <AnimatedNumber value={weeksRemaining} suffix=" Months" className="time-value" />
+
+              <StatCard icon={Clock} label="TIME LEFT" variant="time" testId="status-time" pulse={timePulse}>
+                <AnimatedNumber value={weeksRemaining} suffix=" Months" className="time-value" variant="time" />
               </StatCard>
-              
-              <StatCard icon={Target} label="GOAL" variant="goal" testId="status-goal">
-                <span className="goal-value">
-                  <span className="goal-current">{profitableDeals}</span>
-                  <span className="goal-divider">/</span>
-                  <span className="goal-target">{goalDeals}</span>
-                  <span className="goal-label"> Profitable</span>
-                </span>
-              </StatCard>
+
+              {/* Progress Ring for Goals */}
+              <div className={`stat-card stat-card-goal ${goalPulse ? 'hud-pulse-goal' : ''}`} data-testid="status-goal">
+                <div className="flex items-center gap-3">
+                  <ProgressRing current={profitableDeals} total={goalDeals} size={48} strokeWidth={4} />
+                  <div>
+                    <div className="stat-card-header">
+                      <Target className="stat-card-icon" />
+                      <span className="stat-card-label">GOAL</span>
+                    </div>
+                    <span className="text-sm text-gray-300">Profitable Deals</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Advance Week Button */}

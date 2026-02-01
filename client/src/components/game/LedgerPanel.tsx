@@ -63,10 +63,15 @@ interface UnitPnL {
 function UnitPnLCard({ unit, isExpanded, onToggle }: { unit: UnitPnL; isExpanded: boolean; onToggle: () => void }) {
   const isProfitable = unit.netPnL >= 0;
   const strategyLabel = unit.strategy === 'flip' ? 'Flip' : 'Rental';
+  const isSold = unit.status === 'sold_rental' || unit.status === 'completed';
   const statusLabel = getStatusLabel(unit.status);
   
   return (
-    <div className="bg-slate-800/50 rounded-xl border border-slate-700 overflow-hidden">
+    <div className={`rounded-xl border overflow-hidden ${
+      isSold 
+        ? 'bg-slate-800/30 border-slate-700/50 opacity-75' 
+        : 'bg-slate-800/50 border-slate-700'
+    }`}>
       <button
         onClick={onToggle}
         className="w-full p-4 text-left hover:bg-slate-700/30 transition-colors"
@@ -74,11 +79,13 @@ function UnitPnLCard({ unit, isExpanded, onToggle }: { unit: UnitPnL; isExpanded
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="p-2 bg-slate-700 rounded-lg">
-              <Building2 className="w-5 h-5 text-blue-400" />
+            <div className={`p-2 rounded-lg ${isSold ? 'bg-slate-700/50' : 'bg-slate-700'}`}>
+              <Building2 className={`w-5 h-5 ${isSold ? 'text-gray-500' : 'text-blue-400'}`} />
             </div>
             <div className="min-w-0">
-              <div className="font-semibold text-white truncate">{unit.propertyName}</div>
+              <div className={`font-semibold truncate ${isSold ? 'text-gray-400' : 'text-white'}`}>
+                {unit.propertyName}
+              </div>
               <div className="text-sm text-gray-400">{unit.neighborhood}</div>
               <div className="flex items-center gap-2 mt-1">
                 <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -86,7 +93,15 @@ function UnitPnLCard({ unit, isExpanded, onToggle }: { unit: UnitPnL; isExpanded
                 }`}>
                   {strategyLabel}
                 </span>
-                <span className="text-xs text-gray-500">{statusLabel}</span>
+                {isSold ? (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-600/50 text-gray-400 border border-gray-500/30">
+                    SOLD
+                  </span>
+                ) : (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                    {statusLabel}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -223,7 +238,18 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
         entries: dealEntries,
       };
     })
-    .sort((a, b) => b.netPnL - a.netPnL);
+    .sort((a, b) => {
+      // Active properties first, sold properties last
+      const aIsSold = a.status === 'sold_rental' || a.status === 'completed';
+      const bIsSold = b.status === 'sold_rental' || b.status === 'completed';
+      
+      if (aIsSold !== bIsSold) {
+        return aIsSold ? 1 : -1; // Active properties come first
+      }
+      
+      // Within same category, sort by deal ID descending (newest first)
+      return b.dealId - a.dealId;
+    });
 
   const unassignedEntries = entries.filter(e => !e.dealId);
   const hasUnassigned = unassignedEntries.length > 0;

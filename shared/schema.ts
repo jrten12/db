@@ -39,6 +39,8 @@ export const properties = pgTable("properties", {
   neighborhood: text("neighborhood").notNull(),
   rentMin: integer("rent_min").notNull(),
   rentMax: integer("rent_max").notNull(),
+  postRehabRentMin: integer("post_rehab_rent_min"), // Rent potential after improvements
+  postRehabRentMax: integer("post_rehab_rent_max"), // Rent potential after improvements
   arvMin: integer("arv_min").notNull(),
   arvMax: integer("arv_max").notNull(),
   conditionTag: text("condition_tag").notNull(),

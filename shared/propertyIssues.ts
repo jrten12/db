@@ -899,6 +899,50 @@ function seededRandom(seed: number): () => number {
   };
 }
 
+// Conflict groups: when a "major" issue is present, "minor" related issues are excluded
+// The first item in each group is the major issue, rest are excluded if major is present
+const CONFLICT_GROUPS: string[][] = [
+  // Roof conflicts: full replacement excludes minor wear issues
+  ['roof_replacement', 'roof_wear', 'roof_shared', 'roof_historic', 'barn_roof'],
+  // Plumbing conflicts: full replacement excludes partial issues
+  ['plumbing_stack', 'plumbing_galvanized', 'plumbing_shared', 'plumbing_replacement'],
+  // Foundation conflicts: major work excludes minor settling
+  ['foundation_major', 'foundation_settling', 'foundation_stone', 'structural_settling'],
+  // HVAC conflicts: replacement excludes wear/age issues
+  ['hvac_replacement', 'hvac_commercial', 'hvac_high_rise', 'outdated_hvac', 'dual_hvac'],
+  // Electrical conflicts: full rewire excludes panel upgrades
+  ['knob_tube_wiring', 'electrical_outdated', 'electrical_upgrade', 'knob_tube'],
+  // Utility separation: full separation excludes meter issues
+  ['utility_separation', 'separate_meters', 'separate_utilities'],
+];
+
+// Filter out issues that conflict with already-selected issues
+function filterConflictingIssues(selectedIds: Set<string>, pool: PropertyIssue[]): PropertyIssue[] {
+  const excludedIds = new Set<string>();
+  
+  for (const group of CONFLICT_GROUPS) {
+    const majorIssueId = group[0];
+    // If a major issue is selected, exclude all minor related issues
+    if (selectedIds.has(majorIssueId)) {
+      for (let i = 1; i < group.length; i++) {
+        excludedIds.add(group[i]);
+      }
+    }
+    // Also check if any issue in group is selected, exclude duplicates within same system
+    const selectedInGroup = group.filter(id => selectedIds.has(id));
+    if (selectedInGroup.length > 0) {
+      // Exclude other issues in same group to prevent duplicates
+      for (const id of group) {
+        if (!selectedIds.has(id)) {
+          excludedIds.add(id);
+        }
+      }
+    }
+  }
+  
+  return pool.filter(issue => !excludedIds.has(issue.id));
+}
+
 // Map property types to issue pool keys
 function getIssuePoolKey(propertyType: string): string {
   const mapping: Record<string, string> = {
@@ -961,12 +1005,16 @@ export function getRandomizedPropertyIssues(
     }
   }
   
-  // Fill remaining slots
-  for (const issue of shuffled) {
+  // Fill remaining slots, filtering out conflicting issues
+  let availablePool = filterConflictingIssues(usedIds, shuffled);
+  
+  for (const issue of availablePool) {
     if (selected.length >= issueCount) break;
     if (!usedIds.has(issue.id)) {
       selected.push(issue);
       usedIds.add(issue.id);
+      // Re-filter pool after each selection to remove new conflicts
+      availablePool = filterConflictingIssues(usedIds, availablePool);
     }
   }
   

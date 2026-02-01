@@ -4,7 +4,17 @@ const MUSIC_TRACKS = [
   '/music-1.mp3',
   '/music-2.mp3',
   '/music-3.wav',
+  '/music-4.mp3',
 ];
+
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
 
 interface MusicContextType {
   isPlaying: boolean;
@@ -20,13 +30,14 @@ export function MusicProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('musicEnabled');
     return saved !== 'false';
   });
-  const [currentTrack, setCurrentTrack] = useState(0);
+  const [shuffledTracks, setShuffledTracks] = useState<string[]>(() => shuffleArray(MUSIC_TRACKS));
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasInteracted = useRef(false);
 
   useEffect(() => {
     if (!audioRef.current) {
-      audioRef.current = new Audio(MUSIC_TRACKS[0]);
+      audioRef.current = new Audio(shuffledTracks[0]);
       audioRef.current.volume = 0.3;
       audioRef.current.loop = false;
     }
@@ -34,9 +45,16 @@ export function MusicProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current;
 
     const handleEnded = () => {
-      const nextTrack = (currentTrack + 1) % MUSIC_TRACKS.length;
-      setCurrentTrack(nextTrack);
-      audio.src = MUSIC_TRACKS[nextTrack];
+      const nextIndex = currentTrackIndex + 1;
+      if (nextIndex >= shuffledTracks.length) {
+        const newShuffle = shuffleArray(MUSIC_TRACKS);
+        setShuffledTracks(newShuffle);
+        setCurrentTrackIndex(0);
+        audio.src = newShuffle[0];
+      } else {
+        setCurrentTrackIndex(nextIndex);
+        audio.src = shuffledTracks[nextIndex];
+      }
       if (isPlaying && hasInteracted.current) {
         audio.play().catch(() => {});
       }
@@ -44,7 +62,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
 
     audio.addEventListener('ended', handleEnded);
     return () => audio.removeEventListener('ended', handleEnded);
-  }, [currentTrack, isPlaying]);
+  }, [currentTrackIndex, shuffledTracks, isPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;

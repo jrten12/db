@@ -1,4 +1,5 @@
-import { TrendingUp, TrendingDown, Minus, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { useState } from 'react';
+import { TrendingUp, TrendingDown, Minus, ArrowUpCircle, ArrowDownCircle, Info, X } from 'lucide-react';
 import type { MarketCondition } from '@shared/schema';
 
 interface MarketIndicatorProps {
@@ -121,6 +122,7 @@ interface MarketBarProps {
 }
 
 export function MarketBar({ condition, className = '', compact = false }: MarketBarProps) {
+  const [showInfo, setShowInfo] = useState(false);
   const config = MARKET_CONFIG[condition] || MARKET_CONFIG.neutral;
   const Icon = config.icon;
   
@@ -134,45 +136,110 @@ export function MarketBar({ condition, className = '', compact = false }: Market
   ];
   
   return (
-    <div 
-      className={`
-        flex items-center gap-2 rounded-lg
-        ${config.bgColor} ${config.borderColor} border
-        ${compact ? 'px-2 py-1.5' : 'px-3 py-2'}
-        shadow-lg ${config.glowColor}
-        backdrop-blur-sm
-        ${className}
-      `}
-      data-testid="market-bar"
-    >
-      <Icon className={`${compact ? 'w-4 h-4' : 'w-5 h-5'} ${config.color} flex-shrink-0`} />
-      
-      <div className="flex flex-col gap-1 flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <span className={`${compact ? 'text-xs' : 'text-sm'} font-semibold ${config.color} truncate`}>
-            {compact ? config.shortLabel : config.label}
-          </span>
-          {!compact && (
-            <span className="text-xs text-muted-foreground/70">
-              Changes Monthly
-            </span>
-          )}
+    <>
+      <div 
+        className={`
+          flex items-center gap-2 rounded-lg
+          ${config.bgColor} ${config.borderColor} border
+          ${compact ? 'px-2 py-1.5' : 'px-3 py-2'}
+          shadow-lg ${config.glowColor}
+          backdrop-blur-sm
+          ${className}
+        `}
+        data-testid="market-bar"
+      >
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <span className="text-[10px] uppercase tracking-wider text-white/60 font-medium">Market</span>
+          <button
+            onClick={() => setShowInfo(true)}
+            className="p-0.5 rounded-full hover:bg-white/10 transition-colors"
+            data-testid="button-market-info"
+            aria-label="Learn about market conditions"
+          >
+            <Info className="w-3 h-3 text-white/50 hover:text-white/80" />
+          </button>
         </div>
         
-        <div className="flex gap-0.5 h-1.5 rounded-full overflow-hidden bg-black/30">
-          {segments.map((seg, idx) => (
-            <div
-              key={seg}
-              className={`
-                flex-1 transition-all duration-500
-                ${idx <= config.position ? segmentColors[idx] : 'bg-white/10'}
-                ${idx === config.position ? 'ring-1 ring-white/50' : ''}
-              `}
-            />
-          ))}
+        <div className="h-4 w-px bg-white/20 flex-shrink-0" />
+        
+        <Icon className={`${compact ? 'w-4 h-4' : 'w-5 h-5'} ${config.color} flex-shrink-0`} />
+        
+        <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+          <span className={`text-xs font-semibold ${config.color} truncate`}>
+            {config.shortLabel}
+          </span>
+          
+          <div className="flex gap-0.5 h-1 rounded-full overflow-hidden bg-black/30">
+            {segments.map((seg, idx) => (
+              <div
+                key={seg}
+                className={`
+                  flex-1 transition-all duration-500
+                  ${idx <= config.position ? segmentColors[idx] : 'bg-white/10'}
+                  ${idx === config.position ? 'ring-1 ring-white/50' : ''}
+                `}
+              />
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+
+      {showInfo && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setShowInfo(false)}
+        >
+          <div 
+            className="bg-slate-900 border border-slate-700 rounded-xl max-w-sm w-full p-4 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-bold text-white">Market Conditions</h3>
+              <button
+                onClick={() => setShowInfo(false)}
+                className="p-1 rounded-full hover:bg-white/10 transition-colors"
+                data-testid="button-close-market-info"
+              >
+                <X className="w-5 h-5 text-white/60" />
+              </button>
+            </div>
+            
+            <div className="space-y-3 text-sm text-slate-300">
+              <p>
+                The real estate market fluctuates monthly, affecting how much you can sell flip properties for.
+              </p>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-cyan-400" />
+                  <span><strong className="text-cyan-300">Excellent</strong> - Best prices, up to +15%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <span><strong className="text-emerald-400">Good</strong> - Favorable prices, up to +10%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                  <span><strong className="text-yellow-400">Neutral</strong> - Fair market value</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-orange-500" />
+                  <span><strong className="text-orange-400">Poor</strong> - Lower prices, up to -10%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <span><strong className="text-red-400">Terrible</strong> - Worst prices, up to -15%</span>
+                </div>
+              </div>
+              
+              <p className="text-slate-400 text-xs mt-3">
+                Tip: Time your flip sales for good or excellent markets to maximize profits!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

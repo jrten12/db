@@ -1,7 +1,26 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home, DollarSign, Landmark } from 'lucide-react';
+import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home, DollarSign, Landmark, Castle, Building, Warehouse } from 'lucide-react';
 import type { Property } from '@shared/schema';
+import { useState, useCallback } from 'react';
+
+// Property type icon mapping
+const PROPERTY_TYPE_CONFIG: Record<string, { icon: typeof Home; className: string; label: string }> = {
+  house: { icon: Home, className: 'property-type-house', label: 'House' },
+  condo: { icon: Building, className: 'property-type-condo', label: 'Condo' },
+  duplex: { icon: Building2, className: 'property-type-duplex', label: 'Duplex' },
+  townhouse: { icon: Castle, className: 'property-type-townhouse', label: 'Townhouse' },
+  apartment: { icon: Warehouse, className: 'property-type-apartment', label: 'Apartment' },
+};
+
+function getPropertyType(name: string): string {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes('duplex')) return 'duplex';
+  if (lowerName.includes('condo')) return 'condo';
+  if (lowerName.includes('townhouse') || lowerName.includes('town home')) return 'townhouse';
+  if (lowerName.includes('apartment') || lowerName.includes('unit')) return 'apartment';
+  return 'house';
+}
 
 export type LocationFilter = 'all' | 'urban' | 'suburban';
 
@@ -140,22 +159,29 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
           const canSell = onSellProperty && dealInfo && 
             (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list');
           
+          const propertyType = getPropertyType(property.name);
+          const typeConfig = PROPERTY_TYPE_CONFIG[propertyType] || PROPERTY_TYPE_CONFIG.house;
+          const TypeIcon = typeConfig.icon;
+
           return (
             <div
               key={property.id}
               onClick={() => !isUnavailable && !canSell && onSelect(property.id)}
               role={isUnavailable ? undefined : "button"}
               tabIndex={isUnavailable ? undefined : 0}
-              className={`group relative rounded-2xl overflow-hidden text-left transition-transform duration-200 ios-spring ${
+              className={`group relative rounded-2xl overflow-hidden text-left transition-all duration-300 card-3d card-shine ${
                 isUnavailable
                   ? 'opacity-85 cursor-default'
                   : canSell
                     ? 'opacity-100'
                     : isSelected
                       ? 'ring-2 ring-gold scale-[1.01] shadow-xl shadow-gold/20 cursor-pointer'
-                      : 'hover:scale-[1.015] active:scale-[0.98] hover:shadow-xl hover:shadow-black/40 cursor-pointer'
+                      : 'hover:shadow-xl hover:shadow-black/40 cursor-pointer'
               }`}
               data-testid={`property-card-${property.id}`}
+              style={{
+                transformStyle: 'preserve-3d',
+              }}
             >
               {/* Card Background */}
               <div className="absolute inset-0 bg-gradient-to-b from-slate-800/90 to-slate-900/95 backdrop-blur" />
@@ -274,8 +300,13 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                   <span className="text-sm">{property.neighborhood}</span>
                 </div>
                 
-                {/* Location Badge + Condition Badge + Unknown Financials Warning */}
+                {/* Property Type + Location Badge + Unknown Financials Warning */}
                 <div className="mt-3 flex flex-wrap gap-1.5">
+                  {/* Property Type Badge */}
+                  <div className={`property-type-badge ${typeConfig.className}`}>
+                    <TypeIcon className="w-3 h-3" />
+                    <span>{typeConfig.label}</span>
+                  </div>
                   {/* Location Type Badge */}
                   {property.locationType === 'urban' ? (
                     <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border text-blue-400 bg-blue-500/20 border-blue-500/30">

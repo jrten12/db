@@ -57,33 +57,53 @@ export function getMarketMultipliers(condition: MarketCondition): MarketMultipli
 /**
  * Progress market condition with 65% bias toward good/excellent
  * Can only move one step at a time (no extreme jumps)
+ * 
+ * Target distribution: ~65% in good/excellent, ~35% in terrible/poor/neutral
+ * Uses weighted transition probabilities to achieve this steady state:
+ * 
+ * From terrible (0): 75% up to poor, 25% stay
+ * From poor (1): 60% up to neutral, 25% stay, 15% down to terrible
+ * From neutral (2): 55% up to good, 30% stay, 15% down to poor
+ * From good (3): 30% up to excellent, 50% stay, 20% down to neutral
+ * From excellent (4): 70% stay, 30% down to good
  */
 export function progressMarketCondition(currentCondition: MarketCondition): MarketCondition {
   const currentIndex = MARKET_CONDITIONS.indexOf(currentCondition);
-  
-  // Generate weighted random - 65% chance to favor good/excellent
   const rand = Math.random();
   
-  // Probability weights for direction:
-  // - If currently below good (terrible/poor/neutral): 70% chance to go up, 30% down
-  // - If currently at good: 60% stay or go to excellent, 40% go down
-  // - If at excellent: 80% stay or go to good, 20% chance to go down to neutral
+  let newIndex: number;
   
-  let direction: number;
-  
-  if (currentIndex < 3) {
-    // Below good - strong bias upward (toward 65% good target)
-    direction = rand < 0.70 ? 1 : (rand < 0.85 ? 0 : -1);
-  } else if (currentIndex === 3) {
-    // At good - slight bias to stay or go up
-    direction = rand < 0.40 ? 1 : (rand < 0.75 ? 0 : -1);
-  } else {
-    // At excellent - slight bias to stay or go down to good
-    direction = rand < 0.30 ? 0 : (rand < 0.85 ? -1 : 0);
+  switch (currentIndex) {
+    case 0: // terrible
+      // 75% up, 25% stay (can't go lower)
+      newIndex = rand < 0.75 ? 1 : 0;
+      break;
+    case 1: // poor
+      // 60% up, 25% stay, 15% down
+      if (rand < 0.60) newIndex = 2;
+      else if (rand < 0.85) newIndex = 1;
+      else newIndex = 0;
+      break;
+    case 2: // neutral
+      // 55% up, 30% stay, 15% down
+      if (rand < 0.55) newIndex = 3;
+      else if (rand < 0.85) newIndex = 2;
+      else newIndex = 1;
+      break;
+    case 3: // good
+      // 30% up, 50% stay, 20% down
+      if (rand < 0.30) newIndex = 4;
+      else if (rand < 0.80) newIndex = 3;
+      else newIndex = 2;
+      break;
+    case 4: // excellent
+      // 70% stay, 30% down (can't go higher)
+      newIndex = rand < 0.70 ? 4 : 3;
+      break;
+    default:
+      newIndex = 3; // Default to good
   }
   
-  // Calculate new index, clamped to valid range
-  const newIndex = Math.max(0, Math.min(4, currentIndex + direction));
   return MARKET_CONDITIONS[newIndex];
 }
 

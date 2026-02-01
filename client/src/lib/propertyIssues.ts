@@ -69,28 +69,50 @@ export const DILIGENCE_OPTIONS: DiligenceOption[] = [
 
 export interface EffectiveRanges {
   rent: { min: number; max: number; known: boolean };
+  postRehabRent: { min: number; max: number; known: boolean };
   arv: { min: number; max: number; known: boolean };
   rehab: { min: number; max: number; known: boolean };
   timeline: { min: number; max: number; known: boolean };
 }
 
 export function getEffectiveRanges(
-  property: { rentMin: number; rentMax: number; arvMin: number; arvMax: number; rehabMin: number; rehabMax: number; timelineMin: number; timelineMax: number; price: number },
+  property: { 
+    rentMin: number; 
+    rentMax: number; 
+    postRehabRentMin?: number | null; 
+    postRehabRentMax?: number | null;
+    arvMin: number; 
+    arvMax: number; 
+    rehabMin: number; 
+    rehabMax: number; 
+    timelineMin: number; 
+    timelineMax: number; 
+    price: number 
+  },
   completedDiligence: string[]
 ): EffectiveRanges {
   const hasMarketStudy = completedDiligence.includes('market_study');
   const hasAppraisal = completedDiligence.includes('appraisal');
   const hasContractorWalkthrough = completedDiligence.includes('contractor_walkthrough');
+  const hasInspection = completedDiligence.includes('inspection');
+  const hasContractorOrInspection = hasContractorWalkthrough || hasInspection;
 
   const rentMid = (property.rentMin + property.rentMax) / 2;
   const arvMid = (property.arvMin + property.arvMax) / 2;
   const rehabMid = (property.rehabMin + property.rehabMax) / 2;
   const timelineMid = (property.timelineMin + property.timelineMax) / 2;
 
+  const postRehabRentMin = property.postRehabRentMin ?? Math.round(property.rentMin * 1.12);
+  const postRehabRentMax = property.postRehabRentMax ?? Math.round(property.rentMax * 1.18);
+  const postRehabMid = (postRehabRentMin + postRehabRentMax) / 2;
+
   return {
     rent: hasMarketStudy 
       ? { min: property.rentMin, max: property.rentMax, known: true }
       : { min: Math.round(rentMid * 0.6), max: Math.round(rentMid * 1.4), known: false },
+    postRehabRent: hasContractorOrInspection
+      ? { min: postRehabRentMin, max: postRehabRentMax, known: true }
+      : { min: Math.round(postRehabMid * 0.7), max: Math.round(postRehabMid * 1.3), known: false },
     arv: hasAppraisal
       ? { min: property.arvMin, max: property.arvMax, known: true }
       : { min: Math.round(arvMid * 0.75), max: Math.round(arvMid * 1.25), known: false },

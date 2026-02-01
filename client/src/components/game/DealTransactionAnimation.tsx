@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Building2, DollarSign, Landmark, CheckCircle, ArrowDown, Wallet, FileCheck } from 'lucide-react';
 
@@ -27,11 +27,22 @@ export function DealTransactionAnimation({
 }: DealTransactionAnimationProps) {
   const [step, setStep] = useState(0);
   const totalCash = downPayment + closingCosts + loanOriginationFee;
+  const processingSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    processingSoundRef.current = new Audio('/sounds/processing.wav');
+    processingSoundRef.current.volume = 0.5;
+  }, []);
 
   useEffect(() => {
     if (!isVisible) {
       setStep(0);
       return;
+    }
+
+    if (processingSoundRef.current) {
+      processingSoundRef.current.currentTime = 0;
+      processingSoundRef.current.play().catch(() => {});
     }
 
     const timers = [

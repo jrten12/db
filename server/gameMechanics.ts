@@ -913,6 +913,55 @@ export async function processRentalIncome(
 }
 
 /**
+ * Charge weekly carrying costs for flip properties (in_rehab or ready_to_list)
+ * Similar to rental expenses: mortgage interest, taxes, insurance, but NO income
+ */
+async function chargeFlipCarryingCosts(deal: Deal, gameRun: GameRun, storage: IStorage): Promise<void> {
+  const proFormaOutputs = deal.proFormaOutputs as any;
+  const proFormaInputs = deal.proFormaInputs as any;
+  const property = await storage.getProperty(deal.propertyId);
+  const propertyName = property?.name || `Property #${deal.propertyId}`;
+  
+  // Calculate weekly carrying costs based on loan amount and property expenses
+  const loanAmount = proFormaOutputs?.loanAmount || deal.originalLoanAmount || 0;
+  const interestRate = deal.loanInterestRate ?? proFormaOutputs?.interestRate ?? 7.0;
+  const purchasePrice = property?.price || proFormaInputs?.purchasePrice || 200000;
+  
+  // Weekly interest on loan (annual rate / 52 weeks)
+  const weeklyInterest = Math.round((loanAmount * (interestRate / 100)) / 52);
+  
+  // Weekly taxes and insurance (estimate 1.5% annual property tax + 0.5% insurance)
+  const annualTaxes = purchasePrice * 0.015;
+  const annualInsurance = purchasePrice * 0.005;
+  const weeklyTaxesAndInsurance = Math.round((annualTaxes + annualInsurance) / 52);
+  
+  const weeklyCarryingCost = weeklyInterest + weeklyTaxesAndInsurance;
+  
+  if (weeklyCarryingCost <= 0) return;
+  
+  // Get current cash and deduct carrying costs
+  const currentGameRun = await storage.getGameRun(gameRun.id);
+  const currentCash = currentGameRun?.cash ?? gameRun.cash;
+  const newCash = currentCash - weeklyCarryingCost;
+  
+  // Create ledger entry for carrying costs
+  await storage.createLedgerEntry({
+    gameRunId: gameRun.id,
+    direction: 'debit',
+    category: 'expense',
+    amount: weeklyCarryingCost,
+    balanceAfter: newCash,
+    description: `Carrying costs - ${propertyName} (interest, taxes, insurance)`,
+    propertyId: deal.propertyId,
+    dealId: deal.id,
+    gameWeek: gameRun.currentWeek,
+  });
+  
+  // Update game run cash
+  await storage.updateGameRun(gameRun.id, { cash: newCash });
+}
+
+/**
  * Progress the game by one week
  * - Pays out rental income for active rentals
  * - Advances flip timelines and completes ready flips
@@ -967,10 +1016,13 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     }
   }
 
-  // Process flips in rehab - count down weeks
+  // Process flips in rehab - count down weeks AND charge carrying costs
   for (const deal of deals) {
     if (deal.status === 'in_rehab' && deal.weeksUntilCompletion) {
       const weeksLeft = deal.weeksUntilCompletion - 1;
+
+      // Charge weekly carrying costs for flip during rehab
+      await chargeFlipCarryingCosts(deal, gameRun, storage);
 
       if (weeksLeft <= 0) {
         // Flip rehab is complete! Property is ready to list for sale
@@ -993,6 +1045,13 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           weeksUntilCompletion: weeksLeft,
         });
       }
+    }
+  }
+
+  // Process flips ready to list - charge carrying costs while waiting to sell
+  for (const deal of deals) {
+    if (deal.status === 'ready_to_list') {
+      await chargeFlipCarryingCosts(deal, gameRun, storage);
     }
   }
 

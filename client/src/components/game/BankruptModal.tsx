@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
+import { useEffect } from 'react';
 import { Skull, TrendingDown, Home, RotateCcw } from 'lucide-react';
 import { formatCurrency } from '@/lib/gameData';
+import { playBankruptSound } from '@/hooks/useClickSound';
 
 interface BankruptModalProps {
   cash: number;
@@ -10,6 +11,10 @@ interface BankruptModalProps {
 }
 
 export function BankruptModal({ cash, weeksPlayed, onReturnHome, onTryAgain }: BankruptModalProps) {
+  useEffect(() => {
+    playBankruptSound();
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-4" data-testid="bankrupt-modal">
       <div className="relative max-w-lg w-full">

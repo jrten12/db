@@ -25,6 +25,8 @@ function getProformaAudio(): HTMLAudioElement {
 export function playClickSound() {
   try {
     const audio = getClickAudio();
+    // Stop any currently playing sound to prevent layering
+    audio.pause();
     audio.currentTime = 0;
     audio.play().catch(() => {});
   } catch (e) {}
@@ -33,6 +35,8 @@ export function playClickSound() {
 export function playProformaChime() {
   try {
     const audio = getProformaAudio();
+    // Stop any currently playing sound to prevent layering
+    audio.pause();
     audio.currentTime = 0;
     audio.play().catch(() => {});
   } catch (e) {}

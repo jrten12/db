@@ -2,6 +2,8 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
 import { StatusBar } from '@/components/game/StatusBar';
+import { MarketBar, MarketChangeNotification } from '@/components/game/MarketIndicator';
+import type { MarketCondition } from '@shared/schema';
 import { ProFormaPanel } from '@/components/game/ProFormaPanel';
 import { MetricsPanel } from '@/components/game/MetricsPanel';
 import { PropertySelector, type LocationFilter, type PropertyDealInfo } from '@/components/game/PropertySelector';
@@ -1598,10 +1600,18 @@ export default function Game() {
           isAdvancingWeek={isAdvancingWeek}
           onNewGame={handleNewGame}
         />
+        {/* Market Condition Indicator - compact on mobile */}
+        <div className="px-3 pb-2 pt-0.5">
+          <MarketBar 
+            condition={(gameRun.marketCondition as MarketCondition) || 'good'} 
+            compact={true}
+            className="w-full max-w-xs mx-auto md:max-w-sm"
+          />
+        </div>
       </div>
       
-      {/* Main content with top padding to account for fixed header + safe area */}
-      <div ref={mainContentRef} className="min-h-screen min-h-[100dvh] bg-black/30 pt-16 md:pt-28 overflow-y-auto">
+      {/* Main content with top padding to account for fixed header + safe area + market bar */}
+      <div ref={mainContentRef} className="min-h-screen min-h-[100dvh] bg-black/30 pt-24 md:pt-36 overflow-y-auto">
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">

@@ -197,6 +197,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     {
       rentMin: property.rentRange?.[0] ?? property.rentMin ?? 1000,
       rentMax: property.rentRange?.[1] ?? property.rentMax ?? 2000,
+      postRehabRentMin: property.postRehabRentMin,
+      postRehabRentMax: property.postRehabRentMax,
       arvMin: property.arvMin ?? 150000,
       arvMax: property.arvMax ?? 200000,
       rehabMin: property.rehabMin ?? 10000,
@@ -617,7 +619,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         <input
                           type="range"
                           min={property.rentMin}
-                          max={property.rentMax}
+                          max={effectiveRanges.postRehabRent.known ? effectiveRanges.postRehabRent.max : property.rentMax}
                           step={50}
                           value={inputs.expectedRent || property.rentMin}
                           onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, expectedRent: parseInt(e.target.value) }); }}
@@ -626,9 +628,28 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         />
                         <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
                           <span>${property.rentMin.toLocaleString()}</span>
-                          <span className="text-cyan-300">Market Range</span>
+                          <span className="text-cyan-300">Comparable Rent</span>
                           <span>${property.rentMax.toLocaleString()}</span>
                         </div>
+                        {effectiveRanges.postRehabRent.known && (
+                          <div className="mt-3 pt-3 border-t border-emerald-500/20">
+                            <div className="flex items-center gap-2 text-xs text-emerald-400/80 mb-1">
+                              <TrendingUp className="w-3 h-3" />
+                              <span>After Improvements</span>
+                            </div>
+                            <div className="flex justify-between text-xs text-emerald-400/60">
+                              <span>${effectiveRanges.postRehabRent.min.toLocaleString()}</span>
+                              <span className="text-emerald-300">Potential Range</span>
+                              <span>${effectiveRanges.postRehabRent.max.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        )}
+                        {!effectiveRanges.postRehabRent.known && (
+                          <div className="mt-2 text-xs text-slate-500 flex items-center gap-1">
+                            <Lock className="w-3 h-3" />
+                            Contractor or Inspection reveals improvement potential
+                          </div>
+                        )}
                       </>
                     ) : (
                       <>
@@ -647,7 +668,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                           />
                         </div>
                         <span className="text-amber-400/80 text-xs mt-2 block flex items-center gap-1">
-                          <Lock className="w-3 h-3" /> Complete Market Study to see range
+                          <Lock className="w-3 h-3" /> Complete Market Study to see comparable rents
                         </span>
                       </>
                     )}

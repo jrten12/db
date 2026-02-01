@@ -17,6 +17,12 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+// Market conditions: 5 levels from terrible to excellent
+// Changes monthly with gradual shifts (no extreme jumps)
+// 65% of the time should be "good" or "excellent"
+export type MarketCondition = 'terrible' | 'poor' | 'neutral' | 'good' | 'excellent';
+export const MARKET_CONDITIONS: MarketCondition[] = ['terrible', 'poor', 'neutral', 'good', 'excellent'];
+
 export const gameRuns = pgTable("game_runs", {
   id: serial("id").primaryKey(),
   playerName: text("player_name").notNull(),
@@ -27,6 +33,8 @@ export const gameRuns = pgTable("game_runs", {
   profitableDeals: integer("profitable_deals").notNull().default(0),
   goalDeals: integer("goal_deals").notNull().default(3),
   status: text("status").notNull().default("active"),
+  marketCondition: text("market_condition").notNull().default("good"), // Current market: terrible, poor, neutral, good, excellent
+  lastMarketChangeWeek: integer("last_market_change_week").notNull().default(0), // Week when market last changed
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

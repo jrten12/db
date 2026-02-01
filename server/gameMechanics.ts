@@ -8,13 +8,91 @@
  * - Curveball event triggering
  */
 
-import { storage } from './storage';
-import type { GameRun, Deal, InsertLedgerEntry, InsertCurveballEvent } from '@shared/schema';
+import { storage, IStorage } from './storage';
+import type { GameRun, Deal, InsertLedgerEntry, InsertCurveballEvent, MarketCondition } from '@shared/schema';
+import { MARKET_CONDITIONS } from '@shared/schema';
 import * as schema from '@shared/schema';
 import { db } from './storage';
 import { eq } from 'drizzle-orm';
 import { rollForCurveball, rollForCurveballWithIssues, type PropertyContext, type CurveballResult, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
 import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue, getPropertyIssues, getRandomizedPropertyIssues } from '@shared/propertyIssues';
+
+/**
+ * Market Conditions System
+ * 
+ * 5 levels: terrible, poor, neutral, good, excellent
+ * Changes every 4 weeks (monthly) with gradual shifts (no extreme jumps)
+ * 65% of the time should be "good" or "excellent"
+ * 
+ * Affects flip sale prices:
+ * - Terrible: -15% to -5% (no upside)
+ * - Poor: -10% to +2%
+ * - Neutral: -5% to +5%
+ * - Good: -3% to +10%
+ * - Excellent: 0% to +15%
+ */
+
+export interface MarketMultipliers {
+  min: number;
+  max: number;
+}
+
+export function getMarketMultipliers(condition: MarketCondition): MarketMultipliers {
+  switch (condition) {
+    case 'terrible':
+      return { min: 0.85, max: 0.95 };
+    case 'poor':
+      return { min: 0.90, max: 1.02 };
+    case 'neutral':
+      return { min: 0.95, max: 1.05 };
+    case 'good':
+      return { min: 0.97, max: 1.10 };
+    case 'excellent':
+      return { min: 1.00, max: 1.15 };
+    default:
+      return { min: 0.95, max: 1.05 };
+  }
+}
+
+/**
+ * Progress market condition with 65% bias toward good/excellent
+ * Can only move one step at a time (no extreme jumps)
+ */
+export function progressMarketCondition(currentCondition: MarketCondition): MarketCondition {
+  const currentIndex = MARKET_CONDITIONS.indexOf(currentCondition);
+  
+  // Generate weighted random - 65% chance to favor good/excellent
+  const rand = Math.random();
+  
+  // Probability weights for direction:
+  // - If currently below good (terrible/poor/neutral): 70% chance to go up, 30% down
+  // - If currently at good: 60% stay or go to excellent, 40% go down
+  // - If at excellent: 80% stay or go to good, 20% chance to go down to neutral
+  
+  let direction: number;
+  
+  if (currentIndex < 3) {
+    // Below good - strong bias upward (toward 65% good target)
+    direction = rand < 0.70 ? 1 : (rand < 0.85 ? 0 : -1);
+  } else if (currentIndex === 3) {
+    // At good - slight bias to stay or go up
+    direction = rand < 0.40 ? 1 : (rand < 0.75 ? 0 : -1);
+  } else {
+    // At excellent - slight bias to stay or go down to good
+    direction = rand < 0.30 ? 0 : (rand < 0.85 ? -1 : 0);
+  }
+  
+  // Calculate new index, clamped to valid range
+  const newIndex = Math.max(0, Math.min(4, currentIndex + direction));
+  return MARKET_CONDITIONS[newIndex];
+}
+
+/**
+ * Check if market should change (every 4 weeks = monthly)
+ */
+export function shouldMarketChange(currentWeek: number, lastMarketChangeWeek: number): boolean {
+  return currentWeek - lastMarketChangeWeek >= 4;
+}
 
 /**
  * Loan Amortization Utilities
@@ -328,6 +406,8 @@ interface WeekProgressionResult {
   curveballs: any[];
   newWeek: number;
   weeksRemaining: number;
+  marketCondition: MarketCondition;
+  marketChanged: boolean;
 }
 
 /**
@@ -335,6 +415,7 @@ interface WeekProgressionResult {
  * Sale price is calculated based on:
  * 1. Whether player did comp analysis (appraisal) - reduces uncertainty
  * 2. Rehab investment relative to property requirements
+ * 3. Current market conditions (affects price range)
  * 
  * WITH comps: Sale price is within actual market range (arvMin-arvMax)
  * WITHOUT comps: Sale price can deviate significantly from player's estimate!
@@ -342,13 +423,18 @@ interface WeekProgressionResult {
 export async function completeFlipDeal(
   deal: Deal,
   gameRun: GameRun,
-  curveball?: any
+  curveball?: any,
+  marketCondition?: MarketCondition
 ): Promise<FlipSaleResult> {
   const proFormaOutputs = deal.proFormaOutputs as any;
   const proFormaInputs = deal.proFormaInputs as any;
 
   // Get property to access ARV and rehab ranges
   const property = await storage.getProperty(deal.propertyId);
+  
+  // Get market multipliers for current conditions
+  const market = marketCondition || (gameRun.marketCondition as MarketCondition) || 'good';
+  const marketMult = getMarketMultipliers(market);
   
   // Check if player did due diligence (appraisal = comp analysis)
   const investigations = await storage.getPropertyInvestigations(gameRun.id);
@@ -371,7 +457,7 @@ export async function completeFlipDeal(
     titleIssueName = titleIssue.issueName;
   }
   
-  // Calculate sale price based on due diligence and rehab investment
+  // Calculate sale price based on due diligence, rehab investment, AND market conditions
   let salePrice: number;
   if (property && property.arvMin && property.arvMax && property.rehabMin && property.rehabMax) {
     // Get player's actual rehab spend (budget + contingency)
@@ -391,8 +477,9 @@ export async function completeFlipDeal(
       const arvRange = property.arvMax - property.arvMin;
       const baseSalePrice = property.arvMin + (completionFactor * arvRange);
       
-      // Apply small ±5% market variance
-      const marketVariance = 0.95 + (Math.random() * 0.10);
+      // Apply MARKET-BASED variance instead of fixed ±5%
+      // Market condition determines the range of variance
+      const marketVariance = marketMult.min + (Math.random() * (marketMult.max - marketMult.min));
       salePrice = Math.round(baseSalePrice * marketVariance);
     } else {
       // WITHOUT COMPS: Player is flying blind! Market reality may differ wildly
@@ -400,8 +487,10 @@ export async function completeFlipDeal(
       const playerEstimate = proFormaInputs?.arv || ((property.arvMin + property.arvMax) / 2);
       
       // Generate a "reality check" - what the market actually values this at
-      // Could be 70% to 130% of what player expected
-      const realityFactor = 0.70 + (Math.random() * 0.60); // 0.70 to 1.30
+      // Could be 70% to 130% of what player expected, ADJUSTED by market conditions
+      const baseRealityMin = 0.70 * marketMult.min; // Worse in bad markets
+      const baseRealityMax = 1.30 * marketMult.max; // Better in good markets
+      const realityFactor = baseRealityMin + (Math.random() * (baseRealityMax - baseRealityMin));
       
       // Rehab still matters for final price, but uncertainty is huge
       const baseFromRehab = property.arvMin + (completionFactor * (property.arvMax - property.arvMin));
@@ -1121,10 +1210,30 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   const newWeek = gameRun.currentWeek + 1;
   const newWeeksRemaining = gameRun.weeksRemaining - 1;
 
-  await storage.updateGameRun(gameRunId, {
-    currentWeek: newWeek,
-    weeksRemaining: newWeeksRemaining,
-  });
+  // Check if market should change (every 4 weeks = monthly)
+  let currentMarket = (gameRun.marketCondition as MarketCondition) || 'good';
+  const lastMarketChangeWeek = gameRun.lastMarketChangeWeek ?? 0;
+  let marketChanged = false;
+
+  if (shouldMarketChange(newWeek, lastMarketChangeWeek)) {
+    const newMarket = progressMarketCondition(currentMarket);
+    if (newMarket !== currentMarket) {
+      currentMarket = newMarket;
+      marketChanged = true;
+    }
+    // Update market condition and last change week
+    await storage.updateGameRun(gameRunId, {
+      currentWeek: newWeek,
+      weeksRemaining: newWeeksRemaining,
+      marketCondition: currentMarket,
+      lastMarketChangeWeek: newWeek,
+    });
+  } else {
+    await storage.updateGameRun(gameRunId, {
+      currentWeek: newWeek,
+      weeksRemaining: newWeeksRemaining,
+    });
+  }
 
   return {
     rentalPayments,
@@ -1132,6 +1241,8 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     curveballs,
     newWeek,
     weeksRemaining: newWeeksRemaining,
+    marketCondition: currentMarket,
+    marketChanged,
   };
 }
 

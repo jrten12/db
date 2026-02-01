@@ -236,8 +236,8 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                     {/* Action Buttons for owned properties - horizontal layout with responsive sizing */}
                     {dealInfo && (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && (
                       <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-[280px] sm:max-w-none">
-                        {/* Contractor Walkthrough Button for active rentals */}
-                        {dealInfo.status === 'active_rental' && onContractorWalkthrough && !dealInfo.contractorWalkthroughCompleted && (
+                        {/* Contractor Walkthrough Button for active rentals AND ready flips */}
+                        {(dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && onContractorWalkthrough && !dealInfo.contractorWalkthroughCompleted && (
                           <Button
                             size="sm"
                             onClick={(e) => {

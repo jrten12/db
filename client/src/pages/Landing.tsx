@@ -88,12 +88,12 @@ export default function Landing() {
 
                 {/* Main headline */}
                 <h1 className="text-[2rem] sm:text-[2.5rem] lg:text-5xl xl:text-[3.25rem] leading-[1.1] font-bold text-white tracking-tight mb-5">
-                  Master Real Estate<br />
-                  <span className="bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">Before You Invest</span>
+                  Can You Spot the<br />
+                  <span className="bg-gradient-to-r from-emerald-400 to-emerald-500 bg-clip-text text-transparent">Deal That Breaks?</span>
                 </h1>
 
                 <p className="text-gray-400 text-lg sm:text-xl leading-relaxed max-w-[480px] mx-auto lg:mx-0 mb-8">
-                  The numbers don't lie, but they don't tell you everything. Learn to spot the deals that work—and walk away from those that don't.
+                  Most properties are traps. Find the winners, avoid the money pits, and prove you've got what it takes to make it in real estate.
                 </p>
 
                 {/* CTA Buttons - iOS style */}
@@ -139,10 +139,10 @@ export default function Landing() {
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-                  Learn by Doing
+                  Every Deal Has a Story
                 </h2>
                 <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                  Every decision teaches you something. Miss a detail and it costs you.
+                  Some properties are hidden gems. Others are disasters waiting to happen. Can you tell the difference?
                 </p>
               </div>
 
@@ -152,43 +152,43 @@ export default function Landing() {
                   icon={<Search className="w-6 h-6" />}
                   iconColor="text-blue-400"
                   iconBg="bg-blue-500/15"
-                  title="Due Diligence"
-                  description="Order inspections, check comps, and uncover hidden issues before you buy."
+                  title="Uncover Secrets"
+                  description="Dig into each property. Hidden mold? Bad foundation? The seller won't tell you—find out yourself."
                 />
                 <FeatureCard
                   icon={<BarChart3 className="w-6 h-6" />}
                   iconColor="text-emerald-400"
                   iconBg="bg-emerald-500/15"
-                  title="Pro Forma Analysis"
-                  description="Build real financial models with NOI, cap rates, and cash-on-cash returns."
+                  title="Crunch the Numbers"
+                  description="Will it cash flow? What's your return? Build your model and test your instincts."
                 />
                 <FeatureCard
                   icon={<TrendingUp className="w-6 h-6" />}
                   iconColor="text-purple-400"
                   iconBg="bg-purple-500/15"
-                  title="Multiple Strategies"
-                  description="Buy and hold for cash flow, or flip for quick profits. Each has trade-offs."
+                  title="Choose Your Play"
+                  description="Rent it out for steady income or flip it fast for a big payday. Different strategies, different risks."
                 />
                 <FeatureCard
                   icon={<Clock className="w-6 h-6" />}
                   iconColor="text-amber-400"
                   iconBg="bg-amber-500/15"
-                  title="Time Pressure"
-                  description="12 months to prove yourself. Every month counts toward your deadline."
+                  title="Beat the Clock"
+                  description="You've got 52 months. Spend too long researching and opportunities slip away."
                 />
                 <FeatureCard
                   icon={<Shield className="w-6 h-6" />}
                   iconColor="text-red-400"
                   iconBg="bg-red-500/15"
-                  title="Risk Management"
-                  description="Balance leverage, renovation budgets, and contractor reliability."
+                  title="Manage the Chaos"
+                  description="Contractors flake. Tenants complain. Markets shift. How you handle surprises matters."
                 />
                 <FeatureCard
                   icon={<Target className="w-6 h-6" />}
                   iconColor="text-cyan-400"
                   iconBg="bg-cyan-500/15"
-                  title="Win Condition"
-                  description="Complete 3 profitable deals to win. Most properties will fail—choose wisely."
+                  title="3 Wins to Victory"
+                  description="Close 3 profitable deals and you've made it. But most people never get there."
                 />
               </div>
             </div>
@@ -199,30 +199,30 @@ export default function Landing() {
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-                  How It Works
+                  Your Path to Victory
                 </h2>
               </div>
 
               <div className="space-y-4">
                 <StepCard
                   number="1"
-                  title="Browse the Market"
-                  description="Review properties with incomplete information. Price, size, and neighborhood—but what's hidden?"
+                  title="Scout the Deals"
+                  description="Twenty-two properties. Some are goldmines. Most aren't. First impressions can be deceiving."
                 />
                 <StepCard
                   number="2"
-                  title="Do Your Research"
-                  description="Spend time and money on inspections, comps, and title searches. Skip at your own risk."
+                  title="Investigate (or Gamble)"
+                  description="Pay for inspections and dig deeper—or trust your gut and save the cash. Your call."
                 />
                 <StepCard
                   number="3"
-                  title="Run the Numbers"
-                  description="Build a pro forma with your assumptions. The spreadsheet doesn't lie—but your inputs might be wrong."
+                  title="Make Your Bet"
+                  description="Set your budget, pick your strategy, and commit. There's no turning back once you sign."
                 />
                 <StepCard
                   number="4"
-                  title="Execute Your Strategy"
-                  description="Buy, renovate, rent or flip. Watch time pass and see if your analysis was right."
+                  title="Watch It Play Out"
+                  description="Time moves. Tenants pay (or don't). Surprises happen. Did you make a smart move or a costly mistake?"
                 />
               </div>
 
@@ -236,7 +236,7 @@ export default function Landing() {
                       boxShadow: '0 2px 0 #047857, 0 8px 32px rgba(16,185,129,0.4)',
                     }}
                   >
-                    See Your First Deal
+                    Start Your First Deal
                     <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
                   </button>
                 </Link>
@@ -247,7 +247,7 @@ export default function Landing() {
           {/* Disclaimer */}
           <div className="px-5 py-8 text-center">
             <p className="text-gray-600 text-sm">
-              A real estate decision simulator. Not financial advice.
+              A real estate strategy game. Not financial advice.
             </p>
             <div className="mt-3 flex items-center justify-center gap-3">
               <p className="text-gray-700 text-xs font-mono">

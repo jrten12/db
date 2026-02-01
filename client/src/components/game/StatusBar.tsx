@@ -5,6 +5,7 @@ import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ProgressRing } from './ProgressRing';
 import { WeekTimeline } from './WeekTimeline';
+import { playAdvanceWeekSound } from '@/hooks/useClickSound';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 
 interface StatusBarProps {
@@ -217,7 +218,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             {/* Advance Week Button */}
             {onAdvanceWeek && (
               <button
-                onClick={onAdvanceWeek}
+                onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
                 disabled={isAdvancingWeek || weeksRemaining <= 0}
                 className="touch-target flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-lg transition-all duration-150 ios-spring tap-scale disabled:tap-scale-none"
                 data-testid="button-advance-week"
@@ -249,6 +250,23 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
 
           {/* Mobile Layout - Condensed Single Row */}
           <div className="md:hidden flex items-center gap-2">
+            {/* Advance Week Button - Mobile Left */}
+            {onAdvanceWeek && (
+              <button
+                onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
+                disabled={isAdvancingWeek || weeksRemaining <= 0}
+                className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
+                data-testid="button-advance-week-mobile-left"
+                data-no-click-sound
+              >
+                {isAdvancingWeek ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-white" />
+                ) : (
+                  <Play className="w-5 h-5 text-white" />
+                )}
+              </button>
+            )}
+
             {/* Menu Button */}
             <button
               onClick={() => setMenuOpen(true)}
@@ -282,13 +300,14 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               </div>
             </div>
             
-            {/* Advance Week Button - Mobile */}
+            {/* Advance Week Button - Mobile Right */}
             {onAdvanceWeek && (
               <button
-                onClick={onAdvanceWeek}
+                onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
                 disabled={isAdvancingWeek || weeksRemaining <= 0}
                 className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
-                data-testid="button-advance-week-mobile"
+                data-testid="button-advance-week-mobile-right"
+                data-no-click-sound
               >
                 {isAdvancingWeek ? (
                   <Loader2 className="w-5 h-5 animate-spin text-white" />

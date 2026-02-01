@@ -1354,17 +1354,37 @@ export class DBStorage implements IStorage {
       .where(eq(schema.gameRuns.id, gameRunId))
       .returning();
     
-    const grossProceeds = newLoanBalance - oldLoanBalance;
-    const afterGrossProceeds = gameRun.cash + grossProceeds;
+    // Get old interest rate from deal for ledger display
+    const oldInterestRate = deal.loanInterestRate ?? (proFormaOutputs?.interestRate || 7.0);
+    
+    // Ledger entries show the refinance transaction clearly:
+    // 1. Old mortgage payoff (informational - shows what was paid off)
+    // 2. New loan proceeds (credit - shows new loan with rate)
+    // 3. Refinance fees (debit)
+    
+    const afterPayoff = gameRun.cash; // Payoff is informational, no cash change
+    const afterNewLoan = gameRun.cash + newLoanBalance; // New loan credited
+    const afterFees = gameRun.cash + newLoanBalance - refinanceFees; // Fees deducted
     
     await db.insert(schema.ledgerEntries).values([
       {
         gameRunId,
+        direction: 'debit',
+        category: 'mortgage_payoff',
+        amount: oldLoanBalance,
+        balanceAfter: afterPayoff,
+        description: `Old mortgage payoff ($${oldLoanBalance.toLocaleString()} @ ${Number(oldInterestRate).toFixed(2)}%)`,
+        propertyId: deal.propertyId,
+        dealId: dealId,
+        gameWeek: currentWeek,
+      },
+      {
+        gameRunId,
         direction: 'credit',
         category: 'refinance_proceeds',
-        amount: grossProceeds,
-        balanceAfter: afterGrossProceeds,
-        description: `Refinance proceeds (new loan $${newLoanBalance.toLocaleString()} @ ${newInterestRate.toFixed(2)}%)`,
+        amount: newLoanBalance,
+        balanceAfter: afterNewLoan,
+        description: `New loan proceeds ($${newLoanBalance.toLocaleString()} @ ${newInterestRate.toFixed(2)}%)`,
         propertyId: deal.propertyId,
         dealId: dealId,
         gameWeek: currentWeek,

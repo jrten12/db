@@ -163,7 +163,25 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     };
   }, [onComplete]);
 
-  const handleClick = () => {
+  const handleClick = async () => {
+    // User clicked - now we have a user gesture, try to play audio
+    if (audioRef.current) {
+      try {
+        await audioRef.current.play();
+      } catch (err) {
+        // Already playing or still blocked, continue
+      }
+    } else {
+      // Audio wasn't created yet, create and play now
+      try {
+        audioRef.current = new Audio(splashJingle);
+        audioRef.current.volume = 0.6;
+        await audioRef.current.play();
+      } catch (err) {
+        console.log('Audio still blocked');
+      }
+    }
+    
     setFadeOut(true);
     setTimeout(() => {
       setIsVisible(false);

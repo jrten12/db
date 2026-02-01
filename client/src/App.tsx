@@ -7,7 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { TutorialProvider } from "@/contexts/TutorialContext";
 import { SplashScreen } from "@/components/SplashScreen";
 import { useGlobalClickSound } from "@/hooks/useClickSound";
-import { MusicProvider } from "@/hooks/useMusicPlayer";
+import { MusicProvider, useMusic } from "@/hooks/useMusicPlayer";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Game from "@/pages/Game";
@@ -40,9 +40,8 @@ function Router() {
   );
 }
 
-function App() {
-  useGlobalClickSound();
-  
+function AppContent() {
+  const { triggerInteraction } = useMusic();
   const [showSplash, setShowSplash] = useState(() => {
     const hasSeenSplash = sessionStorage.getItem('hasSeenSplash');
     return !hasSeenSplash;
@@ -51,6 +50,7 @@ function App() {
   const handleSplashComplete = () => {
     sessionStorage.setItem('hasSeenSplash', 'true');
     setShowSplash(false);
+    triggerInteraction();
   };
 
   const showSplashScreen = () => {
@@ -58,16 +58,24 @@ function App() {
   };
 
   return (
+    <TutorialProvider>
+      <SplashContext.Provider value={{ showSplashScreen }}>
+        {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+        <Toaster />
+        <Router />
+      </SplashContext.Provider>
+    </TutorialProvider>
+  );
+}
+
+function App() {
+  useGlobalClickSound();
+
+  return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <MusicProvider>
-          <TutorialProvider>
-            <SplashContext.Provider value={{ showSplashScreen }}>
-              {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-              <Toaster />
-              <Router />
-            </SplashContext.Provider>
-          </TutorialProvider>
+          <AppContent />
         </MusicProvider>
       </TooltipProvider>
     </QueryClientProvider>

@@ -10,6 +10,7 @@ interface MusicContextType {
   isPlaying: boolean;
   toggleMusic: () => void;
   setPlaying: (playing: boolean) => void;
+  triggerInteraction: () => void;
 }
 
 const MusicContext = createContext<MusicContextType | null>(null);
@@ -87,8 +88,15 @@ export function MusicProvider({ children }: { children: ReactNode }) {
     setIsPlaying(playing);
   };
 
+  const triggerInteraction = () => {
+    hasInteracted.current = true;
+    if (isPlaying && audioRef.current) {
+      audioRef.current.play().catch(() => {});
+    }
+  };
+
   return (
-    <MusicContext.Provider value={{ isPlaying, toggleMusic, setPlaying }}>
+    <MusicContext.Provider value={{ isPlaying, toggleMusic, setPlaying, triggerInteraction }}>
       {children}
     </MusicContext.Provider>
   );

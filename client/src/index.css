@@ -504,7 +504,7 @@
   }
 
   .stat-card-value {
-    @apply text-2xl font-bold;
+    @apply text-xl sm:text-2xl font-bold;
   }
 
   .animated-number {

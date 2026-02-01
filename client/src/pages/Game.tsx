@@ -1611,7 +1611,7 @@ export default function Game() {
       </div>
       
       {/* Main content with top padding to account for fixed header + safe area + market bar */}
-      <div ref={mainContentRef} className="min-h-screen min-h-[100dvh] bg-black/30 pt-24 md:pt-36 overflow-y-auto">
+      <div ref={mainContentRef} className="min-h-screen min-h-[100dvh] bg-black/30 pt-32 md:pt-40 overflow-y-auto">
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">

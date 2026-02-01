@@ -619,7 +619,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         <input
                           type="range"
                           min={property.rentMin}
-                          max={effectiveRanges.postRehabRent.known ? effectiveRanges.postRehabRent.max : property.rentMax}
+                          max={property.rentMax}
                           step={50}
                           value={inputs.expectedRent || property.rentMin}
                           onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, expectedRent: parseInt(e.target.value) }); }}
@@ -628,26 +628,29 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         />
                         <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
                           <span>${property.rentMin.toLocaleString()}</span>
-                          <span className="text-cyan-300">Comparable Rent</span>
+                          <span className="text-cyan-300">Current Condition</span>
                           <span>${property.rentMax.toLocaleString()}</span>
                         </div>
                         {effectiveRanges.postRehabRent.known && (
                           <div className="mt-3 pt-3 border-t border-emerald-500/20">
                             <div className="flex items-center gap-2 text-xs text-emerald-400/80 mb-1">
                               <TrendingUp className="w-3 h-3" />
-                              <span>After Improvements</span>
+                              <span>After Fixing Issues</span>
                             </div>
                             <div className="flex justify-between text-xs text-emerald-400/60">
                               <span>${effectiveRanges.postRehabRent.min.toLocaleString()}</span>
-                              <span className="text-emerald-300">Potential Range</span>
+                              <span className="text-emerald-300">Potential Rent</span>
                               <span>${effectiveRanges.postRehabRent.max.toLocaleString()}</span>
                             </div>
+                            <p className="text-[10px] text-emerald-400/50 mt-1">
+                              Fix property issues to unlock higher rent
+                            </p>
                           </div>
                         )}
                         {!effectiveRanges.postRehabRent.known && (
                           <div className="mt-2 text-xs text-slate-500 flex items-center gap-1">
                             <Lock className="w-3 h-3" />
-                            Contractor or Inspection reveals improvement potential
+                            Contractor or Inspection reveals rent potential after improvements
                           </div>
                         )}
                       </>

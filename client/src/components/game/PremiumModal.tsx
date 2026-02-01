@@ -1,6 +1,7 @@
 import { X, Wallet, Clock, Sparkles, Ticket, Check, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { apiRequest } from '@/lib/queryClient';
+import { playPurchaseConfirmSound } from '@/hooks/useClickSound';
 
 interface PremiumModalProps {
   isOpen: boolean;
@@ -160,6 +161,7 @@ export function PremiumModal({ isOpen, onClose, onPurchase, onCouponRedeemed, cu
   const alert = getAlertMessage();
 
   const handlePurchase = async (pkg: PremiumPackage) => {
+    playPurchaseConfirmSound();
     setSelectedPackage(pkg.id);
     setPurchasing(true);
 

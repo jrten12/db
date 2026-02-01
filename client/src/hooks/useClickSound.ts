@@ -2,9 +2,11 @@ import { useEffect } from 'react';
 
 const CLICK_SOUND_URL = '/click.wav';
 const PROFORMA_CHIME_URL = '/proforma-chime.wav';
+const PURCHASE_CONFIRM_URL = '/purchase-confirm.wav';
 
 let globalClickAudio: HTMLAudioElement | null = null;
 let globalProformaAudio: HTMLAudioElement | null = null;
+let globalPurchaseConfirmAudio: HTMLAudioElement | null = null;
 
 function getClickAudio(): HTMLAudioElement {
   if (!globalClickAudio) {
@@ -35,6 +37,24 @@ export function playClickSound() {
 export function playProformaChime() {
   try {
     const audio = getProformaAudio();
+    // Stop any currently playing sound to prevent layering
+    audio.pause();
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  } catch (e) {}
+}
+
+function getPurchaseConfirmAudio(): HTMLAudioElement {
+  if (!globalPurchaseConfirmAudio) {
+    globalPurchaseConfirmAudio = new Audio(PURCHASE_CONFIRM_URL);
+    globalPurchaseConfirmAudio.volume = 0.5;
+  }
+  return globalPurchaseConfirmAudio;
+}
+
+export function playPurchaseConfirmSound() {
+  try {
+    const audio = getPurchaseConfirmAudio();
     // Stop any currently playing sound to prevent layering
     audio.pause();
     audio.currentTime = 0;

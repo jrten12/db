@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react';
+import { playPurchaseConfirmSound } from '@/hooks/useClickSound';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -199,6 +200,7 @@ export function TimeProgressionPanel({
 
   const handleSellRental = async (dealId: number) => {
     if (!onSellRental) return;
+    playPurchaseConfirmSound();
     setSellingDealId(dealId);
     try {
       await onSellRental(dealId);
@@ -209,6 +211,7 @@ export function TimeProgressionPanel({
 
   const handleSellFlip = async (dealId: number) => {
     if (!onSellFlip) return;
+    playPurchaseConfirmSound();
     setSellingDealId(dealId);
     try {
       await onSellFlip(dealId);

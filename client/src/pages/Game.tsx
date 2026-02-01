@@ -1147,20 +1147,10 @@ export default function Game() {
             }
           }
           
-          // If no expense message was shown, occasionally show humor-only messages (15% chance)
-          // Only for self-managed properties - PM handles tenant communications for managed properties
-          if (!expenseMessageShown && selfManagedTenants.length > 0 && Math.random() < 0.15) {
-            const randomTenant = selfManagedTenants[Math.floor(Math.random() * selfManagedTenants.length)];
-            const speechPatterns = randomTenant.speechPatterns as string[] || [];
-            if (speechPatterns.length > 0) {
-              const message = getRandomMessage(speechPatterns);
-              setTenantTextPopup({
-                isOpen: true,
-                tenant: randomTenant,
-                message,
-              });
-            }
-          }
+          // Removed random humor messages - tenant texts now only appear when
+          // tied to an actual expense event (curveball). This prevents confusion
+          // where tenants text about issues that don't appear in the ledger.
+          // Landlord expenses (PM, taxes, insurance, etc.) don't generate tenant texts.
         }
       } catch (err) {
         // Tenant feature errors should not break week advancement

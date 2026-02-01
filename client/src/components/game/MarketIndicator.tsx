@@ -186,11 +186,11 @@ export function MarketBar({ condition, className = '', compact = false }: Market
 
       {showInfo && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 pt-20 sm:pt-4 bg-black/70 backdrop-blur-sm"
           onClick={() => setShowInfo(false)}
         >
           <div 
-            className="bg-slate-900 border border-slate-700 rounded-xl max-w-sm w-full p-4 shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            className="bg-slate-900 border border-slate-700 rounded-xl max-w-sm w-full p-4 shadow-2xl animate-in fade-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 max-h-[70vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-3">
@@ -211,23 +211,23 @@ export function MarketBar({ condition, className = '', compact = false }: Market
               
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-cyan-400" />
+                  <div className="w-3 h-3 rounded-full bg-cyan-400 flex-shrink-0" />
                   <span><strong className="text-cyan-300">Excellent</strong> - Best prices, up to +15%</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <div className="w-3 h-3 rounded-full bg-emerald-500 flex-shrink-0" />
                   <span><strong className="text-emerald-400">Good</strong> - Favorable prices, up to +10%</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0" />
                   <span><strong className="text-yellow-400">Neutral</strong> - Fair market value</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-orange-500" />
+                  <div className="w-3 h-3 rounded-full bg-orange-500 flex-shrink-0" />
                   <span><strong className="text-orange-400">Poor</strong> - Lower prices, up to -10%</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
+                  <div className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0" />
                   <span><strong className="text-red-400">Terrible</strong> - Worst prices, up to -15%</span>
                 </div>
               </div>

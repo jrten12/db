@@ -1095,8 +1095,9 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   const investigations = await storage.getPropertyInvestigations(gameRunId);
 
   // Process active rental deals - pay weekly income
+  // Skip rentals under rehab - no income when tenant is displaced
   for (const deal of deals) {
-    if (deal.status === 'active_rental') {
+    if (deal.status === 'active_rental' && !deal.rentalRehabActive) {
       // Check if it's time for payment (hasn't been paid this week)
       if ((deal.lastIncomePaymentWeek || 0) < gameRun.currentWeek + 1) {
         // Get property for enhanced maintenance mechanics
@@ -1165,10 +1166,40 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   }
 
   // Process rental rehab progress - count down weeks for properties under renovation
+  // Also charge carrying costs (mortgage, taxes, insurance) since no rental income during rehab
   for (const deal of deals) {
     if (deal.status === 'active_rental' && deal.rentalRehabActive && deal.rentalRehabWeeksRemaining) {
       const weeksLeft = deal.rentalRehabWeeksRemaining - 1;
       const property = await storage.getProperty(deal.propertyId);
+      
+      // Charge carrying costs during rehab (mortgage payment, taxes, insurance)
+      // Tenant is displaced so no income, but fixed costs continue
+      const proFormaOutputs = deal.proFormaOutputs as any;
+      const monthlyDebtService = proFormaOutputs?.monthlyDebtService || proFormaOutputs?.debtServiceMonthly || 0;
+      const monthlyOpEx = proFormaOutputs?.monthlyOperatingExpenses || proFormaOutputs?.monthlyOpEx || 0;
+      
+      // Calculate weekly carrying cost from stored monthly values
+      const weeklyCarryingCost = Math.round(monthlyDebtService + monthlyOpEx);
+      
+      if (weeklyCarryingCost > 0) {
+        const currentGameRun = await storage.getGameRun(gameRunId);
+        const currentCash = currentGameRun?.cash ?? gameRun.cash;
+        const newCash = currentCash - weeklyCarryingCost;
+        
+        await storage.createLedgerEntry({
+          gameRunId,
+          direction: 'debit',
+          category: 'expense',
+          amount: weeklyCarryingCost,
+          balanceAfter: newCash,
+          description: `Carrying costs (vacant) - ${property?.name || 'Property'} (mortgage, taxes, insurance)`,
+          propertyId: deal.propertyId,
+          dealId: deal.id,
+          gameWeek: gameRun.currentWeek + 1,
+        });
+        
+        await storage.updateGameRun(gameRunId, { cash: newCash });
+      }
 
       if (weeksLeft <= 0) {
         // Rental rehab is complete! Property ready for new tenant

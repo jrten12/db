@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import splashLogo from '@assets/ChatGPT_Image_Jan_29,_2026,_12_02_57_AM_1769662997139.png';
-import splashJingle from '@assets/splash_jingle.wav';
+
+// Use the same music tracks as the game
+const SPLASH_MUSIC_TRACKS = [
+  '/music-1.mp3',
+  '/music-2.mp3',
+  '/music-3.wav',
+  '/music-4.mp3',
+];
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -128,20 +135,22 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       setShowContent(true);
     }, 100);
 
-    const playJingle = async () => {
+    const playMusic = async () => {
       if (hasPlayedRef.current) return;
       hasPlayedRef.current = true;
       
       try {
-        audioRef.current = new Audio(splashJingle);
-        audioRef.current.volume = 0.6;
+        // Pick a random track from the game music
+        const randomTrack = SPLASH_MUSIC_TRACKS[Math.floor(Math.random() * SPLASH_MUSIC_TRACKS.length)];
+        audioRef.current = new Audio(randomTrack);
+        audioRef.current.volume = 0.3;
         await audioRef.current.play();
       } catch (err) {
         console.log('Audio autoplay blocked, continuing without sound');
       }
     };
 
-    playJingle();
+    playMusic();
 
     const fadeTimer = setTimeout(() => {
       setFadeOut(true);
@@ -174,8 +183,9 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     } else {
       // Audio wasn't created yet, create and play now
       try {
-        audioRef.current = new Audio(splashJingle);
-        audioRef.current.volume = 0.6;
+        const randomTrack = SPLASH_MUSIC_TRACKS[Math.floor(Math.random() * SPLASH_MUSIC_TRACKS.length)];
+        audioRef.current = new Audio(randomTrack);
+        audioRef.current.volume = 0.3;
         await audioRef.current.play();
       } catch (err) {
         console.log('Audio still blocked');

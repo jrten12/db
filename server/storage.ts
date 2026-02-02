@@ -3,6 +3,8 @@ import pkg from "pg";
 const { Pool } = pkg;
 import { eq, and, desc } from "drizzle-orm";
 import * as schema from "@shared/schema";
+import type { MarketCondition } from "@shared/schema";
+import { getMarketMultipliers } from "./gameMechanics";
 import type { 
   User, 
   InsertUser, 
@@ -953,8 +955,19 @@ export class DBStorage implements IStorage {
     const proFormaOutputs = deal.proFormaOutputs as any;
     const mortgagePayoff = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
     
-    // Rental sale: -15% to +10% of purchase price (less upside due to wear and tear)
-    const saleMultiplier = 0.85 + Math.random() * 0.25;
+    // Rental sale uses MARKET CONDITIONS for correlation with flips
+    // Market condition affects the range of sale prices (same as flip logic)
+    const marketCondition = gameRun.marketCondition || 'good';
+    const marketMult = getMarketMultipliers(marketCondition as MarketCondition);
+    
+    // Base rental appreciation range: -5% to +15% (rentals appreciate less volatilely than flips)
+    // Market condition shifts this range up or down
+    const baseMin = 0.95;
+    const baseMax = 1.15;
+    const adjustedMin = baseMin * marketMult.min; // In terrible market: 0.95 * 0.85 = 0.81
+    const adjustedMax = baseMax * marketMult.max; // In excellent market: 1.15 * 1.15 = 1.32
+    
+    const saleMultiplier = adjustedMin + Math.random() * (adjustedMax - adjustedMin);
     const salePrice = Math.round(purchasePrice * saleMultiplier);
     
     // Net proceeds = gross sale price minus mortgage payoff

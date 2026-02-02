@@ -115,8 +115,17 @@ Preferred communication style: Simple, everyday language.
   - Educational messaging shows leverage-risk tradeoffs - 100% LTV is a "trap" for undisciplined players
 - Contractor options: Cheap vs Fast affecting timeline and costs
 - **First Purchase Protection**: Players cannot go bankrupt on their very first property purchase - transaction is blocked if insufficient funds. Subsequent purchases allow overdraft, triggering bankruptcy if cash goes negative.
+- **Market Conditions System**: Dynamic market affecting both flips and rentals
+  - 5 levels: terrible, poor, neutral, good, excellent
+  - Changes every 4 weeks (monthly) with gradual shifts (no extreme jumps)
+  - 65% of time in "good" or "excellent" state (bias toward favorable conditions)
+  - Weighted transition probabilities ensure gradual market shifts
+  - Affects flip sale prices via market multipliers (terrible: -15% to -5%, excellent: 0% to +15%)
+  - Affects rental sale prices via same market multipliers (correlated markets)
+  - Rental income not directly affected (rent is locked in at activation)
 - **Rental Property Selling**: Players can sell active rental properties to convert equity back to cash
-  - Sale price: Random -10% to +15% of original purchase price (market volatility simulation)
+  - Sale price: Market-adjusted based on current conditions (correlated with flip market)
+  - Base range: -5% to +15% of purchase price, shifted by market multipliers
   - Time cost: 2 weeks to complete sale
   - UI: TimeProgressionPanel shows active rentals with sell button and price estimate
   - Schema fields: `purchasePrice`, `salePrice`, `saleMultiplier` on deals table

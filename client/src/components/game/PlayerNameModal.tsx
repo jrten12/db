@@ -3,28 +3,30 @@ import { User, Trophy, Save, PlayCircle, RefreshCcw, Loader2 } from 'lucide-reac
 import type { GameRun } from '@shared/schema';
 
 // Sound effects for ASMR keyboard typing and button clicks
-const playKeySound = (() => {
-  let audioPool: HTMLAudioElement[] = [];
-  let poolIndex = 0;
-  const POOL_SIZE = 5;
-  
-  // Pre-create audio elements for smooth playback
-  if (typeof window !== 'undefined') {
-    for (let i = 0; i < POOL_SIZE; i++) {
-      const audio = new Audio('/sounds/key_type.wav');
-      audio.volume = 0.15; // Subtle ASMR volume
-      audioPool.push(audio);
-    }
+// Lazy-initialize audio pool to ensure it works on mobile
+let keyAudioPool: HTMLAudioElement[] = [];
+let keyPoolIndex = 0;
+const KEY_POOL_SIZE = 5;
+let keyPoolInitialized = false;
+
+const initKeyAudioPool = () => {
+  if (keyPoolInitialized || typeof window === 'undefined') return;
+  keyPoolInitialized = true;
+  for (let i = 0; i < KEY_POOL_SIZE; i++) {
+    const audio = new Audio('/sounds/key_type.wav');
+    audio.volume = 0.2; // Subtle ASMR volume
+    keyAudioPool.push(audio);
   }
-  
-  return () => {
-    if (audioPool.length === 0) return;
-    const audio = audioPool[poolIndex];
-    audio.currentTime = 0;
-    audio.play().catch(() => {}); // Ignore autoplay errors
-    poolIndex = (poolIndex + 1) % POOL_SIZE;
-  };
-})();
+};
+
+const playKeySound = () => {
+  initKeyAudioPool();
+  if (keyAudioPool.length === 0) return;
+  const audio = keyAudioPool[keyPoolIndex];
+  audio.currentTime = 0;
+  audio.play().catch(() => {}); // Ignore autoplay errors
+  keyPoolIndex = (keyPoolIndex + 1) % KEY_POOL_SIZE;
+};
 
 const playUkuleleStrum = () => {
   const audio = new Audio('/sounds/ukulele_strum.wav');
@@ -210,8 +212,8 @@ export function PlayerNameModal({
                 type="text"
                 value={playerName}
                 onChange={(e) => {
-                  // Play ASMR key sound for each keystroke
-                  if (e.target.value.length > playerName.length) {
+                  // Play ASMR key sound for any character change (typing or backspace)
+                  if (e.target.value !== playerName) {
                     playKeySound();
                   }
                   setPlayerName(e.target.value);

@@ -406,8 +406,8 @@ export function PropertyDetail({
           WebkitOverflowScrolling: 'touch',
         }}
       >
-        {/* Header */}
-        <div className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 md:px-6 py-4 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
+        {/* Header - with iOS safe area padding */}
+        <div className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 md:px-6 py-4 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
           <button 
             onClick={onClose}
             className="touch-target flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xl text-white transition-all duration-150 ios-spring tap-scale"

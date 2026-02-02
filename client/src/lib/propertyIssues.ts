@@ -410,7 +410,7 @@ export const PROPERTY_ISSUES: Record<string, PropertyIssue[]> = {
       discoveredBy: ['inspection'],
     },
   ],
-  'Graduate Hospital Studio': [
+  'Graduate Hospital Brownstone': [
     {
       id: 'building_systems',
       name: 'Building Common Systems',
@@ -432,7 +432,7 @@ export const PROPERTY_ISSUES: Record<string, PropertyIssue[]> = {
       discoveredBy: ['contractor_walkthrough'],
     },
   ],
-  'Queen Village Townhouse': [
+  'Queen Village Rowhouse': [
     {
       id: 'historic_requirements',
       name: 'Historic District Requirements',
@@ -496,7 +496,7 @@ export const PROPERTY_ISSUES: Record<string, PropertyIssue[]> = {
       discoveredBy: ['contractor_walkthrough'],
     },
   ],
-  'Fairmount Duplex': [
+  'Fairmount Rowhome': [
     {
       id: 'dual_system_updates',
       name: 'Dual System Updates',
@@ -528,7 +528,7 @@ export const PROPERTY_ISSUES: Record<string, PropertyIssue[]> = {
       discoveredBy: ['inspection'],
     },
   ],
-  'Society Hill Apartment': [
+  'Society Hill Colonial': [
     {
       id: 'historic_windows',
       name: 'Historic Window Requirements',
@@ -560,7 +560,7 @@ export const PROPERTY_ISSUES: Record<string, PropertyIssue[]> = {
       discoveredBy: ['title_search'],
     },
   ],
-  'Old City Brownstone': [
+  'Old City Loft': [
     {
       id: 'structural_settling',
       name: 'Foundation Settling',

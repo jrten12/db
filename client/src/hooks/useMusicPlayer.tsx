@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, useRef, type ReactNode 
 const MUSIC_TRACKS = [
   '/music-1.mp3',
   '/music-2.mp3',
-  '/music-3.wav',
+  '/music-3.mp3',
   '/music-4.mp3',
 ];
 

@@ -30,7 +30,7 @@ export function DealTransactionAnimation({
   const processingSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    processingSoundRef.current = new Audio('/sounds/processing.wav');
+    processingSoundRef.current = new Audio('/sounds/processing.mp3');
     processingSoundRef.current.volume = 0.5;
   }, []);
 

@@ -215,7 +215,7 @@ export function ContractorWalkthroughModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto p-0 overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950 border-slate-700/50 rounded-2xl">
+      <DialogContent className="max-w-md mx-auto p-0 overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950 border-slate-700/50 rounded-2xl max-h-[90vh] flex flex-col">
         <div className="p-5 pb-0">
           <DialogHeader className="pb-4">
             <div className="flex items-center gap-3">
@@ -234,7 +234,7 @@ export function ContractorWalkthroughModal({
           </DialogHeader>
         </div>
 
-        <div className="px-5 pb-5 space-y-4">
+        <div className="px-5 pb-5 space-y-4 flex-1 overflow-y-auto">
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-amber-400" />
@@ -607,17 +607,21 @@ export function ContractorWalkthroughModal({
                   </div>
                 )}
 
-                <Button
-                  className="w-full h-12 bg-slate-700 hover:bg-slate-600"
-                  onClick={onClose}
-                  data-testid="button-walkthrough-done"
-                >
-                  {viewState === 'already_done' ? 'Close' : result.repairItems.length > 0 ? 'Maybe Later' : 'Got It'}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
               </motion.div>
             </AnimatePresence>
           ) : null}
+        </div>
+        
+        {/* Sticky footer - always visible close button */}
+        <div className="px-5 pb-5 pt-3 border-t border-slate-700/50 bg-slate-900 flex-shrink-0">
+          <Button
+            className="w-full h-12 bg-slate-700 hover:bg-slate-600"
+            onClick={onClose}
+            data-testid="button-walkthrough-done"
+          >
+            {viewState === 'already_done' ? 'Close' : (result && result.repairItems.length > 0) ? 'Maybe Later' : 'Close'}
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

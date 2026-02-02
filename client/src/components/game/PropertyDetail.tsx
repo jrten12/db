@@ -398,37 +398,39 @@ export function PropertyDetail({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[calc(env(safe-area-inset-top,0px)+60px)] md:pt-8 md:items-center p-2 md:p-4 bg-black/80 backdrop-blur-sm safe-area-x" data-testid="property-detail-modal">
+    <div className="fixed inset-0 z-[60] flex flex-col items-center pt-[calc(env(safe-area-inset-top,0px)+60px)] md:pt-8 p-2 md:p-4 bg-black/80 backdrop-blur-sm safe-area-x" data-testid="property-detail-modal">
+      {/* Fixed header bar - always visible at top */}
+      <div className="w-full max-w-6xl flex items-center justify-between gap-3 px-4 md:px-6 py-3 bg-slate-900 rounded-t-2xl border-b border-slate-700/50 flex-shrink-0">
+        <button 
+          onClick={onClose}
+          className="touch-target flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xl text-white transition-all duration-150 ios-spring tap-scale"
+          data-testid="button-back-to-market"
+        >
+          <ChevronLeft className="w-5 h-5" />
+          <span className="text-sm font-medium hidden sm:inline">Market</span>
+        </button>
+        <h2 className="font-display text-white text-lg md:text-2xl font-bold tracking-wide truncate flex-1 text-center">
+          {property.name}
+        </h2>
+        <button 
+          onClick={onClose}
+          className="touch-target p-3 bg-slate-800/80 hover:bg-slate-700 active:bg-slate-600 rounded-full text-white transition-all duration-150 ios-spring tap-scale"
+          data-testid="button-close-detail"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+      
+      {/* Scrollable content */}
       <div 
-        className="w-full max-w-6xl max-h-[calc(100vh-80px)] md:max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl overscroll-contain touch-pan-y" 
+        className="w-full max-w-6xl flex-1 overflow-y-auto rounded-b-2xl shadow-2xl overscroll-contain touch-pan-y" 
         style={{
           background: 'linear-gradient(145deg, #0f172a 0%, #1e293b 100%)',
           WebkitOverflowScrolling: 'touch',
+          maxHeight: 'calc(100vh - env(safe-area-inset-top, 0px) - 140px)',
         }}
       >
-        {/* Header - with iOS safe area padding */}
-        <div className="sticky top-0 z-20 flex items-center justify-between gap-3 px-4 md:px-6 py-4 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50">
-          <button 
-            onClick={onClose}
-            className="touch-target flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xl text-white transition-all duration-150 ios-spring tap-scale"
-            data-testid="button-back-to-market"
-          >
-            <ChevronLeft className="w-5 h-5" />
-            <span className="text-sm font-medium hidden sm:inline">Market</span>
-          </button>
-          <h2 className="font-display text-white text-lg md:text-2xl font-bold tracking-wide truncate flex-1 text-center">
-            {property.name}
-          </h2>
-          <button 
-            onClick={onClose}
-            className="touch-target p-3 bg-slate-800/80 hover:bg-slate-700 active:bg-slate-600 rounded-full text-white transition-all duration-150 ios-spring tap-scale"
-            data-testid="button-close-detail"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        <div className="px-4 md:px-6 pb-6">
+        <div className="px-4 md:px-6 py-4 pb-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
             {/* Left Column - Property Info (5 cols) */}
             <div className="lg:col-span-5 space-y-4">

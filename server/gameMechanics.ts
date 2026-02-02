@@ -56,16 +56,21 @@ export function getMarketMultipliers(condition: MarketCondition): MarketMultipli
 
 /**
  * Progress market condition with 65% bias toward good/excellent
- * Can only move one step at a time (no extreme jumps)
+ * Can only move one step at a time (no erratic jumps)
  * 
  * Target distribution: ~65% in good/excellent, ~35% in terrible/poor/neutral
- * Uses weighted transition probabilities to achieve this steady state:
+ * More dynamic transitions - market moves frequently but gravitates toward good/excellent
  * 
- * From terrible (0): 75% up to poor, 25% stay
- * From poor (1): 60% up to neutral, 25% stay, 15% down to terrible
- * From neutral (2): 55% up to good, 30% stay, 15% down to poor
- * From good (3): 30% up to excellent, 50% stay, 20% down to neutral
- * From excellent (4): 70% stay, 30% down to good
+ * Transition design:
+ * - Lower states have strong upward pull (recovery bias)
+ * - Good/excellent have balanced up/down with slight upward bias
+ * - Always some chance to move in either direction (no guaranteed stasis)
+ * 
+ * From terrible (0): 80% up, 20% stay (strong recovery)
+ * From poor (1): 55% up, 15% stay, 30% down
+ * From neutral (2): 50% up, 15% stay, 35% down
+ * From good (3): 35% up, 30% stay, 35% down (balanced with slight up bias from lower states)
+ * From excellent (4): 45% stay, 55% down (more movement, still favored by lower state push)
  */
 export function progressMarketCondition(currentCondition: MarketCondition): MarketCondition {
   const currentIndex = MARKET_CONDITIONS.indexOf(currentCondition);
@@ -74,31 +79,31 @@ export function progressMarketCondition(currentCondition: MarketCondition): Mark
   let newIndex: number;
   
   switch (currentIndex) {
-    case 0: // terrible
-      // 75% up, 25% stay (can't go lower)
-      newIndex = rand < 0.75 ? 1 : 0;
+    case 0: // terrible - strong upward pull to recover
+      // 80% up, 20% stay (can't go lower)
+      newIndex = rand < 0.80 ? 1 : 0;
       break;
-    case 1: // poor
-      // 60% up, 25% stay, 15% down
-      if (rand < 0.60) newIndex = 2;
-      else if (rand < 0.85) newIndex = 1;
+    case 1: // poor - still pulled up but can dip back
+      // 55% up, 15% stay, 30% down
+      if (rand < 0.55) newIndex = 2;
+      else if (rand < 0.70) newIndex = 1;
       else newIndex = 0;
       break;
-    case 2: // neutral
-      // 55% up, 30% stay, 15% down
-      if (rand < 0.55) newIndex = 3;
-      else if (rand < 0.85) newIndex = 2;
+    case 2: // neutral - slight upward pull toward good
+      // 50% up, 15% stay, 35% down
+      if (rand < 0.50) newIndex = 3;
+      else if (rand < 0.65) newIndex = 2;
       else newIndex = 1;
       break;
-    case 3: // good
-      // 30% up, 50% stay, 20% down
-      if (rand < 0.30) newIndex = 4;
-      else if (rand < 0.80) newIndex = 3;
+    case 3: // good - balanced movement, frequent changes
+      // 35% up, 30% stay, 35% down
+      if (rand < 0.35) newIndex = 4;
+      else if (rand < 0.65) newIndex = 3;
       else newIndex = 2;
       break;
-    case 4: // excellent
-      // 70% stay, 30% down (can't go higher)
-      newIndex = rand < 0.70 ? 4 : 3;
+    case 4: // excellent - more likely to dip but lower states push back up
+      // 45% stay, 55% down (can't go higher)
+      newIndex = rand < 0.45 ? 4 : 3;
       break;
     default:
       newIndex = 3; // Default to good

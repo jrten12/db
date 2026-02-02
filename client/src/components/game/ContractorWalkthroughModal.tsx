@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, HardHat, Wrench, AlertTriangle, CheckCircle2, DollarSign, Clock, ArrowRight, Info, TrendingUp } from 'lucide-react';
+import { Loader2, HardHat, Wrench, AlertTriangle, CheckCircle2, DollarSign, Clock, ArrowRight, Info, TrendingUp, Check, XCircle } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { playPurchaseConfirmSound } from '@/hooks/useClickSound';
 import type { Deal, Property, GameRun } from '@shared/schema';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatCurrency } from '@/lib/gameData';
 
 interface ContractorWalkthroughItem {
   id: string;
@@ -75,6 +76,57 @@ export function ContractorWalkthroughModal({
   const [quote, setQuote] = useState<WalkthroughQuote | null>(null);
   const [result, setResult] = useState<WalkthroughResult['result'] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedRepairIds, setSelectedRepairIds] = useState<string[]>([]);
+
+  // Calculate tenant break fee (1 month of current rent)
+  const breakFee = useMemo(() => {
+    const monthlyRent = (deal?.weeklyIncome || 0) * 4.33;
+    return Math.round(monthlyRent);
+  }, [deal?.weeklyIncome]);
+
+  // Calculate totals for selected repairs
+  const selectedTotals = useMemo(() => {
+    if (!result?.repairItems) return { cost: 0, weeks: 0, count: 0 };
+    const selected = result.repairItems.filter(item => selectedRepairIds.includes(item.id));
+    return {
+      cost: selected.reduce((sum, item) => sum + item.contractorCost, 0),
+      weeks: Math.max(...selected.map(item => item.timelineWeeks), 0),
+      count: selected.length,
+    };
+  }, [result?.repairItems, selectedRepairIds]);
+
+  // Check affordability
+  const affordability = useMemo(() => {
+    const availableCash = gameRun?.cash || 0;
+    const totalNeeded = breakFee + selectedTotals.cost;
+    return {
+      availableCash,
+      totalNeeded,
+      canAfford: availableCash >= totalNeeded,
+      shortfall: Math.max(0, totalNeeded - availableCash),
+    };
+  }, [gameRun?.cash, breakFee, selectedTotals.cost]);
+
+  // Toggle repair selection
+  const toggleRepair = (repairId: string) => {
+    setSelectedRepairIds(prev => 
+      prev.includes(repairId) 
+        ? prev.filter(id => id !== repairId)
+        : [...prev, repairId]
+    );
+  };
+
+  // Select all repairs
+  const selectAllRepairs = () => {
+    if (result?.repairItems) {
+      setSelectedRepairIds(result.repairItems.map(item => item.id));
+    }
+  };
+
+  // Select no repairs  
+  const selectNoRepairs = () => {
+    setSelectedRepairIds([]);
+  };
 
   useEffect(() => {
     if (isOpen && deal && gameRun) {
@@ -338,71 +390,152 @@ export function ContractorWalkthroughModal({
                       </div>
                     </div>
 
-                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-                      {result.repairItems.map((item, index) => (
-                        <motion.div
-                          key={item.id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          className="bg-slate-800/60 rounded-xl p-3 border border-slate-700/50"
-                          data-testid={`repair-item-${item.id}`}
+                    <div className="flex items-center justify-between mb-2 px-1">
+                      <span className="text-xs text-slate-400">Select repairs to do:</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={selectAllRepairs}
+                          className="text-xs text-cyan-400 hover:text-cyan-300"
+                          data-testid="button-select-all-walkthrough"
                         >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-medium text-white text-sm truncate">
-                                  {item.name}
-                                </span>
-                                <Badge 
-                                  variant="outline" 
-                                  className={`text-[10px] px-1.5 py-0 h-5 ${getSeverityColor(item.severity)}`}
-                                >
-                                  {getSeverityIcon(item.severity)}
-                                  <span className="ml-1 capitalize">{item.severity}</span>
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-slate-400 mt-1 line-clamp-2">
-                                {item.description}
-                              </p>
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                              <div className="text-sm font-semibold text-white">
-                                ${item.contractorCost.toLocaleString()}
-                              </div>
-                              {item.markup > 0 && (
-                                <div className="text-[10px] text-red-400">
-                                  +{item.markup}% markup
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          {item.timelineWeeks > 0 && (
-                            <div className="flex items-center gap-1 mt-2 text-xs text-slate-500">
-                              <Clock className="w-3 h-3" />
-                              <span>{item.timelineWeeks} week{item.timelineWeeks > 1 ? 's' : ''} to fix</span>
-                            </div>
-                          )}
-                        </motion.div>
-                      ))}
+                          All
+                        </button>
+                        <span className="text-slate-600">|</span>
+                        <button
+                          onClick={selectNoRepairs}
+                          className="text-xs text-slate-400 hover:text-slate-300"
+                          data-testid="button-select-none-walkthrough"
+                        >
+                          None
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="bg-slate-800/80 rounded-xl p-4 border border-slate-700/50">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Wrench className="w-4 h-4 text-slate-400" />
-                          <span className="text-sm text-slate-300">Total Repair Cost</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-lg font-bold text-white">
-                            ${result.totalRepairCost.toLocaleString()}
-                          </span>
-                          {result.totalOriginalCost < result.totalRepairCost && (
-                            <div className="text-[10px] text-slate-500">
-                              (would have been ~${result.totalOriginalCost.toLocaleString()} with due diligence)
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+                      {result.repairItems.map((item, index) => {
+                        const isSelected = selectedRepairIds.includes(item.id);
+                        
+                        return (
+                          <motion.button
+                            key={item.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            onClick={() => toggleRepair(item.id)}
+                            className={`w-full text-left bg-slate-800/60 rounded-xl p-3 border transition-all ${
+                              isSelected 
+                                ? 'border-cyan-500/50 bg-cyan-900/20' 
+                                : 'border-slate-700/50 hover:border-slate-600'
+                            }`}
+                            data-testid={`repair-item-${item.id}`}
+                          >
+                            <div className="flex items-start gap-3">
+                              {/* Checkbox */}
+                              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                                isSelected 
+                                  ? 'bg-cyan-500 border-cyan-500' 
+                                  : 'border-slate-500'
+                              }`}>
+                                {isSelected && <Check className="w-3 h-3 text-white" />}
+                              </div>
+                              
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={`font-medium text-sm truncate ${isSelected ? 'text-cyan-100' : 'text-white'}`}>
+                                    {item.name}
+                                  </span>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-[10px] px-1.5 py-0 h-5 ${getSeverityColor(item.severity)}`}
+                                  >
+                                    {getSeverityIcon(item.severity)}
+                                    <span className="ml-1 capitalize">{item.severity}</span>
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                                  {item.description}
+                                </p>
+                              </div>
+                              <div className="text-right flex-shrink-0">
+                                <div className="text-sm font-semibold text-white">
+                                  ${item.contractorCost.toLocaleString()}
+                                </div>
+                                {item.markup > 0 && (
+                                  <div className="text-[10px] text-red-400">
+                                    +{item.markup}% markup
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          )}
+                            {item.timelineWeeks > 0 && (
+                              <div className="flex items-center gap-1 mt-2 text-xs text-slate-500 ml-8">
+                                <Clock className="w-3 h-3" />
+                                <span>{item.timelineWeeks} week{item.timelineWeeks > 1 ? 's' : ''} to fix</span>
+                              </div>
+                            )}
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Cost breakdown with affordability */}
+                    <div className={`rounded-xl p-4 border ${
+                      affordability.canAfford 
+                        ? 'bg-slate-800/80 border-slate-700/50' 
+                        : 'bg-red-900/20 border-red-500/30'
+                    }`}>
+                      <div className="space-y-2">
+                        {/* Break fee */}
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-400">Tenant Break Fee (1 month)</span>
+                          <span className="text-amber-400 font-mono">${breakFee.toLocaleString()}</span>
                         </div>
+                        
+                        {/* Selected repairs */}
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-400">
+                            Selected Repairs ({selectedTotals.count}/{result.repairItems.length})
+                          </span>
+                          <span className="text-white font-mono font-semibold">
+                            ${selectedTotals.cost.toLocaleString()}
+                          </span>
+                        </div>
+                        
+                        {/* Timeline */}
+                        {selectedTotals.weeks > 0 && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-400 flex items-center gap-1">
+                              <Clock className="w-3 h-3" /> Timeline
+                            </span>
+                            <span className="text-amber-400">~{selectedTotals.weeks} weeks</span>
+                          </div>
+                        )}
+                        
+                        {/* Divider */}
+                        <div className="border-t border-slate-700/50 pt-2 mt-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-slate-300">Total Needed</span>
+                            <span className={`text-lg font-bold ${affordability.canAfford ? 'text-white' : 'text-red-400'}`}>
+                              ${affordability.totalNeeded.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs mt-1">
+                            <span className="text-slate-500">Your Cash</span>
+                            <span className={affordability.canAfford ? 'text-emerald-400' : 'text-slate-400'}>
+                              ${(gameRun?.cash || 0).toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Shortfall warning */}
+                        {!affordability.canAfford && selectedTotals.count > 0 && (
+                          <div className="bg-red-500/10 rounded-lg p-2 mt-2 flex items-center gap-2">
+                            <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                            <span className="text-xs text-red-300">
+                              Short ${affordability.shortfall.toLocaleString()} - deselect some repairs
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </>
@@ -411,12 +544,20 @@ export function ContractorWalkthroughModal({
                 {result.repairItems.length > 0 && onStartRepairs && viewState !== 'already_done' && (
                   <div className="space-y-2">
                     <Button
-                      className="w-full h-12 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+                      className={`w-full h-12 font-semibold ${
+                        affordability.canAfford && selectedTotals.count > 0
+                          ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                          : 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                      }`}
                       onClick={async () => {
+                        if (!affordability.canAfford || selectedTotals.count === 0) return;
+                        
                         setStartingRepairs(true);
+                        setError(null);
                         try {
                           const response = await apiRequest('POST', `/api/deals/${deal.id}/rental-rehab`, {
                             gameRunId: gameRun.id,
+                            selectedRepairIds: selectedRepairIds,
                           });
                           const data = await response.json();
                           if (data.success) {
@@ -432,7 +573,7 @@ export function ContractorWalkthroughModal({
                           setStartingRepairs(false);
                         }
                       }}
-                      disabled={startingRepairs}
+                      disabled={startingRepairs || !affordability.canAfford || selectedTotals.count === 0}
                       data-testid="button-start-repairs"
                     >
                       {startingRepairs ? (
@@ -440,15 +581,28 @@ export function ContractorWalkthroughModal({
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           Starting Repairs...
                         </>
+                      ) : selectedTotals.count === 0 ? (
+                        <>
+                          <Wrench className="w-4 h-4 mr-2" />
+                          Select Repairs Above
+                        </>
+                      ) : !affordability.canAfford ? (
+                        <>
+                          <XCircle className="w-4 h-4 mr-2" />
+                          Can't Afford (${affordability.shortfall.toLocaleString()} short)
+                        </>
                       ) : (
                         <>
                           <Wrench className="w-4 h-4 mr-2" />
-                          Start Repairs (Tenant Moves Out)
+                          Start {selectedTotals.count} Repair{selectedTotals.count !== 1 ? 's' : ''} (${selectedTotals.cost.toLocaleString()})
                         </>
                       )}
                     </Button>
                     <p className="text-xs text-center text-slate-400">
-                      Tenant will receive 1 month break fee. No rent during repairs.
+                      {selectedTotals.count > 0 
+                        ? `Tenant receives $${breakFee.toLocaleString()} break fee. No rent during ~${selectedTotals.weeks} week rehab.`
+                        : 'Select at least one repair to proceed'
+                      }
                     </p>
                   </div>
                 )}

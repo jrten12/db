@@ -1207,19 +1207,48 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         const proFormaInputs = deal.proFormaInputs as any;
         const proFormaOutputs = deal.proFormaOutputs as any;
         
+        // Calculate repair completion factor by COST (not count)
+        // Compare selected repairs cost vs total discovered issues cost
+        const walkthroughData = deal.contractorWalkthroughData as ContractorWalkthroughResult | null;
+        const allIssues = walkthroughData?.repairItems || [];
+        const fixedIssues = deal.rentalRehabItems as ContractorWalkthroughItem[] | null;
+        
+        // Calculate total costs for weighting
+        const totalCost = allIssues.reduce((sum, item) => sum + item.contractorCost, 0);
+        const fixedCost = (fixedIssues || []).reduce((sum, item) => sum + item.contractorCost, 0);
+        const fixedCount = (fixedIssues || []).length;
+        const allIssuesCount = allIssues.length;
+        
+        // Repair completion factor weighted by cost: fixing a $5000 issue counts more than a $500 issue
+        const repairCompletionFactor = totalCost > 0 ? fixedCost / totalCost : 1.0;
+        
         // Improved rent after rehab (use postRehab range if available, otherwise boost original)
-        let newMonthlyRent: number;
+        // BUT reduce the improvement based on unfixed issues
+        let maxNewMonthlyRent: number;
+        let baseMonthlyRent: number;
+        
         if (property?.postRehabRentMax) {
-          // Use post-rehab rent range (midpoint)
-          newMonthlyRent = Math.floor((property.postRehabRentMin! + property.postRehabRentMax) / 2);
+          // Use post-rehab rent range
+          maxNewMonthlyRent = Math.floor((property.postRehabRentMin! + property.postRehabRentMax) / 2);
+          baseMonthlyRent = Math.floor((property.rentMin + property.rentMax) / 2);
         } else if (property) {
           // Boost original rent by 15-25% (property condition improved)
-          const originalRent = Math.floor((property.rentMin + property.rentMax) / 2);
-          newMonthlyRent = Math.round(originalRent * (1.15 + Math.random() * 0.10));
+          baseMonthlyRent = Math.floor((property.rentMin + property.rentMax) / 2);
+          maxNewMonthlyRent = Math.round(baseMonthlyRent * (1.15 + Math.random() * 0.10));
         } else {
           // Fallback: use stored rent + 20%
-          newMonthlyRent = Math.round((proFormaOutputs?.monthlyGrossRent || 1500) * 1.20);
+          baseMonthlyRent = proFormaOutputs?.monthlyGrossRent || 1500;
+          maxNewMonthlyRent = Math.round(baseMonthlyRent * 1.20);
         }
+        
+        // Scale rent improvement by repair completion factor
+        // If 100% fixed = full rent increase, if 50% fixed = 50% of rent increase
+        const rentIncrease = maxNewMonthlyRent - baseMonthlyRent;
+        const scaledRentIncrease = Math.round(rentIncrease * repairCompletionFactor);
+        const newMonthlyRent = baseMonthlyRent + scaledRentIncrease;
+        
+        // Track unfixed issues for future reference
+        const unfixedIssueCount = allIssuesCount - fixedCount;
 
         // Calculate new weekly income
         const newWeeklyIncome = calculateWeeklyIncome(newMonthlyRent - (proFormaOutputs?.monthlyOpEx || 0));
@@ -1233,17 +1262,22 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
             ...proFormaOutputs,
             monthlyGrossRent: newMonthlyRent,
             postRehabCompleted: true,
+            repairCompletionFactor,
+            unfixedIssueCount,
           },
         });
 
-        // Create ledger entry for rehab completion
+        // Create ledger entry for rehab completion with partial info
+        const partialNote = unfixedIssueCount > 0 
+          ? ` (${fixedCount}/${allIssuesCount} issues fixed)`
+          : '';
         await storage.createLedgerEntry({
           gameRunId,
           direction: 'credit',
           category: 'income',
           amount: 0, // Informational entry
           balanceAfter: gameRun.cash,
-          description: `Rental rehab complete - ${property?.name || 'Property'} (new rent: $${newMonthlyRent.toLocaleString()}/mo)`,
+          description: `Rental rehab complete - ${property?.name || 'Property'} (new rent: $${newMonthlyRent.toLocaleString()}/mo)${partialNote}`,
           propertyId: deal.propertyId,
           dealId: deal.id,
           gameWeek: gameRun.currentWeek + 1,
@@ -1972,7 +2006,8 @@ export interface RentalRehabResult {
 
 export async function initiateRentalRehab(
   dealId: number,
-  gameRunId: number
+  gameRunId: number,
+  selectedRepairIds?: string[]
 ): Promise<RentalRehabResult> {
   // Validate deal exists and is an active rental
   const deal = await storage.getDeal(dealId);
@@ -2008,15 +2043,35 @@ export async function initiateRentalRehab(
     return { success: false, error: 'Property not found' };
   }
 
+  // Get valid repair IDs from walkthrough data
+  const validRepairIds = new Set(walkthroughData.repairItems.map(item => item.id));
+  
+  // Validate selectedRepairIds if provided - must be subset of valid IDs
+  if (selectedRepairIds && selectedRepairIds.length > 0) {
+    const invalidIds = selectedRepairIds.filter(id => !validRepairIds.has(id));
+    if (invalidIds.length > 0) {
+      return { success: false, error: `Invalid repair IDs: ${invalidIds.join(', ')}` };
+    }
+  }
+  
+  // Filter to only selected repairs (if specified), otherwise use all
+  const repairItems = selectedRepairIds && selectedRepairIds.length > 0
+    ? walkthroughData.repairItems.filter(item => selectedRepairIds.includes(item.id))
+    : walkthroughData.repairItems;
+  
+  if (repairItems.length === 0) {
+    return { success: false, error: 'No repairs selected' };
+  }
+
   // Calculate tenant break fee (1 month of current rent)
   const monthlyRent = (deal.weeklyIncome || 0) * 4.33;
   const breakFee = Math.round(monthlyRent);
 
-  // Calculate base rehab cost and timeline from walkthrough items
-  const baseCost = walkthroughData.totalRepairCost;
+  // Calculate base rehab cost and timeline from SELECTED items only
+  const baseCost = repairItems.reduce((sum, item) => sum + item.contractorCost, 0);
   
-  // Timeline: Use MAX of all item timelines (work done in parallel where possible)
-  const baseWeeks = Math.max(...walkthroughData.repairItems.map(item => item.timelineWeeks), 1);
+  // Timeline: Use MAX of selected item timelines (work done in parallel where possible)
+  const baseWeeks = Math.max(...repairItems.map(item => item.timelineWeeks), 1);
 
   // TIMELINE VARIANCE: Contractors can run early, on-time, or late
   // 15% under time (-1-2 weeks), 25% on time, 60% over time (+1-3 weeks)
@@ -2094,7 +2149,7 @@ export async function initiateRentalRehab(
     await storage.createLedgerEntry(entry);
   }
 
-  // Update deal to rental rehab state
+  // Update deal to rental rehab state - store only selected repair items
   await storage.updateDeal(dealId, {
     rentalRehabActive: true,
     rentalRehabWeeksRemaining: actualWeeks,
@@ -2103,7 +2158,7 @@ export async function initiateRentalRehab(
     rentalRehabCostActual: actualCost,
     rentalRehabVariancePct: Math.round((varianceWeeks / baseWeeks) * 100),
     rentalRehabStartWeek: gameRun.currentWeek,
-    rentalRehabItems: walkthroughData.repairItems,
+    rentalRehabItems: repairItems, // Only selected items
     tenantDisplaced: true,
     tenantBreakFee: breakFee,
     weeklyIncome: 0, // No rent during rehab (vacant)

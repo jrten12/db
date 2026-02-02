@@ -1185,13 +1185,16 @@ export async function registerRoutes(
   app.post("/api/deals/:dealId/rental-rehab", dealLimiter, async (req, res) => {
     try {
       const dealId = parseInt(req.params.dealId);
-      const { gameRunId } = req.body;
+      const { gameRunId, selectedRepairIds } = req.body;
 
       if (!gameRunId) {
         return res.status(400).json({ error: "gameRunId is required" });
       }
 
-      const result = await gameMechanics.initiateRentalRehab(dealId, gameRunId);
+      // Validate selectedRepairIds if provided
+      const validatedRepairIds = Array.isArray(selectedRepairIds) ? selectedRepairIds : undefined;
+
+      const result = await gameMechanics.initiateRentalRehab(dealId, gameRunId, validatedRepairIds);
       
       if (!result.success) {
         return res.status(400).json({ error: result.error });

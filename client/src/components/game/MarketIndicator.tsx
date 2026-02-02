@@ -186,22 +186,32 @@ export function MarketBar({ condition, className = '', compact = false }: Market
 
       {showInfo && (
         <div 
-          className="fixed inset-0 z-[9999] bg-black/80"
+          className="fixed z-[9999] bg-black/80"
+          style={{ top: 0, left: 0, right: 0, bottom: 0 }}
           onClick={() => setShowInfo(false)}
         >
           <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-slate-900 border border-slate-600 rounded-xl w-[85%] max-w-[280px] p-3 shadow-2xl"
+            className="bg-slate-900 border border-slate-600 rounded-xl p-3 shadow-2xl"
+            style={{ 
+              position: 'fixed',
+              top: '50%', 
+              left: '50%', 
+              transform: 'translate(-50%, -50%)',
+              width: '85%',
+              maxWidth: '280px'
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={() => setShowInfo(false)}
-              className="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center bg-slate-700 border border-slate-500 rounded-full shadow-lg"
-              data-testid="button-close-market-info"
-            >
-              <X className="w-4 h-4 text-white" />
-            </button>
-            
-            <h3 className="text-sm font-bold text-white mb-2">Market Conditions</h3>
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <h3 className="text-sm font-bold text-white">Market Conditions</h3>
+              <button
+                onClick={() => setShowInfo(false)}
+                className="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-slate-600 rounded-full flex-shrink-0"
+                data-testid="button-close-market-info"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
             
             <p className="text-[11px] text-slate-300 mb-2">
               Affects flip sale prices. Changes monthly.

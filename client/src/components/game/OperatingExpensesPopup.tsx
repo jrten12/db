@@ -173,7 +173,7 @@ export function OperatingExpensesPopup({
             className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] w-full max-w-md"
             data-testid="operating-expenses-popup"
           >
-            <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-slate-600/50 overflow-hidden">
+            <div className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl shadow-2xl border border-slate-600/50 overflow-hidden max-h-[85vh] flex flex-col">
               <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 flex items-center justify-between">
                 <div>
                   <h3 className="font-bold text-white text-lg flex items-center gap-2">
@@ -191,7 +191,7 @@ export function OperatingExpensesPopup({
                 </button>
               </div>
               
-              <div className="p-4 space-y-4">
+              <div className="p-4 space-y-4 flex-1 overflow-y-auto">
                 <div className="bg-slate-700/50 rounded-lg p-3 flex items-center justify-between text-sm">
                   <span className="text-slate-300">Property Condition</span>
                   <span className={`font-medium capitalize ${conditionColor}`}>
@@ -313,6 +313,17 @@ export function OperatingExpensesPopup({
                     </p>
                   </div>
                 )}
+              </div>
+              
+              {/* Sticky footer close button for mobile */}
+              <div className="p-4 border-t border-slate-600/50 flex-shrink-0 bg-slate-900">
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+                  data-testid="close-opex-popup-bottom"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </motion.div>

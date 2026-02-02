@@ -56,21 +56,22 @@ export function getMarketMultipliers(condition: MarketCondition): MarketMultipli
 
 /**
  * Progress market condition with 65% bias toward good/excellent
- * Can only move one step at a time (no erratic jumps)
+ * Can move one step normally, with rare crashes (5% chance to drop 2 levels)
  * 
  * Target distribution: ~65% in good/excellent, ~35% in terrible/poor/neutral
- * More dynamic transitions - market moves frequently but gravitates toward good/excellent
+ * Calibrated using Markov chain steady-state analysis:
  * 
  * Transition design:
- * - Lower states have strong upward pull (recovery bias)
- * - Good/excellent have balanced up/down with slight upward bias
- * - Always some chance to move in either direction (no guaranteed stasis)
+ * - Lower states have STRONG upward pull (compensates for rare crashes)
+ * - Good/excellent have movement but upward bias from lower states pulls back
+ * - RARE CRASH: 5% chance from good/excellent to drop 2 levels (market panic)
  * 
- * From terrible (0): 80% up, 20% stay (strong recovery)
- * From poor (1): 55% up, 15% stay, 30% down
- * From neutral (2): 50% up, 15% stay, 35% down
- * From good (3): 35% up, 30% stay, 35% down (balanced with slight up bias from lower states)
- * From excellent (4): 45% stay, 55% down (more movement, still favored by lower state push)
+ * Calibrated probabilities (verified ~65% good/excellent):
+ * From terrible (0): 85% up, 15% stay (very strong recovery)
+ * From poor (1): 70% up, 15% stay, 15% down (strong upward bias)
+ * From neutral (2): 60% up, 20% stay, 20% down (moderate upward bias)
+ * From good (3): 35% up, 35% stay, 25% down to neutral, 5% CRASH to poor
+ * From excellent (4): 50% stay, 45% down to good, 5% CRASH to neutral
  */
 export function progressMarketCondition(currentCondition: MarketCondition): MarketCondition {
   const currentIndex = MARKET_CONDITIONS.indexOf(currentCondition);
@@ -79,31 +80,34 @@ export function progressMarketCondition(currentCondition: MarketCondition): Mark
   let newIndex: number;
   
   switch (currentIndex) {
-    case 0: // terrible - strong upward pull to recover
-      // 80% up, 20% stay (can't go lower)
-      newIndex = rand < 0.80 ? 1 : 0;
+    case 0: // terrible - very strong upward pull to recover
+      // 85% up, 15% stay (can't go lower)
+      newIndex = rand < 0.85 ? 1 : 0;
       break;
-    case 1: // poor - still pulled up but can dip back
-      // 55% up, 15% stay, 30% down
-      if (rand < 0.55) newIndex = 2;
-      else if (rand < 0.70) newIndex = 1;
+    case 1: // poor - strong upward pull
+      // 70% up, 15% stay, 15% down
+      if (rand < 0.70) newIndex = 2;
+      else if (rand < 0.85) newIndex = 1;
       else newIndex = 0;
       break;
-    case 2: // neutral - slight upward pull toward good
-      // 50% up, 15% stay, 35% down
-      if (rand < 0.50) newIndex = 3;
-      else if (rand < 0.65) newIndex = 2;
+    case 2: // neutral - moderate upward pull toward good
+      // 60% up, 20% stay, 20% down
+      if (rand < 0.60) newIndex = 3;
+      else if (rand < 0.80) newIndex = 2;
       else newIndex = 1;
       break;
-    case 3: // good - balanced movement, frequent changes
-      // 35% up, 30% stay, 35% down
+    case 3: // good - balanced with rare crash possibility
+      // 35% up, 35% stay, 25% down to neutral, 5% CRASH to poor
       if (rand < 0.35) newIndex = 4;
-      else if (rand < 0.65) newIndex = 3;
-      else newIndex = 2;
+      else if (rand < 0.70) newIndex = 3;
+      else if (rand < 0.95) newIndex = 2;
+      else newIndex = 1; // 5% crash - drops 2 levels to poor!
       break;
-    case 4: // excellent - more likely to dip but lower states push back up
-      // 45% stay, 55% down (can't go higher)
-      newIndex = rand < 0.45 ? 4 : 3;
+    case 4: // excellent - can dip but recovers quickly from lower states
+      // 50% stay, 45% down to good, 5% CRASH to neutral
+      if (rand < 0.50) newIndex = 4;
+      else if (rand < 0.95) newIndex = 3;
+      else newIndex = 2; // 5% crash - drops 2 levels to neutral!
       break;
     default:
       newIndex = 3; // Default to good

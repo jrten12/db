@@ -262,7 +262,7 @@ export default function Landing() {
             </p>
             <div className="mt-3 flex items-center justify-center gap-3">
               <p className="text-gray-700 text-xs font-mono">
-                v1.65
+                v1.89
               </p>
               <button
                 onClick={showSplashScreen}

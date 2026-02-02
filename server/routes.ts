@@ -158,7 +158,13 @@ export async function registerRoutes(
   // Get all properties
   app.get("/api/properties", async (req, res) => {
     try {
+      // Prevent browser caching to ensure fresh property list
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
       const properties = await storage.getAllProperties();
+      console.log(`Returning ${properties.length} properties`);
       res.json(properties);
     } catch (error) {
       console.error("Error fetching properties:", error);

@@ -78,7 +78,13 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   }, [isPlaying]);
 
   useEffect(() => {
-    const handleFirstInteraction = () => {
+    const handleFirstInteraction = (e: Event) => {
+      // Don't start music if clicking on splash screen - splash has its own jingle
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-testid="splash-screen"]')) {
+        return;
+      }
+      
       hasInteracted.current = true;
       if (isPlaying && audioRef.current) {
         audioRef.current.play().catch(() => {});

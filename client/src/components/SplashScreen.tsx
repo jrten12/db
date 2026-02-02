@@ -196,6 +196,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       className={`fixed inset-0 z-[200] cursor-pointer transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}
       onClick={handleClick}
       data-testid="splash-screen"
+      data-no-click-sound="true"
     >
       {/* Deep space gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#000814] via-[#001d3d] to-[#000814]" />

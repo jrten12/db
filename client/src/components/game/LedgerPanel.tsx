@@ -1,8 +1,83 @@
 import { useState } from 'react';
 import { formatCurrency } from '@/lib/gameData';
 import type { LedgerEntry, Deal, Property } from '@shared/schema';
-import { ArrowUpCircle, ArrowDownCircle, X, Wallet, Building2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { 
+  ArrowUpCircle, ArrowDownCircle, X, Wallet, Building2, TrendingUp, TrendingDown, Minus,
+  Home, Wrench, Zap, Droplets, Flame, Wind, Bug, Trees, Shield, Car, Building, 
+  Hammer, PaintBucket, Layers, Snowflake, ThermometerSun, Pipette, AlertTriangle,
+  FileText, DollarSign, Banknote, Receipt, Landmark, Key, LucideIcon
+} from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+// Icon mapping for expense descriptions
+function getExpenseIcon(description: string): LucideIcon {
+  const desc = description.toLowerCase();
+  
+  // Roof related
+  if (desc.includes('roof')) return Home;
+  
+  // HVAC / Heating / Cooling
+  if (desc.includes('hvac') || desc.includes('heating') || desc.includes('furnace')) return ThermometerSun;
+  if (desc.includes('ac') || desc.includes('air condition') || desc.includes('cooling')) return Snowflake;
+  
+  // Electrical
+  if (desc.includes('electric') || desc.includes('wiring') || desc.includes('knob and tube')) return Zap;
+  
+  // Plumbing / Water
+  if (desc.includes('plumb') || desc.includes('pipe') || desc.includes('water') || desc.includes('drain') || desc.includes('septic') || desc.includes('well')) return Droplets;
+  
+  // Foundation / Structural
+  if (desc.includes('foundation') || desc.includes('structural') || desc.includes('settling')) return Layers;
+  
+  // Mold / Environmental
+  if (desc.includes('mold') || desc.includes('asbestos') || desc.includes('lead paint') || desc.includes('radon')) return AlertTriangle;
+  
+  // Pest / Termite
+  if (desc.includes('termite') || desc.includes('pest') || desc.includes('bug')) return Bug;
+  
+  // Landscaping / Exterior
+  if (desc.includes('tree') || desc.includes('landscap') || desc.includes('yard') || desc.includes('barn')) return Trees;
+  
+  // Windows / Doors
+  if (desc.includes('window') || desc.includes('door')) return Building;
+  
+  // Paint / Cosmetic
+  if (desc.includes('paint') || desc.includes('cosmetic') || desc.includes('update')) return PaintBucket;
+  
+  // Appliances
+  if (desc.includes('refrigerator') || desc.includes('appliance') || desc.includes('dishwasher') || desc.includes('stove') || desc.includes('washer') || desc.includes('dryer')) return Wrench;
+  
+  // Pool
+  if (desc.includes('pool')) return Droplets;
+  
+  // Security / Safety
+  if (desc.includes('security') || desc.includes('alarm') || desc.includes('safety')) return Shield;
+  
+  // Parking / Garage / Car
+  if (desc.includes('parking') || desc.includes('garage') || desc.includes('driveway')) return Car;
+  
+  // HOA / Fees
+  if (desc.includes('hoa') || desc.includes('assessment')) return FileText;
+  
+  // Elevator
+  if (desc.includes('elevator')) return Building;
+  
+  // Brick / Masonry
+  if (desc.includes('brick') || desc.includes('repoint') || desc.includes('stone') || desc.includes('masonry')) return Hammer;
+  
+  // Mortgage
+  if (desc.includes('mortgage')) return Landmark;
+  
+  // Operating costs / Rent
+  if (desc.includes('operating cost') || desc.includes('opex')) return Receipt;
+  if (desc.includes('rent')) return Key;
+  
+  // Generic repair/expense
+  if (desc.includes('repair') || desc.includes('replace') || desc.includes('fix')) return Wrench;
+  
+  // Default
+  return DollarSign;
+}
 
 interface LedgerPanelProps {
   entries: LedgerEntry[];
@@ -335,12 +410,17 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
                       data-testid={`ledger-entry-${entry.id}`}
                       onClick={isClickable ? () => onOpexClick(entry.dealId!) : undefined}
                     >
-                      <div className="flex-shrink-0">
+                      <div className="flex-shrink-0 flex items-center gap-2">
                         {entry.direction === 'debit' ? (
                           <ArrowDownCircle className="w-5 h-5 text-red-400" />
                         ) : (
                           <ArrowUpCircle className="w-5 h-5 text-emerald-400" />
                         )}
+                        {/* Contextual icon based on description */}
+                        {entry.description && (() => {
+                          const Icon = getExpenseIcon(entry.description);
+                          return <Icon className={`w-4 h-4 ${entry.direction === 'debit' ? 'text-red-300/70' : 'text-emerald-300/70'}`} />;
+                        })()}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">

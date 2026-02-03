@@ -139,8 +139,16 @@ export function ContractorWalkthroughModal({
     setError(null);
     try {
       const response = await fetch(`/api/deals/${deal.id}/contractor-walkthrough-quote?gameRunId=${gameRun.id}`);
-      const data: WalkthroughQuote = await response.json();
-      setQuote(data);
+      const data = await response.json();
+      
+      // Check if the API returned an error (not eligible)
+      if (data.error || data.eligible === false) {
+        setError(data.error || 'This property is not eligible for contractor walkthrough');
+        setQuote(null);
+        return;
+      }
+      
+      setQuote(data as WalkthroughQuote);
       
       if (data.completed) {
         setViewState('already_done');
@@ -149,7 +157,7 @@ export function ContractorWalkthroughModal({
             walkthroughFee: data.data.walkthroughFee,
             repairItems: data.data.repairItems,
             totalRepairCost: data.data.totalRepairCost,
-            totalOriginalCost: data.data.repairItems.reduce((sum, item) => sum + item.originalCost, 0),
+            totalOriginalCost: data.data.repairItems.reduce((sum: number, item: any) => sum + item.originalCost, 0),
             averageMarkup: 0,
           });
         }

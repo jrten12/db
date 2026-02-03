@@ -498,6 +498,10 @@ export async function completeFlipDeal(
   }
   
   // Calculate sale price based on due diligence, rehab investment, AND market conditions
+  // REALISTIC FLIP PRICING:
+  // - No rehab = you sell at roughly what you paid (distressed value)
+  // - Full rehab = you can achieve ARV (after-repair value)
+  // - Unfixed issues reduce sale price (buyers will see the problems)
   let salePrice: number;
   if (property && property.arvMin && property.arvMax && property.rehabMin && property.rehabMax) {
     // Get player's actual rehab spend (budget + contingency)
@@ -505,43 +509,73 @@ export async function completeFlipDeal(
     const contingencyPct = proFormaInputs?.contingencyPct || 10;
     const actualRehabSpend = rehabBudget * (1 + contingencyPct / 100);
     
+    // The "as-is" value is what you paid - the purchase price
+    // ARV is only achievable with FULL renovation
+    const purchasePrice = deal.purchasePrice || proFormaInputs?.purchasePrice || property.arvMin * 0.7;
+    const maxArv = property.arvMax;
+    
     // Calculate rehab completion factor (0 to 1)
-    const rehabRange = property.rehabMax - property.rehabMin;
-    const completionFactor = rehabRange > 0 
-      ? Math.max(0, Math.min(1, (actualRehabSpend - property.rehabMin) / rehabRange))
-      : 0.5;
+    // Based on how much of the FULL rehab was done
+    const fullRehabCost = property.rehabMax;
+    const completionFactor = fullRehabCost > 0 
+      ? Math.max(0, Math.min(1, actualRehabSpend / fullRehabCost))
+      : 0;
+    
+    // Calculate CONDITION PENALTY from unfixed issues
+    // Each undiscovered issue that wasn't fixed reduces sale price
+    // Buyers WILL find these issues during their inspection!
+    const issueCount = undiscoveredIssues.length;
+    const conditionPenalty = issueCount * 0.03; // Each unfixed issue = 3% price reduction
+    const conditionMultiplier = Math.max(0.70, 1 - conditionPenalty); // Cap at 30% reduction
     
     if (didComps) {
-      // WITH COMPS: Sale price is reliably within actual market range
-      // Base sale price scales with rehab completion within the known range
-      const arvRange = property.arvMax - property.arvMin;
-      const baseSalePrice = property.arvMin + (completionFactor * arvRange);
+      // WITH COMPS: Sale price scales predictably from purchase price to ARV
+      // 0% rehab = ~purchase price (maybe tiny premium for marketing)
+      // 100% rehab = near ARV (full value)
       
-      // Apply MARKET-BASED variance instead of fixed ±5%
-      // Market condition determines the range of variance
+      // Base price scales linearly from purchase price to ARV based on rehab
+      const priceSpread = maxArv - purchasePrice;
+      let baseSalePrice = purchasePrice + (completionFactor * priceSpread * 0.9); // 90% of spread achievable
+      
+      // Apply condition penalty for unfixed issues
+      baseSalePrice = baseSalePrice * conditionMultiplier;
+      
+      // Apply MARKET-BASED variance
       const marketVariance = marketMult.min + (Math.random() * (marketMult.max - marketMult.min));
       salePrice = Math.round(baseSalePrice * marketVariance);
+      
+      // If no rehab was done, cap sale price near purchase price (can't profit without work)
+      if (rehabBudget === 0) {
+        const noRehabMax = purchasePrice * 1.05 * marketVariance; // Max 5% above purchase + market
+        salePrice = Math.min(salePrice, Math.round(noRehabMax));
+      }
     } else {
       // WITHOUT COMPS: Player is flying blind! Market reality may differ wildly
-      // Their estimate could be off by 15-30% in either direction
       const playerEstimate = proFormaInputs?.arv || ((property.arvMin + property.arvMax) / 2);
       
-      // Generate a "reality check" - what the market actually values this at
-      // Could be 70% to 130% of what player expected, ADJUSTED by market conditions
-      const baseRealityMin = 0.70 * marketMult.min; // Worse in bad markets
-      const baseRealityMax = 1.30 * marketMult.max; // Better in good markets
+      // Generate a "reality check" - actual market price varies widely
+      const baseRealityMin = 0.70 * marketMult.min;
+      const baseRealityMax = 1.20 * marketMult.max; // Reduced upside without research
       const realityFactor = baseRealityMin + (Math.random() * (baseRealityMax - baseRealityMin));
       
-      // Rehab still matters for final price, but uncertainty is huge
-      const baseFromRehab = property.arvMin + (completionFactor * (property.arvMax - property.arvMin));
+      // Calculate what the property is actually worth based on work done
+      const priceSpread = maxArv - purchasePrice;
+      let actualValue = purchasePrice + (completionFactor * priceSpread * 0.85);
+      actualValue = actualValue * conditionMultiplier;
       
       // Blend player estimate (with uncertainty) and actual value
-      // Without comps, the market may not agree with player's assumptions
       const uncertainPrice = playerEstimate * realityFactor;
+      salePrice = Math.round((uncertainPrice * 0.4) + (actualValue * 0.6));
       
-      // Final price leans toward uncertain estimate since player didn't research
-      salePrice = Math.round((uncertainPrice * 0.7) + (baseFromRehab * 0.3));
+      // If no rehab was done, sale price is very limited
+      if (rehabBudget === 0) {
+        const noRehabMax = purchasePrice * 1.02 * realityFactor; // Only 2% above purchase
+        salePrice = Math.min(salePrice, Math.round(noRehabMax));
+      }
     }
+    
+    // Absolute floor: can't sell for less than 60% of purchase price
+    salePrice = Math.max(salePrice, Math.round(purchasePrice * 0.6));
   } else {
     // Fallback to pro forma ARV if property not found
     salePrice = proFormaOutputs.arv || 0;

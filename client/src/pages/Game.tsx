@@ -1047,6 +1047,22 @@ export default function Game() {
           }
         }
       });
+      
+      // Show rental rehab completion notifications
+      if (result.completedRentalRehabs && result.completedRentalRehabs.length > 0) {
+        result.completedRentalRehabs.forEach((rehab: any) => {
+          const rentIncrease = rehab.newMonthlyRent - rehab.previousRent;
+          const percentIncrease = Math.round((rentIncrease / rehab.previousRent) * 100);
+          const statusNote = rehab.fixedCount < rehab.totalIssueCount
+            ? ` (${rehab.fixedCount}/${rehab.totalIssueCount} issues fixed)`
+            : ' (all issues fixed!)';
+          
+          toast.success(
+            `🔧 Renovation Complete: ${rehab.propertyName}! New rent: $${rehab.newMonthlyRent.toLocaleString()}/mo (+${percentIncrease}%)${statusNote}`,
+            { duration: 6000 }
+          );
+        });
+      }
 
       // Refresh game run state and other data
       const updatedGameRun = await api.getGameRun(gameRun.id);

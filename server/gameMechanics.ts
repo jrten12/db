@@ -429,9 +429,20 @@ interface RentalIncomeResult {
   remainingBalance?: number;
 }
 
+interface CompletedRentalRehab {
+  dealId: number;
+  propertyName: string;
+  newMonthlyRent: number;
+  previousRent: number;
+  fixedCount: number;
+  totalIssueCount: number;
+  repairCompletionFactor: number;
+}
+
 interface WeekProgressionResult {
   rentalPayments: RentalIncomeResult[];
   completedFlips: FlipSaleResult[];
+  completedRentalRehabs: CompletedRentalRehab[];
   curveballs: any[];
   newWeek: number;
   weeksRemaining: number;
@@ -1098,6 +1109,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   const deals = await storage.getDealsByGameRun(gameRunId);
   const rentalPayments: RentalIncomeResult[] = [];
   const completedFlips: FlipSaleResult[] = [];
+  const completedRentalRehabs: CompletedRentalRehab[] = [];
   const curveballs: any[] = [];
 
   // Get all property investigations for this game to check undiscovered issues
@@ -1291,6 +1303,17 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           dealId: deal.id,
           gameWeek: gameRun.currentWeek + 1,
         });
+        
+        // Add to completed rehabs for frontend notification
+        completedRentalRehabs.push({
+          dealId: deal.id,
+          propertyName: property?.name || 'Property',
+          newMonthlyRent,
+          previousRent: baseMonthlyRent,
+          fixedCount,
+          totalIssueCount: allIssuesCount,
+          repairCompletionFactor,
+        });
       } else {
         // Update weeks remaining
         await storage.updateDeal(deal.id, {
@@ -1332,6 +1355,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   return {
     rentalPayments,
     completedFlips,
+    completedRentalRehabs,
     curveballs,
     newWeek,
     weeksRemaining: newWeeksRemaining,

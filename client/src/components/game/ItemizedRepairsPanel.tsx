@@ -185,9 +185,12 @@ export function ItemizedRepairsPanel({
             return (
               <button
                 key={issue.id}
-                onClick={() => toggleIssue(issue.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleIssue(issue.id);
+                }}
                 disabled={disabled}
-                className={`w-full text-left p-3 rounded-lg border transition-all ${
+                className={`w-full text-left p-3 rounded-lg border transition-all touch-manipulation active:opacity-80 select-none ${
                   isSelected
                     ? 'bg-cyan-500/20 border-cyan-500/40'
                     : 'bg-slate-700/30 border-slate-600/30 hover:border-slate-500/50'

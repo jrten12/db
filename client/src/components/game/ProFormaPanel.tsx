@@ -335,9 +335,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   // Use player-state-aware interest rate if financials available, otherwise fall back to basic LTV rate
   // Include weekNumber for market rate variability
   const defaultFinancials: PlayerFinancials = { cash: playerCash, totalMonthlyDebt: 0, totalMonthlyIncome: 0, totalAssetValue: 0 };
-  const derivedInterestRate = playerFinancials 
+  const baseInterestRate = playerFinancials 
     ? getInterestRateWithPlayerState(inputs.ltv, playerFinancials, weekNumber)
     : getInterestRateFromLTV(inputs.ltv, weekNumber);
+  // Construction loan premium: 1.5% higher rate when financing rehab costs
+  const constructionLoanPremium = inputs.strategy === 'flip' && inputs.financeRehab ? 1.5 : 0;
+  const derivedInterestRate = baseInterestRate + constructionLoanPremium;
   const derivedLoanFeesPct = getLoanFeesFromLTV(inputs.ltv);
   const derivedDownPaymentPct = getDownPaymentFromLTV(inputs.ltv);
   
@@ -346,9 +349,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
   const arvMid = (property.arvMin + property.arvMax) / 2;
   const playerARV = inputs.arvEstimate !== null ? inputs.arvEstimate : arvMid;
-  const sellingCosts = playerARV * (n(inputs.sellingCostsPct) / 100);
-  const flipProfit = playerARV - allInBasis - (holdingCostPerWeek * n(inputs.rehabWeeks)) - sellingCosts;
-  const flipROI = liveOutputs.totalCashInvested > 0 ? (flipProfit / liveOutputs.totalCashInvested) * 100 : 0;
+  
+  // Use flipProfit and flipROI directly from liveOutputs (calculated by calculateProForma)
+  // This ensures consistency with MetricsPanel and other components
+  const flipProfit = liveOutputs.flipProfit;
+  const flipROI = liveOutputs.flipROI;
 
   const isViable = inputs.strategy === 'rent' 
     ? liveOutputs.cashFlowMonthly > 0 

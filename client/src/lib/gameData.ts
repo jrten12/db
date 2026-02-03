@@ -161,6 +161,9 @@ export interface ProFormaOutputs {
   totalCashInvested: number;
   interestRate: number;
   loanTermMonths: number;
+  // Flip-specific outputs (only meaningful when strategy is 'flip')
+  flipProfit: number;
+  flipROI: number;
 }
 
 // Default LTV at 75% (25% down payment, ~7.5% interest)
@@ -298,10 +301,9 @@ export const calculateProForma = (
   const capExPct = inputs.capExPct ?? 0;
   const utilitiesMonthly = inputs.utilitiesMonthly ?? 0;
   const propertyManagementPct = inputs.propertyManagementPct ?? 0;
-  const baseRehabBudget = inputs.rehabBudget ?? 0;
-  // Fast contractor = 50% higher rehab costs
-  const contractorMultiplier = inputs.contractorType === 'fast' ? 1.5 : 1.0;
-  const rehabBudget = baseRehabBudget * contractorMultiplier;
+  // Rehab budget from inputs already includes contractor type cost adjustments
+  // (applied by ItemizedRepairsPanel or ContractorWalkthroughModal)
+  const rehabBudget = inputs.rehabBudget ?? 0;
   const contingencyPct = inputs.contingencyPct ?? 0;
   const rehabWeeks = inputs.rehabWeeks ?? 4;
   
@@ -310,9 +312,12 @@ export const calculateProForma = (
   const ltv = inputs.ltv;
   const downPaymentPct = getDownPaymentFromLTV(ltv);
   // Use player-state-aware interest rate if financials provided, otherwise base LTV rate
-  const interestRate = playerFinancials 
+  const baseInterestRate = playerFinancials 
     ? getInterestRateWithPlayerState(ltv, playerFinancials, weekNumber)
     : getInterestRateFromLTV(ltv, weekNumber);
+  // Construction loan premium: 1.5% higher rate when financing rehab costs
+  const constructionLoanPremium = inputs.strategy === 'flip' && inputs.financeRehab ? 1.5 : 0;
+  const interestRate = baseInterestRate + constructionLoanPremium;
   const loanOriginationPct = getLoanFeesFromLTV(ltv);
 
   // For flips with financeRehab enabled, include rehab in the loan (acquisition + construction loan)
@@ -364,6 +369,18 @@ export const calculateProForma = (
   const capRate = (annualNOI / property.price) * 100;
   const cashOnCash = totalCashInvested > 0 ? ((cashFlowMonthly * 12) / totalCashInvested) * 100 : 0;
 
+  // Calculate flip-specific metrics (profit and ROI)
+  // These are only meaningful when strategy is 'flip', but we always calculate for consistency
+  // Use player's ARV estimate if provided, otherwise use the midpoint of the ARV range
+  const arvMid = (property.arvMin + property.arvMax) / 2;
+  const playerARV = inputs.arvEstimate !== null ? inputs.arvEstimate : arvMid;
+  const sellingCostsPct = inputs.sellingCostsPct ?? 6;
+  const sellingCosts = playerARV * (sellingCostsPct / 100);
+  // All-in basis includes purchase price, closing costs, and full rehab with contingency
+  const allInBasis = property.price + closingCosts + rehabWithContingency;
+  const flipProfit = playerARV - allInBasis - flipHoldingCosts - sellingCosts;
+  const flipROI = totalCashInvested > 0 ? (flipProfit / totalCashInvested) * 100 : 0;
+
   return {
     noiMonthly,
     cashFlowMonthly,
@@ -375,6 +392,8 @@ export const calculateProForma = (
     totalCashInvested,
     interestRate,
     loanTermMonths: numPayments,
+    flipProfit,
+    flipROI,
   };
 };
 

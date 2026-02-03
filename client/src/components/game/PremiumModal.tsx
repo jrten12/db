@@ -226,18 +226,27 @@ export function PremiumModal({ isOpen, onClose, onPurchase, onCouponRedeemed, cu
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto">
-      <div className="flex flex-col items-center py-12 px-4 min-h-full">
-        {canClose && (
-          <button
-            onClick={onClose}
-            className="fixed top-4 right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-10"
-            disabled={purchasing}
-            data-testid="button-close-premium"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        )}
+    <div 
+      className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto"
+      onClick={canClose && !purchasing ? onClose : undefined}
+    >
+      <div 
+        className="flex flex-col items-center pt-20 pb-12 px-4 min-h-full"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close button - always visible at top right */}
+        <button
+          onClick={onClose}
+          className={`fixed top-4 right-4 p-3 rounded-full text-white transition-all z-[100] min-w-[48px] min-h-[48px] flex items-center justify-center touch-manipulation ${
+            canClose 
+              ? 'bg-red-500/30 hover:bg-red-500/50 border border-red-500/50' 
+              : 'bg-gray-500/30 cursor-not-allowed opacity-50'
+          }`}
+          disabled={purchasing || !canClose}
+          data-testid="button-close-premium"
+        >
+          <X className="w-6 h-6" />
+        </button>
 
         <div className="w-full max-w-4xl">
           {/* Alert Banner for triggered popups */}

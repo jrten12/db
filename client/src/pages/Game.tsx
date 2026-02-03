@@ -23,6 +23,7 @@ import type { Tenant } from '@shared/schema';
 import { PremiumModal } from '@/components/game/PremiumModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
+import { EndGameSummary } from '@/components/game/EndGameSummary';
 import { TrophyNotificationManager, useTrophyNotifications } from '@/components/game/TrophyUnlockNotification';
 import { BankruptModal } from '@/components/game/BankruptModal';
 import { SaveIndicator } from '@/components/game/SaveIndicator';
@@ -130,6 +131,8 @@ export default function Game() {
   const [hasShownNoWeeksPopup, setHasShownNoWeeksPopup] = useState(false);
   const [hasShownLowCashPopup, setHasShownLowCashPopup] = useState(false);
   const [showHallOfFame, setShowHallOfFame] = useState(false);
+  const [showEndGameSummary, setShowEndGameSummary] = useState(false);
+  const [endGameWon, setEndGameWon] = useState(false);
   const [showDebtPanel, setShowDebtPanel] = useState(false);
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<HallOfFamePlayer | null>(null);
@@ -647,6 +650,14 @@ export default function Game() {
     }
   }, [gameRun, properties, updateGameMutation, createInvestigationMutation, createLedgerMutation, completedDiligence]);
 
+  const handleShowEndGameSummary = useCallback(() => {
+    if (gameRun) {
+      const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 3);
+      setEndGameWon(won);
+      setShowEndGameSummary(true);
+    }
+  }, [gameRun]);
+
   const handleNewGame = useCallback(async () => {
     // Record game end stats to Hall of Fame if there's an active game
     if (gameRun?.id) {
@@ -661,6 +672,7 @@ export default function Game() {
       }
     }
     
+    setShowEndGameSummary(false);
     sessionStorage.removeItem('currentGameRunId');
     sessionStorage.removeItem('skippedDiligenceDeals');
     setSkippedDiligenceDeals(new Set());
@@ -1426,6 +1438,17 @@ export default function Game() {
     }
   }, [gameRun?.weeksRemaining, gameRun?.cash, isBankrupt, hasShownNoWeeksPopup, hasShownLowCashPopup, showPremiumModal]);
 
+  // Auto-show end game summary when game is won
+  useEffect(() => {
+    if (!gameRun || isBankrupt) return;
+    
+    const isWon = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 3);
+    if (isWon && !showEndGameSummary) {
+      setEndGameWon(true);
+      setShowEndGameSummary(true);
+    }
+  }, [gameRun?.profitableDeals, gameRun?.goalDeals, isBankrupt, showEndGameSummary]);
+
   const handleBankruptReturnHome = useCallback(async () => {
     // Record game end stats to Hall of Fame before resetting
     if (gameRun?.id) {
@@ -1633,6 +1656,7 @@ export default function Game() {
             setShowPremiumModal(true);
           }}
           onOpenHallOfFame={() => setShowHallOfFame(true)}
+          onViewStats={handleShowEndGameSummary}
           onAdvanceWeek={currentScreen === 'market' ? handleAdvanceWeek : undefined}
           isAdvancingWeek={isAdvancingWeek}
           onNewGame={handleNewGame}
@@ -1989,6 +2013,19 @@ export default function Game() {
           isOpen={showHallOfFame}
           onClose={() => setShowHallOfFame(false)}
         />
+
+        {/* End Game Summary Modal */}
+        {gameRun && (
+          <EndGameSummary
+            isOpen={showEndGameSummary}
+            onClose={() => setShowEndGameSummary(false)}
+            gameRun={gameRun}
+            deals={deals}
+            properties={properties}
+            investigations={investigations}
+            won={endGameWon}
+          />
+        )}
 
         {/* Income Notifications */}
         <IncomeNotification events={incomeEvents} onDismiss={dismissEvent} />

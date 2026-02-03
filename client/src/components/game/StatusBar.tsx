@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
-import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy, Play, Loader2, RotateCcw, Volume2, VolumeX } from 'lucide-react';
+import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy, Play, Loader2, RotateCcw, Volume2, VolumeX, BarChart3 } from 'lucide-react';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ProgressRing } from './ProgressRing';
@@ -17,6 +17,7 @@ interface StatusBarProps {
   onOpenLedger?: () => void;
   onOpenPremium?: () => void;
   onOpenHallOfFame?: () => void;
+  onViewStats?: () => void;
   onAdvanceWeek?: () => void;
   isAdvancingWeek?: boolean;
   onNewGame?: () => void;
@@ -123,7 +124,7 @@ function StatCard({
   );
 }
 
-export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onAdvanceWeek, isAdvancingWeek, onNewGame }: StatusBarProps) {
+export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onViewStats, onAdvanceWeek, isAdvancingWeek, onNewGame }: StatusBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cashPulse, setCashPulse] = useState(false);
   const [timePulse, setTimePulse] = useState(false);
@@ -347,6 +348,18 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             </div>
 
             <div className="space-y-3 w-full max-w-xs">
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  onViewStats?.();
+                }}
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-purple-500/20 to-indigo-600/20 hover:from-purple-500/30 hover:to-indigo-600/30 active:from-purple-500/40 active:to-indigo-600/40 backdrop-blur-md rounded-xl border border-purple-500/30 text-purple-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                data-testid="button-view-stats"
+              >
+                <BarChart3 className="w-5 h-5" />
+                Performance Stats
+              </button>
+
               <button
                 onClick={() => {
                   setMenuOpen(false);

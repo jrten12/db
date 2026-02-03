@@ -349,6 +349,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
   const arvMid = (property.arvMin + property.arvMax) / 2;
   const playerARV = inputs.arvEstimate !== null ? inputs.arvEstimate : arvMid;
+  const sellingCosts = (n(inputs.sellingCostsPct) / 100) * arvMid;
   
   // Use flipProfit and flipROI directly from liveOutputs (calculated by calculateProForma)
   // This ensures consistency with MetricsPanel and other components

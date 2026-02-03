@@ -336,7 +336,7 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
       onClick={onClose}
     >
       <div 
-        className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[calc(100vh-80px)] md:max-h-[90vh] flex flex-col shadow-2xl"
+        className="relative bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[calc(100vh-80px)] md:max-h-[90vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
@@ -346,12 +346,21 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
           </div>
           <button 
             onClick={onClose}
-            className="p-3 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 rounded-xl transition-colors touch-target"
+            className="p-3 bg-red-500/20 hover:bg-red-500/40 active:bg-red-500/60 border border-red-500/40 rounded-xl transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center touch-manipulation"
             data-testid="button-close-ledger"
           >
-            <X className="w-6 h-6 text-white" />
+            <X className="w-6 h-6 text-red-400" />
           </button>
         </div>
+        
+        {/* Additional close button at top for mobile */}
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 md:hidden p-2 bg-red-500/30 hover:bg-red-500/50 border border-red-500/50 rounded-full touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center z-10"
+          data-testid="button-close-ledger-mobile"
+        >
+          <X className="w-5 h-5 text-red-300" />
+        </button>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 border-b border-slate-700">
           <div className="bg-slate-800/50 rounded-xl p-3 text-center">

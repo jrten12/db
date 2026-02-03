@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Wrench, Check, X, AlertTriangle, DollarSign, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import type { PropertyIssue } from '@/lib/propertyIssues';
+import { getIssueImage } from '@/lib/propertyImages';
 
 interface ItemizedRepairsPanelProps {
   issues: PropertyIssue[];
@@ -181,6 +182,7 @@ export function ItemizedRepairsPanel({
             const colors = SEVERITY_COLORS[issue.severity];
             const cost = getIssueCost(issue);
             const weeks = getIssueTime(issue);
+            const issueImage = getIssueImage(issue.id);
 
             return (
               <button
@@ -198,21 +200,32 @@ export function ItemizedRepairsPanel({
                 data-testid={`button-repair-${issue.id}`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                    isSelected 
-                      ? 'bg-cyan-500 border-cyan-500' 
-                      : 'border-slate-500'
-                  }`}>
-                    {isSelected && <Check className="w-3 h-3 text-white" />}
-                  </div>
+                  {issueImage ? (
+                    <img 
+                      src={issueImage} 
+                      alt={issue.name}
+                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0 border border-slate-600"
+                    />
+                  ) : (
+                    <div className={`w-16 h-16 rounded-lg flex items-center justify-center flex-shrink-0 border ${colors.border} ${colors.bg}`}>
+                      <AlertTriangle className={`w-6 h-6 ${colors.text}`} />
+                    </div>
+                  )}
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                        isSelected 
+                          ? 'bg-cyan-500 border-cyan-500' 
+                          : 'border-slate-500'
+                      }`}>
+                        {isSelected && <Check className="w-3 h-3 text-white" />}
+                      </div>
                       <span className={`font-medium ${isSelected ? 'text-cyan-100' : 'text-slate-200'}`}>
                         {issue.name}
                       </span>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} ${colors.border} border`}>
-                        {SEVERITY_LABELS[issue.severity]}
+                        {issue.severity}
                       </span>
                     </div>
                     
@@ -221,13 +234,13 @@ export function ItemizedRepairsPanel({
                     </p>
                     
                     <div className="flex items-center gap-4 mt-2 text-xs">
-                      <span className="flex items-center gap-1 text-emerald-400">
-                        <DollarSign className="w-3 h-3" />
-                        ${cost.min.toLocaleString()}-${cost.max.toLocaleString()}
+                      <span className="flex items-center gap-1 text-red-400">
+                        Estimated repair: <span className="font-mono">${cost.min.toLocaleString()}</span> - <span className="font-mono">${cost.max.toLocaleString()}</span>
                       </span>
+                    </div>
+                    <div className="flex items-center gap-4 mt-1 text-xs">
                       <span className="flex items-center gap-1 text-amber-400">
-                        <Clock className="w-3 h-3" />
-                        {weeks} week{weeks !== 1 ? 's' : ''}
+                        Timeline impact: <span className="font-mono">+{weeks} month{weeks !== 1 ? 's' : ''}</span>
                       </span>
                     </div>
                   </div>

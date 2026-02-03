@@ -195,7 +195,7 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
         <div className="lg:col-span-1">
           <div className="bg-slate-900/80 rounded-xl border border-slate-700 p-5">
             <h3 className="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">
-              Real-Time Metrics
+              Your Pro Forma Estimates
             </h3>
             
             <div className="space-y-4">
@@ -402,8 +402,8 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                           : 'drop-shadow(0 0 12px rgba(239,68,68,0.5))')
               }}>
                 {strategy === 'rent'
-                  ? (isPositiveCashFlow && isGoodCashOnCash ? '🏆 Deal Meets Rental Thresholds' : '❌ Deal Fails Rental Thresholds')
-                  : showFlipUnknown ? '⚠️ Outcome Unknown - No Appraisal' : (isPositiveProfit && isGoodROI ? '🏆 Deal Meets Flip Thresholds' : '❌ Deal Fails Flip Thresholds')
+                  ? (isPositiveCashFlow && isGoodCashOnCash ? '🏆 Projection Meets Investment Criteria' : '⚠️ Projection Below Target')
+                  : showFlipUnknown ? '⚠️ Cannot Evaluate - No Appraisal' : (isPositiveProfit && isGoodROI ? '🏆 Projection Meets Investment Criteria' : '⚠️ Projection Below Target')
                 }
               </h3>
             </div>
@@ -412,18 +412,21 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
               {strategy === 'rent' ? (
                 <>
                   <p>
-                    <strong>Required:</strong> 8% Cash-on-Cash + Positive Cash Flow
+                    <strong>Target Criteria:</strong> 8% Cash-on-Cash + Positive Cash Flow
                   </p>
                   <p>
-                    <strong>Your Deal:</strong> {outputs.cashOnCash.toFixed(1)}% CoC {isGoodCashOnCash ? '✓' : '✗'} | {formatCurrency(outputs.cashFlowMonthly)}/mo {isPositiveCashFlow ? '✓' : '✗'}
+                    <strong>Your Projection:</strong> {outputs.cashOnCash.toFixed(1)}% CoC {isGoodCashOnCash ? '✓' : '✗'} | {formatCurrency(outputs.cashFlowMonthly)}/mo {isPositiveCashFlow ? '✓' : '✗'}
                   </p>
                   <p className="text-gray-400 mt-2">
                     {isPositiveCashFlow && isGoodCashOnCash 
-                      ? `This deal works because your rent covers all expenses with margin. Your vacancy buffer and contingency provide protection against surprises.`
+                      ? `Based on your inputs, this deal meets investment criteria. Actual results will depend on market conditions and how accurate your assumptions are.`
                       : !isPositiveCashFlow 
-                        ? `This deal fails because rent doesn't cover your mortgage and expenses. Consider: Is rent too optimistic? Is the purchase price too high? Are you using the right financing?`
-                        : `This deal has positive cash flow but ${outputs.cashOnCash.toFixed(1)}% CoC is below the 8% threshold. Your capital would work harder elsewhere. Consider negotiating a lower price or finding higher rents.`
+                        ? `Your projections show negative cash flow. Review your rent, vacancy, and expense assumptions. Actual results may vary - better diligence reduces uncertainty.`
+                        : `Projection shows positive cash flow but ${outputs.cashOnCash.toFixed(1)}% CoC is below target. Consider adjusting your assumptions or finding a better deal.`
                     }
+                  </p>
+                  <p className="text-blue-400/80 text-xs mt-3 italic">
+                    Note: These are YOUR estimates. Actual results will be revealed as the deal progresses. Better diligence = more accurate projections.
                   </p>
                 </>
               ) : showFlipUnknown ? (
@@ -441,18 +444,21 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
               ) : (
                 <>
                   <p>
-                    <strong>Required:</strong> 20% ROI + $15,000 Minimum Profit
+                    <strong>Target Criteria:</strong> 20% ROI + $15,000 Minimum Profit
                   </p>
                   <p>
-                    <strong>Your Deal:</strong> {flipROI.toFixed(1)}% ROI {isGoodROI ? '✓' : '✗'} | {formatCurrency(flipProfit)} profit {flipProfit >= 15000 ? '✓' : '✗'}
+                    <strong>Your Projection:</strong> {flipROI.toFixed(1)}% ROI {isGoodROI ? '✓' : '✗'} | {formatCurrency(flipProfit)} profit {flipProfit >= 15000 ? '✓' : '✗'}
                   </p>
                   <p className="text-gray-400 mt-2">
                     {isPositiveProfit && isGoodROI
-                      ? `This deal works because your ARV estimate minus all costs leaves ${formatCurrency(flipProfit)} profit. Your contingency helps protect this margin.`
+                      ? `Based on your ARV and cost estimates, this deal meets investment criteria. Actual sale price will depend on market conditions and rehab quality.`
                       : !isPositiveProfit
-                        ? `This deal loses money. Either your ARV is too optimistic, rehab costs are underestimated, or the purchase price is too high. Check your assumptions.`
-                        : `Profit is positive but ${flipROI.toFixed(1)}% ROI is below the 20% threshold. This margin is too thin to absorb surprises. You need more spread between purchase price and ARV.`
+                        ? `Your projections show a loss. Review ARV, rehab costs, and purchase price assumptions. Better diligence gives more accurate estimates.`
+                        : `Projection shows profit but ${flipROI.toFixed(1)}% ROI is below target. Margins may be too thin to absorb surprises.`
                     }
+                  </p>
+                  <p className="text-blue-400/80 text-xs mt-3 italic">
+                    Note: These are YOUR estimates. Actual sale price will be revealed when you sell. Better diligence = more accurate projections.
                   </p>
                 </>
               )}

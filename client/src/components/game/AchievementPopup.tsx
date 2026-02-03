@@ -45,20 +45,28 @@ export function AchievementPopup({ achievementId, onClose }: AchievementPopupPro
     if (achievementId) {
       setIsVisible(true);
       const achievement = ACHIEVEMENT_DEFINITIONS[achievementId];
-      if (achievement) {
-        if (achievement.tier === 'diamond' || achievement.tier === 'platinum') {
-          playEpicAchievement();
-        } else {
-          playAchievement();
+      
+      // Delay sound slightly to avoid overlap with week advance sound
+      const soundTimer = setTimeout(() => {
+        if (achievement) {
+          if (achievement.tier === 'diamond' || achievement.tier === 'platinum') {
+            playEpicAchievement();
+          } else {
+            playAchievement();
+          }
         }
-      }
+      }, 300);
       
-      const timer = setTimeout(() => {
+      // Show for just a beat (2.5 seconds) then fade out
+      const hideTimer = setTimeout(() => {
         setIsVisible(false);
-        setTimeout(onClose, 500);
-      }, 4000);
+        setTimeout(onClose, 400);
+      }, 2500);
       
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(soundTimer);
+        clearTimeout(hideTimer);
+      };
     }
   }, [achievementId, playAchievement, playEpicAchievement, onClose]);
 

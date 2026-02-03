@@ -396,27 +396,6 @@ export default function Game() {
     };
   }, [deals, properties, gameRun?.cash]);
 
-  // Live flip metrics derived directly from proFormaOutputs for perfect consistency
-  const liveFlipMetrics = useMemo(() => {
-    if (!selectedProperty || proFormaInputs.strategy !== 'flip' || !proFormaOutputs) {
-      return { profit: 0, roi: 0 };
-    }
-    
-    const hasAppraisal = completedDiligence[selectedProperty.id]?.includes('appraisal');
-    if (!hasAppraisal) {
-      return { profit: 0, roi: 0 };
-    }
-    
-    // Use flipProfit and flipROI directly from proFormaOutputs
-    // These are calculated by calculateProForma with all the correct factors:
-    // - Player-state-aware interest rates
-    // - Week-based market rate variability
-    // - Construction loan premium
-    // - financeRehab effects on cash invested
-    // - Holding costs tied to rehab weeks
-    return { profit: proFormaOutputs.flipProfit, roi: proFormaOutputs.flipROI };
-  }, [selectedProperty, proFormaInputs.strategy, proFormaOutputs, completedDiligence]);
-
   useEffect(() => {
     if (!gameRun || gameRun.status !== 'active') return;
     
@@ -503,6 +482,27 @@ export default function Game() {
   }, [investigations]);
 
   const selectedProperty = properties.find(p => p.id === selectedPropertyId);
+
+  // Live flip metrics derived directly from proFormaOutputs for perfect consistency
+  const liveFlipMetrics = useMemo(() => {
+    if (!selectedProperty || proFormaInputs.strategy !== 'flip' || !proFormaOutputs) {
+      return { profit: 0, roi: 0 };
+    }
+    
+    const hasAppraisal = completedDiligence[selectedProperty.id]?.includes('appraisal');
+    if (!hasAppraisal) {
+      return { profit: 0, roi: 0 };
+    }
+    
+    // Use flipProfit and flipROI directly from proFormaOutputs
+    // These are calculated by calculateProForma with all the correct factors:
+    // - Player-state-aware interest rates
+    // - Week-based market rate variability
+    // - Construction loan premium
+    // - financeRehab effects on cash invested
+    // - Holding costs tied to rehab weeks
+    return { profit: proFormaOutputs.flipProfit, roi: proFormaOutputs.flipROI };
+  }, [selectedProperty, proFormaInputs.strategy, proFormaOutputs, completedDiligence]);
 
   const handlePropertyClick = useCallback((id: number) => {
     setSelectedPropertyId(id);

@@ -1379,5 +1379,50 @@ export async function registerRoutes(
     }
   });
 
+  // Achievement routes
+  app.get("/api/game-runs/:id/achievements", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      const achievements = await storage.getAchievements(gameRunId);
+      res.json(achievements);
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      res.status(500).json({ error: "Failed to fetch achievements" });
+    }
+  });
+
+  const unlockAchievementSchema = z.object({
+    achievementId: z.string().min(1),
+    metadata: z.record(z.unknown()).optional(),
+  });
+
+  app.post("/api/game-runs/:id/achievements", async (req, res) => {
+    try {
+      const gameRunId = parseInt(req.params.id);
+      if (isNaN(gameRunId)) {
+        return res.status(400).json({ error: "Invalid game run ID" });
+      }
+      
+      const parseResult = unlockAchievementSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({ error: "Invalid request body", details: parseResult.error.errors });
+      }
+      
+      const { achievementId, metadata } = parseResult.data;
+      
+      // Check if already unlocked
+      const hasIt = await storage.hasAchievement(gameRunId, achievementId);
+      if (hasIt) {
+        return res.status(200).json({ alreadyUnlocked: true });
+      }
+      
+      const achievement = await storage.unlockAchievement(gameRunId, achievementId, metadata);
+      res.json(achievement);
+    } catch (error) {
+      console.error("Error unlocking achievement:", error);
+      res.status(500).json({ error: "Failed to unlock achievement" });
+    }
+  });
+
   return httpServer;
 }

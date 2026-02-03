@@ -86,19 +86,26 @@ export function EndGameSummary({
 
   const profileColors = getColorClasses(profile.color);
 
+  const handleClose = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClose();
+  };
+
   return (
     <div 
       className="fixed inset-0 z-[70] bg-black/90 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div 
         className="flex flex-col items-center pt-16 pb-12 px-4 min-h-full"
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          onClick={onClose}
-          className="fixed top-4 right-4 p-3 bg-red-500/30 hover:bg-red-500/50 border border-red-500/50 rounded-full text-white transition-all z-[100] min-w-[48px] min-h-[48px] flex items-center justify-center"
+          onClick={handleClose}
+          className="fixed top-4 right-4 p-3 bg-red-500/30 hover:bg-red-500/50 border border-red-500/50 rounded-full text-white transition-all z-[100] min-w-[48px] min-h-[48px] flex items-center justify-center cursor-pointer"
           data-testid="button-close-summary"
+          type="button"
         >
           <X className="w-6 h-6" />
         </button>

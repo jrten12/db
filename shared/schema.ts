@@ -304,3 +304,20 @@ export const insertCouponSchema = createInsertSchema(coupons).omit({
 export type Coupon = typeof coupons.$inferSelect;
 export type InsertCoupon = z.infer<typeof insertCouponSchema>;
 export type CouponRedemption = typeof couponRedemptions.$inferSelect;
+
+// Achievements/Awards system
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  gameRunId: integer("game_run_id").notNull().references(() => gameRuns.id),
+  achievementId: text("achievement_id").notNull(), // e.g., 'first_25k', 'the_landlord'
+  unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
+  metadata: jsonb("metadata"), // Extra data about the achievement (e.g., ROI value, deal details)
+});
+
+export const insertAchievementSchema = createInsertSchema(achievements).omit({
+  id: true,
+  unlockedAt: true,
+});
+
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = z.infer<typeof insertAchievementSchema>;

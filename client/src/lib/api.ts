@@ -139,6 +139,23 @@ export const api = {
     return res.json();
   },
 
+  // Achievements
+  async getAchievements(gameRunId: number): Promise<any[]> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/achievements`);
+    if (!res.ok) throw new Error('Failed to fetch achievements');
+    return res.json();
+  },
+
+  async unlockAchievement(gameRunId: number, achievementId: string, metadata?: any): Promise<any> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/achievements`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ achievementId, metadata }),
+    });
+    if (!res.ok) throw new Error('Failed to unlock achievement');
+    return res.json();
+  },
+
   async createLedgerEntries(
     gameRunId: number,
     entries: Array<{ direction: string; category: string; amount: number; description: string; propertyId?: number; dealId?: number }>,

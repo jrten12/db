@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 
-type SoundType = 'click' | 'success' | 'error' | 'whoosh' | 'coin' | 'levelUp' | 'tick';
+type SoundType = 'click' | 'success' | 'error' | 'whoosh' | 'coin' | 'levelUp' | 'tick' | 'achievement' | 'epicAchievement';
 
 const SOUND_CONFIG: Record<SoundType, { frequency: number; duration: number; type: OscillatorType; gain: number }[]> = {
   click: [
@@ -30,6 +30,20 @@ const SOUND_CONFIG: Record<SoundType, { frequency: number; duration: number; typ
   ],
   tick: [
     { frequency: 600, duration: 0.03, type: 'sine', gain: 0.06 },
+  ],
+  achievement: [
+    { frequency: 587.33, duration: 0.08, type: 'sine', gain: 0.18 },
+    { frequency: 739.99, duration: 0.08, type: 'sine', gain: 0.18 },
+    { frequency: 880, duration: 0.12, type: 'sine', gain: 0.2 },
+    { frequency: 1174.66, duration: 0.25, type: 'sine', gain: 0.22 },
+  ],
+  epicAchievement: [
+    { frequency: 392, duration: 0.1, type: 'sine', gain: 0.2 },
+    { frequency: 493.88, duration: 0.1, type: 'sine', gain: 0.2 },
+    { frequency: 587.33, duration: 0.1, type: 'sine', gain: 0.22 },
+    { frequency: 783.99, duration: 0.15, type: 'sine', gain: 0.25 },
+    { frequency: 987.77, duration: 0.15, type: 'sine', gain: 0.25 },
+    { frequency: 1174.66, duration: 0.3, type: 'sine', gain: 0.28 },
   ],
 };
 
@@ -86,5 +100,7 @@ export function useUISounds() {
     playCoin: useCallback(() => playSound('coin'), [playSound]),
     playLevelUp: useCallback(() => playSound('levelUp'), [playSound]),
     playTick: useCallback(() => playSound('tick'), [playSound]),
+    playAchievement: useCallback(() => playSound('achievement'), [playSound]),
+    playEpicAchievement: useCallback(() => playSound('epicAchievement'), [playSound]),
   };
 }

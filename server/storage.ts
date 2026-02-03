@@ -26,7 +26,9 @@ import type {
   InsertTenant,
   Coupon,
   InsertCoupon,
-  CouponRedemption
+  CouponRedemption,
+  Achievement,
+  InsertAchievement
 } from "@shared/schema";
 
 const pool = new Pool({
@@ -101,6 +103,11 @@ export interface IStorage {
   updateCoupon(id: number, updates: Partial<InsertCoupon>): Promise<Coupon | undefined>;
   redeemCoupon(couponId: number, gameRunId: number): Promise<{ coupon: Coupon; gameRun: GameRun; cashAdded: number; monthsAdded: number }>;
   hasRedeemedCoupon(couponId: number, gameRunId: number): Promise<boolean>;
+
+  // Achievement methods
+  getAchievements(gameRunId: number): Promise<Achievement[]>;
+  unlockAchievement(gameRunId: number, achievementId: string, metadata?: any): Promise<Achievement>;
+  hasAchievement(gameRunId: number, achievementId: string): Promise<boolean>;
 }
 
 export class DBStorage implements IStorage {
@@ -1840,6 +1847,39 @@ export class DBStorage implements IStorage {
         monthsAdded: coupon.monthsAmount,
       };
     });
+  }
+
+  // Achievement methods
+  async getAchievements(gameRunId: number): Promise<Achievement[]> {
+    return await db
+      .select()
+      .from(schema.achievements)
+      .where(eq(schema.achievements.gameRunId, gameRunId))
+      .orderBy(desc(schema.achievements.unlockedAt));
+  }
+
+  async unlockAchievement(gameRunId: number, achievementId: string, metadata?: any): Promise<Achievement> {
+    const [achievement] = await db
+      .insert(schema.achievements)
+      .values({
+        gameRunId,
+        achievementId,
+        metadata: metadata || null,
+      })
+      .returning();
+    return achievement;
+  }
+
+  async hasAchievement(gameRunId: number, achievementId: string): Promise<boolean> {
+    const [existing] = await db
+      .select()
+      .from(schema.achievements)
+      .where(and(
+        eq(schema.achievements.gameRunId, gameRunId),
+        eq(schema.achievements.achievementId, achievementId)
+      ))
+      .limit(1);
+    return !!existing;
   }
 }
 

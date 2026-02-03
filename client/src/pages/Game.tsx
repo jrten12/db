@@ -24,6 +24,8 @@ import { PremiumModal } from '@/components/game/PremiumModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
 import { EndGameSummary } from '@/components/game/EndGameSummary';
+import { AchievementQueue } from '@/components/game/AchievementPopup';
+import { checkAchievements, type AchievementCheckContext } from '@/lib/achievements';
 import { TrophyNotificationManager, useTrophyNotifications } from '@/components/game/TrophyUnlockNotification';
 import { BankruptModal } from '@/components/game/BankruptModal';
 import { SaveIndicator } from '@/components/game/SaveIndicator';
@@ -134,6 +136,9 @@ export default function Game() {
   const [showEndGameSummary, setShowEndGameSummary] = useState(false);
   const [endGameWon, setEndGameWon] = useState(false);
   const [showDebtPanel, setShowDebtPanel] = useState(false);
+  const [achievementQueue, setAchievementQueue] = useState<string[]>([]);
+  const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
+  const [achievementsLoaded, setAchievementsLoaded] = useState(false);
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<HallOfFamePlayer | null>(null);
   const [showNameEntry, setShowNameEntry] = useState(true);
@@ -398,6 +403,79 @@ export default function Game() {
       totalAssetValue,
     };
   }, [deals, properties, gameRun?.cash]);
+
+  // Check for new achievements when deals change
+  useEffect(() => {
+    if (!gameRun || deals.length === 0 || !achievementsLoaded) return;
+    
+    const activeRentals = deals.filter(d => d.status === 'active_rental').length;
+    const completedFlips = deals.filter(d => d.strategy === 'flip' && d.status === 'completed').length;
+    
+    // Count consecutive profitable flips
+    const flipDeals = deals
+      .filter(d => d.strategy === 'flip' && d.status === 'completed')
+      .sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime());
+    
+    let consecutiveFlipProfits = 0;
+    for (const deal of flipDeals) {
+      if ((deal.actualProfit || 0) > 0) {
+        consecutiveFlipProfits++;
+      } else {
+        break;
+      }
+    }
+    
+    // Calculate total profit from completed deals
+    const totalProfit = deals.reduce((sum, d) => {
+      if (d.status === 'completed' || d.status === 'sold_rental') {
+        return sum + (d.actualProfit || 0);
+      }
+      return sum;
+    }, 0);
+    
+    const context: AchievementCheckContext = {
+      deals,
+      totalProfit,
+      startingCash: 75000,
+      currentCash: gameRun.cash,
+      consecutiveFlipProfits,
+      activeRentals,
+      completedFlips,
+      weeksUsed: 52 - (gameRun.weeksRemaining || 0),
+      unlockedAchievements,
+    };
+    
+    const newAchievements = checkAchievements(context);
+    
+    if (newAchievements.length > 0) {
+      // Unlock each new achievement on the server
+      newAchievements.forEach(async (achievementId) => {
+        try {
+          await api.unlockAchievement(gameRun.id, achievementId);
+        } catch (err) {
+          console.error('Failed to unlock achievement:', err);
+        }
+      });
+      
+      // Add to local state and queue for display
+      setUnlockedAchievements(prev => [...prev, ...newAchievements]);
+      setAchievementQueue(prev => [...prev, ...newAchievements]);
+    }
+  }, [deals, gameRun?.cash, gameRun?.id, unlockedAchievements, achievementsLoaded]);
+
+  // Load existing achievements when game starts
+  useEffect(() => {
+    if (!gameRun?.id) return;
+    
+    setAchievementsLoaded(false);
+    api.getAchievements(gameRun.id).then(achievements => {
+      setUnlockedAchievements(achievements.map(a => a.achievementId));
+      setAchievementsLoaded(true);
+    }).catch(err => {
+      console.error('Failed to load achievements:', err);
+      setAchievementsLoaded(true); // Still allow checking even if load fails
+    });
+  }, [gameRun?.id]);
 
   useEffect(() => {
     if (!gameRun || gameRun.status !== 'active') return;
@@ -1438,17 +1516,6 @@ export default function Game() {
     }
   }, [gameRun?.weeksRemaining, gameRun?.cash, isBankrupt, hasShownNoWeeksPopup, hasShownLowCashPopup, showPremiumModal]);
 
-  // Auto-show end game summary when game is won
-  useEffect(() => {
-    if (!gameRun || isBankrupt) return;
-    
-    const isWon = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 3);
-    if (isWon && !showEndGameSummary) {
-      setEndGameWon(true);
-      setShowEndGameSummary(true);
-    }
-  }, [gameRun?.profitableDeals, gameRun?.goalDeals, isBankrupt, showEndGameSummary]);
-
   const handleBankruptReturnHome = useCallback(async () => {
     // Record game end stats to Hall of Fame before resetting
     if (gameRun?.id) {
@@ -2034,6 +2101,12 @@ export default function Game() {
         <TrophyNotificationManager 
           awardedTrophies={pendingTrophies} 
           onAllDismissed={clearTrophies} 
+        />
+
+        {/* Achievement Popups */}
+        <AchievementQueue 
+          queue={achievementQueue}
+          onDismiss={(id) => setAchievementQueue(prev => prev.filter(a => a !== id))}
         />
 
         {/* Bankruptcy Modal */}

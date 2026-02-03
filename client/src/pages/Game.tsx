@@ -14,6 +14,7 @@ import { MoneyAnimation } from '@/components/game/MoneyAnimation';
 import { DealTransactionAnimation } from '@/components/game/DealTransactionAnimation';
 import { TimeProgressionPanel } from '@/components/game/TimeProgressionPanel';
 import { IncomeNotification, useIncomeNotifications } from '@/components/game/IncomeNotification';
+import { ConstructionNotification, useConstructionNotifications } from '@/components/game/ConstructionNotification';
 import { TenantIssuePopup, type TenantIssueEvent } from '@/components/game/TenantIssuePopup';
 import { TenantTextPopup } from '@/components/game/TenantTextPopup';
 import { AnimatedBackground } from '@/components/game/AnimatedBackground';
@@ -182,6 +183,12 @@ export default function Game() {
 
   // Income notifications
   const { events: incomeEvents, dismissEvent, addRentalPayment, addFlipProceeds, addCurveballBonus } = useIncomeNotifications();
+  const { 
+    events: constructionEvents, 
+    addConstructionStart, 
+    addConstructionComplete, 
+    dismissEvent: dismissConstructionEvent 
+  } = useConstructionNotifications();
   
   // Trophy notifications
   const { pendingTrophies, addTrophies, clearTrophies } = useTrophyNotifications();
@@ -1022,7 +1029,8 @@ export default function Game() {
         // Start flip - if no rehab budget, use 0 weeks (ready to list immediately)
         await api.startFlipRehab(newDeal.id, gameRun.id, rehabWeeks);
         if (rehabBudget > 0) {
-          toast.success('Flip started! Renovations in progress. Check Time & Income panel.');
+          // Show beautiful construction start notification
+          addConstructionStart(selectedProperty.name, 'flip', rehabWeeks, rehabBudget);
         } else {
           toast.success('Flip started! No renovations planned - ready to list immediately. Sale price will reflect property condition.');
         }
@@ -1112,12 +1120,9 @@ export default function Game() {
         const deal = deals.find(d => d.id === flip.dealId);
         const property = properties.find(p => p.id === deal?.propertyId);
         
-        // If this flip is ready to list (not sold yet), show a different notification
+        // If this flip is ready to list (not sold yet), show construction complete notification
         if (flip.readyToList) {
-          toast.success(
-            `🏠 ${property?.name || 'Property'} rehab complete! Ready to sell. Check the Time & Income panel.`,
-            { duration: 5000 }
-          );
+          addConstructionComplete(property?.name || 'Property', 'flip');
           return; // Don't show flip proceeds for ready_to_list flips
         }
         
@@ -1125,7 +1130,7 @@ export default function Game() {
         
         // Show title issue warning if skipped title search
         if (flip.titleIssue) {
-          toast.error(`📜 Title Issue on ${property?.name || 'property'}: ${flip.titleIssue.name} - $${flip.titleIssue.cost.toLocaleString()} to resolve! Should have done the title search.`, { duration: 8000 });
+          toast.error(`Title Issue on ${property?.name || 'property'}: ${flip.titleIssue.name} - $${flip.titleIssue.cost.toLocaleString()} to resolve! Should have done the title search.`, { duration: 8000 });
         }
         
         // Show surprise costs warning if any hidden repair issues were discovered during flip
@@ -1133,23 +1138,21 @@ export default function Game() {
         if (repairIssues.length > 0) {
           const repairCost = flip.surpriseCosts - (flip.titleIssue?.cost || 0);
           if (repairCost > 0) {
-            toast.warning(`⚠️ Surprise repairs on ${property?.name || 'property'}: $${repairCost.toLocaleString()} for ${repairIssues.join(', ')}. This cut into your profit!`);
+            toast.warning(`Surprise repairs on ${property?.name || 'property'}: $${repairCost.toLocaleString()} for ${repairIssues.join(', ')}. This cut into your profit!`);
           }
         }
       });
       
-      // Show rental rehab completion notifications
+      // Show beautiful rental rehab completion notifications with rent increase
       if (result.completedRentalRehabs && result.completedRentalRehabs.length > 0) {
         result.completedRentalRehabs.forEach((rehab: any) => {
           const rentIncrease = rehab.newMonthlyRent - rehab.previousRent;
-          const percentIncrease = Math.round((rentIncrease / rehab.previousRent) * 100);
-          const statusNote = rehab.fixedCount < rehab.totalIssueCount
-            ? ` (${rehab.fixedCount}/${rehab.totalIssueCount} issues fixed)`
-            : ' (all issues fixed!)';
-          
-          toast.success(
-            `🔧 Renovation Complete: ${rehab.propertyName}! New rent: $${rehab.newMonthlyRent.toLocaleString()}/mo (+${percentIncrease}%)${statusNote}`,
-            { duration: 6000 }
+          addConstructionComplete(
+            rehab.propertyName, 
+            'rent', 
+            rentIncrease > 0 ? rentIncrease : undefined,
+            rehab.previousRent,
+            rehab.newMonthlyRent
           );
         });
       }
@@ -1778,6 +1781,9 @@ export default function Game() {
                       weeksOwned,
                       canRefinance,
                       contractorWalkthroughCompleted: d.contractorWalkthroughCompleted ?? false,
+                      rentalRehabActive: d.rentalRehabActive ?? false,
+                      rentalRehabWeeksRemaining: d.rentalRehabWeeksRemaining ?? undefined,
+                      weeksUntilCompletion: d.weeksUntilCompletion ?? undefined,
                     };
                   })}
                   onSellProperty={handleSellProperty}
@@ -2097,6 +2103,9 @@ export default function Game() {
         {/* Income Notifications */}
         <IncomeNotification events={incomeEvents} onDismiss={dismissEvent} />
 
+        {/* Construction Notifications */}
+        <ConstructionNotification events={constructionEvents} onDismiss={dismissConstructionEvent} />
+
         {/* Trophy Unlock Notifications */}
         <TrophyNotificationManager 
           awardedTrophies={pendingTrophies} 
@@ -2160,7 +2169,8 @@ export default function Game() {
             onTreasureFound={(amount, propertyName) => {
               setTreasureData({ amount, propertyName, context: 'walkthrough' });
             }}
-            onStartRepairs={() => {
+            onStartRepairs={(dealId, propertyName, weeks, cost) => {
+              addConstructionStart(propertyName, 'rent', weeks, cost);
               queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
               queryClient.invalidateQueries({ queryKey: ['/api/game-runs'] });
             }}

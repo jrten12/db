@@ -55,7 +55,7 @@ interface ContractorWalkthroughModalProps {
   gameRun: GameRun;
   onComplete: () => void;
   onTreasureFound?: (amount: number, propertyName: string) => void;
-  onStartRepairs?: (dealId: number) => void;
+  onStartRepairs?: (dealId: number, propertyName: string, weeks: number, cost: number) => void;
 }
 
 type ViewState = 'quote' | 'performing' | 'results' | 'already_done';
@@ -561,7 +561,7 @@ export function ContractorWalkthroughModal({
                           });
                           const data = await response.json();
                           if (data.success) {
-                            onStartRepairs(deal.id);
+                            onStartRepairs(deal.id, property.name, data.estimatedWeeks || selectedTotals.weeks, selectedTotals.cost);
                             onComplete();
                             onClose();
                           } else {

@@ -1127,8 +1127,18 @@ export class DBStorage implements IStorage {
     const arvRange = property.arvMax - property.arvMin;
     const baseSalePrice = property.arvMin + (completionFactor * arvRange);
     
-    // Apply market variance (-5% to +10%)
-    const marketVariance = 0.95 + (Math.random() * 0.15);
+    // Apply market conditions to flip sale price (same logic as rental sales)
+    // This creates correlation between flip and rental markets
+    const marketCondition = gameRun.marketCondition || 'good';
+    const marketMult = getMarketMultipliers(marketCondition as MarketCondition);
+    
+    // Base market variance: -5% to +10%
+    // Market condition shifts this range up or down
+    const baseMin = 0.95;
+    const baseMax = 1.10;
+    const adjustedMin = baseMin * marketMult.min; // In terrible market: 0.95 * 0.85 = 0.81
+    const adjustedMax = baseMax * marketMult.max; // In excellent market: 1.10 * 1.15 = 1.27
+    const marketVariance = adjustedMin + Math.random() * (adjustedMax - adjustedMin);
     const salePrice = Math.round(baseSalePrice * marketVariance);
     const saleMultiplier = salePrice / purchasePrice;
     

@@ -532,7 +532,7 @@ export function ContractorWalkthroughModal({
                           <div className="bg-red-500/10 rounded-lg p-2 mt-2 flex items-center gap-2">
                             <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
                             <span className="text-xs text-red-300">
-                              Short ${affordability.shortfall.toLocaleString()} - deselect some repairs
+                              Short ${Math.round(affordability.shortfall).toLocaleString()} - deselect some repairs
                             </span>
                           </div>
                         )}
@@ -589,7 +589,7 @@ export function ContractorWalkthroughModal({
                       ) : !affordability.canAfford ? (
                         <>
                           <XCircle className="w-4 h-4 mr-2" />
-                          Can't Afford (${affordability.shortfall.toLocaleString()} short)
+                          Can't Afford (${Math.round(affordability.shortfall).toLocaleString()} short)
                         </>
                       ) : (
                         <>

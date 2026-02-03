@@ -1,6 +1,10 @@
 import { Link } from 'wouter';
 import { ArrowRight, TrendingUp, Clock, Target, DollarSign, Search, BarChart3, Shield, Play, Volume2, VolumeX } from 'lucide-react';
 import heroImage from '@assets/image_1767847036185.png';
+import featureUncoverSecrets from '@/assets/images/feature-uncover-secrets.png';
+import featureCrunchNumbers from '@/assets/images/feature-crunch-numbers.png';
+import featureBeatClock from '@/assets/images/feature-beat-clock.png';
+import featureManageChaos from '@/assets/images/feature-manage-chaos.png';
 import Footer from '@/components/Footer';
 import { useSplash } from '@/App';
 import { useMusic } from '@/hooks/useMusicPlayer';
@@ -158,13 +162,14 @@ export default function Landing() {
               </div>
 
               {/* Feature cards grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FeatureCard
                   icon={<Search className="w-6 h-6" />}
                   iconColor="text-blue-400"
                   iconBg="bg-blue-500/15"
                   title="Uncover Secrets"
-                  description="Dig into each property. Hidden mold? Bad foundation? The seller won't tell you—find out yourself."
+                  description="Dig into each property. Hidden foundation? Sagging floorboards? Discover what lies beneath."
+                  image={featureUncoverSecrets}
                 />
                 <FeatureCard
                   icon={<BarChart3 className="w-6 h-6" />}
@@ -172,13 +177,7 @@ export default function Landing() {
                   iconBg="bg-emerald-500/15"
                   title="Crunch the Numbers"
                   description="Will it cash flow? What's your return? Build your model and test your instincts."
-                />
-                <FeatureCard
-                  icon={<TrendingUp className="w-6 h-6" />}
-                  iconColor="text-purple-400"
-                  iconBg="bg-purple-500/15"
-                  title="Choose Your Play"
-                  description="Rent it out for steady income or flip it fast for a big payday. Different strategies, different risks."
+                  image={featureCrunchNumbers}
                 />
                 <FeatureCard
                   icon={<Clock className="w-6 h-6" />}
@@ -186,6 +185,7 @@ export default function Landing() {
                   iconBg="bg-amber-500/15"
                   title="Beat the Clock"
                   description="You've got 52 months. Spend too long researching and opportunities slip away."
+                  image={featureBeatClock}
                 />
                 <FeatureCard
                   icon={<Shield className="w-6 h-6" />}
@@ -193,13 +193,7 @@ export default function Landing() {
                   iconBg="bg-red-500/15"
                   title="Manage the Chaos"
                   description="Contractors flake. Tenants complain. Markets shift. How you handle surprises matters."
-                />
-                <FeatureCard
-                  icon={<Target className="w-6 h-6" />}
-                  iconColor="text-cyan-400"
-                  iconBg="bg-cyan-500/15"
-                  title="3 Wins to Victory"
-                  description="Close 3 profitable deals and you've made it. But most people never get there."
+                  image={featureManageChaos}
                 />
               </div>
             </div>
@@ -288,21 +282,35 @@ function FeatureCard({
   iconColor,
   iconBg,
   title,
-  description
+  description,
+  image
 }: {
   icon: React.ReactNode;
   iconColor: string;
   iconBg: string;
   title: string;
   description: string;
+  image?: string;
 }) {
   return (
-    <div className="group p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.1] transition-all">
-      <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center mb-4 ${iconColor}`}>
-        {icon}
+    <div className="group rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.1] transition-all overflow-hidden">
+      {image && (
+        <div className="relative h-40 overflow-hidden">
+          <img 
+            src={image} 
+            alt={title}
+            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0b] via-transparent to-transparent" />
+        </div>
+      )}
+      <div className="p-5">
+        <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center mb-4 ${iconColor} border border-white/10`}>
+          {icon}
+        </div>
+        <h3 className="text-white font-semibold text-lg mb-2">{title}</h3>
+        <p className="text-gray-400 text-sm leading-relaxed">{description}</p>
       </div>
-      <h3 className="text-white font-semibold text-lg mb-2">{title}</h3>
-      <p className="text-gray-400 text-sm leading-relaxed">{description}</p>
     </div>
   );
 }

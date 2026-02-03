@@ -241,6 +241,8 @@ export const api = {
     saleProfit: number;
     salePrice: number;
     purchasePrice: number;
+    netProceeds: number;
+    mortgagePayoff: number;
     awardedTrophies?: string[];
   }> {
     const res = await fetch(`${API_BASE}/deals/${dealId}/sell-flip`, {

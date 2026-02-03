@@ -64,7 +64,7 @@ export interface IStorage {
   getDealsByPlayerName(playerName: string): Promise<Deal[]>;
   updateDeal(id: number, updates: Partial<InsertDeal>): Promise<Deal | undefined>;
   sellRentalProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number; mortgagePayoff: number; netProceeds: number }>;
-  sellFlipProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number }>;
+  sellFlipProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number; netProceeds: number; mortgagePayoff: number }>;
   refinanceRentalProperty(dealId: number, gameRunId: number, requestedCashOut?: number, selectedLtv?: number, allDeals?: Deal[], property?: Property): Promise<{ deal: Deal; gameRun: GameRun; cashOut: number; newLoanBalance: number; oldLoanBalance: number; refinanceFees: number; newInterestRate: number }>;
 
   // Property Investigation methods
@@ -1060,7 +1060,7 @@ export class DBStorage implements IStorage {
     };
   }
 
-  async sellFlipProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number }> {
+  async sellFlipProperty(dealId: number, gameRunId: number): Promise<{ deal: Deal; gameRun: GameRun; saleProfit: number; salePrice: number; purchasePrice: number; netProceeds: number; mortgagePayoff: number }> {
     const [deal] = await db
       .select()
       .from(schema.deals)
@@ -1089,31 +1089,54 @@ export class DBStorage implements IStorage {
       throw new Error('Not enough weeks remaining to sell (need 2 weeks)');
     }
     
-    // Get purchase price from deal or property
-    let purchasePrice = deal.purchasePrice ?? 0;
-    if (purchasePrice <= 0) {
-      const [property] = await db
-        .select()
-        .from(schema.properties)
-        .where(eq(schema.properties.id, deal.propertyId))
-        .limit(1);
-      if (!property) throw new Error('Property not found');
-      purchasePrice = property.price;
-    }
+    // Get property for ARV calculation
+    const [property] = await db
+      .select()
+      .from(schema.properties)
+      .where(eq(schema.properties.id, deal.propertyId))
+      .limit(1);
+    if (!property) throw new Error('Property not found');
+    
+    const purchasePrice = deal.purchasePrice ?? property.price;
+    const proFormaOutputs = deal.proFormaOutputs as any;
+    const proFormaInputs = deal.proFormaInputs as any;
     
     // Get the CURRENT mortgage balance from the deal
-    const proFormaOutputs = deal.proFormaOutputs as any;
     const mortgagePayoff = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
     
-    // Flip sale: -10% to +15% of purchase price
-    const saleMultiplier = 0.90 + Math.random() * 0.25;
-    const salePrice = Math.round(purchasePrice * saleMultiplier);
+    // Calculate sale price based on ARV and rehab investment (not just purchase price!)
+    // This mirrors the logic from completeFlipDeal in gameMechanics.ts
+    const rehabBudget = proFormaInputs?.rehabBudget || 0;
+    const contingencyPct = proFormaInputs?.contingencyPct || 10;
+    const actualRehabSpend = rehabBudget * (1 + contingencyPct / 100);
     
-    // Net proceeds = sale price minus mortgage payoff
+    // Calculate rehab completion factor (0 to 1) based on how much was invested
+    const rehabRange = property.rehabMax - property.rehabMin;
+    const completionFactor = rehabRange > 0 
+      ? Math.max(0, Math.min(1, (actualRehabSpend - property.rehabMin) / rehabRange))
+      : 0.5;
+    
+    // Base sale price scales with rehab completion within the ARV range
+    const arvRange = property.arvMax - property.arvMin;
+    const baseSalePrice = property.arvMin + (completionFactor * arvRange);
+    
+    // Apply market variance (-5% to +10%)
+    const marketVariance = 0.95 + (Math.random() * 0.15);
+    const salePrice = Math.round(baseSalePrice * marketVariance);
+    const saleMultiplier = salePrice / purchasePrice;
+    
+    // Net proceeds = sale price minus mortgage payoff (this is what player receives in cash)
     const netProceeds = salePrice - mortgagePayoff;
     
-    // Profit is based on sale vs purchase price (not cash flow)
-    const saleProfit = salePrice - purchasePrice;
+    // Calculate all-in cost for true profit calculation
+    const closingCosts = Math.round(purchasePrice * 0.03);
+    const loanFees = proFormaOutputs?.loanOriginationFees || Math.round((proFormaOutputs?.loanAmount || 0) * 0.02);
+    const sellingCostsPct = proFormaInputs?.sellingCostsPct || 6;
+    const sellingCosts = Math.round(salePrice * (sellingCostsPct / 100));
+    
+    // True profit = sale price - purchase price - rehab - closing costs - loan fees - selling costs
+    const allInCost = purchasePrice + actualRehabSpend + closingCosts + loanFees;
+    const saleProfit = salePrice - allInCost - sellingCosts;
     
     const [updatedDeal] = await db
       .update(schema.deals)
@@ -1143,7 +1166,7 @@ export class DBStorage implements IStorage {
       category: 'sale_proceeds',
       amount: salePrice,
       balanceAfter: runningBalance,
-      description: `Sold flip property - ${saleMultiplier >= 1 ? '+' : ''}${Math.round((saleMultiplier - 1) * 100)}% of purchase price`,
+      description: `Sold flip for $${salePrice.toLocaleString()} (ARV-based, ${Math.round(completionFactor * 100)}% rehab completion)`,
       propertyId: deal.propertyId,
       dealId: dealId,
       gameWeek: gameRun.currentWeek,
@@ -1158,7 +1181,23 @@ export class DBStorage implements IStorage {
         category: 'expense',
         amount: mortgagePayoff,
         balanceAfter: runningBalance,
-        description: `🏦 Mortgage payoff`,
+        description: `Mortgage payoff`,
+        propertyId: deal.propertyId,
+        dealId: dealId,
+        gameWeek: gameRun.currentWeek,
+      });
+    }
+    
+    // Third: Debit selling costs (realtor commission, closing costs)
+    if (sellingCosts > 0) {
+      runningBalance -= sellingCosts;
+      ledgerEntries.push({
+        gameRunId,
+        direction: 'debit',
+        category: 'expense',
+        amount: sellingCosts,
+        balanceAfter: runningBalance,
+        description: `Selling costs (${sellingCostsPct}%): realtor, title, closing`,
         propertyId: deal.propertyId,
         dealId: dealId,
         gameWeek: gameRun.currentWeek,
@@ -1191,6 +1230,8 @@ export class DBStorage implements IStorage {
       saleProfit,
       salePrice,
       purchasePrice,
+      netProceeds,
+      mortgagePayoff,
     };
   }
 

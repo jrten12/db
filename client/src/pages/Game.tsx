@@ -1430,8 +1430,8 @@ export default function Game() {
       setShowPremiumModal(true);
       setHasShownNoWeeksPopup(true);
     }
-    // Check for low cash (below $3,000)
-    else if (gameRun.cash < 3000 && gameRun.weeksRemaining > 0 && !hasShownLowCashPopup && !showPremiumModal) {
+    // Check for low cash (below $1,000)
+    else if (gameRun.cash < 1000 && gameRun.weeksRemaining > 0 && !hasShownLowCashPopup && !showPremiumModal) {
       setPremiumTriggerReason('low_cash');
       setShowPremiumModal(true);
       setHasShownLowCashPopup(true);

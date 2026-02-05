@@ -124,38 +124,18 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   ];
 
   useEffect(() => {
+    // Show content after a brief moment
     const contentTimer = setTimeout(() => {
       setShowContent(true);
     }, 100);
 
-    const playJingle = async () => {
-      if (hasPlayedRef.current) return;
-      hasPlayedRef.current = true;
-      
-      try {
-        audioRef.current = new Audio(splashJingle);
-        audioRef.current.volume = 0.6;
-        await audioRef.current.play();
-      } catch (err) {
-        console.log('Audio autoplay blocked, continuing without sound');
-      }
-    };
-
-    playJingle();
-
-    const fadeTimer = setTimeout(() => {
-      setFadeOut(true);
-    }, 4700);
-
-    const completeTimer = setTimeout(() => {
-      setIsVisible(false);
-      onComplete();
-    }, 5200);
+    // Preload audio but don't try to play (iOS blocks autoplay)
+    audioRef.current = new Audio(splashJingle);
+    audioRef.current.volume = 0.6;
+    audioRef.current.load(); // Preload only
 
     return () => {
       clearTimeout(contentTimer);
-      clearTimeout(fadeTimer);
-      clearTimeout(completeTimer);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -164,29 +144,27 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   }, [onComplete]);
 
   const handleClick = async () => {
-    // User clicked - now we have a user gesture, try to play audio
-    if (audioRef.current) {
-      try {
+    if (hasPlayedRef.current) return; // Prevent double-tap
+    hasPlayedRef.current = true;
+    
+    // Play audio on user gesture (this works on iOS)
+    try {
+      if (audioRef.current) {
         await audioRef.current.play();
-      } catch (err) {
-        // Already playing or still blocked, continue
       }
-    } else {
-      // Audio wasn't created yet, create and play now
-      try {
-        audioRef.current = new Audio(splashJingle);
-        audioRef.current.volume = 0.6;
-        await audioRef.current.play();
-      } catch (err) {
-        console.log('Audio still blocked');
-      }
+    } catch (err) {
+      console.log('Audio play failed');
     }
     
-    setFadeOut(true);
+    // Let the audio jingle play for ~1.5 seconds before fading
+    setTimeout(() => {
+      setFadeOut(true);
+    }, 1500);
+    
     setTimeout(() => {
       setIsVisible(false);
       onComplete();
-    }, 500);
+    }, 2000);
   };
 
   if (!isVisible) return null;

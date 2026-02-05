@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import splashLogo from '@assets/ChatGPT_Image_Jan_29,_2026,_12_02_57_AM_1769662997139.png';
-import splashJingle from '@assets/splash_jingle.wav';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -77,8 +76,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [fadeOut, setFadeOut] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [showContent, setShowContent] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const hasPlayedRef = useRef(false);
 
   const sparkles = [
     { delay: 200, x: 12, y: 22, size: 14 },
@@ -129,72 +126,28 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       setShowContent(true);
     }, 100);
 
-    // Try to autoplay audio (works on desktop, blocked on iOS)
-    const tryAutoplay = async () => {
-      if (hasPlayedRef.current) return;
-      
-      try {
-        audioRef.current = new Audio(splashJingle);
-        audioRef.current.volume = 0.6;
-        await audioRef.current.play();
-        
-        // Autoplay worked! Start the fade sequence
-        hasPlayedRef.current = true;
-        setTimeout(() => setFadeOut(true), 1500);
-        setTimeout(() => {
-          setIsVisible(false);
-          onComplete();
-        }, 2000);
-      } catch (err) {
-        // Autoplay blocked (iOS) - just preload and wait for tap
-        console.log('Autoplay blocked, waiting for user tap');
-        audioRef.current = new Audio(splashJingle);
-        audioRef.current.volume = 0.6;
-        audioRef.current.load();
-      }
-    };
+    // Auto-fade after displaying splash
+    const fadeTimer = setTimeout(() => {
+      setFadeOut(true);
+    }, 2500);
 
-    tryAutoplay();
+    const completeTimer = setTimeout(() => {
+      setIsVisible(false);
+      onComplete();
+    }, 3000);
 
     return () => {
       clearTimeout(contentTimer);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      clearTimeout(fadeTimer);
+      clearTimeout(completeTimer);
     };
   }, [onComplete]);
-
-  const handleClick = async () => {
-    if (hasPlayedRef.current) return; // Prevent double-tap
-    hasPlayedRef.current = true;
-    
-    // Play audio on user gesture (this works on iOS)
-    try {
-      if (audioRef.current) {
-        await audioRef.current.play();
-      }
-    } catch (err) {
-      console.log('Audio play failed');
-    }
-    
-    // Let the audio jingle play for ~1.5 seconds before fading
-    setTimeout(() => {
-      setFadeOut(true);
-    }, 1500);
-    
-    setTimeout(() => {
-      setIsVisible(false);
-      onComplete();
-    }, 2000);
-  };
 
   if (!isVisible) return null;
 
   return (
     <div 
-      className={`fixed inset-0 z-[200] cursor-pointer transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}
-      onClick={handleClick}
+      className={`fixed inset-0 z-[200] transition-opacity duration-500 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}
       data-testid="splash-screen"
       data-no-click-sound="true"
     >
@@ -265,17 +218,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent animate-shine-sweep pointer-events-none" />
           </div>
           
-          {/* "Click to Continue" with elegant animation */}
-          <div 
-            className={`mt-16 transition-all duration-700 delay-700 ${showContent ? 'opacity-100' : 'opacity-0'}`}
-          >
-            <p 
-              className="text-white/40 text-[11px] sm:text-sm tracking-[0.25em] font-light animate-text-pulse"
-              style={{ fontFamily: "'SF Pro Display', 'Helvetica Neue', -apple-system, sans-serif" }}
-            >
-              TAP TO BEGIN
-            </p>
-          </div>
         </div>
       </div>
 

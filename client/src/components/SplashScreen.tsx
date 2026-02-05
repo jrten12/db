@@ -129,10 +129,32 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       setShowContent(true);
     }, 100);
 
-    // Preload audio but don't try to play (iOS blocks autoplay)
-    audioRef.current = new Audio(splashJingle);
-    audioRef.current.volume = 0.6;
-    audioRef.current.load(); // Preload only
+    // Try to autoplay audio (works on desktop, blocked on iOS)
+    const tryAutoplay = async () => {
+      if (hasPlayedRef.current) return;
+      
+      try {
+        audioRef.current = new Audio(splashJingle);
+        audioRef.current.volume = 0.6;
+        await audioRef.current.play();
+        
+        // Autoplay worked! Start the fade sequence
+        hasPlayedRef.current = true;
+        setTimeout(() => setFadeOut(true), 1500);
+        setTimeout(() => {
+          setIsVisible(false);
+          onComplete();
+        }, 2000);
+      } catch (err) {
+        // Autoplay blocked (iOS) - just preload and wait for tap
+        console.log('Autoplay blocked, waiting for user tap');
+        audioRef.current = new Audio(splashJingle);
+        audioRef.current.volume = 0.6;
+        audioRef.current.load();
+      }
+    };
+
+    tryAutoplay();
 
     return () => {
       clearTimeout(contentTimer);

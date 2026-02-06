@@ -148,6 +148,9 @@ export async function registerRoutes(
   // Initialize database with starter properties
   await storage.seedProperties();
   
+  // Add any new properties that were added after initial seeding
+  await storage.addNewUrbanProperties();
+  
   // Update location types for existing properties (fixes production data)
   await storage.updatePropertyLocationTypes();
 

@@ -78,6 +78,7 @@ export function GameOverModal({
                   onClick={onTryAgain}
                   className="w-full py-4 px-6 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-3 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40"
                   data-testid="button-play-again"
+                  data-sound="swoosh"
                 >
                   <RotateCcw className="w-5 h-5" />
                   Play Again
@@ -87,6 +88,7 @@ export function GameOverModal({
                   onClick={onReturnHome}
                   className="w-full py-3 px-6 bg-slate-800/80 hover:bg-slate-700/80 text-gray-300 font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-3 border border-slate-600/50"
                   data-testid="button-return-home"
+                  data-sound="swoosh"
                 >
                   <Home className="w-5 h-5" />
                   Return to Main Menu
@@ -173,6 +175,7 @@ export function GameOverModal({
                 onClick={onTryAgain}
                 className="w-full py-4 px-6 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
                 data-testid="button-try-again"
+                data-sound="swoosh"
               >
                 <RotateCcw className="w-5 h-5" />
                 Start New Game
@@ -182,6 +185,7 @@ export function GameOverModal({
                 onClick={onReturnHome}
                 className="w-full py-3 px-6 bg-slate-800/80 hover:bg-slate-700/80 text-gray-300 font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-3 border border-slate-600/50"
                 data-testid="button-return-home"
+                data-sound="swoosh"
               >
                 <Home className="w-5 h-5" />
                 Return to Main Menu

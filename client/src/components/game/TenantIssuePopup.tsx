@@ -65,6 +65,7 @@ export function TenantIssuePopup({ issue, onClose }: TenantIssuePopupProps) {
                 onClick={onClose}
                 className="rounded-full p-2 text-white/70 transition hover:text-white"
                 aria-label="Close tenant issue"
+                data-sound="swoosh"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -110,6 +111,7 @@ export function TenantIssuePopup({ issue, onClose }: TenantIssuePopupProps) {
               <button
                 onClick={onClose}
                 className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-white/90"
+                data-sound="swoosh"
               >
                 Got it
               </button>

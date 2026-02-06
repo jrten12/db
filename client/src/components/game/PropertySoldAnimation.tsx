@@ -274,6 +274,7 @@ export function PropertySoldAnimation({ isOpen, onClose, saleData }: PropertySol
                         onClick={onClose}
                         className="w-full py-5 text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500"
                         data-no-click-sound
+                        data-sound="swoosh"
                       >
                         <Sparkles className="w-5 h-5 mr-2" />
                         Continue

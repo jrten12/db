@@ -350,6 +350,7 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
           onClick={handleClose}
           className="absolute -top-3 -right-3 p-3 bg-red-500 hover:bg-red-600 active:bg-red-700 border-2 border-red-400 rounded-full transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center touch-manipulation z-20 shadow-lg"
           data-testid="button-close-ledger"
+          data-sound="swoosh"
         >
           <X className="w-6 h-6 text-white" />
         </button>

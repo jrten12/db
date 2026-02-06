@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 type SoundType = 'click' | 'success' | 'error' | 'whoosh' | 'coin' | 'levelUp' | 'tick' | 'achievement' | 'epicAchievement';
 
@@ -46,6 +46,85 @@ const SOUND_CONFIG: Record<SoundType, { frequency: number; duration: number; typ
     { frequency: 1174.66, duration: 0.3, type: 'sine', gain: 0.28 },
   ],
 };
+
+let sharedAudioContext: AudioContext | null = null;
+
+function getSharedAudioContext(): AudioContext {
+  if (!sharedAudioContext) {
+    sharedAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
+  if (sharedAudioContext.state === 'suspended') {
+    sharedAudioContext.resume();
+  }
+  return sharedAudioContext;
+}
+
+export function playSwooshSound() {
+  try {
+    const ctx = getSharedAudioContext();
+    const now = ctx.currentTime;
+    const duration = 0.12;
+
+    const bufferSize = ctx.sampleRate * duration;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1);
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const bandpass = ctx.createBiquadFilter();
+    bandpass.type = 'bandpass';
+    bandpass.frequency.setValueAtTime(2000, now);
+    bandpass.frequency.exponentialRampToValueAtTime(600, now + duration);
+    bandpass.Q.setValueAtTime(1.5, now);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.06, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    noise.connect(bandpass);
+    bandpass.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.start(now);
+    noise.stop(now + duration + 0.05);
+  } catch (e) {}
+}
+
+let lastKeystrokeTime = 0;
+
+export function playKeystrokeSound() {
+  try {
+    const now = performance.now();
+    if (now - lastKeystrokeTime < 30) return;
+    lastKeystrokeTime = now;
+
+    const ctx = getSharedAudioContext();
+    const t = ctx.currentTime;
+    const duration = 0.035;
+
+    const freq = 1800 + Math.random() * 800;
+
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.6, t + duration);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.04, t + 0.003);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(t);
+    osc.stop(t + duration + 0.02);
+  } catch (e) {}
+}
 
 export function useUISounds() {
   const audioContextRef = useRef<AudioContext | null>(null);

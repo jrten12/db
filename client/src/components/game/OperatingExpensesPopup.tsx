@@ -186,6 +186,7 @@ export function OperatingExpensesPopup({
                   onClick={onClose}
                   className="p-1.5 hover:bg-white/20 rounded-full transition-colors"
                   data-testid="close-opex-popup"
+                  data-sound="swoosh"
                 >
                   <X className="w-5 h-5 text-white" />
                 </button>

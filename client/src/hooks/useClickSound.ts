@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { playSwooshSound, playKeystrokeSound } from './useUISounds';
 
 const CLICK_SOUND_URL = '/click.wav';
 const PROFORMA_CHIME_URL = '/proforma-chime.wav';
@@ -33,7 +34,6 @@ function getProformaAudio(): HTMLAudioElement {
 export function playClickSound() {
   try {
     const audio = getClickAudio();
-    // Stop any currently playing sound to prevent layering
     audio.pause();
     audio.currentTime = 0;
     audio.play().catch(() => {});
@@ -43,7 +43,6 @@ export function playClickSound() {
 export function playProformaChime() {
   try {
     const audio = getProformaAudio();
-    // Stop any currently playing sound to prevent layering
     audio.pause();
     audio.currentTime = 0;
     audio.play().catch(() => {});
@@ -61,7 +60,6 @@ function getPurchaseConfirmAudio(): HTMLAudioElement {
 export function playPurchaseConfirmSound() {
   try {
     const audio = getPurchaseConfirmAudio();
-    // Stop any currently playing sound to prevent layering
     audio.pause();
     audio.currentTime = 0;
     audio.play().catch(() => {});
@@ -79,7 +77,6 @@ function getAdvanceWeekAudio(): HTMLAudioElement {
 export function playAdvanceWeekSound() {
   try {
     const audio = getAdvanceWeekAudio();
-    // Stop any currently playing sound to prevent layering
     audio.pause();
     audio.currentTime = 0;
     audio.play().catch(() => {});
@@ -97,7 +94,6 @@ function getBankruptAudio(): HTMLAudioElement {
 export function playBankruptSound() {
   try {
     const audio = getBankruptAudio();
-    // Stop any currently playing sound to prevent layering
     audio.pause();
     audio.currentTime = 0;
     audio.play().catch(() => {});
@@ -115,28 +111,60 @@ function getSaleCompleteAudio(): HTMLAudioElement {
 export function playSaleCompleteSound() {
   try {
     const audio = getSaleCompleteAudio();
-    // Stop any currently playing sound to prevent layering
     audio.pause();
     audio.currentTime = 0;
     audio.play().catch(() => {});
   } catch (e) {}
 }
 
+function shouldPlaySwoosh(el: HTMLElement): boolean {
+  if (el.closest('[data-sound="swoosh"]')) return true;
+
+  const closestBtn = el.closest('button');
+  if (closestBtn) {
+    const ariaHaspopup = closestBtn.getAttribute('aria-haspopup');
+    if (ariaHaspopup === 'dialog') return true;
+  }
+
+  if (el.closest('[data-radix-dialog-overlay]') || el.closest('[data-radix-dialog-close]')) return true;
+
+  if (el.closest('[role="dialog"]') || el.closest('[data-radix-dialog-content]')) {
+    if (closestBtn) {
+      const isClose = closestBtn.closest('[data-radix-dialog-close]') ||
+        closestBtn.querySelector('.lucide-x, .lucide-arrow-left, .lucide-chevron-left') ||
+        closestBtn.getAttribute('aria-label')?.toLowerCase().includes('close');
+      if (isClose) return true;
+    }
+  }
+
+  return false;
+}
+
+function isTextInput(el: HTMLElement): boolean {
+  if (el instanceof HTMLInputElement) {
+    const type = el.type.toLowerCase();
+    return type === 'text' || type === 'number' || type === 'email' || type === 'search' || type === 'tel' || type === 'url' || type === 'password';
+  }
+  if (el instanceof HTMLTextAreaElement) return true;
+  if (el.getAttribute('contenteditable') === 'true') return true;
+  return false;
+}
+
 export function useGlobalClickSound() {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      
-      // Check if element or any parent has opted out of click sounds
-      if (target.closest('[data-no-click-sound]')) {
+
+      if (target.closest('input[type="range"]') || target.closest('[role="slider"]')) return;
+      if (isTextInput(target)) return;
+
+      if (shouldPlaySwoosh(target)) {
+        playSwooshSound();
         return;
       }
-      
-      // Exclude sliders and range inputs from click sounds
-      if (target.closest('input[type="range"]') || target.closest('[role="slider"]')) {
-        return;
-      }
-      
+
+      if (target.closest('[data-no-click-sound]')) return;
+
       const isInteractive = 
         target.closest('button') ||
         target.closest('a') ||
@@ -154,7 +182,21 @@ export function useGlobalClickSound() {
       }
     };
 
+    const handleKeydown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (!isTextInput(target)) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (e.key === 'Tab' || e.key === 'Escape' || e.key === 'Enter' || e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;
+      if (e.key.startsWith('Arrow') || e.key === 'Home' || e.key === 'End' || e.key === 'PageUp' || e.key === 'PageDown') return;
+
+      playKeystrokeSound();
+    };
+
     document.addEventListener('click', handleClick, true);
-    return () => document.removeEventListener('click', handleClick, true);
+    document.addEventListener('keydown', handleKeydown, true);
+    return () => {
+      document.removeEventListener('click', handleClick, true);
+      document.removeEventListener('keydown', handleKeydown, true);
+    };
   }, []);
 }

@@ -271,6 +271,7 @@ export function HallOfFameModal({ isOpen, onClose }: HallOfFameModalProps) {
           onClick={onClose}
           className="fixed top-4 right-4 p-3 bg-slate-800/80 hover:bg-slate-700 rounded-full text-white transition-all z-10"
           data-testid="button-close-hall-of-fame"
+          data-sound="swoosh"
         >
           <X className="w-6 h-6" />
         </button>

@@ -39,6 +39,7 @@ export function GoldTreasureModal({ isOpen, onClose, amount, propertyName, disco
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-500"
       onClick={onClose}
       data-testid="modal-gold-treasure"
+      data-sound="swoosh"
     >
       <div className="absolute inset-0 bg-black/90 backdrop-blur-md" />
       

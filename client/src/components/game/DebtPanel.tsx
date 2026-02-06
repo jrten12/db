@@ -260,6 +260,7 @@ export function DebtPanelTrigger({
       onClick={onClick}
       className="flex items-center gap-2 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 rounded-lg border border-slate-600 transition-colors"
       data-testid="button-open-debt-panel"
+      data-sound="swoosh"
     >
       <Landmark className="w-4 h-4 text-blue-400" />
       <div className="text-left">

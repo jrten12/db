@@ -405,6 +405,7 @@ export function PropertyDetail({
           onClick={onClose}
           className="touch-target flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xl text-white transition-all duration-150 ios-spring tap-scale"
           data-testid="button-back-to-market"
+          data-sound="swoosh"
         >
           <ChevronLeft className="w-5 h-5" />
           <span className="text-sm font-medium hidden sm:inline">Market</span>
@@ -416,6 +417,7 @@ export function PropertyDetail({
           onClick={onClose}
           className="touch-target p-3 bg-slate-800/80 hover:bg-slate-700 active:bg-slate-600 rounded-full text-white transition-all duration-150 ios-spring tap-scale"
           data-testid="button-close-detail"
+          data-sound="swoosh"
         >
           <X className="w-6 h-6" />
         </button>

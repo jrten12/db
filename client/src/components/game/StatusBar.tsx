@@ -285,6 +285,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 onClick={onOpenLedger}
                 className="stat-card-mobile-compact stat-card-mobile-cash touch-target-sm tap-scale flex-1"
                 data-testid="status-cash-mobile"
+                data-sound="swoosh"
               >
                 <AnimatedNumber value={cashDisplay} prefix="$" className="mobile-cash-value-compact" />
                 <div className="stat-label-mobile-compact">Cash</div>
@@ -355,6 +356,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 }}
                 className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-purple-500/20 to-indigo-600/20 hover:from-purple-500/30 hover:to-indigo-600/30 active:from-purple-500/40 active:to-indigo-600/40 backdrop-blur-md rounded-xl border border-purple-500/30 text-purple-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
                 data-testid="button-view-stats"
+                data-sound="swoosh"
               >
                 <BarChart3 className="w-5 h-5" />
                 Performance Stats
@@ -367,6 +369,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 }}
                 className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-amber-500/20 to-yellow-600/20 hover:from-amber-500/30 hover:to-yellow-600/30 active:from-amber-500/40 active:to-yellow-600/40 backdrop-blur-md rounded-xl border border-amber-500/30 text-amber-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
                 data-testid="button-hall-of-fame"
+                data-sound="swoosh"
               >
                 <Trophy className="w-5 h-5" />
                 Hall of Fame
@@ -379,6 +382,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 }}
                 className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 active:from-yellow-500/40 active:to-orange-500/40 backdrop-blur-md rounded-xl border border-yellow-500/30 text-yellow-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
                 data-testid="button-premium"
+                data-sound="swoosh"
               >
                 <Sparkles className="w-5 h-5" />
                 Premium Boosts

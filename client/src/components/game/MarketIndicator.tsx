@@ -208,6 +208,7 @@ export function MarketBar({ condition, className = '', compact = false }: Market
                 onClick={() => setShowInfo(false)}
                 className="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-slate-600 rounded-full flex-shrink-0"
                 data-testid="button-close-market-info"
+                data-sound="swoosh"
               >
                 <X className="w-4 h-4 text-white" />
               </button>

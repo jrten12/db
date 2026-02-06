@@ -222,6 +222,8 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                 <img 
                   src={propertyImage} 
                   alt={property.name}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 

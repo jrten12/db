@@ -439,6 +439,8 @@ export function PropertyDetail({
                 <img
                   src={currentImage.url}
                   alt={`${property.name} - ${currentImage.label}`}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover"
                   data-testid="property-main-image"
                   onError={() => handleImageError(currentImage.url)}

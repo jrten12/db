@@ -1,181 +1,183 @@
-import oakwoodFront from '@assets/generated_images/properties/oakwood_cottage/front.png';
-import riversideFront from '@assets/generated_images/properties/riverside_ranch/front.png';
-import maplewoodFront from '@assets/generated_images/properties/maplewood_colonial/front.png';
-import downtownFront from '@assets/generated_images/properties/downtown_loft/front.png';
-import elmwoodFront from '@assets/generated_images/properties/elmwood_bungalow/front.png';
-import hillsideFront from '@assets/generated_images/properties/hillside_retreat/front.png';
-import westsideFront from '@assets/generated_images/properties/westside_manor/front.png';
+const oakwoodFront = '/images/properties/oakwood_cottage_front.jpg';
+const riversideFront = '/images/properties/riverside_ranch_front.jpg';
+const maplewoodFront = '/images/properties/maplewood_colonial_front.jpg';
+const downtownFront = '/images/properties/downtown_loft_front.jpg';
+const elmwoodFront = '/images/properties/elmwood_bungalow_front.jpg';
+const hillsideFront = '/images/properties/hillside_retreat_front.jpg';
+const westsideFront = '/images/properties/westside_manor_front.jpg';
 
-import graduateHospitalStudio from '@assets/generated_images/graduate_hospital_studio_apartment.png';
-import queenVillageTownhouse from '@assets/generated_images/queen_village_townhouse.png';
-import rittenhouseCondo from '@assets/generated_images/rittenhouse_square_condo.png';
-import fairmountDuplex from '@assets/generated_images/fairmount_duplex_building.png';
-import societyHillApartment from '@assets/generated_images/society_hill_apartment.png';
-import oldCityBrownstone from '@assets/generated_images/old_city_brownstone.png';
+const graduateHospitalStudio = '/images/properties/graduate_hospital_studio_apartment.jpg';
+const queenVillageTownhouse = '/images/properties/queen_village_townhouse.jpg';
+const rittenhouseCondo = '/images/properties/rittenhouse_square_condo.jpg';
+const fairmountDuplex = '/images/properties/fairmount_duplex_building.jpg';
+const societyHillApartment = '/images/properties/society_hill_apartment.jpg';
+const oldCityBrownstone = '/images/properties/old_city_brownstone.jpg';
 
-import southStreetTwin from '@assets/generated_images/south_street_twin_house.png';
-import fishtownRowHouse from '@assets/generated_images/fishtown_row_house.png';
-import portRichmondDuplex from '@assets/generated_images/port_richmond_duplex.png';
-import kensingtonRow from '@assets/generated_images/kensington_row_house.png';
-import northernLibertiesLoft from '@assets/generated_images/northern_liberties_loft_building.png';
+const southStreetTwin = '/images/properties/south_street_twin_house.jpg';
+const fishtownRowHouse = '/images/properties/fishtown_row_house.jpg';
+const portRichmondDuplex = '/images/properties/port_richmond_duplex.jpg';
+const kensingtonRow = '/images/properties/kensington_row_house.jpg';
+const northernLibertiesLoft = '/images/properties/northern_liberties_loft_building.jpg';
 
-import hudsonValleyFarmhouse from '@assets/generated_images/upstate_farmhouse_exterior.png';
-import skylinePenthouse from '@assets/generated_images/penthouse_condo_building_exterior.png';
-import chestnutHillVictorian from '@assets/generated_images/victorian_mansion_exterior.png';
-import lakefrontEstate from '@assets/generated_images/waterfront_estate_exterior.png';
+const hudsonValleyFarmhouse = '/images/properties/upstate_farmhouse_exterior.jpg';
+const skylinePenthouse = '/images/properties/penthouse_condo_building_exterior.jpg';
+const chestnutHillVictorian = '/images/properties/victorian_mansion_exterior.jpg';
+const lakefrontEstate = '/images/properties/waterfront_estate_exterior.jpg';
 
-import farmhouseInterior from '@assets/generated_images/farmhouse_interior_living_room.png';
-import penthouseInterior from '@assets/generated_images/penthouse_interior_living_space.png';
-import victorianInterior from '@assets/generated_images/victorian_interior_grand_entry.png';
-import waterfrontInterior from '@assets/generated_images/waterfront_estate_interior.png';
+const farmhouseInterior = '/images/properties/farmhouse_interior_living_room.jpg';
+const penthouseInterior = '/images/properties/penthouse_interior_living_space.jpg';
+const victorianInterior = '/images/properties/victorian_interior_grand_entry.jpg';
+const waterfrontInterior = '/images/properties/waterfront_estate_interior.jpg';
 
-import interiorKitchenExtreme from '@assets/generated_images/fixer-upper_kitchen_needs_work.png';
-import interiorBathroomExtreme from '@assets/generated_images/bathroom_needs_renovation.png';
-import interiorLivingRoomExtreme from '@assets/generated_images/living_room_needs_updates.png';
-import interiorBasementExtreme from '@assets/generated_images/basement_with_potential_issues.png';
+const interiorKitchenExtreme = '/images/properties/fixer-upper_kitchen_needs_work.jpg';
+const interiorBathroomExtreme = '/images/properties/bathroom_needs_renovation.jpg';
+const interiorLivingRoomExtreme = '/images/properties/living_room_needs_updates.jpg';
+const interiorBasementExtreme = '/images/properties/basement_with_potential_issues.jpg';
 
-import interiorKitchenDated from '@assets/generated_images/dated_kitchen_needs_updating.png';
-import interiorBathroomDated from '@assets/generated_images/dated_bathroom_cosmetic_updates.png';
-import interiorLivingRoomDated from '@assets/generated_images/dated_living_room_light_updates.png';
-import interiorBasementClean from '@assets/generated_images/clean_unfinished_basement_potential.png';
+const interiorKitchenDated = '/images/properties/dated_kitchen_needs_updating.jpg';
+const interiorBathroomDated = '/images/properties/dated_bathroom_cosmetic_updates.jpg';
+const interiorLivingRoomDated = '/images/properties/dated_living_room_light_updates.jpg';
+const interiorBasementClean = '/images/properties/clean_unfinished_basement_potential.jpg';
 
-import elmwoodKitchenPipes from '@assets/generated_images/elmwood_bungalow_kitchen_pipes.png';
-import kensingtonDeferredMaint from '@assets/generated_images/kensington_row_deferred_maintenance.png';
-import oldCitySettling from '@assets/generated_images/old_city_brownstone_settling.png';
-import oldCityBasement from '@assets/generated_images/old_city_brownstone_basement.png';
-import maplewoodElectrical from '@assets/generated_images/maplewood_colonial_electrical_issues.png';
-import oakwoodHvac from '@assets/generated_images/oakwood_cottage_hvac_basement.png';
-import riversideFoundation from '@assets/generated_images/riverside_ranch_foundation_crack.png';
-import southStreetWall from '@assets/generated_images/south_street_twin_shared_wall.png';
-import portRichmondHvac from '@assets/generated_images/port_richmond_duplex_hvac.png';
-import queenVillageBrick from '@assets/generated_images/queen_village_townhouse_brick.png';
-import westsideCosmetic from '@assets/generated_images/westside_manor_cosmetic_updates.png';
-import fairmountDualSystems from '@assets/generated_images/fairmount_duplex_dual_systems.png';
-import downtownLoftPipes from '@assets/generated_images/downtown_loft_kitchen_pipes.png';
-import northernLibertiesHvac from '@assets/generated_images/northern_liberties_loft_hvac.png';
-import graduateHospitalKitchen from '@assets/generated_images/graduate_hospital_studio_kitchen.png';
-import rittenhouseHvac from '@assets/generated_images/rittenhouse_condo_hvac_unit.png';
-import societyHillWindows from '@assets/generated_images/society_hill_historic_windows.png';
-import fishtownSettling from '@assets/generated_images/fishtown_row_house_settling.png';
-import hillsideSeptic from '@assets/generated_images/hillside_retreat_septic_well.png';
+const elmwoodKitchenPipes = '/images/properties/elmwood_bungalow_kitchen_pipes.jpg';
+const kensingtonDeferredMaint = '/images/properties/kensington_row_deferred_maintenance.jpg';
+const oldCitySettling = '/images/properties/old_city_brownstone_settling.jpg';
+const oldCityBasement = '/images/properties/old_city_brownstone_basement.jpg';
+const maplewoodElectrical = '/images/properties/maplewood_colonial_electrical_issues.jpg';
+const oakwoodHvac = '/images/properties/oakwood_cottage_hvac_basement.jpg';
+const riversideFoundation = '/images/properties/riverside_ranch_foundation_crack.jpg';
+const southStreetWall = '/images/properties/south_street_twin_shared_wall.jpg';
+const portRichmondHvac = '/images/properties/port_richmond_duplex_hvac.jpg';
+const queenVillageBrick = '/images/properties/queen_village_townhouse_brick.jpg';
+const westsideCosmetic = '/images/properties/westside_manor_cosmetic_updates.jpg';
+const fairmountDualSystems = '/images/properties/fairmount_duplex_dual_systems.jpg';
+const downtownLoftPipes = '/images/properties/downtown_loft_kitchen_pipes.jpg';
+const northernLibertiesHvac = '/images/properties/northern_liberties_loft_hvac.jpg';
+const graduateHospitalKitchen = '/images/properties/graduate_hospital_studio_kitchen.jpg';
+const rittenhouseHvac = '/images/properties/rittenhouse_condo_hvac_unit.jpg';
+const societyHillWindows = '/images/properties/society_hill_historic_windows.jpg';
+const fishtownSettling = '/images/properties/fishtown_row_house_settling.jpg';
+const hillsideSeptic = '/images/properties/hillside_retreat_septic_well.jpg';
 
-import oakwoodCottageKitchen from '@assets/generated_images/oakwood_cottage_kitchen.png';
-import oakwoodCottageBathroom from '@assets/generated_images/oakwood_cottage_bathroom.png';
-import oakwoodCottageLiving from '@assets/generated_images/oakwood_cottage_living.png';
-import riversideRanchKitchen from '@assets/generated_images/riverside_ranch_kitchen.png';
-import riversideRanchBathroom from '@assets/generated_images/riverside_ranch_bathroom.png';
-import riversideRanchLiving from '@assets/generated_images/riverside_ranch_living.png';
-import maplewoodColonialKitchen from '@assets/generated_images/maplewood_colonial_kitchen.png';
-import maplewoodColonialBathroom from '@assets/generated_images/maplewood_colonial_bathroom.png';
-import maplewoodColonialLiving from '@assets/generated_images/maplewood_colonial_living.png';
-import maplewoodColonialBasement from '@assets/generated_images/maplewood_colonial_basement.png';
-import downtownLoftKitchenUnique from '@assets/generated_images/downtown_loft_kitchen_unique.png';
-import downtownLoftBathroom from '@assets/generated_images/downtown_loft_bathroom.png';
-import downtownLoftLiving from '@assets/generated_images/downtown_loft_living.png';
-import elmwoodBungalowBathroom from '@assets/generated_images/elmwood_bungalow_bathroom.png';
-import elmwoodBungalowLiving from '@assets/generated_images/elmwood_bungalow_living.png';
-import hillsideRetreatKitchen from '@assets/generated_images/hillside_retreat_kitchen.png';
-import hillsideRetreatBathroom from '@assets/generated_images/hillside_retreat_bathroom.png';
-import hillsideRetreatLiving from '@assets/generated_images/hillside_retreat_living.png';
-import westsideManorKitchenUnique from '@assets/generated_images/westside_manor_kitchen_unique.png';
-import westsideManorBathroom from '@assets/generated_images/westside_manor_bathroom.png';
-import westsideManorLiving from '@assets/generated_images/westside_manor_living.png';
-import southStreetTwinKitchen from '@assets/generated_images/south_street_twin_kitchen.png';
-import southStreetTwinBathroom from '@assets/generated_images/south_street_twin_bathroom.png';
-import southStreetTwinBasement from '@assets/generated_images/south_street_twin_basement.png';
-import fishtownRowHouseKitchen from '@assets/generated_images/fishtown_row_house_kitchen.png';
-import fishtownRowHouseBathroom from '@assets/generated_images/fishtown_row_house_bathroom.png';
-import fishtownRowHouseLiving from '@assets/generated_images/fishtown_row_house_living.png';
-import portRichmondDuplexKitchen from '@assets/generated_images/port_richmond_duplex_kitchen.png';
-import portRichmondDuplexBathroom from '@assets/generated_images/port_richmond_duplex_bathroom.png';
-import portRichmondDuplexLiving from '@assets/generated_images/port_richmond_duplex_living.png';
-import kensingtonRowKitchen from '@assets/generated_images/kensington_row_kitchen.png';
-import kensingtonRowBathroom from '@assets/generated_images/kensington_row_bathroom.png';
-import northernLibertiesLoftLiving from '@assets/generated_images/northern_liberties_loft_living.png';
-import northernLibertiesLoftKitchen from '@assets/generated_images/northern_liberties_loft_kitchen.png';
-import northernLibertiesLoftBathroom from '@assets/generated_images/northern_liberties_loft_bathroom.png';
-import hudsonValleyFarmhouseKitchen from '@assets/generated_images/hudson_valley_farmhouse_kitchen.png';
-import hudsonValleyFarmhouseBathroom from '@assets/generated_images/hudson_valley_farmhouse_bathroom.png';
-import skylinePenthouseKitchen from '@assets/generated_images/skyline_penthouse_kitchen.png';
-import skylinePenthouseBathroom from '@assets/generated_images/skyline_penthouse_bathroom.png';
-import skylinePenthouseLiving from '@assets/generated_images/skyline_penthouse_living.png';
-import chestnutHillVictorianKitchen from '@assets/generated_images/chestnut_hill_victorian_kitchen.png';
-import chestnutHillVictorianBathroom from '@assets/generated_images/chestnut_hill_victorian_bathroom.png';
-import chestnutHillVictorianBasement from '@assets/generated_images/chestnut_hill_victorian_basement.png';
-import lakefrontEstateKitchen from '@assets/generated_images/lakefront_estate_kitchen.png';
-import lakefrontEstateBathroom from '@assets/generated_images/lakefront_estate_bathroom.png';
-import graduateHospitalBrownstoneKitchen from '@assets/generated_images/graduate_hospital_brownstone_kitchen.png';
-import graduateHospitalBrownstoneBathroom from '@assets/generated_images/graduate_hospital_brownstone_bathroom.png';
-import graduateHospitalBrownstoneLiving from '@assets/generated_images/graduate_hospital_brownstone_living.png';
-import rittenhouseSquareKitchen from '@assets/generated_images/rittenhouse_square_kitchen.png';
-import rittenhouseSquareBathroom from '@assets/generated_images/rittenhouse_square_bathroom.png';
-import rittenhouseSquareLiving from '@assets/generated_images/rittenhouse_square_living.png';
-import queenVillageKitchen from '@assets/generated_images/queen_village_kitchen.png';
-import queenVillageBathroom from '@assets/generated_images/queen_village_bathroom.png';
-import queenVillageBasement from '@assets/generated_images/queen_village_basement.png';
-import societyHillKitchen from '@assets/generated_images/society_hill_kitchen.png';
-import societyHillBathroom from '@assets/generated_images/society_hill_bathroom.png';
-import societyHillLiving from '@assets/generated_images/society_hill_living.png';
-import fairmountRowhomeKitchen from '@assets/generated_images/fairmount_rowhome_kitchen.png';
-import fairmountRowhomeBathroom from '@assets/generated_images/fairmount_rowhome_bathroom.png';
-import fairmountRowhomeLiving from '@assets/generated_images/fairmount_rowhome_living.png';
-import oldCityLoftKitchen from '@assets/generated_images/old_city_loft_kitchen.png';
-import oldCityLoftBathroom from '@assets/generated_images/old_city_loft_bathroom.png';
-import oldCityLoftLiving from '@assets/generated_images/old_city_loft_living.png';
+const oakwoodCottageKitchen = '/images/properties/oakwood_cottage_kitchen.jpg';
+const oakwoodCottageBathroom = '/images/properties/oakwood_cottage_bathroom.jpg';
+const oakwoodCottageLiving = '/images/properties/oakwood_cottage_living.jpg';
+const riversideRanchKitchen = '/images/properties/riverside_ranch_kitchen.jpg';
+const riversideRanchBathroom = '/images/properties/riverside_ranch_bathroom.jpg';
+const riversideRanchLiving = '/images/properties/riverside_ranch_living.jpg';
+const maplewoodColonialKitchen = '/images/properties/maplewood_colonial_kitchen.jpg';
+const maplewoodColonialBathroom = '/images/properties/maplewood_colonial_bathroom.jpg';
+const maplewoodColonialLiving = '/images/properties/maplewood_colonial_living.jpg';
+const maplewoodColonialBasement = '/images/properties/maplewood_colonial_basement.jpg';
+const downtownLoftKitchenUnique = '/images/properties/downtown_loft_kitchen_unique.jpg';
+const downtownLoftBathroom = '/images/properties/downtown_loft_bathroom.jpg';
+const downtownLoftLiving = '/images/properties/downtown_loft_living.jpg';
+const elmwoodBungalowBathroom = '/images/properties/elmwood_bungalow_bathroom.jpg';
+const elmwoodBungalowLiving = '/images/properties/elmwood_bungalow_living.jpg';
+const hillsideRetreatKitchen = '/images/properties/hillside_retreat_kitchen.jpg';
+const hillsideRetreatBathroom = '/images/properties/hillside_retreat_bathroom.jpg';
+const hillsideRetreatLiving = '/images/properties/hillside_retreat_living.jpg';
+const westsideManorKitchenUnique = '/images/properties/westside_manor_kitchen_unique.jpg';
+const westsideManorBathroom = '/images/properties/westside_manor_bathroom.jpg';
+const westsideManorLiving = '/images/properties/westside_manor_living.jpg';
+const southStreetTwinKitchen = '/images/properties/south_street_twin_kitchen.jpg';
+const southStreetTwinBathroom = '/images/properties/south_street_twin_bathroom.jpg';
+const southStreetTwinBasement = '/images/properties/south_street_twin_basement.jpg';
+const fishtownRowHouseKitchen = '/images/properties/fishtown_row_house_kitchen.jpg';
+const fishtownRowHouseBathroom = '/images/properties/fishtown_row_house_bathroom.jpg';
+const fishtownRowHouseLiving = '/images/properties/fishtown_row_house_living.jpg';
+const portRichmondDuplexKitchen = '/images/properties/port_richmond_duplex_kitchen.jpg';
+const portRichmondDuplexBathroom = '/images/properties/port_richmond_duplex_bathroom.jpg';
+const portRichmondDuplexLiving = '/images/properties/port_richmond_duplex_living.jpg';
+const kensingtonRowKitchen = '/images/properties/kensington_row_kitchen.jpg';
+const kensingtonRowBathroom = '/images/properties/kensington_row_bathroom.jpg';
+const northernLibertiesLoftLiving = '/images/properties/northern_liberties_loft_living.jpg';
+const northernLibertiesLoftKitchen = '/images/properties/northern_liberties_loft_kitchen.jpg';
+const northernLibertiesLoftBathroom = '/images/properties/northern_liberties_loft_bathroom.jpg';
+const hudsonValleyFarmhouseKitchen = '/images/properties/hudson_valley_farmhouse_kitchen.jpg';
+const hudsonValleyFarmhouseBathroom = '/images/properties/hudson_valley_farmhouse_bathroom.jpg';
+const skylinePenthouseKitchen = '/images/properties/skyline_penthouse_kitchen.jpg';
+const skylinePenthouseBathroom = '/images/properties/skyline_penthouse_bathroom.jpg';
+const skylinePenthouseLiving = '/images/properties/skyline_penthouse_living.jpg';
+const chestnutHillVictorianKitchen = '/images/properties/chestnut_hill_victorian_kitchen.jpg';
+const chestnutHillVictorianBathroom = '/images/properties/chestnut_hill_victorian_bathroom.jpg';
+const chestnutHillVictorianBasement = '/images/properties/chestnut_hill_victorian_basement.jpg';
+const lakefrontEstateKitchen = '/images/properties/lakefront_estate_kitchen.jpg';
+const lakefrontEstateBathroom = '/images/properties/lakefront_estate_bathroom.jpg';
+const graduateHospitalBrownstoneKitchen = '/images/properties/graduate_hospital_brownstone_kitchen.jpg';
+const graduateHospitalBrownstoneBathroom = '/images/properties/graduate_hospital_brownstone_bathroom.jpg';
+const graduateHospitalBrownstoneLiving = '/images/properties/graduate_hospital_brownstone_living.jpg';
+const rittenhouseSquareKitchen = '/images/properties/rittenhouse_square_kitchen.jpg';
+const rittenhouseSquareBathroom = '/images/properties/rittenhouse_square_bathroom.jpg';
+const rittenhouseSquareLiving = '/images/properties/rittenhouse_square_living.jpg';
+const queenVillageKitchen = '/images/properties/queen_village_kitchen.jpg';
+const queenVillageBathroom = '/images/properties/queen_village_bathroom.jpg';
+const queenVillageBasement = '/images/properties/queen_village_basement.jpg';
+const societyHillKitchen = '/images/properties/society_hill_kitchen.jpg';
+const societyHillBathroom = '/images/properties/society_hill_bathroom.jpg';
+const societyHillLiving = '/images/properties/society_hill_living.jpg';
+const fairmountRowhomeKitchen = '/images/properties/fairmount_rowhome_kitchen.jpg';
+const fairmountRowhomeBathroom = '/images/properties/fairmount_rowhome_bathroom.jpg';
+const fairmountRowhomeLiving = '/images/properties/fairmount_rowhome_living.jpg';
+const oldCityLoftKitchen = '/images/properties/old_city_loft_kitchen.jpg';
+const oldCityLoftBathroom = '/images/properties/old_city_loft_bathroom.jpg';
+const oldCityLoftLiving = '/images/properties/old_city_loft_living.jpg';
 
-import elmwoodBungalowKitchenMain from '@assets/generated_images/elmwood_bungalow_kitchen_main.png';
-import southStreetTwinLiving from '@assets/generated_images/south_street_twin_living.png';
-import kensingtonRowLiving from '@assets/generated_images/kensington_row_living.png';
-import queenVillageLiving from '@assets/generated_images/queen_village_living.png';
-import fairmountRowhomeLivingMain from '@assets/generated_images/fairmount_rowhome_living_main.png';
-import portRichmondDuplexLivingMain from '@assets/generated_images/port_richmond_duplex_living_main.png';
-import northernLibertiesLoftKitchenMain from '@assets/generated_images/northern_liberties_loft_kitchen_main.png';
-import hudsonValleyFarmhouseLiving from '@assets/generated_images/hudson_valley_farmhouse_living.png';
-import chestnutHillVictorianLiving from '@assets/generated_images/chestnut_hill_victorian_living.png';
-import lakefrontEstateLiving from '@assets/generated_images/lakefront_estate_living.png';
+const elmwoodBungalowKitchenMain = '/images/properties/elmwood_bungalow_kitchen_main.jpg';
+const southStreetTwinLiving = '/images/properties/south_street_twin_living.jpg';
+const kensingtonRowLiving = '/images/properties/kensington_row_living.jpg';
+const queenVillageLiving = '/images/properties/queen_village_living.jpg';
+const fairmountRowhomeLivingMain = '/images/properties/fairmount_rowhome_living_main.jpg';
+const portRichmondDuplexLivingMain = '/images/properties/port_richmond_duplex_living_main.jpg';
+const northernLibertiesLoftKitchenMain = '/images/properties/northern_liberties_loft_kitchen_main.jpg';
+const hudsonValleyFarmhouseLiving = '/images/properties/hudson_valley_farmhouse_living.jpg';
+const chestnutHillVictorianLiving = '/images/properties/chestnut_hill_victorian_living.jpg';
+const lakefrontEstateLiving = '/images/properties/lakefront_estate_living.jpg';
 
-import issueRoofWear from '@assets/generated_images/worn_roof_shingles.png';
-import issueOutdatedHvac from '@assets/generated_images/outdated_hvac_system.png';
-import issueFoundationSettling from '@assets/generated_images/foundation_settling_cracks.png';
-import issueDrainageIssues from '@assets/generated_images/yard_drainage_issues.png';
-import issueMoldRemediation from '@assets/generated_images/basement_mold_growth.png';
-import issueElectricalOutdated from '@assets/generated_images/outdated_electrical_panel.png';
-import issuePlumbingGalvanized from '@assets/generated_images/corroded_galvanized_plumbing.png';
-import issueHoaAssessment from '@assets/generated_images/hoa_assessment_notice.png';
-import issueIndustrialConversion from '@assets/generated_images/industrial_conversion_issues.png';
-import issueHvacCommercial from '@assets/generated_images/commercial_hvac_on_residential.png';
-import issueHvacHighRise from '@assets/generated_images/high-rise_hvac_systems.png';
-import issuePorchRot from '@assets/generated_images/rotted_porch_wood.png';
-import issueKnobTube from '@assets/generated_images/knob_and_tube_wiring.png';
-import issueLeadPaint from '@assets/generated_images/lead_paint_peeling.png';
-import issueRadonMitigation from '@assets/generated_images/radon_gas_mitigation.png';
-import issueSidingDamage from '@assets/generated_images/damaged_house_siding.png';
-import issueTermiteDamage from '@assets/generated_images/termite_wood_damage.png';
-import issueTreeRootDamage from '@assets/generated_images/tree_root_damage.png';
-import issueSepticIssues from '@assets/generated_images/septic_system_issues.png';
-import issueSumpPump from '@assets/generated_images/basement_sump_pump.png';
-import issueChimneyRebuild from '@assets/generated_images/chimney_needs_rebuilding.png';
-import issueBasementMoisture from '@assets/generated_images/basement_moisture_issues.png';
-import issueDockRepair from '@assets/generated_images/dock_repair_needed.png';
-import issueFireSuppression from '@assets/generated_images/fire_suppression_system.png';
-import issueHistoricWindows from '@assets/generated_images/historic_windows_restoration.png';
-import issueHoaReserveLow from '@assets/generated_images/hoa_reserve_fund_low.png';
-import issueHurricaneStraps from '@assets/generated_images/hurricane_strap_installation.png';
-import issueHvacReplacement from '@assets/generated_images/hvac_replacement_needed.png';
-import issueIrrigationRepair from '@assets/generated_images/irrigation_system_repair.png';
-import issueLoadingDock from '@assets/generated_images/loading_dock_area.png';
-import issueFoundationMajor from '@assets/generated_images/major_foundation_damage.png';
-import issueCosmeticUpdates from '@assets/generated_images/cosmetic_updates_needed.png';
-import issuePlumbingStack from '@assets/generated_images/plumbing_stack_replacement.png';
-import issuePoolResurface from '@assets/generated_images/pool_needs_resurfacing.png';
-import issueSaltCorrosion from '@assets/generated_images/salt_corrosion_damage.png';
-import issuePlumbingReplacement from '@assets/generated_images/plumbing_replacement_needed.png';
-import issueStructuralSettling from '@assets/generated_images/structural_settling_damage.png';
-import issueAsbestosTiles from '@assets/generated_images/asbestos_floor_tiles.png';
-import issueHistoricDistrict from '@assets/generated_images/historic_district_building.png';
-import issueBrickRepointing from '@assets/generated_images/brick_repointing_needed.png';
-import issueNarrowLotAccess from '@assets/generated_images/narrow_lot_access.png';
-import issueRoofHistoric from '@assets/generated_images/historic_roof_restoration.png';
+const issueRoofWear = '/images/properties/worn_roof_shingles.jpg';
+const issueOutdatedHvac = '/images/properties/outdated_hvac_system.jpg';
+const issueFoundationSettling = '/images/properties/foundation_settling_cracks.jpg';
+const issueDrainageIssues = '/images/properties/yard_drainage_issues.jpg';
+const issueMoldRemediation = '/images/properties/basement_mold_growth.jpg';
+const issueElectricalOutdated = '/images/properties/outdated_electrical_panel.jpg';
+const issuePlumbingGalvanized = '/images/properties/corroded_galvanized_plumbing.jpg';
+const issueHoaAssessment = '/images/properties/hoa_assessment_notice.jpg';
+const issueIndustrialConversion = '/images/properties/industrial_conversion_issues.jpg';
+const issueHvacCommercial = '/images/properties/commercial_hvac_on_residential.jpg';
+const issueHvacHighRise = '/images/properties/high-rise_hvac_systems.jpg';
+const issuePorchRot = '/images/properties/rotted_porch_wood.jpg';
+const issueKnobTube = '/images/properties/knob_and_tube_wiring.jpg';
+const issueLeadPaint = '/images/properties/lead_paint_peeling.jpg';
+const issueRadonMitigation = '/images/properties/radon_gas_mitigation.jpg';
+const issueSidingDamage = '/images/properties/damaged_house_siding.jpg';
+const issueTermiteDamage = '/images/properties/termite_wood_damage.jpg';
+const issueTreeRootDamage = '/images/properties/tree_root_damage.jpg';
+const issueSepticIssues = '/images/properties/septic_system_issues.jpg';
+const issueSumpPump = '/images/properties/basement_sump_pump.jpg';
+const issueChimneyRebuild = '/images/properties/chimney_needs_rebuilding.jpg';
+const issueBasementMoisture = '/images/properties/basement_moisture_issues.jpg';
+const issueDockRepair = '/images/properties/dock_repair_needed.jpg';
+const issueFireSuppression = '/images/properties/fire_suppression_system.jpg';
+const issueHistoricWindows = '/images/properties/historic_windows_restoration.jpg';
+const issueHoaReserveLow = '/images/properties/hoa_reserve_fund_low.jpg';
+const issueHurricaneStraps = '/images/properties/hurricane_strap_installation.jpg';
+const issueHvacReplacement = '/images/properties/hvac_replacement_needed.jpg';
+const issueIrrigationRepair = '/images/properties/irrigation_system_repair.jpg';
+const issueLoadingDock = '/images/properties/loading_dock_area.jpg';
+const issueFoundationMajor = '/images/properties/major_foundation_damage.jpg';
+const issueCosmeticUpdates = '/images/properties/cosmetic_updates_needed.jpg';
+const issuePlumbingStack = '/images/properties/plumbing_stack_replacement.jpg';
+const issuePoolResurface = '/images/properties/pool_needs_resurfacing.jpg';
+const issueSaltCorrosion = '/images/properties/salt_corrosion_damage.jpg';
+const issuePlumbingReplacement = '/images/properties/plumbing_replacement_needed.jpg';
+const issueStructuralSettling = '/images/properties/structural_settling_damage.jpg';
+const issueAsbestosTiles = '/images/properties/asbestos_floor_tiles.jpg';
+const issueHistoricDistrict = '/images/properties/historic_district_building.jpg';
+const issueBrickRepointing = '/images/properties/brick_repointing_needed.jpg';
+const issueNarrowLotAccess = '/images/properties/narrow_lot_access.jpg';
+const issueRoofHistoric = '/images/properties/historic_roof_restoration.jpg';
+
+const defaultImage = '/images/properties/oakwood_cottage_front.jpg';
 
 const propertyImages: Record<string, string> = {
   'Oakwood Cottage': oakwoodFront,
@@ -272,23 +274,8 @@ export const issueImages: Record<string, string> = {
   'seawall_maintenance': issueFoundationSettling,
 };
 
-// Interior images - using glob imports for dynamic loading
-// This will be populated once images are generated
-const interiorImagesMap: Record<string, Record<string, string>> = {};
-
-// Helper to build interior images map from property name
-function getInteriorImagesForProperty(propertyName: string) {
-  const dirName = propertyName.toLowerCase().replace(/ /g, '_');
-  const images: Record<string, string> = {};
-
-  // For now, return empty object. Images will be added once generated.
-  // When images are generated, they should be imported like the exterior images above.
-
-  return images;
-}
-
 export const getPropertyImage = (propertyName: string): string => {
-  return propertyImages[propertyName] || oakwoodFront;
+  return propertyImages[propertyName] || defaultImage;
 };
 
 const propertySpecificInteriors: Record<string, Array<{ type: string; label: string; url: string }>> = {
@@ -415,8 +402,6 @@ const propertySpecificInteriors: Record<string, Array<{ type: string; label: str
   ],
 };
 
-// Condition tiers for interior selection
-// Lower tier = worse condition = dated interiors
 const conditionTiers: Record<string, number> = {
   'Fixer-Upper': 1,
   'Needs Repairs': 1,
@@ -429,15 +414,13 @@ const conditionTiers: Record<string, number> = {
   'Excellent': 4,
 };
 
-// Price tiers (in thousands) for interior quality
 function getPriceTier(price: number): number {
-  if (price < 250000) return 1;       // Budget - dated interiors
-  if (price < 400000) return 2;       // Moderate - mixed
-  if (price < 600000) return 3;       // Mid-range - decent
-  return 4;                           // Luxury - nice interiors
+  if (price < 250000) return 1;
+  if (price < 400000) return 2;
+  if (price < 600000) return 3;
+  return 4;
 }
 
-// Dated/worn interior images for lower-tier properties
 const datedInteriors: Record<string, string> = {
   kitchen: interiorKitchenDated,
   bathroom: interiorBathroomDated,
@@ -445,7 +428,6 @@ const datedInteriors: Record<string, string> = {
   basement: interiorBasementClean,
 };
 
-// Fixer-upper/extreme condition images
 const fixerUpperInteriors: Record<string, string> = {
   kitchen: interiorKitchenExtreme,
   bathroom: interiorBathroomExtreme,
@@ -457,7 +439,6 @@ export const getPropertyInteriorImages = (propertyName: string): Array<{ type: s
   return propertySpecificInteriors[propertyName] || [];
 };
 
-// Get condition-appropriate interior images
 export const getConditionAdjustedInteriors = (
   propertyName: string,
   conditionTag: string,
@@ -465,30 +446,24 @@ export const getConditionAdjustedInteriors = (
 ): Array<{ type: string; label: string; url: string }> => {
   const specificInteriors = propertySpecificInteriors[propertyName];
   if (!specificInteriors) return [];
-  
+
   const conditionTier = conditionTiers[conditionTag] || 3;
   const priceTier = getPriceTier(price);
-  
-  // Calculate overall quality tier (1-4, where 1 is worst)
+
   const qualityTier = Math.round((conditionTier + priceTier) / 2);
-  
-  // For quality tier 1-2, substitute with dated/worn interiors
+
   if (qualityTier <= 2) {
     return specificInteriors.map(img => {
-      // Use fixer-upper images for tier 1, dated for tier 2
       const replacementPool = qualityTier === 1 ? fixerUpperInteriors : datedInteriors;
       const replacement = replacementPool[img.type];
-      
-      // If we have a replacement for this room type, use it
-      // Otherwise keep the original (for basements, utility rooms, etc.)
+
       if (replacement && (img.type === 'kitchen' || img.type === 'bathroom' || img.type === 'living')) {
         return { ...img, url: replacement };
       }
       return img;
     });
   }
-  
-  // For quality tier 3-4, use the property-specific interiors (nice photos)
+
   return specificInteriors;
 };
 
@@ -498,4 +473,36 @@ export const hasInteriorImages = (propertyName: string): boolean => {
 
 export const getIssueImage = (issueId: string): string | null => {
   return issueImages[issueId] || null;
+};
+
+export const getPropertySpecificInteriors = (): Record<string, Array<{ type: string; label: string; url: string }>> => {
+  return propertySpecificInteriors;
+};
+
+export const getConditionInteriorImages = (): { dated: Record<string, string>; fixerUpper: Record<string, string> } => {
+  return { dated: datedInteriors, fixerUpper: fixerUpperInteriors };
+};
+
+export const getPropertyInspectionImages = (): Record<string, string> => {
+  return {
+    elmwoodKitchenPipes,
+    kensingtonDeferredMaint,
+    oldCitySettling,
+    oldCityBasement,
+    maplewoodElectrical,
+    oakwoodHvac,
+    riversideFoundation,
+    southStreetWall,
+    portRichmondHvac,
+    queenVillageBrick,
+    westsideCosmetic,
+    fairmountDualSystems,
+    downtownLoftPipes,
+    northernLibertiesHvac,
+    graduateHospitalKitchen,
+    rittenhouseHvac,
+    societyHillWindows,
+    fishtownSettling,
+    hillsideSeptic,
+  };
 };

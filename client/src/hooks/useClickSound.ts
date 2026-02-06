@@ -147,6 +147,7 @@ function isTextInput(el: HTMLElement): boolean {
   }
   if (el instanceof HTMLTextAreaElement) return true;
   if (el.getAttribute('contenteditable') === 'true') return true;
+  if (el.closest('[contenteditable="true"]')) return true;
   return false;
 }
 

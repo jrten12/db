@@ -355,6 +355,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
           <button
             onClick={onClose}
             className="text-white hover:text-white transition-colors p-3 rounded-full bg-slate-800/80 hover:bg-slate-700 active:bg-slate-600 flex-shrink-0 ml-2"
+            data-sound="swoosh"
           >
             <X className="w-6 h-6" />
           </button>
@@ -750,6 +751,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
               <button
                 onClick={onClose}
                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                data-sound="swoosh"
               >
                 <CheckCircle className="w-5 h-5" />
                 Save & Close

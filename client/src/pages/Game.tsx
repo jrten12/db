@@ -1714,7 +1714,7 @@ export default function Game() {
       <AnimatedBackground />
 
       {/* Fixed header at top of viewport - safe area handled by StatusBar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-sm pointer-events-auto">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-sm pointer-events-auto overflow-hidden">
         <StatusBar
           cash={gameRun.cash}
           weeksRemaining={gameRun.weeksRemaining}
@@ -1742,7 +1742,7 @@ export default function Game() {
       </div>
       
       {/* Main content with top padding to account for fixed header + safe area + market bar */}
-      <div ref={mainContentRef} className="min-h-screen min-h-[100dvh] bg-black/30 pt-32 md:pt-40 overflow-y-auto">
+      <div ref={mainContentRef} className="min-h-screen min-h-[100dvh] bg-black/30 pt-36 md:pt-44 overflow-y-auto">
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">

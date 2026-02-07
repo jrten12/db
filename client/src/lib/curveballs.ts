@@ -983,7 +983,13 @@ export function rollForCurveball(
     possibleEvents = possibleEvents.filter(e => !excludeIds.includes(e.id));
   }
 
-  // Each event rolls independently
+  // Shuffle events to eliminate ordering bias (Fisher-Yates)
+  for (let i = possibleEvents.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [possibleEvents[i], possibleEvents[j]] = [possibleEvents[j], possibleEvents[i]];
+  }
+
+  // Each event rolls independently (now in random order)
   for (const event of possibleEvents) {
     const probabilityMultiplier = context
       ? getProbabilityMultiplier(event, context)

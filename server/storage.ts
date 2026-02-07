@@ -77,6 +77,7 @@ export interface IStorage {
   createLedgerEntry(entry: InsertLedgerEntry): Promise<LedgerEntry>;
   getLedgerByGameRun(gameRunId: number): Promise<LedgerEntry[]>;
   createLedgerEntriesWithCashUpdate(gameRunId: number, entries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[], currentCash: number): Promise<{ entries: LedgerEntry[], newCash: number }>;
+  createLedgerEntriesOnly(gameRunId: number, entries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[], currentCash: number): Promise<{ entries: LedgerEntry[], newCash: number }>;
 
   // Hall of Fame methods
   getOrCreatePlayer(playerName: string): Promise<HallOfFamePlayer>;
@@ -1684,6 +1685,37 @@ export class DBStorage implements IStorage {
 
       return { entries: createdEntries, newCash: runningBalance };
     });
+  }
+
+  async createLedgerEntriesOnly(
+    gameRunId: number,
+    entries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[],
+    currentCash: number
+  ): Promise<{ entries: LedgerEntry[], newCash: number }> {
+    let runningBalance = Math.round(currentCash);
+    const createdEntries: LedgerEntry[] = [];
+
+    for (const entry of entries) {
+      const roundedAmount = Math.round(entry.amount);
+      if (entry.direction === 'debit') {
+        runningBalance -= roundedAmount;
+      } else {
+        runningBalance += roundedAmount;
+      }
+
+      const [ledgerEntry] = await db
+        .insert(schema.ledgerEntries)
+        .values({
+          ...entry,
+          amount: roundedAmount,
+          gameRunId,
+          balanceAfter: runningBalance,
+        })
+        .returning();
+      createdEntries.push(ledgerEntry);
+    }
+
+    return { entries: createdEntries, newCash: runningBalance };
   }
 
   // Restore methods for save game feature

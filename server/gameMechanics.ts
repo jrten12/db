@@ -738,7 +738,8 @@ export async function completeFlipDeal(
 export async function processRentalIncome(
   deal: Deal,
   gameRun: GameRun,
-  curveball?: any
+  curveball?: any,
+  currentCash?: number
 ): Promise<RentalIncomeResult> {
   const proFormaOutputs = deal.proFormaOutputs as any;
   const proFormaInputs = deal.proFormaInputs as any;
@@ -969,14 +970,13 @@ export async function processRentalIncome(
   }
   
 
-  // Fetch current cash balance to avoid stale data issues
-  const currentGameRun = await storage.getGameRun(gameRun.id);
-  const currentCash = currentGameRun?.cash ?? gameRun.cash;
+  // Use passed-in running cash to avoid stale reads (BUG-007 fix)
+  const cashForLedger = currentCash ?? gameRun.cash;
 
-  const { newCash } = await storage.createLedgerEntriesWithCashUpdate(
+  const { newCash } = await storage.createLedgerEntriesOnly(
     gameRun.id,
     ledgerEntries,
-    currentCash
+    cashForLedger
   );
 
   // Calculate and track principal reduction (accelerated for game time)
@@ -1058,35 +1058,29 @@ export async function processRentalIncome(
  * Charge weekly carrying costs for flip properties (in_rehab or ready_to_list)
  * Similar to rental expenses: mortgage interest, taxes, insurance, but NO income
  */
-async function chargeFlipCarryingCosts(deal: Deal, gameRun: GameRun, storage: IStorage): Promise<void> {
+async function chargeFlipCarryingCosts(deal: Deal, gameRun: GameRun, storage: IStorage, currentCash: number): Promise<number> {
   const proFormaOutputs = deal.proFormaOutputs as any;
   const proFormaInputs = deal.proFormaInputs as any;
   const property = await storage.getProperty(deal.propertyId);
   const propertyName = property?.name || `Property #${deal.propertyId}`;
   
-  // Calculate weekly carrying costs based on loan amount and property expenses
   const loanAmount = proFormaOutputs?.loanAmount || deal.originalLoanAmount || 0;
   const interestRate = deal.loanInterestRate ?? proFormaOutputs?.interestRate ?? 7.0;
   const purchasePrice = property?.price || proFormaInputs?.purchasePrice || 200000;
   
-  // Weekly interest on loan (annual rate / 52 weeks)
   const weeklyInterest = Math.round((loanAmount * (interestRate / 100)) / 52);
   
-  // Weekly taxes and insurance (estimate 1.5% annual property tax + 0.5% insurance)
   const annualTaxes = purchasePrice * 0.015;
   const annualInsurance = purchasePrice * 0.005;
   const weeklyTaxesAndInsurance = Math.round((annualTaxes + annualInsurance) / 52);
   
   const weeklyCarryingCost = weeklyInterest + weeklyTaxesAndInsurance;
   
-  if (weeklyCarryingCost <= 0) return;
+  if (weeklyCarryingCost <= 0) return currentCash;
   
-  // Get current cash and deduct carrying costs
-  const currentGameRun = await storage.getGameRun(gameRun.id);
-  const currentCash = currentGameRun?.cash ?? gameRun.cash;
   const newCash = currentCash - weeklyCarryingCost;
   
-  // Create ledger entry for carrying costs
+  // Create ledger entry only (no cash update - handled by advanceGameWeek)
   await storage.createLedgerEntry({
     gameRunId: gameRun.id,
     direction: 'debit',
@@ -1099,8 +1093,7 @@ async function chargeFlipCarryingCosts(deal: Deal, gameRun: GameRun, storage: IS
     gameWeek: gameRun.currentWeek,
   });
   
-  // Update game run cash
-  await storage.updateGameRun(gameRun.id, { cash: newCash });
+  return newCash;
 }
 
 /**
@@ -1125,6 +1118,9 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   const completedRentalRehabs: CompletedRentalRehab[] = [];
   const curveballs: any[] = [];
 
+  // BUG-007 fix: Track running cash in memory, apply single atomic update at end
+  let runningCash = gameRun.cash;
+
   // Get all property investigations for this game to check undiscovered issues
   const investigations = await storage.getPropertyInvestigations(gameRunId);
 
@@ -1132,27 +1128,22 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   // Skip rentals under rehab - no income when tenant is displaced
   for (const deal of deals) {
     if (deal.status === 'active_rental' && !deal.rentalRehabActive) {
-      // Check if it's time for payment (hasn't been paid this week)
       if ((deal.lastIncomePaymentWeek || 0) < gameRun.currentWeek + 1) {
-        // Get property for enhanced maintenance mechanics
         const property = await storage.getProperty(deal.propertyId);
 
-        // Get recent curveball IDs to prevent repetition (e.g., same dishwasher breaking weekly)
         const recentCurveballIds = (deal.recentCurveballIds as string[] | null) || [];
 
-        // Roll for maintenance events using enhanced mechanics
-        // This considers property quality, type, unfixed rehab issues, and excludes recent events
         const curveball = property
           ? rollForEnhancedMaintenance(property, deal, recentCurveballIds)
-          : rollForCurveball('rental_monthly', undefined, recentCurveballIds); // Fallback to old system if property not found
+          : rollForCurveball('rental_monthly', undefined, recentCurveballIds);
 
-        const result = await processRentalIncome(deal, gameRun, curveball);
+        const result = await processRentalIncome(deal, gameRun, curveball, runningCash);
+        runningCash = result.newCash;
         rentalPayments.push(result);
 
         if (curveball) {
           curveballs.push(curveball);
           
-          // Update deal's recent curveball history to prevent same issue repeating
           const updatedRecentIds = updateRecentCurveballIds(recentCurveballIds, curveball.id);
           await storage.updateDeal(deal.id, { recentCurveballIds: updatedRecentIds });
         }
@@ -1165,26 +1156,21 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     if (deal.status === 'in_rehab' && deal.weeksUntilCompletion) {
       const weeksLeft = deal.weeksUntilCompletion - 1;
 
-      // Charge weekly carrying costs for flip during rehab
-      await chargeFlipCarryingCosts(deal, gameRun, storage);
+      runningCash = await chargeFlipCarryingCosts(deal, gameRun, storage, runningCash);
 
       if (weeksLeft <= 0) {
-        // Flip rehab is complete! Property is ready to list for sale
-        // Player must manually trigger the sale from TimeProgressionPanel
         await storage.updateDeal(deal.id, {
           status: 'ready_to_list',
           weeksUntilCompletion: 0,
         });
         
-        // Add to completedFlips with a marker that it's ready to list (not sold yet)
         completedFlips.push({
           dealId: deal.id,
           salePrice: 0,
           profit: 0,
-          readyToList: true, // New flag indicating ready to sell
+          readyToList: true,
         } as any);
       } else {
-        // Update weeks remaining
         await storage.updateDeal(deal.id, {
           weeksUntilCompletion: weeksLeft,
         });
@@ -1195,7 +1181,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   // Process flips ready to list - charge carrying costs while waiting to sell
   for (const deal of deals) {
     if (deal.status === 'ready_to_list') {
-      await chargeFlipCarryingCosts(deal, gameRun, storage);
+      runningCash = await chargeFlipCarryingCosts(deal, gameRun, storage, runningCash);
     }
   }
 
@@ -1206,33 +1192,26 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
       const weeksLeft = deal.rentalRehabWeeksRemaining - 1;
       const property = await storage.getProperty(deal.propertyId);
       
-      // Charge carrying costs during rehab (mortgage payment, taxes, insurance)
-      // Tenant is displaced so no income, but fixed costs continue
       const proFormaOutputs = deal.proFormaOutputs as any;
       const monthlyDebtService = proFormaOutputs?.monthlyDebtService || proFormaOutputs?.debtServiceMonthly || 0;
       const monthlyOpEx = proFormaOutputs?.monthlyOperatingExpenses || proFormaOutputs?.monthlyOpEx || 0;
       
-      // Calculate weekly carrying cost from stored monthly values
       const weeklyCarryingCost = Math.round(monthlyDebtService + monthlyOpEx);
       
       if (weeklyCarryingCost > 0) {
-        const currentGameRun = await storage.getGameRun(gameRunId);
-        const currentCash = currentGameRun?.cash ?? gameRun.cash;
-        const newCash = currentCash - weeklyCarryingCost;
+        runningCash = runningCash - weeklyCarryingCost;
         
         await storage.createLedgerEntry({
           gameRunId,
           direction: 'debit',
           category: 'expense',
           amount: weeklyCarryingCost,
-          balanceAfter: newCash,
+          balanceAfter: runningCash,
           description: `Carrying costs (vacant) - ${property?.name || 'Property'} (mortgage, taxes, insurance)`,
           propertyId: deal.propertyId,
           dealId: deal.id,
           gameWeek: gameRun.currentWeek + 1,
         });
-        
-        await storage.updateGameRun(gameRunId, { cash: newCash });
       }
 
       if (weeksLeft <= 0) {
@@ -1351,15 +1330,18 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
       currentMarket = newMarket;
       marketChanged = true;
     }
-    // Update market condition and last change week
+    // Single atomic cash + state update at end of week (BUG-007 fix)
     await storage.updateGameRun(gameRunId, {
+      cash: runningCash,
       currentWeek: newWeek,
       weeksRemaining: newWeeksRemaining,
       marketCondition: currentMarket,
       lastMarketChangeWeek: newWeek,
     });
   } else {
+    // Single atomic cash + state update at end of week (BUG-007 fix)
     await storage.updateGameRun(gameRunId, {
+      cash: runningCash,
       currentWeek: newWeek,
       weeksRemaining: newWeeksRemaining,
     });

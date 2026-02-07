@@ -304,34 +304,17 @@ export const api = {
     return res.json();
   },
 
-  // Premium Purchases
-  async purchaseCash(gameRunId: number, amount: number): Promise<GameRun> {
-    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase-cash`, {
+  // Premium Purchases (SKU-based, server-defined amounts)
+  async purchaseSku(gameRunId: number, sku: string): Promise<GameRun> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount }),
+      body: JSON.stringify({ sku }),
     });
-    if (!res.ok) throw new Error('Failed to purchase cash');
-    return res.json();
-  },
-
-  async purchaseWeeks(gameRunId: number, amount: number): Promise<GameRun> {
-    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase-weeks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount }),
-    });
-    if (!res.ok) throw new Error('Failed to purchase weeks');
-    return res.json();
-  },
-
-  async purchaseBundle(gameRunId: number, cashAmount: number, weeksAmount: number): Promise<GameRun> {
-    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase-bundle`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cashAmount, weeksAmount }),
-    });
-    if (!res.ok) throw new Error('Failed to purchase bundle');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Purchase failed' }));
+      throw new Error(err.error || 'Failed to complete purchase');
+    }
     return res.json();
   },
 

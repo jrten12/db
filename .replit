@@ -48,3 +48,5 @@ expertMode = true
 
 [userenv.shared]
 ADMIN_KEY = "dealbreak-admin-2024"
+ENABLE_PREMIUM_PURCHASES = "false"
+ENABLE_ADMIN_TOOLS = "false"

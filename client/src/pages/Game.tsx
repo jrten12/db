@@ -524,30 +524,12 @@ export default function Game() {
     },
   });
 
-  const purchaseCashMutation = useMutation({
-    mutationFn: ({ gameRunId, amount }: { gameRunId: number; amount: number }) =>
-      api.purchaseCash(gameRunId, amount),
+  const purchaseSkuMutation = useMutation({
+    mutationFn: ({ gameRunId, sku }: { gameRunId: number; sku: string }) =>
+      api.purchaseSku(gameRunId, sku),
     onSuccess: (updatedGameRun) => {
       setGameRun(updatedGameRun);
-      toast.success(`Added $${updatedGameRun.cash.toLocaleString()} cash!`);
-    },
-  });
-
-  const purchaseWeeksMutation = useMutation({
-    mutationFn: ({ gameRunId, amount }: { gameRunId: number; amount: number }) =>
-      api.purchaseWeeks(gameRunId, amount),
-    onSuccess: (updatedGameRun) => {
-      setGameRun(updatedGameRun);
-      toast.success(`Added ${updatedGameRun.weeksRemaining} months!`);
-    },
-  });
-
-  const purchaseBundleMutation = useMutation({
-    mutationFn: ({ gameRunId, cashAmount, weeksAmount }: { gameRunId: number; cashAmount: number; weeksAmount: number }) =>
-      api.purchaseBundle(gameRunId, cashAmount, weeksAmount),
-    onSuccess: (updatedGameRun) => {
-      setGameRun(updatedGameRun);
-      toast.success(`Bundle added! New cash: $${updatedGameRun.cash.toLocaleString()}, Months: ${updatedGameRun.weeksRemaining}`);
+      toast.success(`Purchase complete! Cash: $${updatedGameRun.cash.toLocaleString()}, Months: ${updatedGameRun.weeksRemaining}`);
     },
   });
 
@@ -1479,21 +1461,20 @@ export default function Game() {
     if (!gameRun) return;
 
     try {
+      let sku: string;
       if (type === 'cash') {
-        await purchaseCashMutation.mutateAsync({ gameRunId: gameRun.id, amount: cashAmount });
+        sku = cashAmount >= 500000 ? 'cash_large' : cashAmount >= 150000 ? 'cash_medium' : 'cash_small';
       } else if (type === 'weeks') {
-        await purchaseWeeksMutation.mutateAsync({ gameRunId: gameRun.id, amount: weeksAmount || 0 });
-      } else if (type === 'bundle') {
-        await purchaseBundleMutation.mutateAsync({
-          gameRunId: gameRun.id,
-          cashAmount,
-          weeksAmount: weeksAmount || 0
-        });
+        const weeks = weeksAmount || 0;
+        sku = weeks >= 24 ? 'weeks_large' : weeks >= 12 ? 'weeks_medium' : 'weeks_small';
+      } else {
+        sku = cashAmount >= 300000 ? 'bundle_pro' : 'bundle_starter';
       }
+      await purchaseSkuMutation.mutateAsync({ gameRunId: gameRun.id, sku });
     } catch (error) {
       toast.error('Purchase failed');
     }
-  }, [gameRun, purchaseCashMutation, purchaseWeeksMutation, purchaseBundleMutation]);
+  }, [gameRun, purchaseSkuMutation]);
 
   // Check if player is bankrupt (cash below zero)
   const isBankrupt = gameRun && gameRun.cash < 0;

@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema, insertTenantSchema, trophyTypes, type Deal, type GameRun, type Property } from "@shared/schema";
@@ -6,6 +6,43 @@ import { z } from "zod";
 import * as gameMechanics from "./gameMechanics";
 import { dealLimiter, ledgerLimiter, gameActionLimiter, authLimiter, purchaseLimiter } from "./rateLimiter";
 import OpenAI from "openai";
+
+const PREMIUM_SKU_MAP: Record<string, { cash: number; weeks: number }> = {
+  'cash_small': { cash: 50000, weeks: 0 },
+  'cash_medium': { cash: 150000, weeks: 0 },
+  'cash_large': { cash: 500000, weeks: 0 },
+  'weeks_small': { cash: 0, weeks: 4 },
+  'weeks_medium': { cash: 0, weeks: 12 },
+  'weeks_large': { cash: 0, weeks: 24 },
+  'bundle_starter': { cash: 100000, weeks: 8 },
+  'bundle_pro': { cash: 300000, weeks: 16 },
+};
+
+function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  const adminKey = req.headers['x-admin-key'] as string;
+  const expectedKey = process.env.ADMIN_KEY;
+  if (!expectedKey || adminKey !== expectedKey) {
+    res.status(403).json({ error: 'Forbidden: admin access required' });
+    return;
+  }
+  next();
+}
+
+function requirePremiumEnabled(_req: Request, res: Response, next: NextFunction) {
+  if (process.env.ENABLE_PREMIUM_PURCHASES !== 'true') {
+    res.status(403).json({ error: 'Premium purchases are disabled' });
+    return;
+  }
+  next();
+}
+
+function requireAdminToolsEnabled(_req: Request, res: Response, next: NextFunction) {
+  if (process.env.ENABLE_ADMIN_TOOLS !== 'true') {
+    res.status(403).json({ error: 'Admin tools are disabled' });
+    return;
+  }
+  next();
+}
 
 // Calculate refinance options based on player's financial situation
 async function calculateRefinanceOptions(deal: Deal, gameRun: GameRun, allDeals: Deal[], property: Property) {
@@ -176,7 +213,8 @@ export async function registerRoutes(
   });
 
   // Admin: Manually refresh property prices (for debugging)
-  app.post("/api/admin/refresh-prices", async (req, res) => {
+  // BUG-003: Gated behind admin auth + ENABLE_ADMIN_TOOLS flag
+  app.post("/api/admin/refresh-prices", requireAdminToolsEnabled, requireAdmin, async (req, res) => {
     try {
       const result = await storage.refreshPropertyPrices();
       res.json({ success: true, message: `Updated ${result.updated} properties`, properties: result.properties });
@@ -591,16 +629,24 @@ export async function registerRoutes(
     }
   });
 
-  // Premium purchase - Add cash (rate limited - sensitive operation)
-  app.post("/api/game-runs/:id/purchase-cash", purchaseLimiter, async (req, res) => {
+  // Premium purchase - SKU-based (BUG-002: gated, authenticated, server-defined amounts)
+  app.post("/api/game-runs/:id/purchase", requirePremiumEnabled, requireAdmin, purchaseLimiter, async (req, res) => {
     try {
       const gameRunId = parseInt(req.params.id);
-      const { amount } = req.body as { amount: number };
+      const { sku } = req.body as { sku: string; amount?: unknown };
 
-      if (!amount || amount <= 0) {
-        res.status(400).json({ error: "Invalid amount" });
+      // BUG-002: Reject any request that supplies a client-side amount
+      if ('amount' in req.body || 'cashAmount' in req.body || 'weeksAmount' in req.body) {
+        res.status(400).json({ error: "Client-supplied amounts are not allowed. Use a valid SKU." });
         return;
       }
+
+      if (!sku || !PREMIUM_SKU_MAP[sku]) {
+        res.status(400).json({ error: "Invalid SKU", validSkus: Object.keys(PREMIUM_SKU_MAP) });
+        return;
+      }
+
+      const skuData = PREMIUM_SKU_MAP[sku];
 
       const gameRun = await storage.getGameRun(gameRunId);
       if (!gameRun) {
@@ -608,69 +654,11 @@ export async function registerRoutes(
         return;
       }
 
-      const updatedGameRun = await storage.updateGameRun(gameRunId, {
-        cash: gameRun.cash + amount
-      });
+      const updates: Record<string, number> = {};
+      if (skuData.cash > 0) updates.cash = gameRun.cash + skuData.cash;
+      if (skuData.weeks > 0) updates.weeksRemaining = gameRun.weeksRemaining + skuData.weeks;
 
-      res.json(updatedGameRun);
-    } catch (error: any) {
-      console.error("Error purchasing cash:", error);
-      res.status(500).json({ error: error.message || "Failed to purchase cash" });
-    }
-  });
-
-  // Premium purchase - Add weeks (rate limited - sensitive operation)
-  app.post("/api/game-runs/:id/purchase-weeks", purchaseLimiter, async (req, res) => {
-    try {
-      const gameRunId = parseInt(req.params.id);
-      const { amount } = req.body as { amount: number };
-
-      if (!amount || amount <= 0) {
-        res.status(400).json({ error: "Invalid amount" });
-        return;
-      }
-
-      const gameRun = await storage.getGameRun(gameRunId);
-      if (!gameRun) {
-        res.status(404).json({ error: "Game run not found" });
-        return;
-      }
-
-      const updatedGameRun = await storage.updateGameRun(gameRunId, {
-        weeksRemaining: gameRun.weeksRemaining + amount
-      });
-
-      res.json(updatedGameRun);
-    } catch (error: any) {
-      console.error("Error purchasing weeks:", error);
-      res.status(500).json({ error: error.message || "Failed to purchase weeks" });
-    }
-  });
-
-  // Premium purchase - Add bundle (rate limited - sensitive operation)
-  app.post("/api/game-runs/:id/purchase-bundle", purchaseLimiter, async (req, res) => {
-    try {
-      const gameRunId = parseInt(req.params.id);
-      const { cashAmount, weeksAmount } = req.body as {
-        cashAmount: number;
-        weeksAmount: number;
-      };
-
-      if ((!cashAmount || cashAmount <= 0) && (!weeksAmount || weeksAmount <= 0)) {
-        res.status(400).json({ error: "Invalid amounts" });
-        return;
-      }
-
-      const gameRun = await storage.getGameRun(gameRunId);
-      if (!gameRun) {
-        res.status(404).json({ error: "Game run not found" });
-        return;
-      }
-
-      const updatedGameRun = await storage.updateGameRun(gameRunId, {
-        cash: gameRun.cash + (cashAmount || 0),
-        weeksRemaining: gameRun.weeksRemaining + (weeksAmount || 0)
-      });
+      const updatedGameRun = await storage.updateGameRun(gameRunId, updates);
 
       res.json(updatedGameRun);
     } catch (error: any) {

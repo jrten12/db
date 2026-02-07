@@ -602,38 +602,29 @@ export async function completeFlipDeal(
     });
   }
 
-  // Calculate holding costs during rehab period
-  // These are interest, taxes, and insurance that accrue while property is being renovated
-  const interestRate = proFormaInputs?.interestRate || 0;
-  const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
-  const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
-  const rehabWeeks = deal.weeksUntilCompletion || proFormaInputs?.rehabWeeks || 0;
-  const loanAmount = proFormaOutputs?.loanAmount || 0;
-
-  // Calculate weekly holding costs: interest on loan + property taxes + insurance
-  const holdingCostPerWeek = Math.round(
-    (loanAmount * (interestRate / 100) / 52) +
-    (taxesAnnual / 52) +
-    (insuranceAnnual / 52)
-  );
-  const totalHoldingCosts = holdingCostPerWeek * rehabWeeks;
+  // Holding costs (interest, taxes, insurance) are already charged weekly during rehab
+  // via chargeFlipCarryingCosts() in advanceGameWeek() - no lump-sum needed here
 
   // Calculate selling costs (realtor commission, closing costs, etc.)
   const sellingCostsPct = proFormaInputs?.sellingCostsPct || 8; // Default 8% if not specified
   const sellingCosts = Math.round(salePrice * (sellingCostsPct / 100));
 
-  // Calculate profit (sale price - all-in cost - holding costs - selling costs - surprise repair costs)
-  // Surprise costs are also reflected in ledger debit, which correctly updates cash.
-  // Both systems track this expense: ledger for cash flow, profit for ROI metrics.
-  // This is not double-counting because:
-  // - Ledger tracks cash balance: +salePrice - surpriseCosts - sellingCosts
-  // - Profit tracks ROI: salePrice - allInCost - holdingCosts - sellingCosts - surpriseCosts
-  // allInCost was the player's total investment (including rehab budget they committed to)
-  // holdingCosts are interest/taxes/insurance that accrued during rehab
-  // sellingCosts are realtor commission and closing costs to sell the property
-  // surpriseCosts are ADDITIONAL expenses discovered during flip
+  // Calculate total holding costs already paid (for profit calculation only)
+  // These were already deducted from cash weekly, so we just need the total for ROI display
+  const loanAmount = proFormaOutputs?.loanAmount || 0;
+  const interestRate = proFormaInputs?.interestRate || deal.loanInterestRate || 0;
+  const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
+  const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
+  const rehabWeeks = deal.weeksUntilCompletion || proFormaInputs?.rehabWeeks || 0;
+  const holdingCostPerWeek = Math.round(
+    (loanAmount * (interestRate / 100) / 52) +
+    (taxesAnnual / 52) +
+    (insuranceAnnual / 52)
+  );
+  const totalHoldingCostsPaid = holdingCostPerWeek * rehabWeeks;
+
   const allInCost = proFormaOutputs.allInBasis || 0;
-  const profit = salePrice - allInCost - totalHoldingCosts - sellingCosts - surpriseCosts;
+  const profit = salePrice - allInCost - totalHoldingCostsPaid - sellingCosts - surpriseCosts;
 
   // Create ledger entries - sale proceeds and all selling costs
   const ledgerEntries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[] = [];
@@ -649,18 +640,6 @@ export async function completeFlipDeal(
     propertyId: deal.propertyId,
     dealId: deal.id,
   });
-
-  // Holding costs during rehab (interest, taxes, insurance)
-  if (totalHoldingCosts > 0) {
-    ledgerEntries.push({
-      direction: 'debit',
-      category: 'expense',
-      amount: totalHoldingCosts,
-      description: `Holding costs (${rehabWeeks} weeks): interest, taxes, insurance`,
-      propertyId: deal.propertyId,
-      dealId: deal.id,
-    });
-  }
 
   // Selling costs (realtor commission, closing costs)
   if (sellingCosts > 0) {

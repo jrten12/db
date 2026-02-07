@@ -55,23 +55,29 @@ export function getMarketMultipliers(condition: MarketCondition): MarketMultipli
 }
 
 /**
- * Progress market condition with 65% bias toward good/excellent
- * Can move one step normally, with rare crashes (5% chance to drop 2 levels)
+ * Randomize starting market condition (BAL-003 fix)
+ * Weighted distribution: not always "good" - any state is possible
+ * Weights: terrible 10%, poor 15%, neutral 25%, good 30%, excellent 20%
+ */
+export function getRandomStartingMarket(): MarketCondition {
+  const rand = Math.random();
+  if (rand < 0.10) return 'terrible';
+  if (rand < 0.25) return 'poor';
+  if (rand < 0.50) return 'neutral';
+  if (rand < 0.80) return 'good';
+  return 'excellent';
+}
+
+/**
+ * Progress market condition with rebalanced weights (BAL-003 fix)
+ * Poor/Terrible probability weights increased by 25% vs original
  * 
- * Target distribution: ~65% in good/excellent, ~35% in terrible/poor/neutral
- * Calibrated using Markov chain steady-state analysis:
- * 
- * Transition design:
- * - Lower states have STRONG upward pull (compensates for rare crashes)
- * - Good/excellent have movement but upward bias from lower states pulls back
- * - RARE CRASH: 5% chance from good/excellent to drop 2 levels (market panic)
- * 
- * Calibrated probabilities (verified ~65% good/excellent):
- * From terrible (0): 85% up, 15% stay (very strong recovery)
- * From poor (1): 70% up, 15% stay, 15% down (strong upward bias)
- * From neutral (2): 60% up, 20% stay, 20% down (moderate upward bias)
- * From good (3): 35% up, 35% stay, 25% down to neutral, 5% CRASH to poor
- * From excellent (4): 50% stay, 45% down to good, 5% CRASH to neutral
+ * Adjusted transition probabilities:
+ * From terrible (0): 70% up, 30% stay (slower recovery, +25% stay weight)
+ * From poor (1): 55% up, 20% stay, 25% down (stronger downward pull)
+ * From neutral (2): 50% up, 20% stay, 30% down (more likely to dip)
+ * From good (3): 25% up, 30% stay, 35% down to neutral, 10% CRASH to poor
+ * From excellent (4): 40% stay, 45% down to good, 15% CRASH to neutral or worse
  */
 export function progressMarketCondition(currentCondition: MarketCondition): MarketCondition {
   const currentIndex = MARKET_CONDITIONS.indexOf(currentCondition);
@@ -80,37 +86,33 @@ export function progressMarketCondition(currentCondition: MarketCondition): Mark
   let newIndex: number;
   
   switch (currentIndex) {
-    case 0: // terrible - very strong upward pull to recover
-      // 85% up, 15% stay (can't go lower)
-      newIndex = rand < 0.85 ? 1 : 0;
+    case 0: // terrible - slower recovery than before
+      newIndex = rand < 0.70 ? 1 : 0;
       break;
-    case 1: // poor - strong upward pull
-      // 70% up, 15% stay, 15% down
-      if (rand < 0.70) newIndex = 2;
-      else if (rand < 0.85) newIndex = 1;
+    case 1: // poor - weaker upward pull, stronger downward
+      if (rand < 0.55) newIndex = 2;
+      else if (rand < 0.75) newIndex = 1;
       else newIndex = 0;
       break;
-    case 2: // neutral - moderate upward pull toward good
-      // 60% up, 20% stay, 20% down
-      if (rand < 0.60) newIndex = 3;
-      else if (rand < 0.80) newIndex = 2;
+    case 2: // neutral - more balanced, easier to slip
+      if (rand < 0.50) newIndex = 3;
+      else if (rand < 0.70) newIndex = 2;
       else newIndex = 1;
       break;
-    case 3: // good - balanced with rare crash possibility
-      // 35% up, 35% stay, 25% down to neutral, 5% CRASH to poor
-      if (rand < 0.35) newIndex = 4;
-      else if (rand < 0.70) newIndex = 3;
-      else if (rand < 0.95) newIndex = 2;
-      else newIndex = 1; // 5% crash - drops 2 levels to poor!
+    case 3: // good - harder to stay, increased crash chance
+      if (rand < 0.25) newIndex = 4;
+      else if (rand < 0.55) newIndex = 3;
+      else if (rand < 0.90) newIndex = 2;
+      else newIndex = 1; // 10% crash to poor
       break;
-    case 4: // excellent - can dip but recovers quickly from lower states
-      // 50% stay, 45% down to good, 5% CRASH to neutral
-      if (rand < 0.50) newIndex = 4;
-      else if (rand < 0.95) newIndex = 3;
-      else newIndex = 2; // 5% crash - drops 2 levels to neutral!
+    case 4: // excellent - more volatile, stronger downward pressure
+      if (rand < 0.40) newIndex = 4;
+      else if (rand < 0.85) newIndex = 3;
+      else if (rand < 0.95) newIndex = 2;
+      else newIndex = 1; // 5% crash all the way to poor
       break;
     default:
-      newIndex = 3; // Default to good
+      newIndex = 2; // Default to neutral (not good)
   }
   
   return MARKET_CONDITIONS[newIndex];
@@ -118,9 +120,14 @@ export function progressMarketCondition(currentCondition: MarketCondition): Mark
 
 /**
  * Check if market should change (every 4 weeks = monthly)
+ * BAL-003: Force first transition by Month 4 (week 16) if none has occurred
  */
 export function shouldMarketChange(currentWeek: number, lastMarketChangeWeek: number): boolean {
-  return currentWeek - lastMarketChangeWeek >= 4;
+  // Normal monthly check
+  if (currentWeek - lastMarketChangeWeek >= 4) return true;
+  // Force first transition by week 16 if market has never changed (lastMarketChangeWeek is 0)
+  if (lastMarketChangeWeek === 0 && currentWeek >= 16) return true;
+  return false;
 }
 
 /**

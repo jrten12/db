@@ -190,7 +190,11 @@ export async function registerRoutes(
   app.post("/api/game-runs", async (req, res) => {
     try {
       const validated = insertGameRunSchema.parse(req.body);
-      const gameRun = await storage.createGameRun(validated);
+      // BAL-003: Randomize starting market condition instead of always "good"
+      const gameRun = await storage.createGameRun({
+        ...validated,
+        marketCondition: gameMechanics.getRandomStartingMarket(),
+      });
       res.json(gameRun);
     } catch (error) {
       if (error instanceof z.ZodError) {

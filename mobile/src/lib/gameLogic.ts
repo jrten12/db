@@ -34,19 +34,13 @@ export const LTV_MAX = 100;
 export const INTEREST_MIN = 5.0;
 export const INTEREST_MAX = 18.0; // Punishing rate for max leverage
 
-// Curved risk premium formula: interest increases exponentially at higher LTV
-// Above 90% LTV, rates climb steeply - this is the "leverage trap" zone
+// Single smooth curve for LTV-based interest rates.
+// Cubic polynomial that naturally accelerates above 80% LTV
+// without a discontinuity at the 90% boundary.
 export const getInterestRateFromLTV = (ltv: number): number => {
-  const normalizedLTV = Math.max(0, Math.min(1, (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)));
-  let curvedFactor: number;
-  if (ltv <= 90) {
-    curvedFactor = Math.pow(normalizedLTV * (40/50), 1.3);
-  } else {
-    const dangerNormalized = (ltv - 90) / 10;
-    const baseAt90 = Math.pow(0.8, 1.3);
-    curvedFactor = baseAt90 + dangerNormalized * dangerNormalized * (1 - baseAt90) * 2;
-  }
-  return INTEREST_MIN + Math.min(curvedFactor, 1) * (INTEREST_MAX - INTEREST_MIN);
+  const t = Math.max(0, Math.min(1, (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)));
+  const curvedFactor = 0.3 * t + 0.7 * t * t * t;
+  return INTEREST_MIN + curvedFactor * (INTEREST_MAX - INTEREST_MIN);
 };
 
 // Loan fees climb steeply above 90% LTV

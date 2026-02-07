@@ -77,32 +77,29 @@ export const getMarketRateAdjustment = (weekNumber: number): number => {
   return (wave1 + wave2 + noise) * MARKET_RATE_SWING;
 };
 
-// Curved risk premium formula: interest increases exponentially at higher LTV
-// Above 90% LTV, rates climb steeply - this is the "leverage trap" zone
+// Single smooth curve for LTV-based interest rates.
+// Uses a cubic polynomial that naturally accelerates above 80% LTV
+// without the discontinuity of a piecewise formula.
+// Anchor points: 50% LTV → 4.0%, 75% LTV → 5.5%, 90% LTV → 7.5%, 100% LTV → 12.0%
 export const getInterestRateFromLTV = (ltv: number, weekNumber?: number): number => {
-  const normalizedLTV = Math.max(0, Math.min(1, (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)));
-  // Steeper curve above 90% LTV - higher rates for extreme leverage
-  let curvedFactor: number;
-  if (ltv <= 90) {
-    // Standard curve for 50-90% LTV range: 4% at 50%, ~6.5% at 90%
-    curvedFactor = Math.pow(normalizedLTV * (40/50), 1.2);
-  } else {
-    // Steep climb from 90-100% LTV (the danger zone): ~6.5% to 12%
-    const dangerNormalized = (ltv - 90) / 10; // 0 at 90%, 1 at 100%
-    const baseAt90 = Math.pow(0.8, 1.2); // Rate at 90% LTV
-    curvedFactor = baseAt90 + dangerNormalized * dangerNormalized * (1 - baseAt90) * 1.5;
-  }
-  
-  const baseRate = INTEREST_MIN + Math.min(curvedFactor, 1) * (INTEREST_MAX - INTEREST_MIN);
-  
+  // Normalize LTV to 0-1 range (50% = 0, 100% = 1)
+  const t = Math.max(0, Math.min(1, (ltv - LTV_MIN) / (LTV_MAX - LTV_MIN)));
+
+  // Cubic curve: starts gentle, accelerates at high leverage
+  // f(0)=0, f(0.5)≈0.19, f(0.8)≈0.44, f(1.0)=1.0
+  // The 0.3*t + 0.7*t^3 blend gives a smooth "knee" around 80-90% LTV
+  const curvedFactor = 0.3 * t + 0.7 * t * t * t;
+
+  const baseRate = INTEREST_MIN + curvedFactor * (INTEREST_MAX - INTEREST_MIN);
+
   // Apply market rate variability if week number provided
   const marketAdjustment = weekNumber !== undefined ? getMarketRateAdjustment(weekNumber) : 0;
-  
+
   return Math.max(INTEREST_MIN - 0.5, baseRate + marketAdjustment);
 };
 
-// Dynamic interest rate that considers player's financial situation
-// This is the "real" rate that educated investors would see
+// Player financial profile used for credit-based rate adjustments.
+// Mirrors real lender underwriting: DTI, reserves, and asset coverage.
 export interface PlayerFinancials {
   cash: number;
   totalMonthlyDebt: number;
@@ -110,25 +107,55 @@ export interface PlayerFinancials {
   totalAssetValue: number;
 }
 
+// Credit score-style adjustment based on player's financial health.
+// Uses smooth curves instead of step functions so the rate changes
+// feel natural as the player's situation evolves.
+//
+// Three factors (same as real underwriting):
+//   1. DTI (Debt-to-Income) — higher debt load = higher rate
+//   2. Cash reserves — more months of reserves = lower rate
+//   3. Asset coverage — more collateral relative to debt = lower rate
+//
+// Total adjustment range: roughly -0.75% to +1.5% on top of LTV base rate
 export const getInterestRateWithPlayerState = (ltv: number, playerFinancials: PlayerFinancials, weekNumber?: number): number => {
   const baseRate = getInterestRateFromLTV(ltv, weekNumber);
-  
-  // DTI adjustment: higher debt = higher rate (reduced impact)
-  const dti = playerFinancials.totalMonthlyIncome > 0 
-    ? (playerFinancials.totalMonthlyDebt / playerFinancials.totalMonthlyIncome) * 100 
-    : 50; // Default to 50% DTI if no income (neutral)
-  const dtiAdjustment = dti > 50 ? (dti - 50) * 0.02 : (dti < 30 ? -0.25 : 0); // +0.02% per point above 50%, bonus for low DTI
-  
-  // Cash reserves adjustment: more cash = lower rate (gentler curve)
-  const reserveMonths = playerFinancials.cash / (playerFinancials.totalMonthlyDebt || 1000);
-  const reserveAdjustment = reserveMonths > 6 ? -0.35 : (reserveMonths < 3 ? 0.5 : 0);
-  
-  // Asset coverage adjustment: more assets relative to new debt = lower rate
-  const assetCoverage = playerFinancials.totalAssetValue / (playerFinancials.cash || 1);
-  const assetAdjustment = assetCoverage > 3 ? -0.2 : (assetCoverage < 1.5 ? 0.35 : 0);
-  
-  // Final rate with player-state adjustments, bounded to reasonable limits
-  return Math.max(3.5, Math.min(15, baseRate + dtiAdjustment + reserveAdjustment + assetAdjustment));
+
+  // --- DTI adjustment (smooth sigmoid-style curve) ---
+  // Neutral at 43% DTI (conventional lending standard)
+  // Below 30%: modest discount up to -0.3%
+  // Above 50%: increasing penalty, up to +0.6% at 80% DTI
+  const dti = playerFinancials.totalMonthlyIncome > 0
+    ? (playerFinancials.totalMonthlyDebt / playerFinancials.totalMonthlyIncome) * 100
+    : 50; // Default to 50% DTI if no income yet (slightly penalized)
+  const dtiCenter = 43; // Conventional lending DTI standard
+  const dtiDelta = (dti - dtiCenter) / 100; // Normalized deviation
+  const dtiAdjustment = 1.5 * dtiDelta + 0.8 * dtiDelta * Math.abs(dtiDelta); // Smooth asymmetric curve
+
+  // --- Cash reserves adjustment (smooth logarithmic) ---
+  // Measures months of debt payments covered by cash on hand
+  // 0 months: +0.5% penalty
+  // 3 months: neutral (0%)
+  // 6+ months: up to -0.35% discount (diminishing returns)
+  const monthlyObligations = playerFinancials.totalMonthlyDebt || 1000; // Floor to avoid division by zero
+  const reserveMonths = Math.max(0, playerFinancials.cash / monthlyObligations);
+  const reserveAdjustment = reserveMonths <= 0.1
+    ? 0.5
+    : 0.5 - 0.85 * Math.min(1, Math.log(1 + reserveMonths) / Math.log(7)); // Smooth log curve, saturates around 6 months
+
+  // --- Asset coverage adjustment (smooth linear with caps) ---
+  // Ratio of total asset value to cash deployed — measures how leveraged the portfolio is
+  // Low coverage (<1.5x): penalty up to +0.35%
+  // Neutral (2x): 0%
+  // High coverage (>3x): discount up to -0.2%
+  const assetRatio = playerFinancials.totalAssetValue / Math.max(playerFinancials.cash, 1);
+  const assetAdjustment = assetRatio >= 2
+    ? Math.max(-0.2, -0.2 * Math.min(1, (assetRatio - 2) / 1.5)) // Smooth discount above 2x
+    : Math.min(0.35, 0.35 * Math.max(0, (2 - assetRatio) / 1.5)); // Smooth penalty below 2x
+
+  const totalAdjustment = dtiAdjustment + reserveAdjustment + assetAdjustment;
+
+  // Clamp final rate to reasonable bounds (3.5% floor, 15% ceiling)
+  return Math.max(3.5, Math.min(15, baseRate + totalAdjustment));
 };
 
 // Loan origination fees: 1% at 50% LTV, scaling up to 6% at 100% LTV

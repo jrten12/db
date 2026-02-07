@@ -44,6 +44,7 @@ import {
   calculateProForma,
   convertPropertyToGameProperty,
   getInterestRateFromLTV,
+  getInterestRateWithPlayerState,
   getLoanFeesFromLTV,
   calculateTimePenalty,
   TIME_PENALTY_SELF_MANAGED,
@@ -893,7 +894,7 @@ export default function Game() {
         
         if (hasAppraisal) {
           const contingencyPct = proFormaInputs.contingencyPct ?? 0;
-          const interestRate = getInterestRateFromLTV(proFormaInputs.ltv);
+          const interestRate = getInterestRateWithPlayerState(proFormaInputs.ltv, playerFinancials, currentWeek);
           const taxesAnnual = proFormaInputs.taxesAnnual ?? 0;
           const insuranceAnnual = proFormaInputs.insuranceAnnual ?? 0;
           

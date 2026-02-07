@@ -434,9 +434,12 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                 <div className="text-white font-mono text-sm font-semibold">{getDownPaymentFromLTV(inputs.ltv)}%</div>
               </div>
               <div className="text-center">
-                <div className="text-gray-500 text-xs">Interest Rate</div>
+                <div className="text-gray-500 text-xs">Your Rate</div>
                 <div className={`font-mono text-sm font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>
-                  {getInterestRateFromLTV(inputs.ltv).toFixed(1)}%
+                  {(playerFinancials
+                    ? getInterestRateWithPlayerState(inputs.ltv, playerFinancials, weekNumber)
+                    : getInterestRateFromLTV(inputs.ltv, weekNumber)
+                  ).toFixed(1)}%
                 </div>
               </div>
               <div className="text-center">

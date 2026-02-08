@@ -107,7 +107,7 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
                     {formatCurrency(playerCash)}
                   </span>
                 </div>
-                {playerCash < outputs.totalCashInvested && (
+                {!isCommitting && playerCash < outputs.totalCashInvested && (
                   <div className="mt-3 p-3 bg-red-500/20 border border-red-500/40 rounded-lg text-sm text-red-400 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                     <span className="font-medium">Need ${Math.round(outputs.totalCashInvested - playerCash).toLocaleString()} more</span>

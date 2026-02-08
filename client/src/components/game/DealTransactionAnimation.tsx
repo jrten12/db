@@ -28,6 +28,10 @@ export function DealTransactionAnimation({
   const [step, setStep] = useState(0);
   const totalCash = downPayment + closingCosts + loanOriginationFee;
   const processingSoundRef = useRef<HTMLAudioElement | null>(null);
+  const onCompleteRef = useRef(onComplete);
+  const hasCompletedRef = useRef(false);
+
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     processingSoundRef.current = new Audio('/sounds/processing.mp3');
@@ -37,6 +41,7 @@ export function DealTransactionAnimation({
   useEffect(() => {
     if (!isVisible) {
       setStep(0);
+      hasCompletedRef.current = false;
       return;
     }
 
@@ -53,12 +58,15 @@ export function DealTransactionAnimation({
       setTimeout(() => setStep(5), 2300),
       setTimeout(() => {
         setStep(6);
-        onComplete?.();
+        if (!hasCompletedRef.current) {
+          hasCompletedRef.current = true;
+          onCompleteRef.current?.();
+        }
       }, 3000),
     ];
 
     return () => timers.forEach(clearTimeout);
-  }, [isVisible, onComplete]);
+  }, [isVisible]);
 
   const formatMoney = (n: number) => `$${n.toLocaleString()}`;
 

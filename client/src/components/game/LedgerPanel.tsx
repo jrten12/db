@@ -345,21 +345,19 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
         className="relative bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[calc(100vh-80px)] md:max-h-[90vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close button - fixed position at top right of modal */}
-        <button 
-          onClick={handleClose}
-          className="absolute -top-3 -right-3 p-3 bg-red-500 hover:bg-red-600 active:bg-red-700 border-2 border-red-400 rounded-full transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center touch-manipulation z-20 shadow-lg"
-          data-testid="button-close-ledger"
-          data-sound="swoosh"
-        >
-          <X className="w-6 h-6 text-white" />
-        </button>
-        
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
             <Wallet className="w-6 h-6 text-emerald-400" />
             <h2 className="text-xl font-bold text-white">Financial Ledger</h2>
           </div>
+          <button 
+            onClick={handleClose}
+            className="p-3 bg-red-500 hover:bg-red-600 active:bg-red-700 border-2 border-red-400 rounded-full transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center touch-manipulation z-20 shadow-lg flex-shrink-0"
+            data-testid="button-close-ledger"
+            data-sound="swoosh"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 border-b border-slate-700">

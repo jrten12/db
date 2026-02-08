@@ -88,6 +88,16 @@ Preferred communication style: Simple, everyday language.
   - Hooks: `mobile/src/hooks/useAdMob.ts`
   - Setup guide: `mobile/ADMOB_SETUP.md`
 
+### Web Monetization (Google AdSense)
+- **Component**: `client/src/components/game/AdBanner.tsx`
+- **Config**: Set `VITE_ADSENSE_PUB_ID` and `VITE_ADSENSE_SLOT_ID` env vars to enable
+- **Placements**: 3 subtle horizontal banners
+  - Bottom of property market list (PropertySelector)
+  - Results panel (before continue button)
+  - Landing page (before footer)
+- Renders nothing when env vars not set (zero gameplay impact)
+- Script loaded lazily, ads pushed only after script ready
+
 ### Game Logic Architecture
 - Pro forma calculations handled client-side in `lib/gameData.ts`
 - **Empty Pro Forma Inputs**: Fields start empty (null) requiring players to fill them manually, reinforcing learning

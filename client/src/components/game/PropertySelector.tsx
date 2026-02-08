@@ -4,6 +4,7 @@ import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wren
 import type { Property } from '@shared/schema';
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { AdBanner } from '@/components/game/AdBanner';
 
 // Property type icon mapping
 const PROPERTY_TYPE_CONFIG: Record<string, { icon: typeof Home; className: string; label: string }> = {
@@ -377,6 +378,8 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
           );
         })}
       </div>
+
+      <AdBanner className="mt-4 px-2" />
 
       {/* Bottom teaching note */}
       <div className="text-center py-4">

@@ -6,6 +6,7 @@ import featureCrunchNumbers from '@/assets/images/feature-crunch-numbers.png';
 import featureBeatClock from '@/assets/images/feature-beat-clock.png';
 import featureManageChaos from '@/assets/images/feature-manage-chaos.png';
 import Footer from '@/components/Footer';
+import { AdBanner } from '@/components/game/AdBanner';
 import { useSplash } from '@/App';
 import { useMusic } from '@/hooks/useMusicPlayer';
 
@@ -270,6 +271,7 @@ export default function Landing() {
           </div>
         </main>
 
+        <AdBanner className="px-5 pb-4" />
         <Footer />
         <div className="pb-[max(0.5rem,env(safe-area-inset-bottom))]" />
       </div>

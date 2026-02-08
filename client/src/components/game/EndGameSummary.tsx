@@ -216,158 +216,186 @@ export function EndGameSummary({
 
           {activeTab === 'scorecard' && (
             <div className="space-y-4">
-              <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-white">Overall Score</h3>
-                  <div className="text-3xl font-bold text-white">{scorecard.overallScore}<span className="text-lg text-gray-400">/100</span></div>
-                </div>
-                <Progress value={scorecard.overallScore} className="h-3" />
-              </div>
-
-              <div className="grid gap-4">
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-red-500/20">
-                      <TrendingUp className="w-5 h-5 text-red-400" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-white">Risk Tolerance</span>
-                        <span className="text-sm text-gray-400">{scorecard.riskToleranceLabel}</span>
-                      </div>
-                    </div>
+              {stats.totalDeals === 0 ? (
+                <div className="bg-slate-800/50 rounded-xl p-8 border border-slate-700 text-center">
+                  <div className="p-4 rounded-full bg-slate-700/50 inline-flex mb-4">
+                    <BarChart3 className="w-8 h-8 text-gray-500" />
                   </div>
-                  <Progress value={scorecard.riskTolerance} className="h-2" />
-                  <p className="text-xs text-gray-500 mt-2">
-                    Based on average LTV of {Math.round(stats.averageLTV)}% and {stats.highLeverageDeals} high-leverage deals
+                  <h3 className="text-lg font-semibold text-white mb-2">No Data Yet</h3>
+                  <p className="text-gray-400 text-sm">
+                    Complete at least one deal to see your scorecard. Browse properties, run the numbers, and commit to a deal first.
                   </p>
                 </div>
+              ) : (
+                <>
+                  <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-white">Overall Score</h3>
+                      <div className="text-3xl font-bold text-white">{scorecard.overallScore}<span className="text-lg text-gray-400">/100</span></div>
+                    </div>
+                    <Progress value={scorecard.overallScore} className="h-3" />
+                  </div>
 
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-purple-500/20">
-                      <Search className="w-5 h-5 text-purple-400" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-white">Due Diligence</span>
-                        <span className="text-sm text-gray-400">{scorecard.dueDiligenceLabel}</span>
+                  <div className="grid gap-4">
+                    <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-red-500/20">
+                          <TrendingUp className="w-5 h-5 text-red-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-white">Risk Tolerance</span>
+                            <span className="text-sm text-gray-400">{scorecard.riskToleranceLabel}</span>
+                          </div>
+                        </div>
                       </div>
+                      <Progress value={scorecard.riskTolerance} className="h-2" />
+                      <p className="text-xs text-gray-500 mt-2">
+                        Based on average LTV of {Math.round(stats.averageLTV)}% and {stats.highLeverageDeals} high-leverage deals
+                      </p>
                     </div>
-                  </div>
-                  <Progress value={scorecard.dueDiligenceThoroughness} className="h-2" />
-                  <p className="text-xs text-gray-500 mt-2">
-                    Completed {stats.completedDiligenceItems} of {stats.totalPossibleDiligence} possible investigations
-                  </p>
-                </div>
 
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-blue-500/20">
-                      <BarChart3 className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-white">Strategy Balance</span>
-                        <span className="text-sm text-gray-400">{scorecard.strategyLabel}</span>
+                    <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-purple-500/20">
+                          <Search className="w-5 h-5 text-purple-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-white">Due Diligence</span>
+                            <span className="text-sm text-gray-400">{scorecard.dueDiligenceLabel}</span>
+                          </div>
+                        </div>
                       </div>
+                      <Progress value={scorecard.dueDiligenceThoroughness} className="h-2" />
+                      <p className="text-xs text-gray-500 mt-2">
+                        Completed {stats.completedDiligenceItems} of {stats.totalPossibleDiligence} possible investigations
+                      </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-amber-400">Flips</span>
-                    <Progress value={100 - scorecard.cashFlowVsAppreciation} className="h-2 flex-1" />
-                    <Progress value={scorecard.cashFlowVsAppreciation} className="h-2 flex-1" />
-                    <span className="text-xs text-emerald-400">Rentals</span>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {stats.rentalDeals} rentals vs {stats.flipDeals} flips
-                  </p>
-                </div>
 
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-emerald-500/20">
-                      <DollarSign className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-white">Capital Efficiency</span>
-                        <span className="text-sm text-gray-400">{scorecard.efficiencyLabel}</span>
+                    <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-blue-500/20">
+                          <BarChart3 className="w-5 h-5 text-blue-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-white">Strategy Balance</span>
+                            <span className="text-sm text-gray-400">{scorecard.strategyLabel}</span>
+                          </div>
+                        </div>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-amber-400">Flips</span>
+                        <Progress value={100 - scorecard.cashFlowVsAppreciation} className="h-2 flex-1" />
+                        <Progress value={scorecard.cashFlowVsAppreciation} className="h-2 flex-1" />
+                        <span className="text-xs text-emerald-400">Rentals</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        {stats.rentalDeals} rentals vs {stats.flipDeals} flips
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-lg bg-emerald-500/20">
+                          <DollarSign className="w-5 h-5 text-emerald-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-white">Capital Efficiency</span>
+                            <span className="text-sm text-gray-400">{scorecard.efficiencyLabel}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Progress value={scorecard.capitalEfficiency} className="h-2" />
+                      <p className="text-xs text-gray-500 mt-2">
+                        {formatCurrency(stats.totalProfit)} profit on {formatCurrency(stats.totalInvested)} invested
+                      </p>
                     </div>
                   </div>
-                  <Progress value={scorecard.capitalEfficiency} className="h-2" />
-                  <p className="text-xs text-gray-500 mt-2">
-                    {formatCurrency(stats.totalProfit)} profit on {formatCurrency(stats.totalInvested)} invested
-                  </p>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           )}
 
           {activeTab === 'benchmarks' && (
             <div className="space-y-4">
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700 mb-4">
-                <p className="text-sm text-gray-400 text-center">
-                  See how your performance compares to other investors
-                </p>
-              </div>
-
-              {benchmarks.map((benchmark, i) => (
-                <div 
-                  key={i} 
-                  className={`rounded-xl p-4 border ${
-                    benchmark.isPositive 
-                      ? 'bg-emerald-500/10 border-emerald-500/30' 
-                      : 'bg-amber-500/10 border-amber-500/30'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h4 className="font-medium text-white">{benchmark.metric}</h4>
-                      <p className={`text-sm ${benchmark.isPositive ? 'text-emerald-400' : 'text-amber-400'}`}>
-                        {benchmark.message}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-white">
-                        {typeof benchmark.playerValue === 'number' && benchmark.metric.includes('ROI') 
-                          ? `${benchmark.playerValue}%`
-                          : benchmark.playerValue
-                        }
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        Avg: {typeof benchmark.averageValue === 'number' && benchmark.metric.includes('ROI')
-                          ? `${benchmark.averageValue}%`
-                          : benchmark.averageValue
-                        }
-                      </div>
-                    </div>
+              {stats.totalDeals === 0 ? (
+                <div className="bg-slate-800/50 rounded-xl p-8 border border-slate-700 text-center">
+                  <div className="p-4 rounded-full bg-slate-700/50 inline-flex mb-4">
+                    <Award className="w-8 h-8 text-gray-500" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">Percentile:</span>
-                    <Progress value={benchmark.percentile} className="h-2 flex-1" />
-                    <span className="text-xs font-medium text-white">{Math.round(benchmark.percentile)}%</span>
+                  <h3 className="text-lg font-semibold text-white mb-2">No Benchmarks Yet</h3>
+                  <p className="text-gray-400 text-sm">
+                    Complete at least one deal to see how you compare to other investors.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700 mb-4">
+                    <p className="text-sm text-gray-400 text-center">
+                      See how your performance compares to other investors
+                    </p>
                   </div>
-                </div>
-              ))}
 
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mt-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Award className="w-5 h-5 text-blue-400" />
-                  <h4 className="font-medium text-blue-400">Pro Tip</h4>
-                </div>
-                <p className="text-sm text-gray-300">
-                  {scorecard.dueDiligenceThoroughness < 50
-                    ? 'More thorough due diligence reduces surprise costs and improves deal outcomes.'
-                    : scorecard.riskTolerance > 70
-                      ? 'High leverage amplifies both gains and losses. Consider moderating for consistency.'
-                      : scorecard.capitalEfficiency < 50
-                        ? 'Look for deals with better profit margins to improve your return on investment.'
-                        : 'Great work! Keep analyzing deals carefully and adjusting your strategy to market conditions.'
-                  }
-                </p>
-              </div>
+                  {benchmarks.map((benchmark, i) => (
+                    <div 
+                      key={i} 
+                      className={`rounded-xl p-4 border ${
+                        benchmark.isPositive 
+                          ? 'bg-emerald-500/10 border-emerald-500/30' 
+                          : 'bg-amber-500/10 border-amber-500/30'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h4 className="font-medium text-white">{benchmark.metric}</h4>
+                          <p className={`text-sm ${benchmark.isPositive ? 'text-emerald-400' : 'text-amber-400'}`}>
+                            {benchmark.message}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-white">
+                            {typeof benchmark.playerValue === 'number' && benchmark.metric.includes('ROI') 
+                              ? `${benchmark.playerValue}%`
+                              : benchmark.playerValue
+                            }
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Avg: {typeof benchmark.averageValue === 'number' && benchmark.metric.includes('ROI')
+                              ? `${benchmark.averageValue}%`
+                              : benchmark.averageValue
+                            }
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">Percentile:</span>
+                        <Progress value={benchmark.percentile} className="h-2 flex-1" />
+                        <span className="text-xs font-medium text-white">{Math.round(benchmark.percentile)}%</span>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mt-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Award className="w-5 h-5 text-blue-400" />
+                      <h4 className="font-medium text-blue-400">Pro Tip</h4>
+                    </div>
+                    <p className="text-sm text-gray-300">
+                      {scorecard.dueDiligenceThoroughness < 50
+                        ? 'More thorough due diligence reduces surprise costs and improves deal outcomes.'
+                        : scorecard.riskTolerance > 70
+                          ? 'High leverage amplifies both gains and losses. Consider moderating for consistency.'
+                          : scorecard.capitalEfficiency < 50
+                            ? 'Look for deals with better profit margins to improve your return on investment.'
+                            : 'Great work! Keep analyzing deals carefully and adjusting your strategy to market conditions.'
+                      }
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           )}
 

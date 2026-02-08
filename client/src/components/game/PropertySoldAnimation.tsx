@@ -108,7 +108,7 @@ export function PropertySoldAnimation({ isOpen, onClose, saleData }: PropertySol
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center"
+          className="fixed inset-0 z-[100] flex items-start justify-center pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-[calc(env(safe-area-inset-bottom,0px)+16px)] overflow-y-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -124,7 +124,7 @@ export function PropertySoldAnimation({ isOpen, onClose, saleData }: PropertySol
           <MoneyRain />
 
           <motion.div
-            className="relative z-10 w-full max-w-md mx-4"
+            className="relative z-10 w-full max-w-md mx-4 my-auto"
             initial={{ scale: 0.5, opacity: 0, y: 50 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: -50 }}

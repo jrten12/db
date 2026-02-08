@@ -36,7 +36,7 @@ export function GoldTreasureModal({ isOpen, onClose, amount, propertyName, disco
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-500"
+      className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-[calc(env(safe-area-inset-bottom,0px)+16px)] overflow-y-auto animate-in fade-in duration-500"
       onClick={onClose}
       data-testid="modal-gold-treasure"
       data-sound="close"
@@ -44,7 +44,7 @@ export function GoldTreasureModal({ isOpen, onClose, amount, propertyName, disco
       <div className="absolute inset-0 bg-black/90 backdrop-blur-md" />
       
       <div 
-        className="relative max-w-md w-full bg-gradient-to-b from-amber-950 via-amber-900 to-amber-950 rounded-3xl border-4 border-amber-500 shadow-2xl overflow-hidden transform transition-all duration-700 animate-in zoom-in-95"
+        className="relative max-w-md w-full my-auto bg-gradient-to-b from-amber-950 via-amber-900 to-amber-950 rounded-3xl border-4 border-amber-500 shadow-2xl overflow-hidden transform transition-all duration-700 animate-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         <div className={`absolute inset-0 bg-gradient-to-t from-amber-500/30 via-transparent to-amber-400/20 transition-opacity duration-1000 ${showGlow ? 'opacity-100' : 'opacity-0'}`} />

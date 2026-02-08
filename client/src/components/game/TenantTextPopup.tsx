@@ -137,7 +137,7 @@ export function TenantTextPopup({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-[calc(env(safe-area-inset-bottom,0px)+16px)] overflow-y-auto"
           onClick={handleClose}
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
@@ -147,7 +147,7 @@ export function TenantTextPopup({
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="relative w-full max-w-[360px]"
+            className="relative w-full max-w-[360px] my-auto"
             onClick={(e) => e.stopPropagation()}
             data-testid="tenant-text-full"
           >

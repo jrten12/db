@@ -169,7 +169,7 @@ export function DealCongratulations({ isOpen, onClose, dealData }: DealCongratul
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 z-[70] flex items-start justify-center pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-[calc(env(safe-area-inset-bottom,0px)+16px)] px-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
           onClick={onClose}
           data-sound="close"
         >
@@ -178,7 +178,7 @@ export function DealCongratulations({ isOpen, onClose, dealData }: DealCongratul
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: 50 }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            className="bg-slate-900/95 border border-slate-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl"
+            className="bg-slate-900/95 border border-slate-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className={`bg-gradient-to-br ${message.color} p-8 text-center`}>

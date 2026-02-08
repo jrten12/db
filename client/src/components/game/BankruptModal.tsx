@@ -16,8 +16,8 @@ export function BankruptModal({ cash, weeksPlayed, onReturnHome, onTryAgain }: B
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-4" data-testid="bankrupt-modal">
-      <div className="relative max-w-lg w-full">
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-start justify-center z-[100] px-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-[calc(env(safe-area-inset-bottom,0px)+16px)] overflow-y-auto" data-testid="bankrupt-modal">
+      <div className="relative max-w-lg w-full my-auto">
         <div className="absolute inset-0 bg-gradient-to-br from-red-900/50 via-red-800/30 to-black rounded-3xl blur-xl animate-pulse" />
         
         <div className="relative bg-gradient-to-br from-slate-900 via-red-950/50 to-slate-900 border-2 border-red-500/50 rounded-3xl p-8 shadow-2xl overflow-hidden">

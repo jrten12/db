@@ -69,7 +69,7 @@ export function ConstructionNotification({ events, onDismiss }: ConstructionNoti
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: -30 }}
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-          className="fixed top-[max(5rem,calc(env(safe-area-inset-top,0px)+3rem))] left-1/2 -translate-x-1/2 z-[90] pointer-events-auto"
+          className="fixed top-[max(7rem,calc(env(safe-area-inset-top,0px)+5.5rem))] left-4 right-4 mx-auto max-w-[420px] z-[90] pointer-events-auto"
         >
           <div className={`
             relative overflow-hidden rounded-2xl border-2 
@@ -77,7 +77,7 @@ export function ConstructionNotification({ events, onDismiss }: ConstructionNoti
               ? 'bg-gradient-to-br from-orange-900/95 to-amber-900/95 border-orange-500/50' 
               : 'bg-gradient-to-br from-emerald-900/95 to-green-900/95 border-emerald-500/50'
             }
-            backdrop-blur-xl shadow-2xl min-w-[340px] max-w-[420px]
+            backdrop-blur-xl shadow-2xl min-w-[300px] max-w-[420px]
           `}>
             <div className="absolute inset-0 overflow-hidden">
               <motion.div

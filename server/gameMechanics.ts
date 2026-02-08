@@ -1270,17 +1270,46 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         // Track unfixed issues for future reference
         const unfixedIssueCount = allIssuesCount - fixedCount;
 
-        // Calculate new weekly income
-        const newWeeklyIncome = calculateWeeklyIncome(newMonthlyRent - (proFormaOutputs?.monthlyOpEx || 0));
+        // Recalculate vacancy and percentage-based operating expenses with new rent
+        const effectiveVacancyRate = proFormaOutputs?.effectiveVacancyRate || 
+          (property?.locationType === 'urban' ? 7 : 5);
+        const newMonthlyVacancyLoss = newMonthlyRent * (effectiveVacancyRate / 100);
+        
+        // Recalculate operating expenses with new rent for percentage-based items
+        const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
+        const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
+        const maintenancePct = proFormaInputs?.maintenancePct || 5;
+        const capexPct = proFormaInputs?.capexPct || 5;
+        const hasPropertyMgmt = proFormaInputs?.propertyManagement || false;
+        const propertyManagementPct = proFormaInputs?.propertyManagementPct || 10;
+        const landlordPaysUtilities = proFormaInputs?.utilities || false;
+        const utilitiesMonthly = proFormaInputs?.utilitiesMonthly || 150;
+        
+        const newMonthlyTaxes = taxesAnnual / 12;
+        const newMonthlyInsurance = insuranceAnnual / 12;
+        const newMonthlyMaintenance = newMonthlyRent * (maintenancePct / 100);
+        const newMonthlyCapex = newMonthlyRent * (capexPct / 100);
+        const newMonthlyMgmt = hasPropertyMgmt ? newMonthlyRent * (propertyManagementPct / 100) : 0;
+        const newMonthlyUtilities = landlordPaysUtilities ? utilitiesMonthly : 0;
+        const newMonthlyOperatingExpenses = newMonthlyTaxes + newMonthlyInsurance + 
+          newMonthlyMaintenance + newMonthlyCapex + newMonthlyMgmt + newMonthlyUtilities;
+        
+        const monthlyDebtService = proFormaOutputs?.monthlyDebtService || proFormaOutputs?.debtServiceMonthly || 0;
+        
+        // Calculate new weekly income properly
+        const newNetMonthlyCashFlow = newMonthlyRent - newMonthlyVacancyLoss - newMonthlyOperatingExpenses - monthlyDebtService;
+        const newWeeklyIncome = calculateWeeklyIncome(newNetMonthlyCashFlow);
 
         await storage.updateDeal(deal.id, {
           rentalRehabActive: false,
           rentalRehabWeeksRemaining: 0,
           tenantDisplaced: false,
-          weeklyIncome: Math.max(0, newWeeklyIncome), // Re-enable rent collection
+          weeklyIncome: Math.max(0, newWeeklyIncome),
           proFormaOutputs: {
             ...proFormaOutputs,
             monthlyGrossRent: newMonthlyRent,
+            monthlyVacancyLoss: newMonthlyVacancyLoss,
+            monthlyOperatingExpenses: newMonthlyOperatingExpenses,
             postRehabCompleted: true,
             repairCompletionFactor,
             unfixedIssueCount,

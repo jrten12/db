@@ -136,6 +136,7 @@ export default function Game() {
   const [showHallOfFame, setShowHallOfFame] = useState(false);
   const [showEndGameSummary, setShowEndGameSummary] = useState(false);
   const [endGameWon, setEndGameWon] = useState(false);
+  const [endGameMidGame, setEndGameMidGame] = useState(false);
   const [showDebtPanel, setShowDebtPanel] = useState(false);
   const [achievementQueue, setAchievementQueue] = useState<string[]>([]);
   const [unlockedAchievements, setUnlockedAchievements] = useState<string[]>([]);
@@ -717,10 +718,11 @@ export default function Game() {
     }
   }, [gameRun, properties, updateGameMutation, createInvestigationMutation, createLedgerMutation, completedDiligence]);
 
-  const handleShowEndGameSummary = useCallback(() => {
+  const handleShowEndGameSummary = useCallback((isMidGame = false) => {
     if (gameRun) {
       const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 3);
       setEndGameWon(won);
+      setEndGameMidGame(isMidGame);
       setShowEndGameSummary(true);
     }
   }, [gameRun]);
@@ -1707,7 +1709,7 @@ export default function Game() {
             setShowPremiumModal(true);
           }}
           onOpenHallOfFame={() => setShowHallOfFame(true)}
-          onViewStats={handleShowEndGameSummary}
+          onViewStats={() => handleShowEndGameSummary(true)}
           onAdvanceWeek={currentScreen === 'market' ? handleAdvanceWeek : undefined}
           isAdvancingWeek={isAdvancingWeek}
           onNewGame={handleNewGame}
@@ -2078,6 +2080,7 @@ export default function Game() {
             properties={properties}
             investigations={investigations}
             won={endGameWon}
+            midGame={endGameMidGame}
           />
         )}
 

@@ -93,7 +93,7 @@ export function TenantTextPopup({
               onClick={handleDismiss}
               className="absolute -top-2 -right-2 w-7 h-7 bg-gray-600 hover:bg-gray-700 rounded-full flex items-center justify-center shadow-lg transition-colors z-10"
               data-testid="dismiss-notification"
-              data-sound="swoosh"
+              data-sound="close"
             >
               <X className="w-4 h-4 text-white" />
             </button>
@@ -165,7 +165,7 @@ export function TenantTextPopup({
                       onClick={handleClose}
                       className="text-blue-500 text-sm font-medium"
                       data-testid="close-text-button"
-                      data-sound="swoosh"
+                      data-sound="close"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -213,7 +213,7 @@ export function TenantTextPopup({
                       onClick={handleClose}
                       className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-4 py-2 text-sm font-medium transition-colors"
                       data-testid="dismiss-text-button"
-                      data-sound="swoosh"
+                      data-sound="close"
                     >
                       Dismiss
                     </button>

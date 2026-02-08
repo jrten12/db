@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { playSwooshSound, playKeystrokeSound } from './useUISounds';
+import { playSwooshSound, playCloseSound, playKeystrokeSound } from './useUISounds';
 
 const CLICK_SOUND_URL = '/click.wav';
 const PROFORMA_CHIME_URL = '/proforma-chime.wav';
@@ -117,17 +117,10 @@ export function playSaleCompleteSound() {
   } catch (e) {}
 }
 
-function shouldPlaySwoosh(el: HTMLElement): boolean {
-  if (el.closest('[data-sound="swoosh"]')) return true;
-
-  const closestBtn = el.closest('button');
-  if (closestBtn) {
-    const ariaHaspopup = closestBtn.getAttribute('aria-haspopup');
-    if (ariaHaspopup === 'dialog') return true;
-  }
-
+function shouldPlayClose(el: HTMLElement): boolean {
   if (el.closest('[data-radix-dialog-overlay]') || el.closest('[data-radix-dialog-close]')) return true;
 
+  const closestBtn = el.closest('button');
   if (el.closest('[role="dialog"]') || el.closest('[data-radix-dialog-content]')) {
     if (closestBtn) {
       const isClose = closestBtn.closest('[data-radix-dialog-close]') ||
@@ -135,6 +128,18 @@ function shouldPlaySwoosh(el: HTMLElement): boolean {
         closestBtn.getAttribute('aria-label')?.toLowerCase().includes('close');
       if (isClose) return true;
     }
+  }
+
+  return false;
+}
+
+function shouldPlaySwoosh(el: HTMLElement): boolean {
+  if (el.closest('[data-sound="swoosh"]')) return true;
+
+  const closestBtn = el.closest('button');
+  if (closestBtn) {
+    const ariaHaspopup = closestBtn.getAttribute('aria-haspopup');
+    if (ariaHaspopup === 'dialog') return true;
   }
 
   return false;
@@ -158,6 +163,16 @@ export function useGlobalClickSound() {
 
       if (target.closest('input[type="range"]') || target.closest('[role="slider"]')) return;
       if (isTextInput(target)) return;
+
+      if (target.closest('[data-sound="close"]')) {
+        playCloseSound();
+        return;
+      }
+
+      if (shouldPlayClose(target)) {
+        playCloseSound();
+        return;
+      }
 
       if (shouldPlaySwoosh(target)) {
         playSwooshSound();

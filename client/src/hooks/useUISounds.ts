@@ -94,6 +94,44 @@ export function playSwooshSound() {
   } catch (e) {}
 }
 
+export function playCloseSound() {
+  try {
+    const ctx = getSharedAudioContext();
+    const now = ctx.currentTime;
+    const duration = 0.15;
+
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(300, now + duration);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.07, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(900, now);
+    osc2.frequency.exponentialRampToValueAtTime(400, now + duration * 0.8);
+
+    const gain2 = ctx.createGain();
+    gain2.gain.setValueAtTime(0, now);
+    gain2.gain.linearRampToValueAtTime(0.03, now + 0.01);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + duration * 0.8);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + duration + 0.05);
+    osc2.start(now);
+    osc2.stop(now + duration + 0.05);
+  } catch (e) {}
+}
+
 let lastKeystrokeTime = 0;
 
 export function playKeystrokeSound() {

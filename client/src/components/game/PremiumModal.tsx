@@ -244,7 +244,7 @@ export function PremiumModal({ isOpen, onClose, onPurchase, onCouponRedeemed, cu
           }`}
           disabled={purchasing || !canClose}
           data-testid="button-close-premium"
-          data-sound="swoosh"
+          data-sound="close"
         >
           <X className="w-6 h-6" />
         </button>

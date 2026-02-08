@@ -171,7 +171,7 @@ export function DealCongratulations({ isOpen, onClose, dealData }: DealCongratul
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
           onClick={onClose}
-          data-sound="swoosh"
+          data-sound="close"
         >
           <motion.div
             initial={{ scale: 0.8, opacity: 0, y: 50 }}

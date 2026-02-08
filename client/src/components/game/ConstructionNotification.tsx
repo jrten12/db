@@ -104,7 +104,7 @@ export function ConstructionNotification({ events, onDismiss }: ConstructionNoti
                 onClick={handleClose}
                 className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors"
                 data-testid="button-close-construction"
-                data-sound="swoosh"
+                data-sound="close"
               >
                 <X className="w-5 h-5" />
               </button>

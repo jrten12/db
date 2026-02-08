@@ -131,7 +131,7 @@ export function TrophyUnlockNotification({ trophyId, onDismiss }: TrophyUnlockNo
           onClick={handleDismiss}
           className="absolute top-3 right-3 p-1 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
           data-testid="button-dismiss-trophy"
-          data-sound="swoosh"
+          data-sound="close"
         >
           <X className="w-5 h-5 text-white/80" />
         </button>

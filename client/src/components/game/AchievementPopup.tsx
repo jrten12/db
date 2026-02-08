@@ -119,7 +119,7 @@ export function AchievementPopup({ achievementId, onClose }: AchievementPopupPro
                 }}
                 className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors"
                 data-testid="button-close-achievement"
-                data-sound="swoosh"
+                data-sound="close"
               >
                 <X className="w-5 h-5" />
               </button>

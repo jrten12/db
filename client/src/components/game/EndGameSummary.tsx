@@ -31,6 +31,7 @@ interface EndGameSummaryProps {
   properties: Property[];
   investigations: PropertyInvestigation[];
   won: boolean;
+  midGame?: boolean;
 }
 
 export function EndGameSummary({ 
@@ -40,7 +41,8 @@ export function EndGameSummary({
   deals, 
   properties, 
   investigations,
-  won
+  won,
+  midGame = false
 }: EndGameSummaryProps) {
   const [activeTab, setActiveTab] = useState<'profile' | 'scorecard' | 'benchmarks'>('profile');
   const [stats, setStats] = useState<GameStats | null>(null);
@@ -105,7 +107,7 @@ export function EndGameSummary({
           onClick={handleClose}
           className="fixed top-[calc(env(safe-area-inset-top,0px)+16px)] right-4 p-3 bg-red-500/30 hover:bg-red-500/50 border border-red-500/50 rounded-full text-white transition-all z-[100] min-w-[48px] min-h-[48px] flex items-center justify-center cursor-pointer"
           data-testid="button-close-summary"
-          data-sound="swoosh"
+          data-sound="close"
           type="button"
         >
           <X className="w-6 h-6" />
@@ -113,18 +115,28 @@ export function EndGameSummary({
 
         <div className="w-full max-w-2xl">
           <div className="text-center mb-8">
-            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${won ? 'bg-amber-500/20 border-2 border-amber-500/50' : 'bg-slate-700/50 border-2 border-slate-600'} mb-4`}>
-              {won ? (
+            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full ${
+              midGame ? 'bg-purple-500/20 border-2 border-purple-500/50' 
+              : won ? 'bg-amber-500/20 border-2 border-amber-500/50' 
+              : 'bg-slate-700/50 border-2 border-slate-600'
+            } mb-4`}>
+              {midGame ? (
+                <BarChart3 className="w-10 h-10 text-purple-400" />
+              ) : won ? (
                 <Trophy className="w-10 h-10 text-amber-400" />
               ) : (
                 <Target className="w-10 h-10 text-slate-400" />
               )}
             </div>
-            <h1 className={`text-3xl font-bold mb-2 ${won ? 'text-amber-400' : 'text-white'}`}>
-              {won ? 'Victory!' : 'Game Over'}
+            <h1 className={`text-3xl font-bold mb-2 ${
+              midGame ? 'text-purple-400' : won ? 'text-amber-400' : 'text-white'
+            }`}>
+              {midGame ? 'Performance Stats' : won ? 'Victory!' : 'Game Over'}
             </h1>
             <p className="text-gray-400">
-              {won 
+              {midGame
+                ? `Here's how you're doing so far, ${gameRun.playerName}.`
+                : won 
                 ? `Congratulations, ${gameRun.playerName}! You achieved your investment goals.`
                 : `Good effort, ${gameRun.playerName}. Review your performance below.`
               }

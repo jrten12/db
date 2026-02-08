@@ -332,6 +332,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               onClick={() => setMenuOpen(false)}
               className="absolute top-4 right-4 touch-target p-3 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-full text-white transition-all duration-150 ios-spring tap-scale safe-area-top safe-area-right"
               data-testid="button-close-menu"
+              data-sound="close"
             >
               <X className="w-6 h-6" />
             </button>

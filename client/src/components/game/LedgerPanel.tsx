@@ -7,6 +7,7 @@ import {
   Hammer, PaintBucket, Layers, Snowflake, ThermometerSun, Pipette, AlertTriangle,
   FileText, DollarSign, Banknote, Receipt, Landmark, Key, LucideIcon
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Icon mapping for expense descriptions
@@ -337,7 +338,7 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
 
   return (
     <div 
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center z-[60] p-4 pt-[calc(env(safe-area-inset-top,0px)+60px)] md:pt-8" 
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center z-[60] p-4 pt-[max(calc(env(safe-area-inset-top,0px)+60px),80px)] md:pt-8 overflow-y-auto" 
       data-testid="ledger-panel"
       onClick={handleClose}
     >
@@ -350,14 +351,15 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
             <Wallet className="w-6 h-6 text-emerald-400" />
             <h2 className="text-xl font-bold text-white">Financial Ledger</h2>
           </div>
-          <button 
+          <Button 
             onClick={handleClose}
-            className="p-3 bg-red-500 hover:bg-red-600 active:bg-red-700 border-2 border-red-400 rounded-full transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center touch-manipulation z-20 shadow-lg flex-shrink-0"
+            variant="ghost"
+            size="sm"
             data-testid="button-close-ledger"
             data-sound="close"
           >
-            <X className="w-6 h-6 text-white" />
-          </button>
+            Done
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 border-b border-slate-700">

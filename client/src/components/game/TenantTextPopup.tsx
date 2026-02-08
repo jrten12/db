@@ -34,7 +34,6 @@ export function TenantTextPopup({
     }
   }, [isOpen]);
 
-  // Auto-dismiss notification after 5 seconds if not opened
   useEffect(() => {
     if (showNotification && !showFullMessage) {
       const timer = setTimeout(() => {
@@ -61,6 +60,17 @@ export function TenantTextPopup({
     setShowFullMessage(false);
     onClose();
   };
+
+  useEffect(() => {
+    if (showFullMessage) {
+      const timer = setTimeout(() => {
+        setShowNotification(false);
+        setShowFullMessage(false);
+        onClose();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showFullMessage, message, onClose]);
 
   const currentTime = timestamp || new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   const initials = tenantName.split(' ').map(n => n[0]).join('').toUpperCase();

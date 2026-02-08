@@ -179,7 +179,7 @@ export function useGlobalClickSound() {
         return;
       }
 
-      if (target.closest('[data-no-click-sound]')) return;
+      if (target.closest('[data-no-click-sound]') || target.closest('[data-sound]')) return;
 
       const isInteractive = 
         target.closest('button') ||

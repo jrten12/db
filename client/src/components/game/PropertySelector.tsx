@@ -247,67 +247,6 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                   </div>
                 </div>
 
-                {/* Status Badge */}
-                {statusBadge && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 z-10 gap-3">
-                    <div className={`flex items-center gap-2 px-4 py-2 ${statusBadge.color} rounded-lg border-2 shadow-lg transform -rotate-12`}>
-                      <statusBadge.icon className="w-5 h-5 text-white" />
-                      <span className="text-lg font-bold text-white uppercase tracking-wider">{statusBadge.label}</span>
-                    </div>
-                    {/* Action Buttons for owned properties - horizontal layout with responsive sizing */}
-                    {dealInfo && (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && (
-                      <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-[280px] sm:max-w-none">
-                        {/* Contractor Walkthrough Button for active rentals AND ready flips */}
-                        {(dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && onContractorWalkthrough && !dealInfo.contractorWalkthroughCompleted && (
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              onContractorWalkthrough(dealInfo.dealId);
-                            }}
-                            className="bg-amber-500 hover:bg-amber-400 text-white font-bold text-[10px] sm:text-xs shadow-lg border border-amber-300 px-2 sm:px-3"
-                            data-testid={`button-walkthrough-${property.id}`}
-                          >
-                            <HardHat className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-                            INSPECT
-                          </Button>
-                        )}
-                        {/* Refinance Button for active rentals */}
-                        {dealInfo.status === 'active_rental' && onRefinanceProperty && dealInfo.canRefinance && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              onRefinanceProperty(dealInfo.dealId);
-                            }}
-                            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 bg-blue-500 hover:bg-blue-400 text-white font-bold text-[10px] sm:text-xs rounded-lg shadow-lg transition-all border border-blue-300"
-                            data-testid={`button-refi-${property.id}`}
-                          >
-                            <Landmark className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            <span>REFI</span>
-                          </button>
-                        )}
-                        {/* Sell Button */}
-                        {onSellProperty && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              onSellProperty(dealInfo.dealId, dealInfo.strategy);
-                            }}
-                            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-[10px] sm:text-xs rounded-lg shadow-lg transition-all border border-emerald-300"
-                            data-testid={`button-sell-${property.id}`}
-                          >
-                            <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            <span>SELL</span>
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {/* Work in Progress Badge */}
                 {hasInvestigations && !isUnavailable && (
                   <div className="absolute bottom-3 left-3">
@@ -328,6 +267,65 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                   </div>
                 )}
               </div>
+
+              {/* Status Badge - at card level to avoid overflow clipping */}
+              {statusBadge && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 z-10 gap-3 rounded-2xl">
+                  <div className={`flex items-center gap-2 px-4 py-2 ${statusBadge.color} rounded-lg border-2 shadow-lg transform -rotate-12`}>
+                    <statusBadge.icon className="w-5 h-5 text-white" />
+                    <span className="text-lg font-bold text-white uppercase tracking-wider">{statusBadge.label}</span>
+                  </div>
+                  {dealInfo && (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && (
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-[280px] sm:max-w-none">
+                      {(dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && onContractorWalkthrough && !dealInfo.contractorWalkthroughCompleted && (
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            onContractorWalkthrough(dealInfo.dealId);
+                          }}
+                          className="bg-amber-500 text-white font-bold text-[10px] sm:text-xs shadow-lg border border-amber-300 px-2 sm:px-3"
+                          data-testid={`button-walkthrough-${property.id}`}
+                        >
+                          <HardHat className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+                          INSPECT
+                        </Button>
+                      )}
+                      {dealInfo.status === 'active_rental' && onRefinanceProperty && dealInfo.canRefinance && (
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            onRefinanceProperty(dealInfo.dealId);
+                          }}
+                          className="bg-blue-500 text-white font-bold text-[10px] sm:text-xs shadow-lg border border-blue-300 px-2 sm:px-3"
+                          data-testid={`button-refi-${property.id}`}
+                        >
+                          <Landmark className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+                          REFI
+                        </Button>
+                      )}
+                      {onSellProperty && (
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            onSellProperty(dealInfo.dealId, dealInfo.strategy);
+                          }}
+                          className="bg-emerald-500 text-white font-bold text-[10px] sm:text-xs shadow-lg border border-emerald-300 px-2 sm:px-3"
+                          data-testid={`button-sell-${property.id}`}
+                        >
+                          <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+                          SELL
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Property Info */}
               <div className="relative p-4">

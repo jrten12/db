@@ -69,7 +69,7 @@ export function ConstructionNotification({ events, onDismiss }: ConstructionNoti
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: -30 }}
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-[90] pointer-events-auto"
+          className="fixed top-[max(5rem,calc(env(safe-area-inset-top,0px)+3rem))] left-1/2 -translate-x-1/2 z-[90] pointer-events-auto"
         >
           <div className={`
             relative overflow-hidden rounded-2xl border-2 

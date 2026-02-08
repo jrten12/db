@@ -15,38 +15,6 @@ interface AdBannerProps {
 const ADSENSE_PUB_ID = import.meta.env.VITE_ADSENSE_PUB_ID as string | undefined;
 const DEFAULT_AD_SLOT = import.meta.env.VITE_ADSENSE_SLOT_ID as string | undefined;
 
-let scriptLoaded = false;
-let scriptLoading = false;
-const pendingCallbacks: Array<() => void> = [];
-
-function loadAdSenseScript(pubId: string, onReady: () => void) {
-  if (scriptLoaded) {
-    onReady();
-    return;
-  }
-
-  pendingCallbacks.push(onReady);
-
-  if (scriptLoading) return;
-  scriptLoading = true;
-
-  const script = document.createElement('script');
-  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${pubId}`;
-  script.async = true;
-  script.crossOrigin = 'anonymous';
-  script.onload = () => {
-    scriptLoaded = true;
-    scriptLoading = false;
-    const cbs = pendingCallbacks.splice(0);
-    cbs.forEach(cb => cb());
-  };
-  script.onerror = () => {
-    scriptLoading = false;
-    pendingCallbacks.splice(0);
-  };
-  document.head.appendChild(script);
-}
-
 export function AdBanner({ slot, format = 'horizontal', className = '' }: AdBannerProps) {
   const adRef = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
@@ -55,25 +23,42 @@ export function AdBanner({ slot, format = 'horizontal', className = '' }: AdBann
   const adSlot = slot || DEFAULT_AD_SLOT;
 
   useEffect(() => {
-    if (!pubId || !adSlot || pushed.current) return;
+    if (!pubId || pushed.current) return;
 
-    loadAdSenseScript(pubId, () => {
+    const tryPush = () => {
       if (adRef.current && !pushed.current) {
         pushed.current = true;
         try {
           (window.adsbygoogle = window.adsbygoogle || []).push({});
         } catch {
-          // Ad push failed - ad will remain empty but not break the page
+          // Ad push failed silently
         }
       }
-    });
+    };
+
+    if (window.adsbygoogle) {
+      tryPush();
+    } else {
+      const timer = setTimeout(tryPush, 1500);
+      return () => clearTimeout(timer);
+    }
   }, [pubId, adSlot]);
 
-  if (!pubId || !adSlot) {
+  if (!pubId) {
     return null;
   }
 
   const heightClass = format === 'rectangle' ? 'min-h-[250px]' : 'min-h-[50px] max-h-[90px]';
+
+  const adProps: Record<string, string> = {
+    'data-ad-client': pubId,
+    'data-ad-format': format === 'auto' ? 'auto' : format === 'rectangle' ? 'rectangle' : 'horizontal',
+    'data-full-width-responsive': 'true',
+  };
+
+  if (adSlot) {
+    adProps['data-ad-slot'] = adSlot;
+  }
 
   return (
     <div 
@@ -85,10 +70,7 @@ export function AdBanner({ slot, format = 'horizontal', className = '' }: AdBann
           ref={adRef}
           className="adsbygoogle"
           style={{ display: 'block', width: '100%', height: '100%' }}
-          data-ad-client={pubId}
-          data-ad-slot={adSlot}
-          data-ad-format={format === 'auto' ? 'auto' : format === 'rectangle' ? 'rectangle' : 'horizontal'}
-          data-full-width-responsive="true"
+          {...adProps}
         />
       </div>
     </div>

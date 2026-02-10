@@ -353,12 +353,13 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
           </div>
           <Button 
             onClick={handleClose}
+            size="icon"
             variant="ghost"
-            size="sm"
+            className="text-gray-400 hover:text-white"
             data-testid="button-close-ledger"
             data-sound="close"
           >
-            Done
+            <X className="w-5 h-5" />
           </Button>
         </div>
 

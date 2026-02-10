@@ -338,12 +338,12 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
 
   return (
     <div 
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center z-[60] p-4 pt-[max(calc(env(safe-area-inset-top,0px)+60px),80px)] md:pt-8 overflow-y-auto" 
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start md:items-center justify-center z-[60] p-4 pt-[max(calc(env(safe-area-inset-top,0px)+120px),140px)] md:pt-8 overflow-y-auto" 
       data-testid="ledger-panel"
       onClick={handleClose}
     >
       <div 
-        className="relative bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[calc(100vh-80px)] md:max-h-[90vh] flex flex-col shadow-2xl"
+        className="relative bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[calc(100vh-160px)] md:max-h-[90vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-700">

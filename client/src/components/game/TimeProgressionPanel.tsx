@@ -32,30 +32,27 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
   const outputs = deal.proFormaOutputs as any;
   const inputs = deal.proFormaInputs as any;
   
-  // Helper to format currency (whole dollars)
   const fmt = (n: number) => Math.round(n).toLocaleString();
   
-  // AUTHORITATIVE: Weekly income from the deal is the source of truth
-  // This is what the ledger actually records each week
   const weeklyIncome = deal.weeklyIncome || 0;
   
-  // Get stored values from pro forma - these are the ACTUAL values (not player assumptions)
-  // monthlyGrossRent contains the real market rent based on property condition, rehab, etc.
   const monthlyRent = outputs?.monthlyGrossRent || 0;
   const monthlyVacancy = outputs?.monthlyVacancyLoss || 0;
   const monthlyOpEx = outputs?.monthlyOperatingExpenses || 0;
   const monthlyDebt = outputs?.debtServiceMonthly || outputs?.monthlyDebtService || 0;
   
-  // Calculate monthly cash flow from components (these should match weeklyIncome * 4.33)
   const monthlyCashFlow = monthlyRent - monthlyVacancy - monthlyOpEx - monthlyDebt;
   
-  // Display the vacancy rate from stored outputs
   const displayVacancyRate = outputs?.effectiveVacancyRate?.toFixed(1) || inputs?.vacancyRate || '?';
   const ltv = inputs?.ltv || 0;
   const purchasePrice = deal.purchasePrice || 0;
   
-  // Check if this is a problem deal (no rent but has mortgage) - only show if we truly have no rent data
   const hasNoRent = monthlyRent === 0 && monthlyDebt > 0 && weeklyIncome <= 0;
+  
+  const realityCheck = outputs?.realityCheck;
+  const projectedRent = inputs?.expectedRent || 0;
+  const projectedVacancy = inputs?.vacancyRate || 0;
+  const hasProjectionDifference = realityCheck && (realityCheck.rentDelta !== 0 || realityCheck.vacancyDelta !== 0);
   
   return (
     <div className="space-y-3 text-sm">
@@ -65,7 +62,53 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
       
       {hasNoRent && (
         <div className="bg-red-900/40 border border-red-500/50 rounded px-2 py-1.5 text-xs text-red-300">
-          ⚠️ No rent income! You're only paying mortgage costs.
+          No rent income! You're only paying mortgage costs.
+        </div>
+      )}
+
+      {hasProjectionDifference && (
+        <div className={`rounded-lg p-2.5 border text-xs ${
+          realityCheck.wasOptimistic 
+            ? 'bg-red-900/30 border-red-500/30' 
+            : 'bg-emerald-900/30 border-emerald-500/30'
+        }`} data-testid="reality-check-comparison">
+          <div className="font-semibold mb-2 flex items-center gap-1.5">
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span className={realityCheck.wasOptimistic ? 'text-red-300' : 'text-emerald-300'}>
+              Projection vs. Reality
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-1 text-[11px] mb-1.5">
+            <span className="text-gray-500"></span>
+            <span className="text-gray-400 text-center">You Said</span>
+            <span className="text-gray-400 text-center">Actual</span>
+          </div>
+          <div className="grid grid-cols-3 gap-1 text-[11px]">
+            <span className="text-gray-400">Rent</span>
+            <span className="text-center text-gray-300">${fmt(projectedRent)}</span>
+            <span className={`text-center font-medium ${monthlyRent > projectedRent ? 'text-emerald-400' : monthlyRent < projectedRent ? 'text-red-400' : 'text-gray-300'}`}>
+              ${fmt(monthlyRent)}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-1 text-[11px] mt-1">
+            <span className="text-gray-400">Vacancy</span>
+            <span className="text-center text-gray-300">{projectedVacancy}%</span>
+            <span className={`text-center font-medium ${Number(displayVacancyRate) < projectedVacancy ? 'text-emerald-400' : Number(displayVacancyRate) > projectedVacancy ? 'text-red-400' : 'text-gray-300'}`}>
+              {displayVacancyRate}%
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-1 text-[11px] mt-1 border-t border-white/10 pt-1.5">
+            <span className="text-gray-400">Cash Flow</span>
+            <span className="text-center text-gray-300">${fmt(realityCheck.projectedCashFlow)}</span>
+            <span className={`text-center font-bold ${realityCheck.actualCashFlow >= realityCheck.projectedCashFlow ? 'text-emerald-400' : 'text-red-400'}`}>
+              ${fmt(realityCheck.actualCashFlow)}
+            </span>
+          </div>
+          {realityCheck.explanation && (
+            <p className={`mt-2 text-[10px] leading-tight ${realityCheck.wasOptimistic ? 'text-red-400/70' : 'text-emerald-400/70'}`}>
+              {realityCheck.explanation}
+            </p>
+          )}
         </div>
       )}
       

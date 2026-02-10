@@ -1227,49 +1227,51 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         const proFormaInputs = deal.proFormaInputs as any;
         const proFormaOutputs = deal.proFormaOutputs as any;
         
-        // Calculate repair completion factor by COST (not count)
-        // Compare selected repairs cost vs total discovered issues cost
+        // Calculate rent increase using per-item rent impact percentages
         const walkthroughData = deal.contractorWalkthroughData as ContractorWalkthroughResult | null;
         const allIssues = walkthroughData?.repairItems || [];
         const fixedIssues = deal.rentalRehabItems as ContractorWalkthroughItem[] | null;
         
-        // Calculate total costs for weighting
-        const totalCost = allIssues.reduce((sum, item) => sum + item.contractorCost, 0);
-        const fixedCost = (fixedIssues || []).reduce((sum, item) => sum + item.contractorCost, 0);
         const fixedCount = (fixedIssues || []).length;
         const allIssuesCount = allIssues.length;
         
-        // Repair completion factor weighted by cost: fixing a $5000 issue counts more than a $500 issue
-        const repairCompletionFactor = totalCost > 0 ? fixedCost / totalCost : 1.0;
-        
-        // Improved rent after rehab (use postRehab range if available, otherwise boost original)
-        // BUT reduce the improvement based on unfixed issues
-        let maxNewMonthlyRent: number;
+        // Base rent from player's current income or property data
         let baseMonthlyRent: number;
-        
-        if (property?.postRehabRentMax) {
-          // Use post-rehab rent range
-          maxNewMonthlyRent = Math.floor((property.postRehabRentMin! + property.postRehabRentMax) / 2);
-          baseMonthlyRent = Math.floor((property.rentMin + property.rentMax) / 2);
+        if (proFormaOutputs?.monthlyGrossRent) {
+          baseMonthlyRent = proFormaOutputs.monthlyGrossRent;
         } else if (property) {
-          // Boost original rent by 15-25% (property condition improved)
           baseMonthlyRent = Math.floor((property.rentMin + property.rentMax) / 2);
-          maxNewMonthlyRent = Math.round(baseMonthlyRent * (1.15 + Math.random() * 0.10));
         } else {
-          // Fallback: use stored rent + 20%
-          baseMonthlyRent = proFormaOutputs?.monthlyGrossRent || 1500;
-          maxNewMonthlyRent = Math.round(baseMonthlyRent * 1.20);
+          baseMonthlyRent = 1500;
         }
         
-        // Scale rent improvement by repair completion factor
-        // If 100% fixed = full rent increase, if 50% fixed = 50% of rent increase
-        const rentIncrease = maxNewMonthlyRent - baseMonthlyRent;
-        const scaledRentIncrease = Math.round(rentIncrease * repairCompletionFactor);
-        const newMonthlyRent = baseMonthlyRent + scaledRentIncrease;
+        // Sum rent impact from fixed repairs (each has its own rentImpactPct)
+        const totalFixedRentImpactPct = (fixedIssues || []).reduce((sum, item) => {
+          return sum + (item.rentImpactPct || 0);
+        }, 0);
         
-        // Track unfixed issues for future reference
+        // Sum rent impact from ALL issues (to calculate depression from unfixed ones)
+        const totalAllRentImpactPct = allIssues.reduce((sum, item) => {
+          return sum + (item.rentImpactPct || 0);
+        }, 0);
+        
+        // Unfixed issues depress rent slightly (tenants notice problems)
         const unfixedIssueCount = allIssuesCount - fixedCount;
-
+        const unfixedIssues = allIssues.filter(item => !(fixedIssues || []).some(f => f.id === item.id));
+        const unfixedDepressionPct = unfixedIssues.reduce((sum, item) => {
+          return sum + Math.min(item.rentImpactPct || 0, 2) * 0.5;
+        }, 0);
+        
+        // Net rent change: gains from fixes minus depression from unfixed issues (capped at 25%)
+        const netRentChangePct = Math.min(totalFixedRentImpactPct - unfixedDepressionPct, 25);
+        const rentIncrease = Math.round(baseMonthlyRent * (netRentChangePct / 100));
+        const newMonthlyRent = Math.max(baseMonthlyRent, baseMonthlyRent + rentIncrease);
+        
+        // For backward compat
+        const repairCompletionFactor = totalAllRentImpactPct > 0 
+          ? totalFixedRentImpactPct / totalAllRentImpactPct 
+          : 1.0;
+        
         // Recalculate vacancy and percentage-based operating expenses with new rent
         const effectiveVacancyRate = proFormaOutputs?.effectiveVacancyRate || 
           (property?.locationType === 'urban' ? 7 : 5);
@@ -1316,17 +1318,20 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           },
         });
 
-        // Create ledger entry for rehab completion with partial info
+        // Create ledger entry for rehab completion with rent change details
         const partialNote = unfixedIssueCount > 0 
           ? ` (${fixedCount}/${allIssuesCount} issues fixed)`
           : '';
+        const rentChangeNote = rentIncrease > 0 
+          ? ` Rent +$${rentIncrease.toLocaleString()}/mo (+${Math.round(netRentChangePct)}%)`
+          : rentIncrease === 0 ? ' Rent unchanged' : '';
         await storage.createLedgerEntry({
           gameRunId,
           direction: 'credit',
           category: 'income',
-          amount: 0, // Informational entry
+          amount: 0,
           balanceAfter: gameRun.cash,
-          description: `Rental rehab complete - ${property?.name || 'Property'} (new rent: $${newMonthlyRent.toLocaleString()}/mo)${partialNote}`,
+          description: `Rental rehab complete - ${property?.name || 'Property'} (new rent: $${newMonthlyRent.toLocaleString()}/mo)${partialNote}${rentChangeNote}`,
           propertyId: deal.propertyId,
           dealId: deal.id,
           gameWeek: gameRun.currentWeek + 1,
@@ -1868,6 +1873,89 @@ export interface ContractorWalkthroughItem {
   timelineWeeks: number;
   description: string;
   markup: number;             // Percentage markup applied
+  rentImpactPct: number;      // How much this repair boosts rent (e.g. 3 = +3%)
+}
+
+const RENT_IMPACT_BY_REPAIR: Record<string, number> = {
+  cosmetic_updates: 8,
+  hvac_replacement: 6,
+  outdated_hvac: 5,
+  hvac_commercial: 5,
+  hvac_high_rise: 5,
+  dual_hvac: 5,
+  electrical_upgrade: 4,
+  electrical_outdated: 3,
+  plumbing_galvanized: 3,
+  plumbing_replacement: 3,
+  plumbing_stack: 3,
+  roof_wear: 2,
+  roof_replacement: 3,
+  roof_shared: 2,
+  roof_historic: 3,
+  window_seals: 4,
+  historic_windows: 5,
+  foundation_settling: 1,
+  foundation_major: 1,
+  structural_settling: 1,
+  drainage_issues: 1,
+  mold_remediation: 4,
+  basement_moisture: 2,
+  termite_damage: 2,
+  asbestos_tiles: 2,
+  lead_paint: 2,
+  lead_paint_abatement: 2,
+  radon_mitigation: 2,
+  septic_issues: 1,
+  septic_maintenance: 1,
+  well_water: 1,
+  well_pump: 1,
+  siding_damage: 3,
+  brick_repointing: 3,
+  porch_rot: 3,
+  chimney_rebuild: 1,
+  knob_tube: 3,
+  fire_suppression: 2,
+  loading_dock: 1,
+  dock_repair: 2,
+  dock_permit: 1,
+  sump_pump: 1,
+  salt_corrosion: 2,
+  hurricane_straps: 1,
+  wood_stove: 1,
+  irrigation_repair: 2,
+  pool_resurface: 5,
+  pool_equipment: 4,
+  industrial_conversion: 3,
+  hoa_assessment: 0,
+  hoa_assessment_pending: 0,
+  hoa_reserve_low: 0,
+  high_hoa_fees: 0,
+  building_systems: 3,
+  parking_issues: 2,
+  historic_requirements: 2,
+  elevator_issues: 3,
+  shared_wall_issues: 2,
+  city_violations: 1,
+  narrow_lot_access: 0,
+  separate_utilities: 2,
+  utility_separation: 2,
+  dual_system_updates: 3,
+  deferred_maintenance: 4,
+  zoning_issues: 0,
+  seawall_maintenance: 2,
+  barn_roof: 1,
+};
+
+function getRentImpactForRepair(issueId: string, severity: 'mild' | 'moderate' | 'severe', random: () => number): number {
+  const baseImpact = RENT_IMPACT_BY_REPAIR[issueId];
+  if (baseImpact !== undefined) {
+    const variance = (random() - 0.5) * 2;
+    return Math.max(0, Math.round((baseImpact + variance) * 10) / 10);
+  }
+  const severityDefaults: Record<string, number> = { mild: 2, moderate: 4, severe: 3 };
+  const fallback = severityDefaults[severity] || 2;
+  const variance = (random() - 0.5) * 2;
+  return Math.max(0, Math.round((fallback + variance) * 10) / 10);
 }
 
 export interface ContractorWalkthroughResult {
@@ -1958,6 +2046,8 @@ export async function performContractorWalkthrough(
     
     const contractorCost = Math.round(originalCost * (1 + markup / 100));
     
+    const rentImpactPct = getRentImpactForRepair(issue.id, issue.severity, itemRandom);
+    
     return {
       id: issue.id,
       name: issue.name,
@@ -1967,6 +2057,7 @@ export async function performContractorWalkthrough(
       timelineWeeks: issue.timelineImpactWeeks,
       description: issue.description,
       markup: Math.round(markup),
+      rentImpactPct,
     };
   });
 

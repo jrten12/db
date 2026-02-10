@@ -18,6 +18,7 @@ interface ContractorWalkthroughItem {
   timelineWeeks: number;
   description: string;
   markup: number;
+  rentImpactPct?: number;
 }
 
 interface WalkthroughQuote {
@@ -84,16 +85,32 @@ export function ContractorWalkthroughModal({
     return Math.round(monthlyRent);
   }, [deal?.weeklyIncome]);
 
-  // Calculate totals for selected repairs
+  // Base monthly rent from proFormaOutputs (matches server calculation)
+  const baseMonthlyRent = useMemo(() => {
+    const proFormaOutputs = deal?.proFormaOutputs as any;
+    if (proFormaOutputs?.monthlyGrossRent) return proFormaOutputs.monthlyGrossRent;
+    if (property) return Math.floor((property.rentMin + property.rentMax) / 2);
+    return 1500;
+  }, [deal?.proFormaOutputs, property]);
+
+  // Calculate totals for selected repairs, including unfixed issue penalty (matches server logic)
   const selectedTotals = useMemo(() => {
-    if (!result?.repairItems) return { cost: 0, weeks: 0, count: 0 };
+    if (!result?.repairItems) return { cost: 0, weeks: 0, count: 0, rentImpactPct: 0, netRentImpactPct: 0, rentIncrease: 0 };
     const selected = result.repairItems.filter(item => selectedRepairIds.includes(item.id));
+    const unselected = result.repairItems.filter(item => !selectedRepairIds.includes(item.id));
+    const rentImpactPct = selected.reduce((sum, item) => sum + (item.rentImpactPct || 0), 0);
+    const unfixedDepressionPct = unselected.reduce((sum, item) => sum + Math.min(item.rentImpactPct || 0, 2) * 0.5, 0);
+    const netRentImpactPct = Math.min(rentImpactPct - unfixedDepressionPct, 25);
+    const rentIncrease = Math.max(0, Math.round(baseMonthlyRent * (netRentImpactPct / 100)));
     return {
       cost: selected.reduce((sum, item) => sum + item.contractorCost, 0),
       weeks: Math.max(...selected.map(item => item.timelineWeeks), 0),
       count: selected.length,
+      rentImpactPct,
+      netRentImpactPct,
+      rentIncrease,
     };
-  }, [result?.repairItems, selectedRepairIds]);
+  }, [result?.repairItems, selectedRepairIds, baseMonthlyRent]);
 
   // Check affordability
   const affordability = useMemo(() => {
@@ -479,12 +496,20 @@ export function ContractorWalkthroughModal({
                                 )}
                               </div>
                             </div>
-                            {item.timelineWeeks > 0 && (
-                              <div className="flex items-center gap-1 mt-2 text-xs text-slate-500 ml-8">
-                                <Clock className="w-3 h-3" />
-                                <span>{item.timelineWeeks} month{item.timelineWeeks > 1 ? 's' : ''} to fix</span>
-                              </div>
-                            )}
+                            <div className="flex items-center gap-3 mt-2 text-xs ml-8 flex-wrap">
+                              {item.timelineWeeks > 0 && (
+                                <span className="flex items-center gap-1 text-slate-500">
+                                  <Clock className="w-3 h-3" />
+                                  {item.timelineWeeks} month{item.timelineWeeks > 1 ? 's' : ''} to fix
+                                </span>
+                              )}
+                              {(item.rentImpactPct || 0) > 0 && (
+                                <span className="flex items-center gap-1 text-emerald-400">
+                                  <TrendingUp className="w-3 h-3" />
+                                  +{item.rentImpactPct}% rent
+                                </span>
+                              )}
+                            </div>
                           </motion.button>
                         );
                       })}
@@ -520,6 +545,20 @@ export function ContractorWalkthroughModal({
                               <Clock className="w-3 h-3" /> Timeline
                             </span>
                             <span className="text-amber-400">~{selectedTotals.weeks} month{selectedTotals.weeks !== 1 ? 's' : ''}</span>
+                          </div>
+                        )}
+                        
+                        {/* Rent increase estimate */}
+                        {selectedTotals.rentImpactPct > 0 && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-slate-400 flex items-center gap-1">
+                              <TrendingUp className="w-3 h-3" /> Est. Rent Increase
+                            </span>
+                            <span className={`font-mono ${selectedTotals.netRentImpactPct > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                              {selectedTotals.rentIncrease > 0 
+                                ? `+$${selectedTotals.rentIncrease.toLocaleString()}/mo (+${Math.round(selectedTotals.netRentImpactPct)}%)`
+                                : 'Offset by unfixed issues'}
+                            </span>
                           </div>
                         )}
                         

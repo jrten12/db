@@ -429,8 +429,12 @@ export function ContractorWalkthroughModal({
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            onClick={() => toggleRepair(item.id)}
-                            className={`w-full text-left bg-slate-800/60 rounded-xl p-3 border transition-all ${
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              toggleRepair(item.id);
+                            }}
+                            className={`w-full text-left bg-slate-800/60 rounded-xl p-3 border transition-all touch-manipulation active:opacity-80 select-none ${
                               isSelected 
                                 ? 'border-cyan-500/50 bg-cyan-900/20' 
                                 : 'border-slate-700/50 hover:border-slate-600'

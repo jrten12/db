@@ -1438,6 +1438,8 @@ input[type="range"]::-moz-range-track {
     transparent
   );
   transition: left 0.5s ease-out;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .card-shine:hover::after {

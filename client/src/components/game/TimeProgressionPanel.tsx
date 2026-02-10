@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark } from 'lucide-react';
+import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw } from 'lucide-react';
 import type { Deal, GameRun, Property } from '@shared/schema';
 
 interface TimeProgressionPanelProps {
@@ -504,6 +504,31 @@ export function TimeProgressionPanel({
       {/* Empty State */}
       {!hasActiveProperties && (
         <p className="text-xs text-gray-500 text-center py-2">No active properties yet</p>
+      )}
+
+      {gameRun.cash < 5000 && gameRun.weeksRemaining > 0 && !hasActiveProperties && (
+        <div className="mt-2 p-2.5 bg-amber-900/30 border border-amber-500/30 rounded-lg" data-testid="low-cash-hint">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs text-amber-300 font-medium">Low on cash?</p>
+              <p className="text-[10px] text-amber-400/70 mt-0.5">
+                You can still advance time — look for cheaper properties, or tap the menu to start a new game.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {gameRun.cash < 5000 && hasActiveProperties && flipsReadyToList.length > 0 && (
+        <div className="mt-2 p-2.5 bg-emerald-900/30 border border-emerald-500/30 rounded-lg" data-testid="sell-flip-hint">
+          <div className="flex items-start gap-2">
+            <DollarSign className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+            <p className="text-[10px] text-emerald-300/80">
+              You have flips ready to sell! Tap the "Sell!" button above to cash out.
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );

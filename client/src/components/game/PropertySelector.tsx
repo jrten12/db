@@ -145,7 +145,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
               // Rental property under renovation - tenant displaced
               const weeksLeft = dealInfo.rentalRehabWeeksRemaining || 0;
               return { 
-                label: `RENOVATING • ${weeksLeft}w`, 
+                label: `RENOVATING • ${weeksLeft}mo`, 
                 color: 'bg-orange-600 border-orange-400', 
                 icon: HardHat,
                 isRehab: true
@@ -157,7 +157,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
               // Player owns this, renovation in progress
               const weeksLeft = dealInfo.weeksUntilCompletion || 0;
               return { 
-                label: weeksLeft > 0 ? `RENOVATING • ${weeksLeft}w` : 'RENOVATING', 
+                label: weeksLeft > 0 ? `RENOVATING • ${weeksLeft}mo` : 'RENOVATING', 
                 color: 'bg-orange-600 border-orange-400', 
                 icon: HardHat,
                 isRehab: true 

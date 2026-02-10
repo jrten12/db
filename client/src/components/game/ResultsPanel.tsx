@@ -147,7 +147,7 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
       explanations.push({
         type: 'warning',
         title: 'Hold Time',
-        description: `Your ${holdWeeks} week timeline is lengthy. Longer holds increase carrying costs and market risk.`
+        description: `Your ${holdWeeks} month timeline is lengthy. Longer holds increase carrying costs and market risk.`
       });
     }
   }
@@ -321,15 +321,15 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                       <PopoverContent side="right" className="max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4 z-[100]">
                         <div className="space-y-2">
                           <p className="font-semibold text-blue-400">What is Hold Time?</p>
-                          <p className="text-gray-300">Hold Time is how long you own the property before selling. Every week costs money - loan interest, taxes, insurance, utilities. The longer you hold, the more these "carrying costs" eat into your profit.</p>
-                          <p className="text-emerald-400 text-xs mt-2">→ For flips, aim for 12-16 weeks max. Longer holds mean more risk and lower returns.</p>
+                          <p className="text-gray-300">Hold Time is how long you own the property before selling. Every month costs money - loan interest, taxes, insurance, utilities. The longer you hold, the more these "carrying costs" eat into your profit.</p>
+                          <p className="text-emerald-400 text-xs mt-2">→ For flips, aim for 12-16 months max. Longer holds mean more risk and lower returns.</p>
                         </div>
                       </PopoverContent>
                     </Popover>
                     <div>
                       <div className="text-gray-400 text-sm">Hold Time</div>
                       <div className="text-2xl font-bold font-mono text-white">
-                        {holdWeeks} weeks
+                        {holdWeeks} months
                       </div>
                     </div>
                   </div>

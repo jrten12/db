@@ -148,7 +148,7 @@ export function GameOverModal({
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-400">{weeksPlayed}</div>
-                  <div className="text-gray-400">Weeks Played</div>
+                  <div className="text-gray-400">Months Played</div>
                 </div>
               </div>
               

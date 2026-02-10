@@ -121,7 +121,7 @@ export const ACHIEVEMENT_DEFINITIONS: Record<string, AchievementDefinition> = {
   speed_demon: {
     id: 'speed_demon',
     name: 'Speed Demon',
-    description: 'Win the game in under 26 weeks',
+    description: 'Win the game in under 26 months',
     icon: 'zap',
     tier: 'platinum',
     category: 'milestone',

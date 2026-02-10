@@ -258,7 +258,7 @@ export function ItemizedRepairsPanel({
                     ${totals.costMin.toLocaleString()}-${totals.costMax.toLocaleString()}
                   </div>
                   <div className="text-amber-400 text-xs">
-                    ~{totals.weeks} weeks
+                    ~{totals.weeks} month{totals.weeks !== 1 ? 's' : ''}
                   </div>
                 </div>
               </div>

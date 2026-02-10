@@ -15,9 +15,9 @@ const TROPHIES: TrophyInfo[] = [
   { id: 'flip_master', name: 'Flip Master', icon: Home, tier: 'silver', description: 'Complete 5 successful flips' },
   { id: 'landlord', name: 'Landlord', icon: Home, tier: 'silver', description: 'Own 3 rental properties in one game' },
   { id: 'big_spender', name: 'Big Spender', icon: DollarSign, tier: 'silver', description: 'Spend over $750,000 on properties' },
-  { id: 'survivor', name: 'Survivor', icon: Clock, tier: 'silver', description: 'Win with less than 2 weeks remaining' },
+  { id: 'survivor', name: 'Survivor', icon: Clock, tier: 'silver', description: 'Win with less than 2 months remaining' },
   { id: 'urban_expert', name: 'Urban Expert', icon: MapPin, tier: 'silver', description: 'Complete 5 deals in urban areas' },
-  { id: 'speed_demon', name: 'Speed Demon', icon: Zap, tier: 'gold', description: 'Win a game with 20+ weeks remaining' },
+  { id: 'speed_demon', name: 'Speed Demon', icon: Zap, tier: 'gold', description: 'Win a game with 20+ months remaining' },
   { id: 'millionaire', name: 'Millionaire', icon: Crown, tier: 'gold', description: 'Earn $750,000 total profit across all games' },
   { id: 'perfectionist', name: 'Perfectionist', icon: Star, tier: 'gold', description: 'Win without any failed deals' },
 ];

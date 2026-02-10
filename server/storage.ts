@@ -1075,7 +1075,7 @@ export class DBStorage implements IStorage {
     }
     
     if (gameRun.weeksRemaining < 2) {
-      throw new Error('Not enough weeks remaining to sell (need 2 weeks)');
+      throw new Error('Not enough time remaining to sell (need 2 months)');
     }
     
     let purchasePrice = deal.purchasePrice ?? 0;
@@ -1225,7 +1225,7 @@ export class DBStorage implements IStorage {
     }
     
     if (gameRun.weeksRemaining < 2) {
-      throw new Error('Not enough weeks remaining to sell (need 2 weeks)');
+      throw new Error('Not enough time remaining to sell (need 2 months)');
     }
     
     // Get property for ARV calculation
@@ -1429,14 +1429,14 @@ export class DBStorage implements IStorage {
     }
     
     if (weeksHeld < SEASONING_WEEKS) {
-      throw new Error(`Must hold property for ${SEASONING_WEEKS} weeks before refinancing (${SEASONING_WEEKS - weeksHeld} weeks remaining)`);
+      throw new Error(`Must hold property for ${SEASONING_WEEKS} months before refinancing (${SEASONING_WEEKS - weeksHeld} months remaining)`);
     }
     
     // Check refinance cooldown (must wait 4 weeks between refinances)
     if (deal.lastRefinanceWeek !== null && deal.lastRefinanceWeek !== undefined) {
       const weeksSinceLastRefi = currentWeek - deal.lastRefinanceWeek;
       if (weeksSinceLastRefi < REFINANCE_COOLDOWN_WEEKS) {
-        throw new Error(`Must wait ${REFINANCE_COOLDOWN_WEEKS - weeksSinceLastRefi} more week(s) before refinancing again`);
+        throw new Error(`Must wait ${REFINANCE_COOLDOWN_WEEKS - weeksSinceLastRefi} more month(s) before refinancing again`);
       }
     }
     

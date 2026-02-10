@@ -59,7 +59,7 @@ async function calculateRefinanceOptions(deal: Deal, gameRun: GameRun, allDeals:
     return {
       eligible: false,
       weeksUntilEligible: SEASONING_WEEKS - weeksHeld,
-      reason: `Must hold property for ${SEASONING_WEEKS} weeks before refinancing`,
+      reason: `Must hold property for ${SEASONING_WEEKS} months before refinancing`,
     };
   }
   
@@ -70,7 +70,7 @@ async function calculateRefinanceOptions(deal: Deal, gameRun: GameRun, allDeals:
       return {
         eligible: false,
         weeksUntilEligible: REFINANCE_COOLDOWN_WEEKS - weeksSinceLastRefi,
-        reason: `Must wait ${REFINANCE_COOLDOWN_WEEKS - weeksSinceLastRefi} more week(s) before refinancing again`,
+        reason: `Must wait ${REFINANCE_COOLDOWN_WEEKS - weeksSinceLastRefi} more month(s) before refinancing again`,
       };
     }
   }
@@ -868,7 +868,7 @@ export async function registerRoutes(
       // Selling costs 2 weeks
       const WEEKS_TO_SELL = 2;
       if (gameRun.weeksRemaining < WEEKS_TO_SELL) {
-        res.status(400).json({ error: "Not enough time to sell (requires 2 weeks)" });
+        res.status(400).json({ error: "Not enough time to sell (requires 2 months)" });
         return;
       }
 
@@ -905,7 +905,7 @@ export async function registerRoutes(
       // Selling costs 2 weeks
       const WEEKS_TO_SELL = 2;
       if (gameRun.weeksRemaining < WEEKS_TO_SELL) {
-        res.status(400).json({ error: "Not enough time to sell (requires 2 weeks)" });
+        res.status(400).json({ error: "Not enough time to sell (requires 2 months)" });
         return;
       }
 

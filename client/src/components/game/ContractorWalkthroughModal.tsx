@@ -482,7 +482,7 @@ export function ContractorWalkthroughModal({
                             {item.timelineWeeks > 0 && (
                               <div className="flex items-center gap-1 mt-2 text-xs text-slate-500 ml-8">
                                 <Clock className="w-3 h-3" />
-                                <span>{item.timelineWeeks} week{item.timelineWeeks > 1 ? 's' : ''} to fix</span>
+                                <span>{item.timelineWeeks} month{item.timelineWeeks > 1 ? 's' : ''} to fix</span>
                               </div>
                             )}
                           </motion.button>
@@ -519,7 +519,7 @@ export function ContractorWalkthroughModal({
                             <span className="text-slate-400 flex items-center gap-1">
                               <Clock className="w-3 h-3" /> Timeline
                             </span>
-                            <span className="text-amber-400">~{selectedTotals.weeks} weeks</span>
+                            <span className="text-amber-400">~{selectedTotals.weeks} month{selectedTotals.weeks !== 1 ? 's' : ''}</span>
                           </div>
                         )}
                         
@@ -612,7 +612,7 @@ export function ContractorWalkthroughModal({
                     </Button>
                     <p className="text-xs text-center text-slate-400">
                       {selectedTotals.count > 0 
-                        ? `Tenant receives $${breakFee.toLocaleString()} break fee. No rent during ~${selectedTotals.weeks} week rehab.`
+                        ? `Tenant receives $${breakFee.toLocaleString()} break fee. No rent during ~${selectedTotals.weeks} month rehab.`
                         : 'Select at least one repair to proceed'
                       }
                     </p>

@@ -133,7 +133,7 @@ export function ConstructionNotification({ events, onDismiss }: ConstructionNoti
                     <div className="flex flex-wrap items-center gap-3 text-sm">
                       {currentEvent.weeksEstimated && (
                         <span className="text-orange-200">
-                          Est. {currentEvent.weeksEstimated} weeks
+                          Est. {currentEvent.weeksEstimated} months
                         </span>
                       )}
                       {currentEvent.rehabCost && (

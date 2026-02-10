@@ -33,7 +33,7 @@ const formatValue = (value: number | null, format: AssumptionInputProps['format'
     case 'percent':
       return `${value}%`;
     case 'weeks':
-      return `${value}w`;
+      return `${value}mo`;
     default:
       return value.toLocaleString();
   }

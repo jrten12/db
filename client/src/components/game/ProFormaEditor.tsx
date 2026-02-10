@@ -34,13 +34,13 @@ const FIELD_HINTS: Record<string, string> = {
 
 const TERM_DEFINITIONS: Record<string, string> = {
   expectedRent: "What tenants will pay monthly. Be conservative - overestimating rent is the #1 mistake new investors make. Check Zillow Rent Zestimate, Rentometer, or Craigslist for comparable units.",
-  vacancyRate: "Percentage of time the property sits empty between tenants. 5-10% is typical in most markets - that's about 2-5 weeks per year with no income.",
+  vacancyRate: "Percentage of time the property sits empty between tenants. 5-10% is typical in most markets - that's about 2-5 months per year with no income.",
   taxesAnnual: "Yearly property taxes paid to the county. Usually 1-3% of property value depending on location. Check the county assessor's website.",
   insuranceAnnual: "Yearly insurance premium. Landlord/investor policies cost more than regular homeowner's insurance because of liability coverage.",
   maintenancePct: "Ongoing repair costs as a percentage of rent. Budget 5-10% for maintenance reserves - things like fixing leaky faucets, painting, minor repairs. Older properties need more.",
   capExPct: "Capital Expenditures (CapEx) - Big-ticket replacements like roof, HVAC, water heater, appliances. Unlike maintenance (ongoing repairs), CapEx covers major systems that wear out. Budget 8-12% of rent. This is separate from your rehab budget.",
   utilities: "If you pay utilities (water, sewer, trash, gas/electric) instead of tenants, factor this in. Multi-family often has owner-paid utilities. Adds $100-200/month typically.",
-  propertyManagement: "Hiring a company to handle tenant screening, rent collection, repairs, and day-to-day operations. Fixed 5% of rent. If you self-manage, you save money but lose 1 week of time and get tenant texts.",
+  propertyManagement: "Hiring a company to handle tenant screening, rent collection, repairs, and day-to-day operations. Fixed 5% of rent. If you self-manage, you save money but lose 1 month of time and get tenant texts.",
   rehabBudget: "The money you plan to spend fixing up the property - repairs, renovations, upgrades. Unknown until you do a Contractor Walkthrough.",
   rehabWeeks: "How long the renovation will take. Add buffer time - contractors are almost never early! Unknown until you do a Contractor Walkthrough.",
   contingencyPct: "Extra buffer for unexpected costs. Things always cost more than expected! 10-20% is common for experienced investors.",
@@ -328,8 +328,8 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
     : `${formatCurrency(property.rehabMin)}-${formatCurrency(property.rehabMax)} (guess)`;
 
   const timelineGuidance = hasContractorWalkthrough
-    ? `${effectiveRanges.timeline.min}-${effectiveRanges.timeline.max} weeks`
-    : `${property.timelineMin}-${property.timelineMax} weeks (guess)`;
+    ? `${effectiveRanges.timeline.min}-${effectiveRanges.timeline.max} months`
+    : `${property.timelineMin}-${property.timelineMax} months (guess)`;
 
   // Tax/Insurance guidance based on property value (industry standard: 1-2% for taxes, 0.5-1% for insurance)
   const estimatedTaxes = Math.round(property.price * 0.015); // 1.5% midpoint
@@ -506,7 +506,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                     min={1}
                     max={24}
                     step={1}
-                    suffix="weeks"
+                    suffix="months"
                   />
                 </FieldRow>
 
@@ -558,7 +558,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
               <FieldRow
                 label="Vacancy Rate"
                 term="vacancyRate"
-                rangeGuidance="5-10% typical (2-5 weeks/year)"
+                rangeGuidance="5-10% typical (2-5 months/year)"
                 rangeColor={(inputs.vacancyRate ?? 5) >= 5 ? 'green' : 'amber'}
               >
                 <SliderInput
@@ -660,7 +660,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                         : 'bg-slate-800 border-slate-700 text-gray-400'
                     }`}
                   >
-                    Tenant pays (-2 weeks setup)
+                    Tenant pays (-2 months setup)
                   </button>
                 </div>
               </div>
@@ -708,7 +708,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                         : 'bg-slate-800 border-slate-700 text-gray-400'
                     }`}
                   >
-                    No (Self-Manage, -1 week)
+                    No (Self-Manage, -1 month)
                   </button>
                 </div>
               </div>

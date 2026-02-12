@@ -512,7 +512,12 @@ export async function completeFlipDeal(
   let salePrice: number;
   if (property && property.arvMin && property.arvMax && property.rehabMin && property.rehabMax) {
     // Get player's actual rehab spend (budget + contingency)
-    const rehabBudget = proFormaInputs?.rehabBudget || 0;
+    // Apply finish level multiplier - luxury finishes cost more but boost ARV
+    const finishLevel = proFormaInputs?.finishLevel || 'builder';
+    const finishCostMult = finishLevel === 'luxury' ? 1.4 : 1.0;
+    const finishArvBoost = finishLevel === 'luxury' ? 0.08 : 0;
+    const rawRehabBudget = proFormaInputs?.rehabBudget || 0;
+    const rehabBudget = Math.round(rawRehabBudget * finishCostMult);
     const contingencyPct = proFormaInputs?.contingencyPct || 10;
     const actualRehabSpend = rehabBudget * (1 + contingencyPct / 100);
     

@@ -728,14 +728,17 @@ export function PropertyDetail({
                               <span className="text-xs text-emerald-300 font-semibold">Done</span>
                             </div>
                           ) : (
-                            <div className="text-right">
-                              <div className={`text-sm font-bold ${option.cost === 0 ? 'text-emerald-400' : 'text-white'}`}>
-                                {option.cost === 0 ? 'FREE' : formatCurrency(option.cost)}
-                              </div>
-                              <div className="text-xs text-gray-500 flex items-center gap-1 justify-end">
-                                <Clock className="w-3 h-3" />
-                                {option.timeWeeks} month
-                              </div>
+                            <div className="text-right flex-shrink-0">
+                              {option.cost === 0 ? (
+                                <div className="text-xs text-emerald-400 font-semibold">
+                                  Cost: {option.timeWeeks} month
+                                  <div className="text-emerald-500/80">(Free — do it yourself!)</div>
+                                </div>
+                              ) : (
+                                <div className="text-xs text-gray-300">
+                                  <span className="font-semibold text-white">Cost: {option.timeWeeks} month{option.timeWeeks > 1 ? 's' : ''} & {formatCurrency(option.cost)}</span>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -745,9 +748,52 @@ export function PropertyDetail({
                 </div>
               </div>
 
+              {/* Financial Estimates Summary Panel */}
+              <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50" data-testid="financial-estimates-panel">
+                <h3 className="text-gray-200 text-sm font-bold uppercase tracking-wider mb-1 flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-emerald-400" />
+                  Financial Estimates
+                </h3>
+                <p className="text-xs text-gray-500 mb-3">These fill in as you complete your research above</p>
+                <div className="space-y-2">
+                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.rent.known ? `${FINANCIAL_COLORS.rent.bg} ${FINANCIAL_COLORS.rent.border}` : 'bg-slate-700/20 border-slate-700/30'}`}>
+                    <span className={`text-xs font-semibold ${effectiveRanges.rent.known ? FINANCIAL_COLORS.rent.text : 'text-gray-400'}`}>Rent</span>
+                    {effectiveRanges.rent.known ? (
+                      <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.rent.text}`}>{formatCurrency(effectiveRanges.rent.min)} - {formatCurrency(effectiveRanges.rent.max)}/mo</span>
+                    ) : (
+                      <span className="text-xs text-gray-500 italic">Not yet investigated</span>
+                    )}
+                  </div>
+                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.arv.known ? `${FINANCIAL_COLORS.arv.bg} ${FINANCIAL_COLORS.arv.border}` : 'bg-slate-700/20 border-slate-700/30'}`}>
+                    <span className={`text-xs font-semibold ${effectiveRanges.arv.known ? FINANCIAL_COLORS.arv.text : 'text-gray-400'}`}>After Repair Value</span>
+                    {effectiveRanges.arv.known ? (
+                      <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.arv.text}`}>{formatCurrency(effectiveRanges.arv.min)} - {formatCurrency(effectiveRanges.arv.max)}</span>
+                    ) : (
+                      <span className="text-xs text-gray-500 italic">Not yet investigated</span>
+                    )}
+                  </div>
+                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.rehab.known ? `${FINANCIAL_COLORS.rehab.bg} ${FINANCIAL_COLORS.rehab.border}` : 'bg-slate-700/20 border-slate-700/30'}`}>
+                    <span className={`text-xs font-semibold ${effectiveRanges.rehab.known ? FINANCIAL_COLORS.rehab.text : 'text-gray-400'}`}>Rehab Costs</span>
+                    {effectiveRanges.rehab.known ? (
+                      <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.rehab.text}`}>{formatCurrency(effectiveRanges.rehab.min)} - {formatCurrency(effectiveRanges.rehab.max)}</span>
+                    ) : (
+                      <span className="text-xs text-gray-500 italic">Not yet investigated</span>
+                    )}
+                  </div>
+                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.timeline.known ? `${FINANCIAL_COLORS.timeline.bg} ${FINANCIAL_COLORS.timeline.border}` : 'bg-slate-700/20 border-slate-700/30'}`}>
+                    <span className={`text-xs font-semibold ${effectiveRanges.timeline.known ? FINANCIAL_COLORS.timeline.text : 'text-gray-400'}`}>Timeline</span>
+                    {effectiveRanges.timeline.known ? (
+                      <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.timeline.text}`}>{effectiveRanges.timeline.min} - {effectiveRanges.timeline.max} months</span>
+                    ) : (
+                      <span className="text-xs text-gray-500 italic">Not yet investigated</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Revealed Issues */}
               {revealedIssues.length > 0 && (
-                <div className="bg-red-500/10 rounded-xl p-4 border border-red-500/30">
+                <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
                   <h3 className="text-red-400 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4" /> Issues Discovered
                   </h3>

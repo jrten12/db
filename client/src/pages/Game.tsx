@@ -40,6 +40,7 @@ import { OperatingExpensesPopup } from '@/components/game/OperatingExpensesPopup
 import { DealCongratulations } from '@/components/game/DealCongratulations';
 import { PropertySoldAnimation } from '@/components/game/PropertySoldAnimation';
 import { useTutorial } from '@/contexts/TutorialContext';
+import { GameHomeScreen } from '@/components/game/GameHomeScreen';
 import {
   ProFormaInputs,
   ProFormaOutputs,
@@ -64,7 +65,7 @@ import Footer from '@/components/Footer';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-type GameScreen = 'market' | 'detail' | 'proforma' | 'results';
+type GameScreen = 'home' | 'market' | 'detail' | 'proforma' | 'results';
 
 interface DiligenceState {
   [propertyId: number]: string[];
@@ -104,7 +105,7 @@ const TENANT_PERSONAS = [
 
 export default function Game() {
   const queryClient = useQueryClient();
-  const [currentScreen, setCurrentScreen] = useState<GameScreen>('market');
+  const [currentScreen, setCurrentScreen] = useState<GameScreen>('home');
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
   const [proFormaInputs, setProFormaInputs] = useState<ProFormaInputs>(defaultProForma);
   const [proFormaOutputs, setProFormaOutputs] = useState<ProFormaOutputs | null>(null);
@@ -195,7 +196,7 @@ export default function Game() {
   const { pendingTrophies, addTrophies, clearTrophies } = useTrophyNotifications();
 
   // Tutorial
-  const { completeAction } = useTutorial();
+  const { completeAction, startTutorial } = useTutorial();
 
   const [gameRun, setGameRun] = useState<GameRun | null>(null);
   const [isLoadingGame, setIsLoadingGame] = useState(true);
@@ -660,17 +661,19 @@ export default function Game() {
     const newWeeks = Math.max(0, gameRun.weeksRemaining - weeksToDeduct);
     
     try {
-      await createLedgerMutation.mutateAsync({
-        gameRunId: gameRun.id,
-        entries: [{
-          direction: 'debit',
-          category: 'due_diligence',
-          amount: cost,
-          description: `${diligenceType} - ${property?.name || 'Property'}`,
-          propertyId,
-        }],
-        currentCash: gameRun.cash,
-      });
+      if (cost > 0) {
+        await createLedgerMutation.mutateAsync({
+          gameRunId: gameRun.id,
+          entries: [{
+            direction: 'debit',
+            category: 'due_diligence',
+            amount: cost,
+            description: `${diligenceType} - ${property?.name || 'Property'}`,
+            propertyId,
+          }],
+          currentCash: gameRun.cash,
+        });
+      }
 
       await updateGameMutation.mutateAsync({
         id: gameRun.id,
@@ -1697,39 +1700,68 @@ export default function Game() {
       <AnimatedBackground />
 
       {/* Fixed header at top of viewport - safe area handled by StatusBar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-sm pointer-events-auto overflow-hidden">
-        <StatusBar
-          cash={gameRun.cash}
-          weeksRemaining={gameRun.weeksRemaining}
-          profitableDeals={gameRun.profitableDeals}
-          goalDeals={gameRun.goalDeals}
-          onOpenLedger={() => setShowLedger(true)}
-          onOpenPremium={() => {
-            setPremiumTriggerReason('manual');
-            setShowPremiumModal(true);
-          }}
-          onOpenHallOfFame={() => setShowHallOfFame(true)}
-          onViewStats={() => handleShowEndGameSummary(true)}
-          onAdvanceWeek={currentScreen === 'market' ? handleAdvanceWeek : undefined}
-          isAdvancingWeek={isAdvancingWeek}
-          onNewGame={handleNewGame}
-        />
-        {/* Market Condition Indicator - compact on mobile */}
-        <div className="px-3 pb-2 pt-0.5">
-          <MarketBar 
-            condition={(gameRun.marketCondition as MarketCondition) || 'good'} 
-            compact={true}
-            className="w-full max-w-xs mx-auto md:max-w-sm"
+      {currentScreen !== 'home' && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-sm pointer-events-auto overflow-hidden">
+          <StatusBar
+            cash={gameRun.cash}
+            weeksRemaining={gameRun.weeksRemaining}
+            profitableDeals={gameRun.profitableDeals}
+            goalDeals={gameRun.goalDeals}
+            onOpenLedger={() => setShowLedger(true)}
+            onOpenPremium={() => {
+              setPremiumTriggerReason('manual');
+              setShowPremiumModal(true);
+            }}
+            onOpenHallOfFame={() => setShowHallOfFame(true)}
+            onViewStats={() => handleShowEndGameSummary(true)}
+            onAdvanceWeek={currentScreen === 'market' ? handleAdvanceWeek : undefined}
+            isAdvancingWeek={isAdvancingWeek}
+            onNewGame={handleNewGame}
+            onGoHome={() => setCurrentScreen('home')}
           />
+          {/* Market Condition Indicator - compact on mobile */}
+          <div className="px-3 pb-2 pt-0.5">
+            <MarketBar 
+              condition={(gameRun.marketCondition as MarketCondition) || 'good'} 
+              compact={true}
+              className="w-full max-w-xs mx-auto md:max-w-sm"
+            />
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Main content with top padding to account for fixed header + safe area + market bar */}
-      <div ref={mainContentRef} className="min-h-screen min-h-[100dvh] bg-black/30 pt-36 md:pt-44 overflow-y-auto">
+      <div ref={mainContentRef} className={`min-h-screen min-h-[100dvh] bg-black/30 ${currentScreen !== 'home' ? 'pt-36 md:pt-44' : ''} overflow-y-auto`}>
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">
           <AnimatePresence mode="wait">
+          {currentScreen === 'home' && (
+            <motion.div
+              key="home"
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={screenVariants}
+              transition={screenTransition}
+            >
+              <GameHomeScreen
+                playerName={playerName || 'Player'}
+                hasActiveGame={deals.length > 0 || (gameRun?.weeksRemaining ?? 52) < 52}
+                onPlayGame={() => setCurrentScreen('market')}
+                onHallOfFame={() => setShowHallOfFame(true)}
+                onBadges={() => setShowHallOfFame(true)}
+                onTutorial={() => { startTutorial(); setCurrentScreen('market'); }}
+                onSettings={() => { setPremiumTriggerReason('manual'); setShowPremiumModal(true); }}
+                earnedTrophies={unlockedAchievements}
+                cash={gameRun.cash}
+                weeksRemaining={gameRun.weeksRemaining}
+                profitableDeals={gameRun.profitableDeals}
+                goalDeals={gameRun.goalDeals}
+              />
+            </motion.div>
+          )}
+
           {currentScreen === 'market' && (
             <motion.div
               key="market"

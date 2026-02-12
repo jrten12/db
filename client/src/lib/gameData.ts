@@ -18,6 +18,7 @@ export interface ProFormaInputs {
   ltv: number; // Loan-to-Value 50-90%, drives interest rate and fees
   sellingCostsPct: number | null;
   contractorType: 'cheap' | 'fast';
+  finishLevel: 'builder' | 'luxury'; // Finish quality affects costs and property value
 
   financeRehab: boolean; // Include rehab costs in loan (acquisition + construction loan)
 
@@ -28,6 +29,24 @@ export interface ProFormaInputs {
   fixedIssueIds?: string[];       // Issue IDs that were fixed during rehab
 
 }
+
+// Finish level multipliers
+export const FINISH_LEVEL_CONFIG = {
+  builder: {
+    label: 'Builder Grade',
+    description: 'Laminate counters, basic cabinets, budget appliances, standard fixtures',
+    costMultiplier: 1.0,
+    rentBoostPct: 0,
+    arvBoostPct: 0,
+  },
+  luxury: {
+    label: 'Luxury',
+    description: 'Hardwood floors, upgraded fixtures, stone counters, premium appliances',
+    costMultiplier: 1.4,
+    rentBoostPct: 10,
+    arvBoostPct: 8,
+  },
+} as const;
 
 // LTV-based financing calculations
 // Higher LTV = higher risk = higher interest rate and fees
@@ -205,6 +224,7 @@ export const defaultProForma: ProFormaInputs = {
   ltv: DEFAULT_LTV,
   sellingCostsPct: MARKET_DEFAULTS.sellingCostsPct,
   contractorType: 'cheap',
+  finishLevel: 'builder',
   financeRehab: false, // Default to not financing rehab
   arvEstimate: null, // Player's estimated sale price for flips
 };
@@ -303,7 +323,10 @@ export const calculateProForma = (
   const propertyManagementPct = inputs.propertyManagementPct ?? 0;
   // Rehab budget from inputs already includes contractor type cost adjustments
   // (applied by ItemizedRepairsPanel or ContractorWalkthroughModal)
-  const rehabBudget = inputs.rehabBudget ?? 0;
+  // Apply finish level multiplier: luxury finishes cost more but boost rent/ARV
+  const finishConfig = FINISH_LEVEL_CONFIG[inputs.finishLevel || 'builder'];
+  const rawRehabBudget = inputs.rehabBudget ?? 0;
+  const rehabBudget = Math.round(rawRehabBudget * finishConfig.costMultiplier);
   const contingencyPct = inputs.contingencyPct ?? 0;
   const rehabWeeks = inputs.rehabWeeks ?? 4;
   
@@ -338,9 +361,13 @@ export const calculateProForma = (
     ? loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1)
     : 0;
 
+  // Apply luxury finish rent boost (luxury upgrades command higher rents)
+  const rentWithFinishBoost = rehabBudget > 0 
+    ? expectedRent * (1 + finishConfig.rentBoostPct / 100) 
+    : expectedRent;
   const tenantPaysUtilitiesVacancyPenalty = inputs.utilities ? 0 : 1.92;
   const effectiveVacancyRate = vacancyRate + tenantPaysUtilitiesVacancyPenalty;
-  const effectiveRent = expectedRent * (1 - effectiveVacancyRate / 100);
+  const effectiveRent = rentWithFinishBoost * (1 - effectiveVacancyRate / 100);
   const monthlyTaxes = taxesAnnual / 12;
   const monthlyInsurance = insuranceAnnual / 12;
   const maintenanceCost = expectedRent * (maintenancePct / 100);
@@ -372,8 +399,12 @@ export const calculateProForma = (
   // Calculate flip-specific metrics (profit and ROI)
   // These are only meaningful when strategy is 'flip', but we always calculate for consistency
   // Use player's ARV estimate if provided, otherwise use the midpoint of the ARV range
+  // Apply luxury finish ARV boost (luxury upgrades increase property value)
   const arvMid = (property.arvMin + property.arvMax) / 2;
-  const playerARV = inputs.arvEstimate !== null ? inputs.arvEstimate : arvMid;
+  const baseARV = inputs.arvEstimate !== null ? inputs.arvEstimate : arvMid;
+  const playerARV = rehabBudget > 0 
+    ? Math.round(baseARV * (1 + finishConfig.arvBoostPct / 100))
+    : baseARV;
   const sellingCostsPct = inputs.sellingCostsPct ?? 6;
   const sellingCosts = playerARV * (sellingCostsPct / 100);
   // All-in basis includes purchase price, closing costs, and full rehab with contingency
@@ -394,6 +425,10 @@ export const calculateProForma = (
     loanTermMonths: numPayments,
     flipProfit,
     flipROI,
+    rehabBudgetAdjusted: rehabBudget,
+    finishLevelLabel: finishConfig.label,
+    rentWithFinishBoost: Math.round(rentWithFinishBoost),
+    arvWithFinishBoost: playerARV,
   };
 };
 

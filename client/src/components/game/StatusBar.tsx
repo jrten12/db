@@ -21,6 +21,7 @@ interface StatusBarProps {
   onAdvanceWeek?: () => void;
   isAdvancingWeek?: boolean;
   onNewGame?: () => void;
+  onGoHome?: () => void;
 }
 
 function AnimatedNumber({ value, prefix = '', suffix = '', className = '', variant = 'default' }: {
@@ -124,7 +125,7 @@ function StatCard({
   );
 }
 
-export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onViewStats, onAdvanceWeek, isAdvancingWeek, onNewGame }: StatusBarProps) {
+export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onViewStats, onAdvanceWeek, isAdvancingWeek, onNewGame, onGoHome }: StatusBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cashPulse, setCashPulse] = useState(false);
   const [timePulse, setTimePulse] = useState(false);
@@ -170,9 +171,14 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
         <div className="max-w-7xl mx-auto px-3 py-1.5 md:px-4 md:py-2">
           {/* Desktop Layout */}
           <div className="hidden md:flex items-center gap-6">
-            {/* Logo */}
-            <Link href="/">
-              <div className="relative group cursor-pointer">
+            {/* Logo + Home */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onGoHome}
+                className="relative group cursor-pointer"
+                data-testid="button-home-logo"
+                data-sound="swoosh"
+              >
                 <div className="absolute -inset-1 bg-emerald-500/20 rounded-2xl blur-md group-hover:bg-emerald-500/30 transition-colors" />
                 <img
                   src={logo}
@@ -183,8 +189,19 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                   }}
                   data-testid="game-logo"
                 />
-              </div>
-            </Link>
+              </button>
+              {onGoHome && (
+                <button
+                  onClick={onGoHome}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-lg text-sm text-gray-300 hover:text-white transition-colors"
+                  data-testid="button-home-nav"
+                  data-sound="swoosh"
+                >
+                  <Home className="w-4 h-4" />
+                  <span className="hidden lg:inline">Home</span>
+                </button>
+              )}
+            </div>
 
             {/* Stats */}
             <div className="flex items-center gap-3 flex-1">
@@ -235,7 +252,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 ) : (
                   <>
                     <Play className="w-4 h-4" />
-                    <span>Next Month</span>
+                    <span>Skip Month</span>
                   </>
                 )}
               </button>
@@ -253,6 +270,18 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
 
           {/* Mobile Layout - Condensed Single Row */}
           <div className="md:hidden flex items-center gap-2">
+            {/* Home Button - Mobile */}
+            {onGoHome && (
+              <button
+                onClick={onGoHome}
+                className="touch-target flex items-center justify-center bg-slate-700/60 hover:bg-slate-600/60 rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
+                data-testid="button-home-mobile"
+                data-sound="swoosh"
+              >
+                <Home className="w-5 h-5 text-gray-300" />
+              </button>
+            )}
+
             {/* Advance Week Button - Mobile Left */}
             {onAdvanceWeek && (
               <button
@@ -261,6 +290,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
                 data-testid="button-advance-week-mobile-left"
                 data-no-click-sound
+                title="Skip ahead one month"
               >
                 {isAdvancingWeek ? (
                   <Loader2 className="w-5 h-5 animate-spin text-white" />
@@ -389,16 +419,17 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 Premium Boosts
               </button>
 
-              <Link href="/">
+              {onGoHome && (
                 <button
-                  onClick={() => setMenuOpen(false)}
+                  onClick={() => { setMenuOpen(false); onGoHome(); }}
                   className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-md rounded-xl border border-white/20 text-white font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
                   data-testid="button-main-menu"
+                  data-sound="swoosh"
                 >
                   <Home className="w-5 h-5" />
-                  Main Menu
+                  Home
                 </button>
-              </Link>
+              )}
 
               <button
                 onClick={() => setMenuOpen(false)}

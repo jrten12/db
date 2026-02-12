@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { X, HelpCircle, TrendingUp, DollarSign, Percent, Home, AlertTriangle, CheckCircle, Lock } from 'lucide-react';
-import { ProFormaInputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PlayerFinancials } from '@/lib/gameData';
+import { ProFormaInputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PlayerFinancials, FINISH_LEVEL_CONFIG } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { Property } from '@shared/schema';
@@ -472,6 +472,52 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                 placeholder="Enter amount"
               />
             </FieldRow>
+
+            {/* Finish Level Selector - only show when rehab budget > 0 */}
+            {(inputs.rehabBudget ?? 0) > 0 && (
+              <div className="px-4 py-3 border-b border-slate-700/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-gray-300 text-sm font-semibold">Finish Level</span>
+                  <Popover>
+                    <PopoverTrigger>
+                      <HelpCircle className="w-3.5 h-3.5 text-gray-500" />
+                    </PopoverTrigger>
+                    <PopoverContent className="bg-slate-800 border-slate-700 text-white text-sm max-w-xs">
+                      <p className="font-semibold mb-1">Finish Level</p>
+                      <p className="text-gray-300">Luxury finishes cost 40% more but boost rent by 10% and property value by 8%. Builder grade is the safe, budget-friendly choice.</p>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="flex gap-2">
+                  {(Object.entries(FINISH_LEVEL_CONFIG) as [string, typeof FINISH_LEVEL_CONFIG['builder']][]).map(([key, config]) => (
+                    <button
+                      key={key}
+                      onClick={() => handleChange('finishLevel', key as 'builder' | 'luxury')}
+                      className={`flex-1 px-3 py-2 rounded-lg border transition-all text-left ${
+                        inputs.finishLevel === key
+                          ? key === 'luxury'
+                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-lg shadow-amber-500/10'
+                            : 'bg-blue-500/20 border-blue-500 text-blue-300 shadow-lg shadow-blue-500/10'
+                          : 'bg-slate-800/50 border-slate-700 text-gray-400 hover:border-slate-600'
+                      }`}
+                      data-testid={`button-finish-${key}`}
+                    >
+                      <div className="font-semibold text-sm">{config.label}</div>
+                      <div className="text-xs opacity-70 mt-0.5">{config.description}</div>
+                      {key === 'luxury' && inputs.finishLevel === 'luxury' && (
+                        <div className="text-xs mt-1 text-amber-400">+40% cost, +10% rent, +8% value</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                {inputs.finishLevel === 'luxury' && (inputs.rehabBudget ?? 0) > 0 && (
+                  <div className="mt-2 text-xs text-amber-400/80 flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    Adjusted rehab cost: {formatCurrency(Math.round((inputs.rehabBudget ?? 0) * FINISH_LEVEL_CONFIG.luxury.costMultiplier))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <FieldRow
               label="Contingency Buffer"

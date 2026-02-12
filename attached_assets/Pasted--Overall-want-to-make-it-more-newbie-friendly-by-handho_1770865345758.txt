@@ -1,0 +1,161 @@
+
+
+**Overall want to make it more newbie friendly by handholding the steps with the navigation/buttons and using more plain English descriptions and prompts. 
+**I see there is a homescreen but it’s under menu, and not actually where I land. Can you change that to be the landing page? Can you add a home button link to it in the heading?
+**Trophies or badges — where are they? Can you make them prominent from Home Screen 
+**Seems like sometimes I hit the tutorial when I enter the game but sometimes not. Maybe it’s because it knows I already played — can you make an obvious button to get back to tutorial from the Home Screen?
+**My tester also thought we should do diy rent and sales analysis, pay for this only in time and not money (was like that in previous version but I think the AI changed it back)
+
+
+
+**SEE NEXT PAGE FOR OUTLINE
+
+
+
+
+Navigation and Prompts Outline
+
+<<Screen 1: Name>>
+Enter Name
+
+
+<<Screen 2: Tutorial>>
+Tutorial
+
+
+<<Screen 3: Home>>
+Home 
+-PLAY GAME button (or CONTINUE GAME button if in progress)
+-HALL OF FAME button
+-BADGES button
+-TUTORIAL button
+-SETTINGS button
+
+*SELECT PLAY GAME*
+
+
+<<Screen 4: Property Market>>
+HEADING:
+-Time, Cash, and Deals fields 
+-FAST FORWARD TIME button **can you label this to indicate what it is
+-HOME button
+-MENU button
+
+Property Market
+Property Listing Previews **Perfect as is
+
+*SELECT a property* 
+
+**Continues on next page
+
+
+<<Screen 5: Property Details>>
+
+HEADING
+BACK TO MARKET button
+
+Property Details
+-Pictures
+-Square feet
+-Single family house
+-Number of bedrooms & bathrooms
+-Public water/sewer or well/septic
+-Gas or electric heat 
+-Condition
+
+INVESTIGATE PROPERTY button 
+BACK TO MARKET button
+
+*SELECT INVESTIGATE PROPERTY*
+
+
+
+<<Screen 6: Due Diligence>>
+HEADING
+BACK TO MARKET button
+
+Due Diligence 
+*Can you make boxes around each section where I have the dashed lines?
+------------------------------------------------------------------------------------------------------------------------------- 
+Which due diligence items would you like to complete?
+-Investigate market rents — Explore real estate sites like Zillow, Rentometer, Redfin etc to determine rents of similar units in the area; Cost = 1 week *pay for this only in time and not money
+-Investigate market sales prices — Look at comparable renovated homes (comps) in the area via real estate sites or your real estate agent and determine what the house might be worth after you fix it up. This is known as After Repair Value (ARV); Cost ‎ = 1 week *pay for this only in time and not money
+-Investigate taxes and insurance — Verify that the listed taxes are accurate and complete and call your insurance broker for a quote; Cost ‎ = 1 week
+-Complete contractor walk through — Hire a contractor to walk through the property with you, look for condition issues, determine your scope of work and determine your estimated repair budget; Cost ‎ = 1 week & $150
+-Complete property inspection — Hire a property inspector to thoroughly evaluate all property systems and look for hidden repair issues; Cost ‎ = 1 week & $750
+-Title Report (Required for purchasing property); Cost = 3 weeks & $250
+------------------------------------------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------------------------------------------- 
+Issues Discovered
+------------------------------------------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------------------------------------------- 
+Financial estimates
+**Have each field fill in as the due diligence is completed 
+-Rent
+-After Repair Value
+-Rehab Costs
+-Time frame
+------------------------------------------------------------------------------------------------------------------------------- 
+CONTINUE TO PRO FORMA  button
+BACK TO PROPERTY LISTINGS button
+
+*SELECT CONTINUE button*
+
+
+<<Screen 7: Pro Forma Builder>>
+
+HEADING
+BACK TO MARKET button
+
+Your Pro Forma
+Let’s take a closer look at your property’s budget and profit potential! Enter your assumptions below.
+
+*Can you make boxes around each section where I have the dashed lines?
+------------------------------------------------------------------------------------------------------------------------------- 
+Do you want to explore renting this property or flipping this property?  ** can you make headings much bigger relative to the selection options and sliders
+-Rent
+-Flip
+------------------------------------------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------------------------------------------- 
+Renovation Budget **please include renovations budget for both rentals and flip
+Issues found: Select which you would like to repair 
+Select level of finishes
+-Builder grade: laminate counters, basic cabinets, budget appliances
+-Luxury: hardwood floors, upgraded fixtures, stone counters
+What type of contractor do you want to use?
+-Sole operator: One person working alone or with an assistant; Cost =1 additional month
+-Big company: Hire a big crew to get your job done as fast as possible; Cost =30% additional rehab expense
+Contingency budget: Expect the unexpected! How much do you want to budget for unforeseen issues that arise during construction
+Permit costs
+
+TOTAL RENOVATION COST = 
+TIME TO RENOVATE =
+------------------------------------------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------------------------------------------- 
+3. Financing & Cash
+-Loan-To-Value Ratio: How much do you want to borrow?
+-Interest Rate
+-Finance Rehab Costs: Do you want to include the rehab costs in your loan?
+-Holding costs: How much will you spend on taxes, insurance and utilities during renovations?
+TOTAL CASH NEEDED =
+MONTHLY LOAN PAYMENT =
+------------------------------------------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------------------------------------------- 
+4. Projected rent and operating costs for rental **Leave as is, except taxes & insurance can be filled in as fixed numbers per the due diligence item on the previous screen.
+OR
+Actual Repair Value (ARV) for flips
+------------------------------------------------------------------------------------------------------------------------------- 
+
+------------------------------------------------------------------------------------------------------------------------------- 
+5. Pro Forma Summary: Evaluate your Deal!
+**Leave as is except can you also highlight ROI in green, yellow or red like you did for the cash the and write out the words Return-On-Investment. Add a ? next to ROO and explain its shows rate of return, similar to how they may see an interest rate listed for a savings account, CD or other investment. Computed by dividing profit m by initial investment. Landlords typically like to make at least 8 or 10% ROI, whereas house flippers may look for 20% or higher ROI
+------------------------------------------------------------------------------------------------------------------------------- 
+
+PURCHASE PROPERTY button
+PASS ON PROPERTY button
+BACK TO MARKET button

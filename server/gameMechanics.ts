@@ -1560,7 +1560,26 @@ export async function activateRentalProperty(
   const didMarketStudy = completedDiligence.includes('market_study');
   const didContractorWalkthrough = completedDiligence.includes('contractor_walkthrough');
   const didInspection = completedDiligence.includes('inspection');
-  
+
+  // DILIGENCE PREMIUM: Informed landlords make better decisions
+  // More diligence = better tenant screening, smarter pricing, proactive maintenance
+  // Premium only applies when market study was done (foundation of rental diligence)
+  // Additional diligence items stack a small rent premium on top
+  const additionalDiligenceCount = [didContractorWalkthrough, didInspection,
+    completedDiligence.includes('title_search'), completedDiligence.includes('appraisal')]
+    .filter(Boolean).length;
+  let diligencePremium = 1.0;
+  if (didMarketStudy) {
+    if (additionalDiligenceCount >= 3) {
+      diligencePremium = 1.05; // 5% premium for very thorough diligence
+    } else if (additionalDiligenceCount >= 2) {
+      diligencePremium = 1.03; // 3% premium
+    } else if (additionalDiligenceCount >= 1) {
+      diligencePremium = 1.02; // 2% premium
+    }
+    // Market study alone = no premium beyond the variance shift
+  }
+
   // Calculate rehab completion factor using SAME FORMULA as flip logic
   // This ensures consistent incentives between rent and flip strategies
   const rehabBudget = proFormaInputs?.rehabBudget || 0;
@@ -1584,16 +1603,19 @@ export async function activateRentalProperty(
     // 0% rehab = rent at rentMin, 100% rehab = rent near rentMax
     const conditionBasedRent = property.rentMin + (rehabCompletionFactor * rentRange);
     
-    // Small ±5% market variance (not a big swing since they did their homework)
-    const marketVariance = 0.95 + (Math.random() * 0.10);
-    actualRent = Math.round(conditionBasedRent * marketVariance);
+    // Market variance biased slightly upward for diligent players
+    // Doing homework means you price competitively and attract better tenants
+    // Range: 0.97-1.07 (slight upward tilt vs old symmetric ±5%)
+    const marketVariance = 0.97 + (Math.random() * 0.10);
+    actualRent = Math.round(conditionBasedRent * marketVariance * diligencePremium);
     
     // If they skipped contractor walkthrough/inspection but property needs significant work,
     // they might not realize the property is in worse condition - "hidden damage" discovery
     // Same consequence concept as flip surprise costs, but applied to rent potential
     if (!didContractorWalkthrough && !didInspection && (property.rehabMin || 0) > 5000) {
       // "Surprise" - property condition is worse than assumed, tenants pay less
-      const conditionPenalty = 0.85 + (Math.random() * 0.10); // 5-15% penalty
+      // Softened from 5-15% to 3-12% - market study already shows diligence intent
+      const conditionPenalty = 0.88 + (Math.random() * 0.09); // 3-12% penalty
       actualRent = Math.round(actualRent * conditionPenalty);
     }
   } else {

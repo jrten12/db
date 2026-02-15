@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
-import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials, FINISH_LEVEL_CONFIG } from '@/lib/gameData';
+import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials, FINISH_LEVEL_CONFIG, UNKNOWN_REHAB_BUDGET_MULTIPLIER } from '@/lib/gameData';
 import { getEffectiveRanges, EffectiveRanges, getRevealedIssues, type PropertyIssue } from '@/lib/propertyIssues';
 import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet, ArrowDown } from 'lucide-react';
 import { ItemizedRepairsPanel } from './ItemizedRepairsPanel';
@@ -724,7 +724,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     <input
                       type="range"
                       min={0}
-                      max={hasContractorWalkthrough || hasInspection ? property.rehabMax : Math.round(property.rehabMax * 1.5)}
+                      max={hasContractorWalkthrough || hasInspection ? property.rehabMax : Math.round(property.rehabMax * UNKNOWN_REHAB_BUDGET_MULTIPLIER)}
                       step={1000}
                       value={inputs.rehabBudget ?? 0}
                       onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) }); }}
@@ -746,7 +746,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         <span className="flex items-center gap-1">
                           <Lock className="w-3 h-3" /> Diligence reveals true costs
                         </span>
-                        <span>${Math.round(property.rehabMax * 1.5).toLocaleString()}</span>
+                        <span>${Math.round(property.rehabMax * UNKNOWN_REHAB_BUDGET_MULTIPLIER).toLocaleString()}</span>
                       </div>
                     )}
                   </div>
@@ -785,7 +785,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         <input
                           type="range"
                           min={0}
-                          max={hasContractorWalkthrough || hasInspection ? property.rehabMax : Math.round(property.rehabMax * 1.5)}
+                          max={hasContractorWalkthrough || hasInspection ? property.rehabMax : Math.round(property.rehabMax * UNKNOWN_REHAB_BUDGET_MULTIPLIER)}
                           step={1000}
                           value={inputs.rehabBudget ?? 0}
                           onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) }); }}
@@ -807,7 +807,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                             <span className="flex items-center gap-1">
                               <Lock className="w-3 h-3" /> Diligence reveals true costs
                             </span>
-                            <span>${Math.round(property.rehabMax * 1.5).toLocaleString()}</span>
+                            <span>${Math.round(property.rehabMax * UNKNOWN_REHAB_BUDGET_MULTIPLIER).toLocaleString()}</span>
                           </div>
                         )}
                       </div>
@@ -845,36 +845,31 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   Finish Level
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => { triggerHaptic(); onInputsChange({ ...inputs, finishLevel: 'builder' }); }}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
-                      inputs.finishLevel === 'builder'
-                        ? 'bg-cyan-500/20 border-2 border-cyan-400 shadow-lg shadow-cyan-500/20'
-                        : 'bg-slate-700/30 border border-slate-600 hover:bg-slate-700/50'
-                    }`}
-                    type="button"
-                  >
-                    <div className={`font-semibold text-sm ${inputs.finishLevel === 'builder' ? 'text-cyan-300' : 'text-gray-400'}`}>
-                      {FINISH_LEVEL_CONFIG.builder.label}
-                    </div>
-                    <div className="text-xs text-gray-500 text-center">{FINISH_LEVEL_CONFIG.builder.description}</div>
-                    <div className="text-xs text-emerald-400">Standard cost</div>
-                  </button>
-                  <button
-                    onClick={() => { triggerHaptic(); onInputsChange({ ...inputs, finishLevel: 'luxury' }); }}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
-                      inputs.finishLevel === 'luxury'
-                        ? 'bg-purple-500/20 border-2 border-purple-400 shadow-lg shadow-purple-500/20'
-                        : 'bg-slate-700/30 border border-slate-600 hover:bg-slate-700/50'
-                    }`}
-                    type="button"
-                  >
-                    <div className={`font-semibold text-sm ${inputs.finishLevel === 'luxury' ? 'text-purple-300' : 'text-gray-400'}`}>
-                      {FINISH_LEVEL_CONFIG.luxury.label}
-                    </div>
-                    <div className="text-xs text-gray-500 text-center">{FINISH_LEVEL_CONFIG.luxury.description}</div>
-                    <div className="text-xs text-amber-400">+{Math.round((FINISH_LEVEL_CONFIG.luxury.costMultiplier - 1) * 100)}% cost, +{FINISH_LEVEL_CONFIG.luxury.arvBoostPct}% value</div>
-                  </button>
+                  {(Object.entries(FINISH_LEVEL_CONFIG) as [keyof typeof FINISH_LEVEL_CONFIG, typeof FINISH_LEVEL_CONFIG[keyof typeof FINISH_LEVEL_CONFIG]][]).map(([level, config]) => {
+                    const isSelected = inputs.finishLevel === level;
+                    const colorMap = level === 'builder'
+                      ? { active: 'bg-cyan-500/20 border-2 border-cyan-400 shadow-lg shadow-cyan-500/20', text: 'text-cyan-300' }
+                      : { active: 'bg-purple-500/20 border-2 border-purple-400 shadow-lg shadow-purple-500/20', text: 'text-purple-300' };
+                    const costLabel = config.costMultiplier === 1.0
+                      ? 'Standard cost'
+                      : `+${Math.round((config.costMultiplier - 1) * 100)}% cost, +${config.arvBoostPct}% value`;
+                    return (
+                      <button
+                        key={level}
+                        onClick={() => { triggerHaptic(); onInputsChange({ ...inputs, finishLevel: level }); }}
+                        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
+                          isSelected ? colorMap.active : 'bg-slate-700/30 border border-slate-600 hover:bg-slate-700/50'
+                        }`}
+                        type="button"
+                      >
+                        <div className={`font-semibold text-sm ${isSelected ? colorMap.text : 'text-gray-400'}`}>
+                          {config.label}
+                        </div>
+                        <div className="text-xs text-gray-500 text-center">{config.description}</div>
+                        <div className={`text-xs ${config.costMultiplier === 1.0 ? 'text-emerald-400' : 'text-amber-400'}`}>{costLabel}</div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

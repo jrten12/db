@@ -58,6 +58,7 @@ export interface IStorage {
   seedProperties(): Promise<void>;
   updatePropertyLocationTypes(): Promise<void>;
   addNewUrbanProperties(): Promise<void>;
+  backfillPropertyCharacteristics(): Promise<void>;
 
   // Deal methods
   createDeal(deal: InsertDeal): Promise<Deal>;
@@ -697,6 +698,54 @@ export class DBStorage implements IStorage {
           .where(eq(schema.properties.id, prop.id));
         console.log(`Updated ${prop.name} to ${correctLocationType}`);
       }
+    }
+  }
+
+  async backfillPropertyCharacteristics(): Promise<void> {
+    const allProperties = await db.select().from(schema.properties);
+
+    for (const prop of allProperties) {
+      // Skip if already backfilled (non-default values present)
+      if (prop.bedrooms !== 3 || prop.bathrooms !== 1.5) continue;
+
+      const sqft = prop.sizeSqft;
+      const type = prop.propertyType;
+      const location = prop.locationType;
+
+      // Bedrooms based on sqft and type
+      let bedrooms: number;
+      if (type === 'condo' || type === 'apartment') {
+        bedrooms = sqft < 900 ? 1 : sqft < 1400 ? 2 : 3;
+      } else if (type === 'duplex') {
+        bedrooms = sqft < 1600 ? 3 : sqft < 2200 ? 4 : 5;
+      } else {
+        bedrooms = sqft < 1000 ? 2 : sqft < 1600 ? 3 : sqft < 2200 ? 4 : 5;
+      }
+
+      // Bathrooms based on bedrooms
+      let bathrooms: number;
+      if (bedrooms <= 2) bathrooms = 1;
+      else if (bedrooms === 3) bathrooms = 1.5;
+      else if (bedrooms === 4) bathrooms = 2;
+      else bathrooms = 2.5;
+
+      // Water: urban = public, suburban large lots = well
+      const waterSource = location === 'urban' ? 'public' : (sqft > 1800 ? 'well' : 'public');
+
+      // Heat type based on property type and price
+      let heatType: string;
+      if (type === 'condo' || type === 'apartment') {
+        heatType = 'electric';
+      } else if (prop.price > 500000) {
+        heatType = 'gas';
+      } else {
+        heatType = location === 'urban' ? 'gas' : 'oil';
+      }
+
+      await db
+        .update(schema.properties)
+        .set({ bedrooms, bathrooms, waterSource, heatType })
+        .where(eq(schema.properties.id, prop.id));
     }
   }
 

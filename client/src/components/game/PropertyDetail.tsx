@@ -59,45 +59,20 @@ const FINANCIAL_COLORS = {
   },
 };
 
-// Derive property characteristics from existing data
+// Format property characteristics from DB fields into display labels
 function getPropertyCharacteristics(property: Property) {
-  const sqft = property.sizeSqft;
-  const type = (property as any).propertyType || 'house';
-  const location = (property as any).locationType || 'suburban';
+  const { bedrooms, bathrooms, waterSource, heatType, propertyType } = property;
 
-  // Bedrooms: based on sqft and type
-  let bedrooms: number;
-  if (type === 'condo' || type === 'apartment') {
-    bedrooms = sqft < 900 ? 1 : sqft < 1400 ? 2 : 3;
-  } else if (type === 'duplex') {
-    bedrooms = sqft < 1600 ? 3 : sqft < 2200 ? 4 : 5;
-  } else {
-    bedrooms = sqft < 1000 ? 2 : sqft < 1600 ? 3 : sqft < 2200 ? 4 : 5;
-  }
-
-  // Bathrooms: based on bedrooms and type
-  let bathrooms: number;
-  if (bedrooms <= 2) bathrooms = 1;
-  else if (bedrooms === 3) bathrooms = 1.5;
-  else if (bedrooms === 4) bathrooms = 2;
-  else bathrooms = 2.5;
-
-  // Water/sewer: urban = always public, suburban = mix
-  const waterSource = location === 'urban' ? 'public' : (sqft > 1800 ? 'well' : 'public');
   const waterLabel = waterSource === 'public' ? 'City Water & Sewer' : 'Well & Septic';
 
-  // Heat type: based on property type and price
-  let heatType: string;
-  if (type === 'condo' || type === 'apartment') {
-    heatType = 'electric';
-  } else if (property.price > 500000) {
-    heatType = 'gas';
-  } else {
-    heatType = location === 'urban' ? 'gas' : 'oil';
-  }
-  const heatLabel = heatType === 'gas' ? 'Gas Heat' : heatType === 'electric' ? 'Electric Heat' : heatType === 'oil' ? 'Oil Heat' : 'Heat Pump';
+  const heatLabelMap: Record<string, string> = {
+    gas: 'Gas Heat',
+    electric: 'Electric Heat',
+    oil: 'Oil Heat',
+    heat_pump: 'Heat Pump',
+  };
+  const heatLabel = heatLabelMap[heatType] || 'Unknown Heat';
 
-  // Property type label
   const typeLabels: Record<string, string> = {
     house: 'Single Family',
     townhouse: 'Townhouse / Row',
@@ -105,7 +80,7 @@ function getPropertyCharacteristics(property: Property) {
     apartment: 'Apartment',
     duplex: 'Duplex',
   };
-  const typeLabel = typeLabels[type] || 'Single Family';
+  const typeLabel = typeLabels[propertyType] || 'Single Family';
 
   return { bedrooms, bathrooms, waterSource, waterLabel, heatType, heatLabel, typeLabel };
 }

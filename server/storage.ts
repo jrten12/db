@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pkg from "pg";
 const { Pool } = pkg;
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import type { MarketCondition } from "@shared/schema";
 import { getMarketMultipliers } from "./gameMechanics";
@@ -704,6 +704,11 @@ export class DBStorage implements IStorage {
   async backfillPropertyCharacteristics(): Promise<void> {
     const allProperties = await db.select().from(schema.properties);
 
+    // Compute derived values for all properties that need backfill,
+    // then batch updates by grouping identical characteristics
+    type CharKey = `${number}|${number}|${string}|${string}`;
+    const groups = new Map<CharKey, number[]>();
+
     for (const prop of allProperties) {
       // Skip if already backfilled (non-default values present)
       if (prop.bedrooms !== 3 || prop.bathrooms !== 1.5) continue;
@@ -742,10 +747,24 @@ export class DBStorage implements IStorage {
         heatType = location === 'urban' ? 'gas' : 'oil';
       }
 
+      const key: CharKey = `${bedrooms}|${bathrooms}|${waterSource}|${heatType}`;
+      const ids = groups.get(key) || [];
+      ids.push(prop.id);
+      groups.set(key, ids);
+    }
+
+    // Issue one UPDATE per unique characteristic set
+    for (const [key, ids] of groups) {
+      const [bedrooms, bathrooms, waterSource, heatType] = key.split('|');
       await db
         .update(schema.properties)
-        .set({ bedrooms, bathrooms, waterSource, heatType })
-        .where(eq(schema.properties.id, prop.id));
+        .set({
+          bedrooms: Number(bedrooms),
+          bathrooms: Number(bathrooms),
+          waterSource,
+          heatType,
+        })
+        .where(inArray(schema.properties.id, ids));
     }
   }
 

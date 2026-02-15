@@ -988,7 +988,7 @@ export function PropertyDetail({
                       <div className={`font-semibold text-sm ${contractor === 'fast' ? 'text-purple-300' : 'text-gray-400'}`}>Established Crew</div>
                       <div className="text-xs text-gray-400">Full team, licensed & insured</div>
                       <div className="text-xs text-emerald-400">On schedule</div>
-                      <div className="text-xs text-red-400">+50% rehab cost</div>
+                      <div className="text-xs text-red-400">+25-40% rehab cost</div>
                     </div>
                   </button>
                 </div>

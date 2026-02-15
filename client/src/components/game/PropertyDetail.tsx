@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle, ChevronLeft, ChevronRight, TrendingUp } from 'lucide-react';
+import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle, ChevronLeft, ChevronRight, TrendingUp, Ruler, BedDouble, Bath, Building2, Thermometer, Droplets, MapPin, Maximize } from 'lucide-react';
 import { formatCurrency, MARKET_DEFAULTS, getPropertyBasedDefaults } from '@/lib/gameData';
 import { getPropertyImage, getConditionAdjustedInteriors, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getRandomizedPropertyIssues, getRevealedRandomizedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
@@ -582,49 +582,96 @@ export function PropertyDetail({
 
               {/* Right: Property Stats + Unknown Financials */}
               <div className="space-y-3">
-                {/* Property Stats - Fixed Facts */}
-                <div className="grid grid-cols-2 gap-3">
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-emerald-400 text-lg font-bold">{property.sizeSqft.toLocaleString()}</div>
-                  <div className="text-gray-400 text-xs">Sq Ft</div>
-                </div>
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-cyan-400 text-lg font-bold">{propChars.bedrooms}</div>
-                  <div className="text-gray-400 text-xs">Beds</div>
-                </div>
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-cyan-400 text-lg font-bold">{propChars.bathrooms}</div>
-                  <div className="text-gray-400 text-xs">Baths</div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-blue-400 text-sm font-bold">{propChars.typeLabel}</div>
-                  <div className="text-gray-400 text-xs">Property Type</div>
-                </div>
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className={`text-sm font-bold ${property.conditionTag === 'Excellent' ? 'text-emerald-400' : property.conditionTag === 'Good' ? 'text-blue-400' : property.conditionTag === 'Fair' ? 'text-amber-400' : 'text-red-400'}`}>
-                    {getConditionDescription(property.conditionTag)}
+                {/* Hero Stats Row - Size, Beds, Baths */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-emerald-500/15 to-emerald-600/5 border border-emerald-500/30">
+                    <div className="absolute top-1 right-1 opacity-15">
+                      <Maximize className="w-8 h-8 text-emerald-400" />
+                    </div>
+                    <div className="text-emerald-400 text-xl font-bold font-mono tracking-tight">{property.sizeSqft.toLocaleString()}</div>
+                    <div className="text-emerald-300/60 text-xs font-medium flex items-center gap-1">
+                      <Ruler className="w-3 h-3" /> Sq Ft
+                    </div>
                   </div>
-                  <div className="text-gray-400 text-xs">Condition</div>
+                  <div className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-sky-500/15 to-sky-600/5 border border-sky-500/30">
+                    <div className="absolute top-1 right-1 opacity-15">
+                      <BedDouble className="w-8 h-8 text-sky-400" />
+                    </div>
+                    <div className="text-sky-400 text-xl font-bold font-mono">{propChars.bedrooms}</div>
+                    <div className="text-sky-300/60 text-xs font-medium flex items-center gap-1">
+                      <BedDouble className="w-3 h-3" /> Beds
+                    </div>
+                  </div>
+                  <div className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-violet-500/15 to-violet-600/5 border border-violet-500/30">
+                    <div className="absolute top-1 right-1 opacity-15">
+                      <Bath className="w-8 h-8 text-violet-400" />
+                    </div>
+                    <div className="text-violet-400 text-xl font-bold font-mono">{propChars.bathrooms}</div>
+                    <div className="text-violet-300/60 text-xs font-medium flex items-center gap-1">
+                      <Bath className="w-3 h-3" /> Baths
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-gray-300 text-sm font-bold">{propChars.waterLabel}</div>
-                  <div className="text-gray-400 text-xs">Water / Sewer</div>
+
+                {/* Property Details Grid */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/25 flex items-center justify-center">
+                      <Building2 className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-blue-400 text-sm font-semibold truncate">{propChars.typeLabel}</div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Type</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${property.conditionTag === 'Excellent' ? 'bg-emerald-500/15 border border-emerald-500/25' : property.conditionTag === 'Good' ? 'bg-blue-500/15 border border-blue-500/25' : property.conditionTag === 'Fair' ? 'bg-amber-500/15 border border-amber-500/25' : 'bg-red-500/15 border border-red-500/25'}`}>
+                      <Wrench className={`w-4 h-4 ${property.conditionTag === 'Excellent' ? 'text-emerald-400' : property.conditionTag === 'Good' ? 'text-blue-400' : property.conditionTag === 'Fair' ? 'text-amber-400' : 'text-red-400'}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className={`text-sm font-semibold truncate ${property.conditionTag === 'Excellent' ? 'text-emerald-400' : property.conditionTag === 'Good' ? 'text-blue-400' : property.conditionTag === 'Fair' ? 'text-amber-400' : 'text-red-400'}`}>
+                        {getConditionDescription(property.conditionTag)}
+                      </div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Condition</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center">
+                      <Droplets className="w-4 h-4 text-cyan-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-gray-200 text-sm font-semibold truncate">{propChars.waterLabel}</div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Water</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-orange-500/15 border border-orange-500/25 flex items-center justify-center">
+                      <Thermometer className="w-4 h-4 text-orange-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-gray-200 text-sm font-semibold truncate">{propChars.heatLabel}</div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Heating</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/25 flex items-center justify-center">
+                      <MapPin className="w-4 h-4 text-teal-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-teal-400 text-sm font-semibold truncate">{getNeighborhoodTraits(property.neighborhood)}</div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Area</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
+                      <DollarSign className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-amber-400 text-sm font-bold font-mono">${Math.round(property.price / property.sizeSqft)}/sqft</div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Price/Sqft</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-gray-300 text-sm font-bold">{propChars.heatLabel}</div>
-                  <div className="text-gray-400 text-xs">Heating</div>
-                </div>
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-blue-400 text-sm font-bold">{getNeighborhoodTraits(property.neighborhood)}</div>
-                  <div className="text-gray-400 text-xs">Neighborhood</div>
-                </div>
-                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-gray-300 text-sm font-bold">${Math.round(property.price / property.sizeSqft)}/sqft</div>
-                  <div className="text-gray-400 text-xs">Price Per Sqft</div>
-                </div>
-              </div>
 
               {/* Unknown Financials Section */}
               <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-600/50">

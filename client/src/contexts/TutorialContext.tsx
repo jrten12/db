@@ -1,11 +1,14 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { tutorialSteps, getNextStep, getPreviousStep, type TutorialStep } from '@/lib/tutorialSteps';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { tutorialSteps, getNextStep, getPreviousStep, getStepProgress, type TutorialStep } from '@/lib/tutorialSteps';
 
 interface TutorialContextType {
   isActive: boolean;
   currentStep: TutorialStep | null;
   stepIndex: number;
   totalSteps: number;
+  phaseLabel: string;
+  phaseIndex: number;
+  totalPhases: number;
   startTutorial: () => void;
   endTutorial: () => void;
   nextStep: () => void;
@@ -16,7 +19,7 @@ interface TutorialContextType {
   showTutorialPrompt: boolean;
   dismissPrompt: () => void;
   pendingAction: string | null;
-  isActionRequired: boolean;
+  isWaitingForAction: boolean;
 }
 
 const TutorialContext = createContext<TutorialContextType | undefined>(undefined);
@@ -25,65 +28,54 @@ const TUTORIAL_STORAGE_KEY = 'dealbreak_tutorial';
 const TUTORIAL_PROMPT_KEY = 'dealbreak_tutorial_prompt_dismissed';
 
 interface TutorialState {
-  completedSteps: string[];
+  completedActions: string[];
   currentStepId: string | null;
   hasCompletedTutorial: boolean;
 }
 
-function loadTutorialState(): TutorialState {
+function loadState(): TutorialState {
   try {
     const stored = localStorage.getItem(TUTORIAL_STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      return {
+        completedActions: parsed.completedActions || parsed.completedSteps || [],
+        currentStepId: parsed.currentStepId || null,
+        hasCompletedTutorial: parsed.hasCompletedTutorial || false,
+      };
     }
-  } catch (e) {
-    console.error('Failed to load tutorial state:', e);
-  }
-  return {
-    completedSteps: [],
-    currentStepId: null,
-    hasCompletedTutorial: false,
-  };
+  } catch {}
+  return { completedActions: [], currentStepId: null, hasCompletedTutorial: false };
 }
 
-function saveTutorialState(state: TutorialState): void {
+function saveState(state: TutorialState): void {
   try {
     localStorage.setItem(TUTORIAL_STORAGE_KEY, JSON.stringify(state));
-  } catch (e) {
-    console.error('Failed to save tutorial state:', e);
-  }
+  } catch {}
 }
 
 function hasSeenPrompt(): boolean {
-  try {
-    return localStorage.getItem(TUTORIAL_PROMPT_KEY) === 'true';
-  } catch {
-    return false;
-  }
+  try { return localStorage.getItem(TUTORIAL_PROMPT_KEY) === 'true'; } catch { return false; }
 }
 
 function markPromptSeen(): void {
-  try {
-    localStorage.setItem(TUTORIAL_PROMPT_KEY, 'true');
-  } catch (e) {
-    console.error('Failed to mark prompt seen:', e);
-  }
+  try { localStorage.setItem(TUTORIAL_PROMPT_KEY, 'true'); } catch {}
 }
 
 export function TutorialProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<TutorialState>(loadTutorialState);
+  const [state, setState] = useState<TutorialState>(loadState);
   const [showTutorialPrompt, setShowTutorialPrompt] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   const [isActive, setIsActive] = useState(() => {
-    const stored = loadTutorialState();
-    return !stored.hasCompletedTutorial && stored.currentStepId !== null;
+    const s = loadState();
+    return !s.hasCompletedTutorial && s.currentStepId !== null;
   });
 
   const [currentStep, setCurrentStep] = useState<TutorialStep | null>(() => {
-    const stored = loadTutorialState();
-    if (!stored.hasCompletedTutorial && stored.currentStepId) {
-      return tutorialSteps.find(s => s.id === stored.currentStepId) || null;
+    const s = loadState();
+    if (!s.hasCompletedTutorial && s.currentStepId) {
+      return tutorialSteps.find(st => st.id === s.currentStepId) || null;
     }
     return null;
   });
@@ -95,9 +87,9 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.hasCompletedTutorial, isActive]);
 
-  const stepIndex = currentStep 
-    ? tutorialSteps.findIndex(s => s.id === currentStep.id) + 1 
-    : 0;
+  const progress = currentStep ? getStepProgress(currentStep.id) : { current: 0, total: tutorialSteps.length, phase: '', phaseIndex: 0, totalPhases: 7 };
+
+  const isWaitingForAction = !!(currentStep?.action?.completionEvent && !state.completedActions.includes(currentStep.action.completionEvent));
 
   const startTutorial = useCallback(() => {
     const firstStep = tutorialSteps[0];
@@ -105,111 +97,98 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     setCurrentStep(firstStep);
     setShowTutorialPrompt(false);
     markPromptSeen();
-    const newState = {
-      ...state,
+    const newState: TutorialState = {
+      completedActions: [],
       currentStepId: firstStep.id,
-      completedSteps: [],
+      hasCompletedTutorial: false,
     };
     setState(newState);
-    saveTutorialState(newState);
-  }, [state]);
+    saveState(newState);
+  }, []);
 
   const endTutorial = useCallback(() => {
     setIsActive(false);
     setCurrentStep(null);
-    const newState = {
+    setPendingAction(null);
+    const newState: TutorialState = {
       ...state,
       hasCompletedTutorial: true,
       currentStepId: null,
     };
     setState(newState);
-    saveTutorialState(newState);
+    saveState(newState);
     markPromptSeen();
+  }, [state]);
+
+  const advanceTo = useCallback((step: TutorialStep) => {
+    setCurrentStep(step);
+    setPendingAction(null);
+    const newState: TutorialState = {
+      ...state,
+      currentStepId: step.id,
+    };
+    setState(newState);
+    saveState(newState);
   }, [state]);
 
   const nextStep = useCallback(() => {
     if (!currentStep) return;
-
-    if (currentStep.requiresAction && !state.completedSteps.includes(currentStep.requiresAction)) {
-      setPendingAction(currentStep.requiresAction);
+    if (isWaitingForAction) {
+      setPendingAction(currentStep.action?.completionEvent || null);
       return;
     }
-
     const next = getNextStep(currentStep.id);
     if (next) {
-      setCurrentStep(next);
-      const newState = {
-        ...state,
-        completedSteps: [...state.completedSteps, currentStep.id],
-        currentStepId: next.id,
-      };
-      setState(newState);
-      saveTutorialState(newState);
-      setPendingAction(null);
+      advanceTo(next);
     } else {
       endTutorial();
     }
-  }, [currentStep, state, endTutorial]);
+  }, [currentStep, isWaitingForAction, advanceTo, endTutorial]);
 
   const previousStep = useCallback(() => {
     if (!currentStep) return;
     const prev = getPreviousStep(currentStep.id);
-    if (prev) {
-      setCurrentStep(prev);
-      setPendingAction(null);
-    }
-  }, [currentStep]);
+    if (prev) advanceTo(prev);
+  }, [currentStep, advanceTo]);
 
   const skipToStep = useCallback((stepId: string) => {
     const step = tutorialSteps.find(s => s.id === stepId);
-    if (step) {
-      setCurrentStep(step);
-      setPendingAction(null);
-    }
-  }, []);
+    if (step) advanceTo(step);
+  }, [advanceTo]);
 
   const completeAction = useCallback((action: string) => {
-    let newState = state;
-    if (!state.completedSteps.includes(action)) {
-      newState = {
-        ...state,
-        completedSteps: [...state.completedSteps, action],
-      };
-      setState(newState);
-      saveTutorialState(newState);
-    }
-    if (pendingAction === action && currentStep) {
+    if (state.completedActions.includes(action)) return;
+    const newState: TutorialState = {
+      ...state,
+      completedActions: [...state.completedActions, action],
+    };
+    setState(newState);
+    saveState(newState);
+
+    if (currentStep?.action?.completionEvent === action) {
       setPendingAction(null);
       const next = getNextStep(currentStep.id);
       if (next) {
-        setTimeout(() => {
-          setCurrentStep(next);
-          const advancedState = {
-            ...newState,
-            completedSteps: [...newState.completedSteps, currentStep.id],
-            currentStepId: next.id,
-          };
-          setState(advancedState);
-          saveTutorialState(advancedState);
-        }, 300);
+        setTimeout(() => advanceTo(next), 400);
       }
     }
-  }, [state, pendingAction, currentStep]);
+  }, [state, currentStep, advanceTo]);
 
   const dismissPrompt = useCallback(() => {
     setShowTutorialPrompt(false);
     markPromptSeen();
   }, []);
 
-  const isActionRequired = !!(currentStep?.requiresAction && !state.completedSteps.includes(currentStep.requiresAction));
-
   return (
     <TutorialContext.Provider
       value={{
         isActive,
         currentStep,
-        stepIndex,
-        totalSteps: tutorialSteps.length,
+        stepIndex: progress.current,
+        totalSteps: progress.total,
+        phaseLabel: progress.phase,
+        phaseIndex: progress.phaseIndex,
+        totalPhases: progress.totalPhases,
         startTutorial,
         endTutorial,
         nextStep,
@@ -220,7 +199,7 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
         showTutorialPrompt,
         dismissPrompt,
         pendingAction,
-        isActionRequired,
+        isWaitingForAction,
       }}
     >
       {children}

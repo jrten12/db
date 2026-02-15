@@ -441,29 +441,11 @@ export const getPropertyInteriorImages = (propertyName: string): Array<{ type: s
 
 export const getConditionAdjustedInteriors = (
   propertyName: string,
-  conditionTag: string,
-  price: number
+  _conditionTag: string,
+  _price: number
 ): Array<{ type: string; label: string; url: string }> => {
   const specificInteriors = propertySpecificInteriors[propertyName];
   if (!specificInteriors) return [];
-
-  const conditionTier = conditionTiers[conditionTag] || 3;
-  const priceTier = getPriceTier(price);
-
-  const qualityTier = Math.round((conditionTier + priceTier) / 2);
-
-  if (qualityTier <= 2) {
-    return specificInteriors.map(img => {
-      const replacementPool = qualityTier === 1 ? fixerUpperInteriors : datedInteriors;
-      const replacement = replacementPool[img.type];
-
-      if (replacement && (img.type === 'kitchen' || img.type === 'bathroom' || img.type === 'living')) {
-        return { ...img, url: replacement };
-      }
-      return img;
-    });
-  }
-
   return specificInteriors;
 };
 

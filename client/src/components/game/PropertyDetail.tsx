@@ -295,14 +295,32 @@ export function PropertyDetail({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
 
+  // Use randomized issues if we have a gameRunId, otherwise fall back to static issues
+  const allIssues = gameRunId 
+    ? getRandomizedPropertyIssues(gameRunId, property.id, property.propertyType, property.conditionTag)
+    : getPropertyIssues(property.name);
+  const revealedIssues = gameRunId
+    ? getRevealedRandomizedIssues(gameRunId, property.id, property.propertyType, property.conditionTag, completedDiligence)
+    : getRevealedIssues(property.name, completedDiligence);
+  const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
+
   const propertyImage = getPropertyImage(property.name);
-  // Use condition-adjusted interiors: lower-tier properties get dated/worn images
   const interiorImages = getConditionAdjustedInteriors(property.name, property.conditionTag, property.price);
 
-  // Build complete image gallery: exterior + working interior images
+  const revealedIssueGalleryImages = revealedIssues
+    .map(issue => {
+      const img = getIssueImage(issue.id);
+      if (img && !imageLoadErrors.has(img)) {
+        return { type: 'issue', label: issue.name, url: img };
+      }
+      return null;
+    })
+    .filter((img): img is { type: string; label: string; url: string } => img !== null);
+
   const allImages = [
     { type: 'exterior', label: 'Exterior', url: propertyImage },
-    ...interiorImages.filter(img => !imageLoadErrors.has(img.url))
+    ...interiorImages.filter(img => !imageLoadErrors.has(img.url)),
+    ...revealedIssueGalleryImages,
   ];
 
   const safeIndex = Math.min(currentImageIndex, Math.max(0, allImages.length - 1));
@@ -326,15 +344,6 @@ export function PropertyDetail({
   const prevImage = () => {
     setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
   };
-
-  // Use randomized issues if we have a gameRunId, otherwise fall back to static issues
-  const allIssues = gameRunId 
-    ? getRandomizedPropertyIssues(gameRunId, property.id, property.propertyType, property.conditionTag)
-    : getPropertyIssues(property.name);
-  const revealedIssues = gameRunId
-    ? getRevealedRandomizedIssues(gameRunId, property.id, property.propertyType, property.conditionTag, completedDiligence)
-    : getRevealedIssues(property.name, completedDiligence);
-  const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
 
   const propChars = getPropertyCharacteristics(property);
 
@@ -486,8 +495,11 @@ export function PropertyDetail({
                 </div>
 
                 {/* Image Type Label */}
-                <div className="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-lg border border-slate-700">
-                  <span className="text-white text-sm font-semibold">{currentImage.label}</span>
+                <div className={`absolute top-4 left-4 backdrop-blur-sm px-3 py-1 rounded-lg border ${currentImage.type === 'issue' ? 'bg-red-900/80 border-red-600/50' : 'bg-slate-900/80 border-slate-700'}`}>
+                  <span className={`text-sm font-semibold ${currentImage.type === 'issue' ? 'text-red-300' : 'text-white'}`}>
+                    {currentImage.type === 'issue' && <AlertTriangle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />}
+                    {currentImage.label}
+                  </span>
                 </div>
 
                 {/* Navigation Arrows */}
@@ -533,7 +545,7 @@ export function PropertyDetail({
 
                 {/* Hidden images for preloading and error handling */}
                 <div className="hidden">
-                  {interiorImages.map((img) => (
+                  {[...interiorImages, ...revealedIssueGalleryImages].map((img) => (
                     <img
                       key={img.url}
                       src={img.url}
@@ -557,8 +569,8 @@ export function PropertyDetail({
                       }}
                       className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                         index === currentImageIndex
-                          ? 'border-emerald-500 scale-105'
-                          : 'border-slate-700 hover:border-slate-600 opacity-70 hover:opacity-100'
+                          ? (img.type === 'issue' ? 'border-red-500 scale-105' : 'border-emerald-500 scale-105')
+                          : (img.type === 'issue' ? 'border-red-800/50 hover:border-red-600 opacity-70 hover:opacity-100' : 'border-slate-700 hover:border-slate-600 opacity-70 hover:opacity-100')
                       }`}
                       type="button"
                       data-testid={`thumbnail-${index}`}
@@ -569,9 +581,9 @@ export function PropertyDetail({
                         alt={img.label}
                         className="w-full h-full object-cover pointer-events-none"
                       />
-                      <div className="absolute bottom-0 left-0 right-0 p-1 bg-gradient-to-t from-black/80 to-transparent">
-                        <span className="text-[8px] text-white truncate block text-center">
-                          {img.label}
+                      <div className={`absolute bottom-0 left-0 right-0 p-1 bg-gradient-to-t ${img.type === 'issue' ? 'from-red-900/90' : 'from-black/80'} to-transparent`}>
+                        <span className={`text-[8px] truncate block text-center ${img.type === 'issue' ? 'text-red-300' : 'text-white'}`}>
+                          {img.type === 'issue' ? `⚠ ${img.label}` : img.label}
                         </span>
                       </div>
                     </button>

@@ -1799,6 +1799,13 @@ export default function Game() {
                       rentalRehabActive: d.rentalRehabActive ?? false,
                       rentalRehabWeeksRemaining: d.rentalRehabWeeksRemaining ?? undefined,
                       weeksUntilCompletion: d.weeksUntilCompletion ?? undefined,
+                      hasRemainingRepairs: d.contractorWalkthroughCompleted && (() => {
+                        const walkthroughData = d.contractorWalkthroughData as any;
+                        const completedIds = (d.completedRepairIds as string[] | null) || [];
+                        const allItems = walkthroughData?.repairItems || [];
+                        return allItems.some((item: any) => !completedIds.includes(item.id));
+                      })(),
+                      completedRepairIds: (d.completedRepairIds as string[] | null) || [],
                     };
                   })}
                   onSellProperty={handleSellProperty}

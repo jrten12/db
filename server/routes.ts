@@ -1148,10 +1148,22 @@ export async function registerRoutes(
       }
 
       if (deal.contractorWalkthroughCompleted) {
+        const walkthroughData = deal.contractorWalkthroughData as any;
+        const completedRepairIds = (deal.completedRepairIds as string[] | null) || [];
+        const allRepairItems = walkthroughData?.repairItems || [];
+        const remainingItems = allRepairItems.filter(
+          (item: any) => !completedRepairIds.includes(item.id)
+        );
         return res.json({ 
-          eligible: false, 
+          eligible: remainingItems.length > 0,
           completed: true,
-          data: deal.contractorWalkthroughData
+          hasRemainingRepairs: remainingItems.length > 0,
+          completedRepairIds,
+          data: {
+            ...walkthroughData,
+            repairItems: remainingItems,
+            totalRepairCost: remainingItems.reduce((sum: number, item: any) => sum + item.contractorCost, 0),
+          }
         });
       }
 

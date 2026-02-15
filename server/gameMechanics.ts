@@ -1228,19 +1228,21 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
 
       if (weeksLeft <= 0) {
         // Rental rehab is complete! Property ready for new tenant
-        // Recalculate rent - property is now in better condition
         const proFormaInputs = deal.proFormaInputs as any;
         const proFormaOutputs = deal.proFormaOutputs as any;
         
-        // Calculate rent increase using per-item rent impact percentages
         const walkthroughData = deal.contractorWalkthroughData as ContractorWalkthroughResult | null;
         const allIssues = walkthroughData?.repairItems || [];
-        const fixedIssues = deal.rentalRehabItems as ContractorWalkthroughItem[] | null;
+        const fixedIssuesThisRound = deal.rentalRehabItems as ContractorWalkthroughItem[] | null;
+        const previouslyFixedIds = (deal.completedRepairIds as string[] | null) || [];
         
-        const fixedCount = (fixedIssues || []).length;
+        const fixedThisRoundIds = (fixedIssuesThisRound || []).map(i => i.id);
+        const completedSet = new Set([...previouslyFixedIds, ...fixedThisRoundIds]);
+        const allCompletedIds = Array.from(completedSet);
+        
+        const fixedCount = allCompletedIds.length;
         const allIssuesCount = allIssues.length;
         
-        // Base rent from player's current income or property data
         let baseMonthlyRent: number;
         if (proFormaOutputs?.monthlyGrossRent) {
           baseMonthlyRent = proFormaOutputs.monthlyGrossRent;
@@ -1250,39 +1252,34 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           baseMonthlyRent = 1500;
         }
         
-        // Sum rent impact from fixed repairs (each has its own rentImpactPct)
-        const totalFixedRentImpactPct = (fixedIssues || []).reduce((sum, item) => {
-          return sum + (item.rentImpactPct || 0);
+        // Rent boost from THIS round's fixed repairs only (previous rounds already applied)
+        // Each repair gets its rentImpactPct PLUS a minimum floor of $25/item per $1000 rent
+        const minBumpPerItem = Math.max(25, Math.round(baseMonthlyRent * 0.02));
+        const totalFixedRentIncrease = (fixedIssuesThisRound || []).reduce((sum, item) => {
+          const pctBump = Math.round(baseMonthlyRent * ((item.rentImpactPct || 2) / 100));
+          return sum + Math.max(minBumpPerItem, pctBump);
         }, 0);
         
-        // Sum rent impact from ALL issues (to calculate depression from unfixed ones)
-        const totalAllRentImpactPct = allIssues.reduce((sum, item) => {
-          return sum + (item.rentImpactPct || 0);
+        // Unfixed issues only mildly depress rent (0.25% per unfixed item, much less aggressive)
+        const unfixedIssues = allIssues.filter(item => !allCompletedIds.includes(item.id));
+        const unfixedIssueCount = unfixedIssues.length;
+        const unfixedDepressionAmt = unfixedIssues.reduce((sum, _item) => {
+          return sum + Math.round(baseMonthlyRent * 0.0025);
         }, 0);
         
-        // Unfixed issues depress rent slightly (tenants notice problems)
-        const unfixedIssueCount = allIssuesCount - fixedCount;
-        const unfixedIssues = allIssues.filter(item => !(fixedIssues || []).some(f => f.id === item.id));
-        const unfixedDepressionPct = unfixedIssues.reduce((sum, item) => {
-          return sum + Math.min(item.rentImpactPct || 0, 2) * 0.5;
-        }, 0);
+        // Net rent change: gains from this round's fixes minus mild depression (capped at 25% of base)
+        const maxIncrease = Math.round(baseMonthlyRent * 0.25);
+        const rentIncrease = Math.min(Math.max(0, totalFixedRentIncrease - unfixedDepressionAmt), maxIncrease);
+        const newMonthlyRent = baseMonthlyRent + rentIncrease;
         
-        // Net rent change: gains from fixes minus depression from unfixed issues (capped at 25%)
-        const netRentChangePct = Math.min(totalFixedRentImpactPct - unfixedDepressionPct, 25);
-        const rentIncrease = Math.round(baseMonthlyRent * (netRentChangePct / 100));
-        const newMonthlyRent = Math.max(baseMonthlyRent, baseMonthlyRent + rentIncrease);
-        
-        // For backward compat
-        const repairCompletionFactor = totalAllRentImpactPct > 0 
-          ? totalFixedRentImpactPct / totalAllRentImpactPct 
+        const repairCompletionFactor = allIssuesCount > 0 
+          ? fixedCount / allIssuesCount 
           : 1.0;
         
-        // Recalculate vacancy and percentage-based operating expenses with new rent
         const effectiveVacancyRate = proFormaOutputs?.effectiveVacancyRate || 
           (property?.locationType === 'urban' ? 7 : 5);
         const newMonthlyVacancyLoss = newMonthlyRent * (effectiveVacancyRate / 100);
         
-        // Recalculate operating expenses with new rent for percentage-based items
         const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
         const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
         const maintenancePct = proFormaInputs?.maintenancePct || 5;
@@ -1303,7 +1300,6 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         
         const monthlyDebtService = proFormaOutputs?.monthlyDebtService || proFormaOutputs?.debtServiceMonthly || 0;
         
-        // Calculate new weekly income properly
         const newNetMonthlyCashFlow = newMonthlyRent - newMonthlyVacancyLoss - newMonthlyOperatingExpenses - monthlyDebtService;
         const newWeeklyIncome = calculateWeeklyIncome(newNetMonthlyCashFlow);
 
@@ -1312,6 +1308,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           rentalRehabWeeksRemaining: 0,
           tenantDisplaced: false,
           weeklyIncome: Math.max(0, newWeeklyIncome),
+          completedRepairIds: allCompletedIds,
           proFormaOutputs: {
             ...proFormaOutputs,
             monthlyGrossRent: newMonthlyRent,
@@ -1323,12 +1320,13 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           },
         });
 
-        // Create ledger entry for rehab completion with rent change details
+        // Create ledger entry for rehab completion showing actual rent increase
         const partialNote = unfixedIssueCount > 0 
-          ? ` (${fixedCount}/${allIssuesCount} issues fixed)`
+          ? ` (${(fixedIssuesThisRound || []).length}/${allIssuesCount} issues fixed)`
           : '';
+        const rentChangePctDisplay = baseMonthlyRent > 0 ? Math.round((rentIncrease / baseMonthlyRent) * 100) : 0;
         const rentChangeNote = rentIncrease > 0 
-          ? ` Rent +$${rentIncrease.toLocaleString()}/mo (+${Math.round(netRentChangePct)}%)`
+          ? ` Rent +$${rentIncrease.toLocaleString()}/mo (+${rentChangePctDisplay}%)`
           : rentIncrease === 0 ? ' Rent unchanged' : '';
         await storage.createLedgerEntry({
           gameRunId,
@@ -2203,10 +2201,19 @@ export async function initiateRentalRehab(
     return { success: false, error: 'Property not found' };
   }
 
-  // Get valid repair IDs from walkthrough data
-  const validRepairIds = new Set(walkthroughData.repairItems.map(item => item.id));
+  // Get valid repair IDs from walkthrough data, excluding previously completed repairs
+  const previouslyCompletedIds = (deal.completedRepairIds as string[] | null) || [];
+  const availableRepairItems = walkthroughData.repairItems.filter(
+    item => !previouslyCompletedIds.includes(item.id)
+  );
   
-  // Validate selectedRepairIds if provided - must be subset of valid IDs
+  if (availableRepairItems.length === 0) {
+    return { success: false, error: 'All repairs have already been completed' };
+  }
+  
+  const validRepairIds = new Set(availableRepairItems.map(item => item.id));
+  
+  // Validate selectedRepairIds if provided - must be subset of available (not yet completed) IDs
   if (selectedRepairIds && selectedRepairIds.length > 0) {
     const invalidIds = selectedRepairIds.filter(id => !validRepairIds.has(id));
     if (invalidIds.length > 0) {
@@ -2214,10 +2221,10 @@ export async function initiateRentalRehab(
     }
   }
   
-  // Filter to only selected repairs (if specified), otherwise use all
+  // Filter to only selected repairs (if specified), otherwise use all available
   const repairItems = selectedRepairIds && selectedRepairIds.length > 0
-    ? walkthroughData.repairItems.filter(item => selectedRepairIds.includes(item.id))
-    : walkthroughData.repairItems;
+    ? availableRepairItems.filter(item => selectedRepairIds.includes(item.id))
+    : availableRepairItems;
   
   if (repairItems.length === 0) {
     return { success: false, error: 'No repairs selected' };

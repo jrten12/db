@@ -115,6 +115,7 @@ export const deals = pgTable("deals", {
   rentalRehabVariancePct: integer("rental_rehab_variance_pct"), // Timeline variance applied (+/- %)
   rentalRehabStartWeek: integer("rental_rehab_start_week"), // Week when rehab started
   rentalRehabItems: jsonb("rental_rehab_items"), // Items being repaired
+  completedRepairIds: jsonb("completed_repair_ids").$type<string[]>().default([]), // IDs of repairs completed across all rehab rounds
   tenantDisplaced: boolean("tenant_displaced").default(false), // Tenant moved out for rehab
   tenantBreakFee: integer("tenant_break_fee"), // Break fee paid to tenant
   createdAt: timestamp("created_at").defaultNow().notNull(),

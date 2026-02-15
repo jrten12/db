@@ -93,15 +93,22 @@ export function ContractorWalkthroughModal({
     return 1500;
   }, [deal?.proFormaOutputs, property]);
 
-  // Calculate totals for selected repairs, including unfixed issue penalty (matches server logic)
   const selectedTotals = useMemo(() => {
     if (!result?.repairItems) return { cost: 0, weeks: 0, count: 0, rentImpactPct: 0, netRentImpactPct: 0, rentIncrease: 0 };
     const selected = result.repairItems.filter(item => selectedRepairIds.includes(item.id));
     const unselected = result.repairItems.filter(item => !selectedRepairIds.includes(item.id));
     const rentImpactPct = selected.reduce((sum, item) => sum + (item.rentImpactPct || 0), 0);
-    const unfixedDepressionPct = unselected.reduce((sum, item) => sum + Math.min(item.rentImpactPct || 0, 2) * 0.5, 0);
-    const netRentImpactPct = Math.min(rentImpactPct - unfixedDepressionPct, 25);
-    const rentIncrease = Math.max(0, Math.round(baseMonthlyRent * (netRentImpactPct / 100)));
+    const minBumpPerItem = Math.max(25, Math.round(baseMonthlyRent * 0.02));
+    const totalFixedIncrease = selected.reduce((sum, item) => {
+      const pctBump = Math.round(baseMonthlyRent * ((item.rentImpactPct || 2) / 100));
+      return sum + Math.max(minBumpPerItem, pctBump);
+    }, 0);
+    const unfixedDepressionAmt = unselected.reduce((sum) => {
+      return sum + Math.round(baseMonthlyRent * 0.0025);
+    }, 0);
+    const maxIncrease = Math.round(baseMonthlyRent * 0.25);
+    const rentIncrease = Math.min(Math.max(0, totalFixedIncrease - unfixedDepressionAmt), maxIncrease);
+    const netRentImpactPct = baseMonthlyRent > 0 ? Math.round((rentIncrease / baseMonthlyRent) * 100) : 0;
     return {
       cost: selected.reduce((sum, item) => sum + item.contractorCost, 0),
       weeks: Math.max(...selected.map(item => item.timelineWeeks), 0),
@@ -147,6 +154,8 @@ export function ContractorWalkthroughModal({
 
   useEffect(() => {
     if (isOpen && deal && gameRun) {
+      setSelectedRepairIds([]);
+      setStartingRepairs(false);
       loadQuote();
     }
   }, [isOpen, deal?.id, gameRun?.id]);
@@ -158,8 +167,7 @@ export function ContractorWalkthroughModal({
       const response = await fetch(`/api/deals/${deal.id}/contractor-walkthrough-quote?gameRunId=${gameRun.id}`);
       const data = await response.json();
       
-      // Check if the API returned an error (not eligible)
-      if (data.error || data.eligible === false) {
+      if (data.error || (data.eligible === false && !data.completed)) {
         setError(data.error || 'This property is not eligible for contractor walkthrough');
         setQuote(null);
         return;
@@ -167,17 +175,19 @@ export function ContractorWalkthroughModal({
       
       setQuote(data as WalkthroughQuote);
       
-      if (data.completed) {
+      if (data.completed && data.hasRemainingRepairs && data.data?.repairItems?.length > 0) {
         setViewState('already_done');
-        if (data.data) {
-          setResult({
-            walkthroughFee: data.data.walkthroughFee,
-            repairItems: data.data.repairItems,
-            totalRepairCost: data.data.totalRepairCost,
-            totalOriginalCost: data.data.repairItems.reduce((sum: number, item: any) => sum + item.originalCost, 0),
-            averageMarkup: 0,
-          });
-        }
+        setResult({
+          walkthroughFee: data.data.walkthroughFee || 0,
+          repairItems: data.data.repairItems,
+          totalRepairCost: data.data.totalRepairCost,
+          totalOriginalCost: data.data.repairItems.reduce((sum: number, item: any) => sum + item.originalCost, 0),
+          averageMarkup: 0,
+        });
+      } else if (data.completed && !data.hasRemainingRepairs) {
+        setError('All repairs have been completed for this property!');
+        setQuote(null);
+        return;
       } else {
         setViewState('quote');
       }
@@ -249,7 +259,7 @@ export function ContractorWalkthroughModal({
               </div>
               <div>
                 <DialogTitle className="text-lg font-semibold text-white">
-                  Contractor Walkthrough
+                  {viewState === 'already_done' ? 'Remaining Renovations' : 'Contractor Walkthrough'}
                 </DialogTitle>
                 <DialogDescription className="text-sm text-slate-400">
                   {property.name}
@@ -394,6 +404,21 @@ export function ContractorWalkthroughModal({
                     </div>
                   </div>
                 )}
+                {viewState === 'already_done' && (
+                  <div className="bg-cyan-500/10 rounded-xl p-4 border border-cyan-500/20">
+                    <div className="flex items-center gap-3">
+                      <Wrench className="w-5 h-5 text-cyan-400" />
+                      <div>
+                        <p className="text-cyan-400 font-medium text-sm">
+                          {result.repairItems.length} repair{result.repairItems.length !== 1 ? 's' : ''} remaining
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          Select which items to renovate next
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {result.repairItems.length === 0 ? (
                   <div className="bg-slate-800/50 rounded-xl p-6 text-center border border-slate-700/50">
@@ -506,7 +531,7 @@ export function ContractorWalkthroughModal({
                               {(item.rentImpactPct || 0) > 0 && (
                                 <span className="flex items-center gap-1 text-emerald-400">
                                   <TrendingUp className="w-3 h-3" />
-                                  +{item.rentImpactPct}% rent
+                                  +${Math.max(Math.max(25, Math.round(baseMonthlyRent * 0.02)), Math.round(baseMonthlyRent * ((item.rentImpactPct || 2) / 100)))}/mo rent
                                 </span>
                               )}
                             </div>
@@ -549,14 +574,14 @@ export function ContractorWalkthroughModal({
                         )}
                         
                         {/* Rent increase estimate */}
-                        {selectedTotals.rentImpactPct > 0 && (
+                        {selectedTotals.count > 0 && (
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-slate-400 flex items-center gap-1">
                               <TrendingUp className="w-3 h-3" /> Est. Rent Increase
                             </span>
-                            <span className={`font-mono ${selectedTotals.netRentImpactPct > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                            <span className={`font-mono ${selectedTotals.rentIncrease > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
                               {selectedTotals.rentIncrease > 0 
-                                ? `+$${selectedTotals.rentIncrease.toLocaleString()}/mo (+${Math.round(selectedTotals.netRentImpactPct)}%)`
+                                ? `+$${selectedTotals.rentIncrease.toLocaleString()}/mo (+${selectedTotals.netRentImpactPct}%)`
                                 : 'Offset by unfixed issues'}
                             </span>
                           </div>
@@ -592,7 +617,7 @@ export function ContractorWalkthroughModal({
                   </>
                 )}
 
-                {result.repairItems.length > 0 && onStartRepairs && viewState !== 'already_done' && (
+                {result.repairItems.length > 0 && onStartRepairs && (
                   <div className="space-y-2">
                     <Button
                       className={`w-full h-12 font-semibold ${

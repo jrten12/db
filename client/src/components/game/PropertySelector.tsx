@@ -38,6 +38,8 @@ export interface PropertyDealInfo {
   rentalRehabActive?: boolean;
   rentalRehabWeeksRemaining?: number;
   weeksUntilCompletion?: number;
+  hasRemainingRepairs?: boolean;
+  completedRepairIds?: string[];
 }
 
 interface PropertySelectorProps {
@@ -278,20 +280,36 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                   </div>
                   {dealInfo && (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && (
                     <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-[280px] sm:max-w-none">
-                      {(dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && onContractorWalkthrough && !dealInfo.contractorWalkthroughCompleted && (
-                        <Button
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            onContractorWalkthrough(dealInfo.dealId);
-                          }}
-                          className="bg-amber-500 text-white font-bold text-[10px] sm:text-xs shadow-lg border border-amber-300 px-2 sm:px-3"
-                          data-testid={`button-walkthrough-${property.id}`}
-                        >
-                          <HardHat className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-                          INSPECT
-                        </Button>
+                      {(dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && onContractorWalkthrough && !dealInfo.rentalRehabActive && (
+                        !dealInfo.contractorWalkthroughCompleted ? (
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              onContractorWalkthrough(dealInfo.dealId);
+                            }}
+                            className="bg-amber-500 text-white font-bold text-[10px] sm:text-xs shadow-lg border border-amber-300 px-2 sm:px-3"
+                            data-testid={`button-walkthrough-${property.id}`}
+                          >
+                            <HardHat className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+                            INSPECT
+                          </Button>
+                        ) : dealInfo.hasRemainingRepairs ? (
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              onContractorWalkthrough(dealInfo.dealId);
+                            }}
+                            className="bg-cyan-500 text-white font-bold text-[10px] sm:text-xs shadow-lg border border-cyan-300 px-2 sm:px-3"
+                            data-testid={`button-renovate-${property.id}`}
+                          >
+                            <Wrench className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+                            RENOVATE
+                          </Button>
+                        ) : null
                       )}
                       {dealInfo.status === 'active_rental' && onRefinanceProperty && dealInfo.canRefinance && (
                         <Button

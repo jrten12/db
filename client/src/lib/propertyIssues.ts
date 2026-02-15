@@ -50,7 +50,7 @@ export const DILIGENCE_OPTIONS: DiligenceOption[] = [
   {
     id: 'inspection',
     name: 'Property Inspection',
-    cost: 750,
+    cost: 500,
     timeWeeks: 1,
     description: 'Hire a licensed property inspector to thoroughly evaluate all property systems and look for hidden repair issues that aren\'t visible during a walkthrough.',
     reveals: 'Uncovers hidden problems like mold, pests, electrical, and plumbing issues',

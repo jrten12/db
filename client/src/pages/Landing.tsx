@@ -1,11 +1,11 @@
 import { Link } from 'wouter';
 import { ArrowRight, Play, Volume2, VolumeX } from 'lucide-react';
-import heroHouseImage from '@assets/image_1767847036185.png';
+import heroHouseImage from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_1771128403840.png';
 import dbLogoImage from '@assets/dealbreak_icon_sim_1767848951783.png';
 import heroBgPattern from '@/assets/images/hero-bg-pattern.png';
-import iconAnalyzeMarket from '@/assets/images/icon-analyze-market.png';
-import iconBuildWealth from '@/assets/images/icon-build-wealth.png';
-import iconMasterGame from '@/assets/images/icon-master-game.png';
+import iconAnalyzeMarket from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_1771128403840.png';
+import iconBuildWealth from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_(1)_1771128403839.png';
+import iconMasterGame from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_(3)_1771128403840.png';
 import Footer from '@/components/Footer';
 import { AdBanner } from '@/components/game/AdBanner';
 import { useSplash } from '@/App';
@@ -129,12 +129,12 @@ export default function Landing() {
               <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
                 <Link href="/game">
                   <button
-                    className="group w-full sm:w-auto min-w-[200px] py-4 px-8 rounded-lg font-bold text-[17px] transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center gap-2"
+                    className="group w-full sm:w-auto min-w-[220px] py-4 px-10 rounded-lg font-bold text-[17px] tracking-wide transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center gap-2"
                     style={{
-                      background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
-                      color: '#fff',
-                      boxShadow: '0 4px 24px rgba(16,185,129,0.35), 0 2px 0 #047857',
-                      border: '1px solid rgba(16,185,129,0.4)',
+                      background: 'rgba(16,185,129,0.12)',
+                      color: '#4ade80',
+                      boxShadow: '0 0 20px rgba(16,185,129,0.15), inset 0 0 20px rgba(16,185,129,0.05)',
+                      border: '2px solid rgba(16,185,129,0.5)',
                     }}
                     data-testid="button-play-simulator"
                   >
@@ -179,8 +179,16 @@ export default function Landing() {
       {/* === EVERY DEAL HAS A STORY === */}
       <section
         className="relative py-16 lg:py-24"
-        style={{ background: '#0c0c0e' }}
+        style={{
+          background: 'linear-gradient(180deg, #111114 0%, #0f0f11 100%)',
+        }}
       >
+        <div
+          className="absolute inset-x-0 top-0 h-[1px]"
+          style={{
+            background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent)',
+          }}
+        />
         <div className="max-w-5xl mx-auto px-5">
           <h2
             className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-14"
@@ -192,7 +200,7 @@ export default function Landing() {
             Every Deal Has a Story
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6 lg:gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-6 lg:gap-12">
             <FeatureColumn
               imageSrc={iconAnalyzeMarket}
               title="Analyze the Market"
@@ -308,15 +316,23 @@ function FeatureColumn({
 }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <div className="w-24 h-24 sm:w-20 sm:h-20 lg:w-28 lg:h-28 mb-5 flex-shrink-0">
+      <div className="w-28 h-28 sm:w-24 sm:h-24 lg:w-32 lg:h-32 mb-6 flex-shrink-0 rounded-2xl overflow-hidden"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(30,30,35,0.8), rgba(15,15,18,0.9))',
+          padding: '12px',
+        }}
+      >
         <img
           src={imageSrc}
           alt={title}
           className="w-full h-full object-contain"
+          style={{
+            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))',
+          }}
         />
       </div>
       <h3
-        className="text-lg font-bold mb-2"
+        className="text-lg lg:text-xl font-bold mb-2"
         style={{
           color: '#f0e6d0',
           fontStyle: 'italic',
@@ -325,7 +341,7 @@ function FeatureColumn({
         {title}
       </h3>
       <p
-        className="text-sm leading-relaxed max-w-[260px]"
+        className="text-sm leading-relaxed max-w-[280px]"
         style={{ color: 'rgba(200,195,180,0.55)' }}
       >
         {description}

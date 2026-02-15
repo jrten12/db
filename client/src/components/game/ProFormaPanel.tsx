@@ -1,5 +1,8 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials, FINISH_LEVEL_CONFIG, UNKNOWN_REHAB_BUDGET_MULTIPLIER } from '@/lib/gameData';
+
+type FinishLevelKey = keyof typeof FINISH_LEVEL_CONFIG;
+const FINISH_LEVELS = Object.keys(FINISH_LEVEL_CONFIG) as FinishLevelKey[];
 import { getEffectiveRanges, EffectiveRanges, getRevealedIssues, type PropertyIssue } from '@/lib/propertyIssues';
 import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet, ArrowDown } from 'lucide-react';
 import { ItemizedRepairsPanel } from './ItemizedRepairsPanel';
@@ -173,6 +176,74 @@ function UnknownValueTooltip({ type, children }: { type: 'rent' | 'rehab' | 'arv
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+// Reusable rehab budget slider shared by rental and flip strategies
+function RehabBudgetSlider({
+  property,
+  value,
+  onChange,
+  onFocus,
+  hasDiligence,
+  label,
+  description,
+  zeroBadge,
+  testId,
+}: {
+  property: Property;
+  value: number;
+  onChange: (value: number) => void;
+  onFocus?: () => void;
+  hasDiligence: boolean;
+  label: string;
+  description?: string;
+  zeroBadge: string;
+  testId: string;
+}) {
+  const maxValue = hasDiligence ? property.rehabMax : Math.round(property.rehabMax * UNKNOWN_REHAB_BUDGET_MULTIPLIER);
+
+  return (
+    <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+      <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">
+        {label}
+      </label>
+      {description && <p className="text-gray-500 text-xs mb-3">{description}</p>}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-cyan-100 text-2xl font-mono font-bold">${value.toLocaleString()}</span>
+        {value === 0 && (
+          <span className="text-emerald-400/60 text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full">{zeroBadge}</span>
+        )}
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={maxValue}
+        step={1000}
+        value={value}
+        onChange={(e) => { triggerHaptic(); onChange(parseInt(e.target.value)); }}
+        onFocus={onFocus}
+        className="w-full h-3 rounded-lg appearance-none cursor-pointer"
+        data-testid={testId}
+      />
+      {hasDiligence ? (
+        <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+          <span>$0</span>
+          <span className="text-cyan-300">
+            Diligence: ${property.rehabMin.toLocaleString()}-${property.rehabMax.toLocaleString()}
+          </span>
+          <span>${property.rehabMax.toLocaleString()}</span>
+        </div>
+      ) : (
+        <div className="flex justify-between text-xs text-amber-400/60 mt-1">
+          <span>$0</span>
+          <span className="flex items-center gap-1">
+            <Lock className="w-3 h-3" /> Diligence reveals true costs
+          </span>
+          <span>${maxValue.toLocaleString()}</span>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -710,45 +781,18 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   </div>
 
                   {/* Rental Rehab Budget - optional renovation for rental properties */}
-                  <div className="col-span-full bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
-                    <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">
-                      Renovation Budget <span className="text-gray-500 text-xs font-normal">(optional)</span>
-                    </label>
-                    <p className="text-gray-500 text-xs mb-3">Fix up the property before renting to increase rent and reduce maintenance costs.</p>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-cyan-100 text-2xl font-mono font-bold">${(inputs.rehabBudget ?? 0).toLocaleString()}</span>
-                      {(inputs.rehabBudget ?? 0) === 0 && (
-                        <span className="text-emerald-400/60 text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full">No Renovation</span>
-                      )}
-                    </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={hasContractorWalkthrough || hasInspection ? property.rehabMax : Math.round(property.rehabMax * UNKNOWN_REHAB_BUDGET_MULTIPLIER)}
-                      step={1000}
+                  <div className="col-span-full">
+                    <RehabBudgetSlider
+                      property={property}
                       value={inputs.rehabBudget ?? 0}
-                      onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) }); }}
+                      onChange={(val) => onInputsChange({ ...inputs, rehabBudget: val })}
                       onFocus={() => onFieldTouch?.('rehabBudget')}
-                      className="w-full h-3 rounded-lg appearance-none cursor-pointer"
-                      data-testid="slider-rental-rehab-budget"
+                      hasDiligence={hasContractorWalkthrough || hasInspection}
+                      label="Renovation Budget (optional)"
+                      description="Fix up the property before renting to increase rent and reduce maintenance costs."
+                      zeroBadge="No Renovation"
+                      testId="slider-rental-rehab-budget"
                     />
-                    {hasContractorWalkthrough || hasInspection ? (
-                      <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
-                        <span>$0</span>
-                        <span className="text-cyan-300">
-                          Diligence: ${property.rehabMin.toLocaleString()}-${property.rehabMax.toLocaleString()}
-                        </span>
-                        <span>${property.rehabMax.toLocaleString()}</span>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between text-xs text-amber-400/60 mt-1">
-                        <span>$0</span>
-                        <span className="flex items-center gap-1">
-                          <Lock className="w-3 h-3" /> Diligence reveals true costs
-                        </span>
-                        <span>${Math.round(property.rehabMax * UNKNOWN_REHAB_BUDGET_MULTIPLIER).toLocaleString()}</span>
-                      </div>
-                    )}
                   </div>
                 </>
               ) : (
@@ -774,43 +818,16 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   ) : (
                     <>
                       {/* Rehab Budget slider - shown when no diligence or no issues */}
-                      <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
-                        <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Rehab Budget</label>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-cyan-100 text-2xl font-mono font-bold">${(inputs.rehabBudget ?? 0).toLocaleString()}</span>
-                          {(inputs.rehabBudget ?? 0) === 0 && (
-                            <span className="text-emerald-400/60 text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full">No Rehab</span>
-                          )}
-                        </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={hasContractorWalkthrough || hasInspection ? property.rehabMax : Math.round(property.rehabMax * UNKNOWN_REHAB_BUDGET_MULTIPLIER)}
-                          step={1000}
-                          value={inputs.rehabBudget ?? 0}
-                          onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) }); }}
-                          onFocus={() => onFieldTouch?.('rehabBudget')}
-                          className="w-full h-3 rounded-lg appearance-none cursor-pointer"
-                          data-testid="slider-rehab-budget"
-                        />
-                        {hasContractorWalkthrough || hasInspection ? (
-                          <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
-                            <span>$0</span>
-                            <span className="text-cyan-300">
-                              Diligence shows ${property.rehabMin.toLocaleString()}-${property.rehabMax.toLocaleString()}
-                            </span>
-                            <span>${property.rehabMax.toLocaleString()}</span>
-                          </div>
-                        ) : (
-                          <div className="flex justify-between text-xs text-amber-400/60 mt-1">
-                            <span>$0</span>
-                            <span className="flex items-center gap-1">
-                              <Lock className="w-3 h-3" /> Diligence reveals true costs
-                            </span>
-                            <span>${Math.round(property.rehabMax * UNKNOWN_REHAB_BUDGET_MULTIPLIER).toLocaleString()}</span>
-                          </div>
-                        )}
-                      </div>
+                      <RehabBudgetSlider
+                        property={property}
+                        value={inputs.rehabBudget ?? 0}
+                        onChange={(val) => onInputsChange({ ...inputs, rehabBudget: val })}
+                        onFocus={() => onFieldTouch?.('rehabBudget')}
+                        hasDiligence={hasContractorWalkthrough || hasInspection}
+                        label="Rehab Budget"
+                        zeroBadge="No Rehab"
+                        testId="slider-rehab-budget"
+                      />
                     </>
                   )}
                   
@@ -845,7 +862,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   Finish Level
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {(Object.entries(FINISH_LEVEL_CONFIG) as [keyof typeof FINISH_LEVEL_CONFIG, typeof FINISH_LEVEL_CONFIG[keyof typeof FINISH_LEVEL_CONFIG]][]).map(([level, config]) => {
+                  {FINISH_LEVELS.map((level) => {
+                    const config = FINISH_LEVEL_CONFIG[level];
                     const isSelected = inputs.finishLevel === level;
                     const colorMap = level === 'builder'
                       ? { active: 'bg-cyan-500/20 border-2 border-cyan-400 shadow-lg shadow-cyan-500/20', text: 'text-cyan-300' }

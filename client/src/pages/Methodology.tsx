@@ -25,18 +25,17 @@ export default function Methodology() {
               Dealbreak
             </span>
           </Link>
-          <Link href="/game">
-            <button
-              className="px-5 py-2 rounded-md font-semibold text-sm transition-all active:scale-[0.97]"
-              style={{
-                background: 'linear-gradient(180deg, #d4af37 0%, #b8962e 100%)',
-                color: '#0c0c0e',
-                boxShadow: '0 2px 8px rgba(212,175,55,0.3)',
-                border: '1px solid rgba(212,175,55,0.5)',
-              }}
-            >
-              Play Now
-            </button>
+          <Link
+            href="/game"
+            className="px-5 py-2 rounded-md font-semibold text-sm transition-all active:scale-[0.97] inline-block"
+            style={{
+              background: 'linear-gradient(180deg, #d4af37 0%, #b8962e 100%)',
+              color: '#0c0c0e',
+              boxShadow: '0 2px 8px rgba(212,175,55,0.3)',
+              border: '1px solid rgba(212,175,55,0.5)',
+            }}
+          >
+            Play Now
           </Link>
         </div>
       </nav>

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Play, Trophy, Award, BookOpen, Settings, Wallet, Clock, Target } from 'lucide-react';
+import { Play, Trophy, Award, BookOpen, Zap, Wallet, Clock, Target, Sparkles } from 'lucide-react';
 import { TrophyShelf } from './TrophyShelf';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 import { formatCurrency } from '@/lib/gameData';
@@ -128,12 +128,20 @@ export function GameHomeScreen({
 
           <button
             onClick={onSettings}
-            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/15 active:bg-white/20 backdrop-blur-md rounded-xl border border-white/20 text-gray-300 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+            className="w-full relative overflow-visible flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-bold transition-all duration-150 ios-spring tap-scale touch-target"
+            style={{
+              background: 'linear-gradient(135deg, rgba(212,175,55,0.25) 0%, rgba(218,165,32,0.15) 50%, rgba(212,175,55,0.25) 100%)',
+              border: '1.5px solid rgba(212,175,55,0.5)',
+              color: '#f0d060',
+              boxShadow: '0 0 16px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.08)',
+              textShadow: '0 1px 4px rgba(0,0,0,0.3)',
+            }}
             data-testid="button-settings-home"
             data-sound="swoosh"
           >
-            <Settings className="w-5 h-5" />
-            SETTINGS
+            <Zap className="w-5 h-5" style={{ filter: 'drop-shadow(0 0 4px rgba(212,175,55,0.5))' }} />
+            POWER-UPS
+            <Sparkles className="w-4 h-4 ml-1 opacity-70" />
           </button>
         </div>
 

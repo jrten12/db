@@ -1,5 +1,8 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
-import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials } from '@/lib/gameData';
+import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials, FINISH_LEVEL_CONFIG, UNKNOWN_REHAB_BUDGET_MULTIPLIER } from '@/lib/gameData';
+
+type FinishLevelKey = keyof typeof FINISH_LEVEL_CONFIG;
+const FINISH_LEVELS = Object.keys(FINISH_LEVEL_CONFIG) as FinishLevelKey[];
 import { getEffectiveRanges, EffectiveRanges, getRevealedIssues, type PropertyIssue } from '@/lib/propertyIssues';
 import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet, ArrowDown } from 'lucide-react';
 import { ItemizedRepairsPanel } from './ItemizedRepairsPanel';
@@ -173,6 +176,74 @@ function UnknownValueTooltip({ type, children }: { type: 'rent' | 'rehab' | 'arv
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+// Reusable rehab budget slider shared by rental and flip strategies
+function RehabBudgetSlider({
+  property,
+  value,
+  onChange,
+  onFocus,
+  hasDiligence,
+  label,
+  description,
+  zeroBadge,
+  testId,
+}: {
+  property: Property;
+  value: number;
+  onChange: (value: number) => void;
+  onFocus?: () => void;
+  hasDiligence: boolean;
+  label: string;
+  description?: string;
+  zeroBadge: string;
+  testId: string;
+}) {
+  const maxValue = hasDiligence ? property.rehabMax : Math.round(property.rehabMax * UNKNOWN_REHAB_BUDGET_MULTIPLIER);
+
+  return (
+    <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+      <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">
+        {label}
+      </label>
+      {description && <p className="text-gray-500 text-xs mb-3">{description}</p>}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-cyan-100 text-2xl font-mono font-bold">${value.toLocaleString()}</span>
+        {value === 0 && (
+          <span className="text-emerald-400/60 text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full">{zeroBadge}</span>
+        )}
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={maxValue}
+        step={1000}
+        value={value}
+        onChange={(e) => { triggerHaptic(); onChange(parseInt(e.target.value)); }}
+        onFocus={onFocus}
+        className="w-full h-3 rounded-lg appearance-none cursor-pointer"
+        data-testid={testId}
+      />
+      {hasDiligence ? (
+        <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+          <span>$0</span>
+          <span className="text-cyan-300">
+            Diligence: ${property.rehabMin.toLocaleString()}-${property.rehabMax.toLocaleString()}
+          </span>
+          <span>${property.rehabMax.toLocaleString()}</span>
+        </div>
+      ) : (
+        <div className="flex justify-between text-xs text-amber-400/60 mt-1">
+          <span>$0</span>
+          <span className="flex items-center gap-1">
+            <Lock className="w-3 h-3" /> Diligence reveals true costs
+          </span>
+          <span>${maxValue.toLocaleString()}</span>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -708,6 +779,21 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       <span>15%</span>
                     </div>
                   </div>
+
+                  {/* Rental Rehab Budget - optional renovation for rental properties */}
+                  <div className="col-span-full">
+                    <RehabBudgetSlider
+                      property={property}
+                      value={inputs.rehabBudget ?? 0}
+                      onChange={(val) => onInputsChange({ ...inputs, rehabBudget: val })}
+                      onFocus={() => onFieldTouch?.('rehabBudget')}
+                      hasDiligence={hasContractorWalkthrough || hasInspection}
+                      label="Renovation Budget (optional)"
+                      description="Fix up the property before renting to increase rent and reduce maintenance costs."
+                      zeroBadge="No Renovation"
+                      testId="slider-rental-rehab-budget"
+                    />
+                  </div>
                 </>
               ) : (
                 <>
@@ -732,43 +818,16 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   ) : (
                     <>
                       {/* Rehab Budget slider - shown when no diligence or no issues */}
-                      <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
-                        <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Rehab Budget</label>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-cyan-100 text-2xl font-mono font-bold">${(inputs.rehabBudget ?? 0).toLocaleString()}</span>
-                          {(inputs.rehabBudget ?? 0) === 0 && (
-                            <span className="text-emerald-400/60 text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full">No Rehab</span>
-                          )}
-                        </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={hasContractorWalkthrough || hasInspection ? property.rehabMax : Math.round(property.rehabMax * 1.5)}
-                          step={1000}
-                          value={inputs.rehabBudget ?? 0}
-                          onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, rehabBudget: parseInt(e.target.value) }); }}
-                          onFocus={() => onFieldTouch?.('rehabBudget')}
-                          className="w-full h-3 rounded-lg appearance-none cursor-pointer"
-                          data-testid="slider-rehab-budget"
-                        />
-                        {hasContractorWalkthrough || hasInspection ? (
-                          <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
-                            <span>$0</span>
-                            <span className="text-cyan-300">
-                              Diligence shows ${property.rehabMin.toLocaleString()}-${property.rehabMax.toLocaleString()}
-                            </span>
-                            <span>${property.rehabMax.toLocaleString()}</span>
-                          </div>
-                        ) : (
-                          <div className="flex justify-between text-xs text-amber-400/60 mt-1">
-                            <span>$0</span>
-                            <span className="flex items-center gap-1">
-                              <Lock className="w-3 h-3" /> Diligence reveals true costs
-                            </span>
-                            <span>${Math.round(property.rehabMax * 1.5).toLocaleString()}</span>
-                          </div>
-                        )}
-                      </div>
+                      <RehabBudgetSlider
+                        property={property}
+                        value={inputs.rehabBudget ?? 0}
+                        onChange={(val) => onInputsChange({ ...inputs, rehabBudget: val })}
+                        onFocus={() => onFieldTouch?.('rehabBudget')}
+                        hasDiligence={hasContractorWalkthrough || hasInspection}
+                        label="Rehab Budget"
+                        zeroBadge="No Rehab"
+                        testId="slider-rehab-budget"
+                      />
                     </>
                   )}
                   
@@ -797,6 +856,41 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </>
               )}
               
+              {/* Finish Level Selector */}
+              <div className="col-span-full bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+                <label className="text-cyan-300 text-sm font-medium mb-3 block drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">
+                  Finish Level
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {FINISH_LEVELS.map((level) => {
+                    const config = FINISH_LEVEL_CONFIG[level];
+                    const isSelected = inputs.finishLevel === level;
+                    const colorMap = level === 'builder'
+                      ? { active: 'bg-cyan-500/20 border-2 border-cyan-400 shadow-lg shadow-cyan-500/20', text: 'text-cyan-300' }
+                      : { active: 'bg-purple-500/20 border-2 border-purple-400 shadow-lg shadow-purple-500/20', text: 'text-purple-300' };
+                    const costLabel = config.costMultiplier === 1.0
+                      ? 'Standard cost'
+                      : `+${Math.round((config.costMultiplier - 1) * 100)}% cost, +${config.arvBoostPct}% value`;
+                    return (
+                      <button
+                        key={level}
+                        onClick={() => { triggerHaptic(); onInputsChange({ ...inputs, finishLevel: level }); }}
+                        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
+                          isSelected ? colorMap.active : 'bg-slate-700/30 border border-slate-600 hover:bg-slate-700/50'
+                        }`}
+                        type="button"
+                      >
+                        <div className={`font-semibold text-sm ${isSelected ? colorMap.text : 'text-gray-400'}`}>
+                          {config.label}
+                        </div>
+                        <div className="text-xs text-gray-500 text-center">{config.description}</div>
+                        <div className={`text-xs ${config.costMultiplier === 1.0 ? 'text-emerald-400' : 'text-amber-400'}`}>{costLabel}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* LTV Slider - always available */}
               <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
                 <label className="text-cyan-300 text-sm font-medium mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)] flex items-center gap-2">
@@ -1413,7 +1507,25 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               {inputs.strategy === 'rent' ? (
                 <>
                   <div className="bg-slate-800/50 rounded-xl p-3">
-                    <div className="text-gray-400 text-xs">Cash-on-Cash</div>
+                    <div className="text-gray-400 text-xs flex items-center gap-1">
+                      Cash-on-Cash
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button type="button" className="text-gray-500 hover:text-gray-300 transition-colors">
+                            <HelpCircle className="w-3.5 h-3.5" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 p-3 z-[200]">
+                          <p className="text-cyan-300 font-semibold text-xs mb-1">Cash-on-Cash Return</p>
+                          <p className="text-gray-300 text-xs mb-2">Your annual cash profit divided by the cash you invested. Like a savings account rate — if you put in $20k and earn $2k/year, that's 10% cash-on-cash.</p>
+                          <div className="border-t border-slate-600 pt-2 space-y-1">
+                            <p className="text-xs"><span className="text-emerald-400 font-semibold">8-10%+</span> <span className="text-gray-400">— Solid rental investment</span></p>
+                            <p className="text-xs"><span className="text-amber-400 font-semibold">4-8%</span> <span className="text-gray-400">— Okay, but stocks may do better</span></p>
+                            <p className="text-xs"><span className="text-red-400 font-semibold">&lt;4%</span> <span className="text-gray-400">— Savings account might beat this</span></p>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                     {canShowReturns ? (
                       <div className={`text-lg font-bold font-mono ${liveOutputs.cashOnCash > 8 ? 'text-emerald-400' : liveOutputs.cashOnCash > 0 ? 'text-amber-400' : 'text-red-400'}`}>
                         {liveOutputs.cashOnCash.toFixed(1)}%
@@ -1440,7 +1552,25 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               ) : (
                 <>
                   <div className="bg-slate-800/50 rounded-xl p-3">
-                    <div className="text-gray-400 text-xs">ROI</div>
+                    <div className="text-gray-400 text-xs flex items-center gap-1">
+                      Return on Investment
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button type="button" className="text-gray-500 hover:text-gray-300 transition-colors">
+                            <HelpCircle className="w-3.5 h-3.5" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent side="top" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 p-3 z-[200]">
+                          <p className="text-cyan-300 font-semibold text-xs mb-1">Return on Investment (ROI)</p>
+                          <p className="text-gray-300 text-xs mb-2">How much profit you made relative to what you invested. Think of it like a savings account — if you put $100k in and earned $20k, that's 20% ROI.</p>
+                          <div className="border-t border-slate-600 pt-2 space-y-1">
+                            <p className="text-xs"><span className="text-emerald-400 font-semibold">20%+</span> <span className="text-gray-400">— Great flip, well done</span></p>
+                            <p className="text-xs"><span className="text-amber-400 font-semibold">10-20%</span> <span className="text-gray-400">— Decent, but thin margin</span></p>
+                            <p className="text-xs"><span className="text-red-400 font-semibold">&lt;10%</span> <span className="text-gray-400">— Risky, one surprise kills profit</span></p>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                     {canShowReturns ? (
                       <div className={`text-lg font-bold font-mono ${flipROI > 20 ? 'text-emerald-400' : flipROI > 10 ? 'text-amber-400' : 'text-red-400'}`}>
                         {flipROI.toFixed(1)}%

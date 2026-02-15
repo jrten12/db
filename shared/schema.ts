@@ -63,6 +63,10 @@ export const properties = pgTable("properties", {
   issuesProfile: jsonb("issues_profile"),
   locationType: text("location_type").notNull().default("suburban"),
   propertyType: text("property_type").notNull().default("house"), // house, apartment, condo, townhouse, duplex
+  bedrooms: integer("bedrooms").notNull().default(3),
+  bathrooms: real("bathrooms").notNull().default(1.5), // 1, 1.5, 2, 2.5, etc.
+  waterSource: text("water_source").notNull().default("public"), // public (city water/sewer) or well (well/septic)
+  heatType: text("heat_type").notNull().default("gas"), // gas, electric, oil, heat_pump
 });
 
 export const propertyInvestigations = pgTable("property_investigations", {

@@ -191,6 +191,9 @@ export async function registerRoutes(
   // Update location types for existing properties (fixes production data)
   await storage.updatePropertyLocationTypes();
 
+  // Backfill bedrooms, bathrooms, water source, heat type for existing properties
+  await storage.backfillPropertyCharacteristics();
+
   // Refresh property prices to new balanced economy values
   await storage.refreshPropertyPrices();
   console.log("Property prices refreshed to new balanced economy values");

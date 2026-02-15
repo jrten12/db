@@ -59,6 +59,32 @@ const FINANCIAL_COLORS = {
   },
 };
 
+// Format property characteristics from DB fields into display labels
+function getPropertyCharacteristics(property: Property) {
+  const { bedrooms, bathrooms, waterSource, heatType, propertyType } = property;
+
+  const waterLabel = waterSource === 'public' ? 'City Water & Sewer' : 'Well & Septic';
+
+  const heatLabelMap: Record<string, string> = {
+    gas: 'Gas Heat',
+    electric: 'Electric Heat',
+    oil: 'Oil Heat',
+    heat_pump: 'Heat Pump',
+  };
+  const heatLabel = heatLabelMap[heatType] || 'Unknown Heat';
+
+  const typeLabels: Record<string, string> = {
+    house: 'Single Family',
+    townhouse: 'Townhouse / Row',
+    condo: 'Condo',
+    apartment: 'Apartment',
+    duplex: 'Duplex',
+  };
+  const typeLabel = typeLabels[propertyType] || 'Single Family';
+
+  return { bedrooms, bathrooms, waterSource, waterLabel, heatType, heatLabel, typeLabel };
+}
+
 const DILIGENCE_COLOR_MAP: Record<string, { primary: keyof typeof FINANCIAL_COLORS; secondary?: keyof typeof FINANCIAL_COLORS }> = {
   market_study: { primary: 'rent' },
   appraisal: { primary: 'arv' },
@@ -310,6 +336,8 @@ export function PropertyDetail({
     : getRevealedIssues(property.name, completedDiligence);
   const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
 
+  const propChars = getPropertyCharacteristics(property);
+
   const handleDiligenceClick = (option: DiligenceOption) => {
     if (!completedDiligence.includes(option.id)) {
       setPendingDiligence(option);
@@ -549,20 +577,42 @@ export function PropertyDetail({
               )}
 
               {/* Property Stats - Fixed Facts */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-emerald-400 text-lg font-bold">{property.sizeSqft.toLocaleString()} sqft</div>
-                  <div className="text-gray-400 text-xs">Square Feet</div>
+                  <div className="text-emerald-400 text-lg font-bold">{property.sizeSqft.toLocaleString()}</div>
+                  <div className="text-gray-400 text-xs">Sq Ft</div>
                 </div>
                 <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                  <div className="text-blue-400 text-sm font-bold">{getNeighborhoodTraits(property.neighborhood)}</div>
-                  <div className="text-gray-400 text-xs">Neighborhood</div>
+                  <div className="text-cyan-400 text-lg font-bold">{propChars.bedrooms}</div>
+                  <div className="text-gray-400 text-xs">Beds</div>
+                </div>
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                  <div className="text-cyan-400 text-lg font-bold">{propChars.bathrooms}</div>
+                  <div className="text-gray-400 text-xs">Baths</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                  <div className="text-blue-400 text-sm font-bold">{propChars.typeLabel}</div>
+                  <div className="text-gray-400 text-xs">Property Type</div>
                 </div>
                 <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
                   <div className={`text-sm font-bold ${property.conditionTag === 'Excellent' ? 'text-emerald-400' : property.conditionTag === 'Good' ? 'text-blue-400' : property.conditionTag === 'Fair' ? 'text-amber-400' : 'text-red-400'}`}>
                     {getConditionDescription(property.conditionTag)}
                   </div>
                   <div className="text-gray-400 text-xs">Condition</div>
+                </div>
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                  <div className="text-gray-300 text-sm font-bold">{propChars.waterLabel}</div>
+                  <div className="text-gray-400 text-xs">Water / Sewer</div>
+                </div>
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                  <div className="text-gray-300 text-sm font-bold">{propChars.heatLabel}</div>
+                  <div className="text-gray-400 text-xs">Heating</div>
+                </div>
+                <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                  <div className="text-blue-400 text-sm font-bold">{getNeighborhoodTraits(property.neighborhood)}</div>
+                  <div className="text-gray-400 text-xs">Neighborhood</div>
                 </div>
                 <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
                   <div className="text-gray-300 text-sm font-bold">${Math.round(property.price / property.sizeSqft)}/sqft</div>
@@ -918,9 +968,10 @@ export function PropertyDetail({
                   >
                     <Clock className={`w-6 h-6 ${contractor === 'cheap' ? 'text-blue-400' : 'text-gray-500'}`} />
                     <div className="text-center">
-                      <div className={`font-semibold text-sm ${contractor === 'cheap' ? 'text-blue-300' : 'text-gray-400'}`}>Cheap & Slow</div>
-                      <div className="text-xs text-amber-400">-2 months penalty</div>
-                      <div className="text-xs text-emerald-400">Standard rehab cost</div>
+                      <div className={`font-semibold text-sm ${contractor === 'cheap' ? 'text-blue-300' : 'text-gray-400'}`}>Sole Operator</div>
+                      <div className="text-xs text-gray-400">One-man crew, does it all</div>
+                      <div className="text-xs text-amber-400">+2 months longer</div>
+                      <div className="text-xs text-emerald-400">Lower cost</div>
                     </div>
                   </button>
                   <button
@@ -934,9 +985,10 @@ export function PropertyDetail({
                   >
                     <Zap className={`w-6 h-6 ${contractor === 'fast' ? 'text-purple-400' : 'text-gray-500'}`} />
                     <div className="text-center">
-                      <div className={`font-semibold text-sm ${contractor === 'fast' ? 'text-purple-300' : 'text-gray-400'}`}>Fast & Expensive</div>
-                      <div className="text-xs text-emerald-400">No time penalty</div>
-                      <div className="text-xs text-red-400">+50% rehab cost</div>
+                      <div className={`font-semibold text-sm ${contractor === 'fast' ? 'text-purple-300' : 'text-gray-400'}`}>Established Crew</div>
+                      <div className="text-xs text-gray-400">Full team, licensed & insured</div>
+                      <div className="text-xs text-emerald-400">On schedule</div>
+                      <div className="text-xs text-red-400">+25-40% rehab cost</div>
                     </div>
                   </button>
                 </div>

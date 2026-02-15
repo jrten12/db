@@ -62,6 +62,9 @@ export const MARKET_RATE_SWING = 0.75; // +/- 0.75% market fluctuation
 // Property Management Settings
 export const PROPERTY_MANAGEMENT_FEE_PCT = 5; // Fixed 5% of rent revenue when hired
 
+// Rehab budget cap when diligence hasn't been performed (wider range to account for unknowns)
+export const UNKNOWN_REHAB_BUDGET_MULTIPLIER = 1.5;
+
 // Time Penalties (in weeks)
 export const TIME_PENALTY_SELF_MANAGED = 1; // 1 week penalty if self-managing (no property manager)
 export const TIME_PENALTY_TENANT_PAYS_UTILITIES = 2; // 2 weeks to set up tenant-paid utilities

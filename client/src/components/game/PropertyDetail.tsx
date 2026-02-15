@@ -433,9 +433,12 @@ export function PropertyDetail({
         }}
       >
         <div className="px-4 md:px-6 py-4 pb-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
-            {/* Left Column - Property Info (5 cols) */}
-            <div className="lg:col-span-5 space-y-4">
+          <div className="space-y-4 md:space-y-5 max-w-5xl mx-auto">
+
+            {/* SECTION 1: Image + Property Stats side by side on desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              {/* Left: Image Gallery */}
+              <div className="space-y-3">
               {/* Main Image Gallery */}
               <div className="relative rounded-xl overflow-hidden aspect-video shadow-lg bg-slate-900">
                 <img
@@ -547,9 +550,12 @@ export function PropertyDetail({
                   ))}
                 </div>
               )}
+              </div>
 
-              {/* Property Stats - Fixed Facts */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Right: Property Stats + Unknown Financials */}
+              <div className="space-y-3">
+                {/* Property Stats - Fixed Facts */}
+                <div className="grid grid-cols-2 gap-3">
                 <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
                   <div className="text-emerald-400 text-lg font-bold">{property.sizeSqft.toLocaleString()} sqft</div>
                   <div className="text-gray-400 text-xs">Square Feet</div>
@@ -641,8 +647,10 @@ export function PropertyDetail({
                   </p>
                 )}
               </div>
+              </div>
+            </div>
 
-              {/* Due Diligence Section - Enhanced with gradients and colors */}
+            {/* SECTION 2: Due Diligence - FULL WIDTH */}
               <div className="bg-gradient-to-br from-indigo-900/30 via-purple-900/20 to-slate-800/50 rounded-xl p-4 border border-indigo-500/30 shadow-lg shadow-indigo-500/10" data-testid="due-diligence-section">
                 <h3 className="text-indigo-300 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
                   <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow shadow-indigo-500/50">
@@ -839,12 +847,10 @@ export function PropertyDetail({
                   )}
                 </div>
               )}
-            </div>
 
-            {/* Right Column - Analysis & Actions (7 cols) */}
-            <div className="lg:col-span-7 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Strategy */}
+            {/* SECTION 5: Strategy + Contractor side by side on desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              {/* Strategy */}
                 <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
                   <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">Choose Your Strategy</h3>
                   <div className="space-y-2">
@@ -874,31 +880,6 @@ export function PropertyDetail({
                     </button>
                   </div>
                 </div>
-
-              </div>
-
-              {/* Timeline Risk Explanation */}
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
-                    <Clock className="w-4 h-4" /> Timeline Risk Analysis
-                  </h3>
-                  <span className={`text-sm font-semibold ${timelineRisk.color}`}>{timelineRisk.level}</span>
-                </div>
-                <p className="text-sm text-gray-400">{timelineRisk.explanation}</p>
-                {revealedIssues.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-slate-700">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Known repair timeline:</span>
-                      <span className="text-amber-400 font-semibold">+{getTotalTimelineImpact(revealedIssues)} months</span>
-                    </div>
-                    <div className="flex justify-between text-sm mt-1">
-                      <span className="text-gray-500">Known repair costs:</span>
-                      <span className="text-red-400 font-mono">{formatCurrency(revealedCostRange.min)} - {formatCurrency(revealedCostRange.max)}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
 
               {/* Contractor Choice - Select before making offer */}
               <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
@@ -941,66 +922,87 @@ export function PropertyDetail({
                   </button>
                 </div>
               </div>
+            </div>
 
-              {/* Deal Outcome Unknown */}
-              <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur rounded-xl p-4 border border-slate-600">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
-                    <Lock className="w-5 h-5 text-gray-400" />
+            {/* Timeline Risk Analysis - full width */}
+            <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+                  <Clock className="w-4 h-4" /> Timeline Risk Analysis
+                </h3>
+                <span className={`text-sm font-semibold ${timelineRisk.color}`}>{timelineRisk.level}</span>
+              </div>
+              <p className="text-sm text-gray-400">{timelineRisk.explanation}</p>
+              {revealedIssues.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-slate-700">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Known repair timeline:</span>
+                    <span className="text-amber-400 font-semibold">+{getTotalTimelineImpact(revealedIssues)} months</span>
                   </div>
-                  <div>
-                    <h3 className="text-white font-semibold">Deal Outcome Unknown</h3>
-                    <p className="text-gray-400 text-xs">Build a pro forma to determine viability</p>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-gray-500">Known repair costs:</span>
+                    <span className="text-red-400 font-mono">{formatCurrency(revealedCostRange.min)} - {formatCurrency(revealedCostRange.max)}</span>
                   </div>
                 </div>
-                <div className="space-y-2 mt-3 pt-3 border-t border-slate-700">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-300">Diligence completed:</span>
-                    <span className="text-emerald-400 font-medium">{completedDiligence.length}/3</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-300">Issues discovered:</span>
-                    <span className={revealedIssues.length > 0 ? 'text-amber-400' : 'text-gray-500'}>{revealedIssues.length} known{hasUnrevealedIssues && ' (more possible)'}</span>
-                  </div>
+              )}
+            </div>
+
+            {/* SECTION 6: Deal Outcome + Action Buttons - FULL WIDTH */}
+            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur rounded-xl p-4 border border-slate-600">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                  <Lock className="w-5 h-5 text-gray-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold">Deal Outcome Unknown</h3>
+                  <p className="text-gray-400 text-xs">Build a pro forma to determine viability</p>
                 </div>
               </div>
-
-              {/* Action Buttons - PRO FORMA REQUIRED BEFORE OFFER */}
-              <div className="space-y-3">
-                {/* PRIMARY: View Pro Forma */}
-                <button 
-                  onClick={() => {
-                    playProformaChime();
-                    onOpenProForma(strategy, contractor);
-                  }}
-                  className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-xl font-bold text-base transition-all shadow-lg shadow-emerald-500/30"
-                  data-testid="button-pro-forma"
-                >
-                  Build Pro Forma
-                </button>
-                
-                {/* Make Offer - LOCKED until pro forma complete */}
-                <button 
-                  disabled={!isProFormaComplete}
-                  className={`w-full px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
-                    isProFormaComplete
-                      ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30'
-                      : 'bg-slate-700/30 text-gray-500 border border-slate-600 cursor-not-allowed'
-                  }`}
-                  data-testid="button-make-offer"
-                >
-                  {!isProFormaComplete && <Lock className="w-4 h-4" />}
-                  {isProFormaComplete ? 'Make Offer' : 'Complete Pro Forma to Make Offer'}
-                </button>
-
-                <button 
-                  onClick={onPass}
-                  className="w-full px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-xl font-semibold text-sm transition-all"
-                  data-testid="button-pass"
-                >
-                  Pass on Property
-                </button>
+              <div className="space-y-2 mt-3 pt-3 border-t border-slate-700">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-300">Diligence completed:</span>
+                  <span className="text-emerald-400 font-medium">{completedDiligence.length}/3</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-300">Issues discovered:</span>
+                  <span className={revealedIssues.length > 0 ? 'text-amber-400' : 'text-gray-500'}>{revealedIssues.length} known{hasUnrevealedIssues && ' (more possible)'}</span>
+                </div>
               </div>
+            </div>
+
+            {/* Action Buttons - PRO FORMA REQUIRED BEFORE OFFER */}
+            <div className="space-y-3">
+              <button 
+                onClick={() => {
+                  playProformaChime();
+                  onOpenProForma(strategy, contractor);
+                }}
+                className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-xl font-bold text-base transition-all shadow-lg shadow-emerald-500/30"
+                data-testid="button-pro-forma"
+              >
+                Build Pro Forma
+              </button>
+              
+              <button 
+                disabled={!isProFormaComplete}
+                className={`w-full px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+                  isProFormaComplete
+                    ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30'
+                    : 'bg-slate-700/30 text-gray-500 border border-slate-600 cursor-not-allowed'
+                }`}
+                data-testid="button-make-offer"
+              >
+                {!isProFormaComplete && <Lock className="w-4 h-4" />}
+                {isProFormaComplete ? 'Make Offer' : 'Complete Pro Forma to Make Offer'}
+              </button>
+
+              <button 
+                onClick={onPass}
+                className="w-full px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-xl font-semibold text-sm transition-all"
+                data-testid="button-pass"
+              >
+                Pass on Property
+              </button>
             </div>
           </div>
         </div>

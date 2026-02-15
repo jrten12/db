@@ -20,6 +20,10 @@ export default function Footer() {
             <Link href="/privacy" className="text-emerald-400/80 hover:text-emerald-400 active:text-emerald-300 transition-colors touch-target-sm inline-flex items-center justify-center tap-scale">
               Privacy Policy
             </Link>
+            <span className="text-gray-700 hidden sm:inline">&bull;</span>
+            <Link href="/methodology" className="text-emerald-400/80 hover:text-emerald-400 active:text-emerald-300 transition-colors touch-target-sm inline-flex items-center justify-center tap-scale">
+              Methodology
+            </Link>
           </div>
 
           <span className="text-gray-600 text-xs sm:text-sm text-center">

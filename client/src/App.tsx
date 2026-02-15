@@ -13,6 +13,7 @@ import Landing from "@/pages/Landing";
 import Game from "@/pages/Game";
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import Methodology from "@/pages/Methodology";
 
 interface SplashContextType {
   showSplashScreen: () => void;
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/game" component={Game} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/methodology" component={Methodology} />
       <Route component={NotFound} />
     </Switch>
   );

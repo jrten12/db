@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { Play, Trophy, Award, BookOpen, Zap, Wallet, Clock, Target, Sparkles } from 'lucide-react';
+import { Play, Trophy, Award, BookOpen, Zap, Wallet, Clock, Target, Sparkles, RotateCcw } from 'lucide-react';
 import { TrophyShelf } from './TrophyShelf';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 import { formatCurrency } from '@/lib/gameData';
+import { useState } from 'react';
 
 interface GameHomeScreenProps {
   playerName: string;
@@ -12,6 +13,7 @@ interface GameHomeScreenProps {
   onBadges: () => void;
   onTutorial: () => void;
   onSettings: () => void;
+  onRestartGame?: () => void;
   earnedTrophies?: string[];
   cash?: number;
   weeksRemaining?: number;
@@ -27,6 +29,7 @@ export function GameHomeScreen({
   onBadges,
   onTutorial,
   onSettings,
+  onRestartGame,
   earnedTrophies = [],
   cash,
   weeksRemaining,
@@ -34,6 +37,7 @@ export function GameHomeScreen({
   goalDeals,
 }: GameHomeScreenProps) {
   const totalTrophies = 11;
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false);
 
   return (
     <div className="min-h-screen min-h-[100dvh] flex flex-col items-center justify-start px-4 py-8 md:py-12 overflow-y-auto">
@@ -143,6 +147,18 @@ export function GameHomeScreen({
             POWER-UPS
             <Sparkles className="w-4 h-4 ml-1 opacity-70" />
           </button>
+
+          {hasActiveGame && onRestartGame && (
+            <button
+              onClick={() => setShowRestartConfirm(true)}
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-red-500/15 to-red-600/15 hover:from-red-500/25 hover:to-red-600/25 active:from-red-500/35 active:to-red-600/35 backdrop-blur-md rounded-xl border border-red-500/25 text-red-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+              data-testid="button-restart-game"
+              data-sound="swoosh"
+            >
+              <RotateCcw className="w-5 h-5" />
+              RESTART GAME
+            </button>
+          )}
         </div>
 
         {earnedTrophies.length > 0 && (
@@ -151,6 +167,38 @@ export function GameHomeScreen({
           </div>
         )}
       </div>
+
+      {showRestartConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+          <div className="bg-slate-900 border border-red-500/30 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+            <h3 className="text-lg font-bold text-white text-center mb-2">
+              Start Over?
+            </h3>
+            <p className="text-sm text-gray-400 text-center mb-6">
+              Your current game will be saved to the Hall of Fame, and you'll start fresh with a new game.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowRestartConfirm(false)}
+                className="flex-1 px-4 py-3 bg-slate-700/80 hover:bg-slate-700 rounded-xl text-gray-300 font-semibold transition-colors touch-target"
+                data-testid="button-restart-cancel"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowRestartConfirm(false);
+                  onRestartGame?.();
+                }}
+                className="flex-1 px-4 py-3 bg-red-600/80 hover:bg-red-600 rounded-xl text-white font-semibold transition-colors touch-target"
+                data-testid="button-restart-confirm"
+              >
+                Restart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

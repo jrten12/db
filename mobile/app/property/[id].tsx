@@ -27,7 +27,7 @@ interface Property {
 type Strategy = 'rent' | 'flip';
 type Contractor = 'cheap' | 'fast';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://dealbreaksimulator.com';
 
 const DILIGENCE_OPTIONS = [
   {

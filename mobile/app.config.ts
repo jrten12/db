@@ -21,7 +21,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSAppTransportSecurity: {
         NSAllowsArbitraryLoads: false,
       },
-      NSUserTrackingUsageDescription: 'This identifier will be used to deliver personalized ads to you.',
       ITSAppUsesNonExemptEncryption: false,
     },
   },
@@ -41,15 +40,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       projectId: 'ca795b33-d8b3-480f-95b6-f2219ff7c326',
     },
   },
-  plugins: [
-    [
-      'react-native-google-mobile-ads',
-      {
-        androidAppId: 'ca-app-pub-3940256099942544~3347511713',
-        iosAppId: 'ca-app-pub-3940256099942544~1458002511',
-      },
-    ],
-  ],
+  plugins: [],
   runtimeVersion: {
     policy: 'appVersion',
   },

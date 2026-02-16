@@ -1350,6 +1350,17 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           totalIssueCount: allIssuesCount,
           repairCompletionFactor,
         });
+
+        // Collect first rent payment at the NEW rate now that tenant is back
+        // Use currentWeek + 1 so rent entry appears in the same month as rehab completion
+        const updatedDeal = await storage.getDeal(deal.id);
+        if (updatedDeal) {
+          const gameRunForRent = { ...gameRun, currentWeek: gameRun.currentWeek + 1 };
+          const result = await processRentalIncome(updatedDeal, gameRunForRent, undefined, runningCash);
+          runningCash = result.newCash;
+          rentalPayments.push(result);
+          await storage.updateDeal(deal.id, { lastIncomePaymentWeek: gameRun.currentWeek + 1 });
+        }
       } else {
         // Update weeks remaining
         await storage.updateDeal(deal.id, {

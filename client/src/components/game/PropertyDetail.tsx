@@ -3,7 +3,6 @@ import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Sh
 import { formatCurrency, MARKET_DEFAULTS, getPropertyBasedDefaults } from '@/lib/gameData';
 import { getPropertyImage, getConditionAdjustedInteriors, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getRandomizedPropertyIssues, getRevealedRandomizedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { playProformaChime, playPurchaseConfirmSound } from '@/hooks/useClickSound';
 import type { Property } from '@shared/schema';
@@ -122,29 +121,53 @@ const FINANCIAL_TERM_TOOLTIPS: Record<string, { title: string; definition: strin
 
 function FinancialTermInfo({ type, isKnown }: { type: keyof typeof FINANCIAL_TERM_TOOLTIPS; isKnown: boolean }) {
   const tooltip = FINANCIAL_TERM_TOOLTIPS[type];
+  const [open, setOpen] = useState(false);
   
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button 
-          type="button" 
-          className="p-1.5 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70 min-w-[28px] min-h-[28px] flex items-center justify-center"
-          aria-label={`Learn about ${tooltip.title}`}
+    <>
+      <button 
+        type="button" 
+        className="p-1.5 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70 min-w-[28px] min-h-[28px] flex items-center justify-center relative z-10"
+        aria-label={`Learn about ${tooltip.title}`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen(true);
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        data-testid={`help-${type}`}
+      >
+        <HelpCircle className="w-5 h-5 text-gray-400 hover:text-gray-200" />
+      </button>
+      {open && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+          onClick={(e) => { e.stopPropagation(); setOpen(false); }}
+          onPointerDown={(e) => e.stopPropagation()}
         >
-          <HelpCircle className="w-5 h-5 text-gray-400 hover:text-gray-200" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent side="top" align="center" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-4 z-[100]">
-        <div className="space-y-2">
-          <p className="font-semibold text-white">{tooltip.title}</p>
-          <p className="text-gray-300 text-xs">{tooltip.definition}</p>
-          <p className="text-amber-400 text-xs"><strong>Why it matters:</strong> {tooltip.whyItMatters}</p>
-          {!isKnown && tooltip.unknownAction && (
-            <p className="text-emerald-400 text-xs mt-2">→ {tooltip.unknownAction}</p>
-          )}
+          <div 
+            className="max-w-sm w-full bg-slate-800 border border-slate-600 text-gray-200 text-sm p-5 rounded-2xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-2">
+              <p className="font-semibold text-white text-base">{tooltip.title}</p>
+              <p className="text-gray-300 text-sm">{tooltip.definition}</p>
+              <p className="text-amber-400 text-sm"><strong>Why it matters:</strong> {tooltip.whyItMatters}</p>
+              {!isKnown && tooltip.unknownAction && (
+                <p className="text-emerald-400 text-sm mt-2">{tooltip.unknownAction}</p>
+              )}
+            </div>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setOpen(false); }}
+              className="mt-4 w-full py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded-xl text-white font-semibold text-sm transition-colors touch-target"
+              data-testid={`help-${type}-close`}
+            >
+              Got it
+            </button>
+          </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      )}
+    </>
   );
 }
 
@@ -201,40 +224,103 @@ const DILIGENCE_EDUCATION_TOOLTIPS: Record<string, { realWorldSource: string; to
 
 function DiligenceEducationTooltip({ diligenceId }: { diligenceId: string }) {
   const education = DILIGENCE_EDUCATION_TOOLTIPS[diligenceId];
+  const [open, setOpen] = useState(false);
   if (!education) return null;
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <span
-          className="p-1.5 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70 cursor-help inline-flex items-center justify-center min-w-[28px] min-h-[28px]"
-          onClick={(e) => e.stopPropagation()}
-          aria-label="Learn about real-world data sources"
-          role="button"
-          tabIndex={0}
+    <>
+      <button
+        type="button"
+        className="p-1.5 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70 cursor-help inline-flex items-center justify-center min-w-[28px] min-h-[28px]"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen(true);
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        aria-label="Learn about real-world data sources"
+        data-testid={`help-diligence-${diligenceId}`}
+      >
+        <HelpCircle className="w-5 h-5 text-blue-400 hover:text-blue-300" />
+      </button>
+      {open && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+          onClick={(e) => { e.stopPropagation(); setOpen(false); }}
+          onPointerDown={(e) => e.stopPropagation()}
         >
-          <HelpCircle className="w-5 h-5 text-blue-400 hover:text-blue-300" />
-        </span>
-      </PopoverTrigger>
-      <PopoverContent side="bottom" align="center" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4 z-[100]">
-        <div className="space-y-2">
-          <p className="font-semibold text-blue-400">📚 How Real Investors Get This Data</p>
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Common Sources:</p>
-            <p className="text-gray-300 text-xs">{education.tools}</p>
+          <div 
+            className="max-w-sm w-full bg-slate-800 border border-blue-500/50 text-gray-200 text-sm p-5 rounded-2xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-3">
+              <p className="font-semibold text-blue-400 text-base">How Real Investors Get This Data</p>
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Common Sources:</p>
+                <p className="text-gray-300 text-sm">{education.tools}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Typical Process:</p>
+                <p className="text-gray-300 text-sm">{education.howTo}</p>
+              </div>
+              <p className="text-emerald-400 text-sm italic">{education.realWorldSource}</p>
+            </div>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setOpen(false); }}
+              className="mt-4 w-full py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded-xl text-white font-semibold text-sm transition-colors touch-target"
+              data-testid={`help-diligence-${diligenceId}-close`}
+            >
+              Got it
+            </button>
           </div>
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Typical Process:</p>
-            <p className="text-gray-300 text-xs">{education.howTo}</p>
-          </div>
-          <p className="text-emerald-400 text-xs mt-2 italic">💡 {education.realWorldSource}</p>
         </div>
-      </PopoverContent>
-    </Popover>
+      )}
+    </>
+  );
+}
+
+function FinancialEstimatesHelp() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        className="cursor-help touch-manipulation p-2 -m-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(true); }}
+        onPointerDown={(e) => e.stopPropagation()}
+        aria-label="Why these are estimates"
+        data-testid="help-financial-estimates"
+      >
+        <HelpCircle className="w-4 h-4 text-amber-400 hover:text-amber-300 transition-colors" />
+      </button>
+      {open && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+          onClick={(e) => { e.stopPropagation(); setOpen(false); }}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <div className="max-w-sm w-full bg-slate-800 border border-amber-500/50 text-gray-200 text-sm p-5 rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="space-y-3">
+              <p className="font-semibold text-amber-400 text-base">Why These Are Estimates</p>
+              <p className="text-gray-300">These financial numbers are uncertain until you do your homework. In real estate, guessing wrong on rent, repair costs, or timeline can turn a "great deal" into a money pit.</p>
+              <p className="text-emerald-400 text-sm">Complete due diligence investigations below to narrow down these ranges and reduce your risk.</p>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); setOpen(false); }}
+              className="mt-4 w-full py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded-xl text-white font-semibold text-sm transition-colors touch-target"
+              data-testid="help-financial-estimates-close"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
 function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNKNOWN_VALUE_TOOLTIPS; isKnown: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
   const tooltip = UNKNOWN_VALUE_TOOLTIPS[type];
   
   if (isKnown) {
@@ -242,18 +328,44 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
   }
   
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <span className="cursor-help touch-manipulation active:opacity-70 block">{children}</span>
-      </PopoverTrigger>
-      <PopoverContent side="top" align="center" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4 z-[100]">
-        <div className="space-y-2">
-          <p className="font-semibold text-amber-400">{tooltip.title}</p>
-          <p className="text-gray-300">{tooltip.explanation}</p>
-          <p className="text-emerald-400 text-xs mt-2">→ {tooltip.action}</p>
+    <>
+      <div 
+        className="cursor-help touch-manipulation active:opacity-70 block"
+        onClick={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-testid^="help-"]')) return;
+          e.stopPropagation();
+          setOpen(true);
+        }}
+      >
+        {children}
+      </div>
+      {open && (
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+          onClick={(e) => { e.stopPropagation(); setOpen(false); }}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <div 
+            className="max-w-sm w-full bg-slate-800 border border-amber-500/50 text-gray-200 text-sm p-5 rounded-2xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-2">
+              <p className="font-semibold text-amber-400 text-base">{tooltip.title}</p>
+              <p className="text-gray-300 text-sm">{tooltip.explanation}</p>
+              <p className="text-emerald-400 text-sm mt-2">{tooltip.action}</p>
+            </div>
+            <button 
+              onClick={(e) => { e.stopPropagation(); setOpen(false); }}
+              className="mt-4 w-full py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded-xl text-white font-semibold text-sm transition-colors touch-target"
+              data-testid={`unknown-${type}-close`}
+            >
+              Got it
+            </button>
+          </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      )}
+    </>
   );
 }
 
@@ -688,20 +800,7 @@ export function PropertyDetail({
               {/* Unknown Financials Section */}
               <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-600/50">
                 <h4 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button type="button" className="cursor-help touch-manipulation p-2 -m-2 min-w-[44px] min-h-[44px] flex items-center justify-center">
-                        <HelpCircle className="w-4 h-4 text-amber-400 hover:text-amber-300 transition-colors" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent side="bottom" align="start" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-sm bg-slate-800 border-amber-500/50 text-gray-200 text-sm p-4 z-[100]">
-                      <div className="space-y-2">
-                        <p className="font-semibold text-amber-400">Why These Are Estimates</p>
-                        <p className="text-gray-300">These financial numbers are uncertain until you do your homework. In real estate, guessing wrong on rent, repair costs, or timeline can turn a "great deal" into a money pit.</p>
-                        <p className="text-emerald-400 text-xs mt-2">→ Complete due diligence investigations below to narrow down these ranges and reduce your risk.</p>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
+                  <FinancialEstimatesHelp />
                   Financial Estimates
                 </h4>
                 <div className="grid grid-cols-2 gap-3">

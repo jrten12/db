@@ -1150,6 +1150,12 @@ export default function Game() {
       queryClient.invalidateQueries({ queryKey: ['deals'] });
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
 
+      // If player went bankrupt this week, stop processing immediately
+      if (updatedGameRun.cash < 0) {
+        setCurrentScreen('market');
+        return;
+      }
+
       // Create tenants for newly activated rentals and possibly trigger text messages
       try {
         const updatedDeals = await api.getDeals(gameRun.id);
@@ -1483,6 +1489,19 @@ export default function Game() {
 
   // Check if player is bankrupt (cash below zero)
   const isBankrupt = gameRun && gameRun.cash < 0;
+  
+  // When bankruptcy is detected, clean up any in-progress state and ensure market screen
+  useEffect(() => {
+    if (isBankrupt) {
+      setIsCommittingDeal(false);
+      setDealOutcome(null);
+      setShowPremiumModal(false);
+      setTenantTextPopup({ isOpen: false, tenant: null, message: '' });
+      if (currentScreen === 'results' || currentScreen === 'detail' || currentScreen === 'proforma') {
+        setCurrentScreen('market');
+      }
+    }
+  }, [isBankrupt]);
   
   // Derived state: is the player frozen (out of weeks)?
   const isPlayerFrozen = gameRun?.weeksRemaining !== undefined && gameRun.weeksRemaining <= 0 && !isBankrupt;
@@ -1961,6 +1980,14 @@ export default function Game() {
           loanAmount={dealOutcome?.loanAmount || 0}
           strategy={dealOutcome?.strategy || 'rent'}
           onComplete={() => {
+            // If player went bankrupt from this deal (surprise costs), skip results
+            if (gameRun && gameRun.cash < 0) {
+              setCurrentScreen('market');
+              setIsCommittingDeal(false);
+              setDealOutcome(null);
+              return;
+            }
+            
             const isFirstDeal = deals.length === 0;
             const didDueDiligence = selectedProperty ? 
               (completedDiligence[selectedProperty.id] || []).length >= 2 : false;

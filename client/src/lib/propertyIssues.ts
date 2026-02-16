@@ -825,6 +825,7 @@ const ISSUE_POOLS: Record<string, PropertyIssue[]> = {
     { id: 'asbestos_tiles', name: 'Asbestos Floor Tiles', severity: 'moderate', costRangeMin: 4000, costRangeMax: 10000, timelineImpactWeeks: 2, description: 'Original floor tiles contain asbestos, require abatement', discoveredBy: ['inspection'] },
     { id: 'lead_paint', name: 'Lead Paint', severity: 'moderate', costRangeMin: 5000, costRangeMax: 12000, timelineImpactWeeks: 2, description: 'Lead paint present, abatement required for sale or rental', discoveredBy: ['inspection'] },
     { id: 'septic_issues', name: 'Septic System Concerns', severity: 'moderate', costRangeMin: 5000, costRangeMax: 20000, timelineImpactWeeks: 3, description: 'Septic system age unknown, may need pumping or replacement', discoveredBy: ['inspection'] },
+    { id: 'well_water', name: 'Well System Age', severity: 'mild', costRangeMin: 2000, costRangeMax: 5000, timelineImpactWeeks: 1, description: 'Well pump showing age, water testing recommended', discoveredBy: ['inspection'] },
     { id: 'chimney_rebuild', name: 'Chimney Rebuild', severity: 'moderate', costRangeMin: 4000, costRangeMax: 10000, timelineImpactWeeks: 2, description: 'Chimney masonry deteriorating, needs rebuild above roofline', discoveredBy: ['contractor_walkthrough'] },
     { id: 'siding_damage', name: 'Siding Damage', severity: 'mild', costRangeMin: 3000, costRangeMax: 8000, timelineImpactWeeks: 1, description: 'Sections of siding damaged by weather or impact', discoveredBy: ['contractor_walkthrough'] },
     { id: 'porch_rot', name: 'Porch Wood Rot', severity: 'mild', costRangeMin: 2000, costRangeMax: 6000, timelineImpactWeeks: 1, description: 'Porch columns and flooring show signs of rot', discoveredBy: ['contractor_walkthrough'] },
@@ -843,6 +844,8 @@ const ISSUE_POOLS: Record<string, PropertyIssue[]> = {
     { id: 'appliance_age', name: 'Aging Appliances', severity: 'mild', costRangeMin: 2000, costRangeMax: 6000, timelineImpactWeeks: 1, description: 'Kitchen appliances at end of life, need replacement', discoveredBy: ['contractor_walkthrough'] },
     { id: 'bathroom_outdated', name: 'Outdated Bathroom', severity: 'mild', costRangeMin: 4000, costRangeMax: 12000, timelineImpactWeeks: 2, description: 'Bathroom fixtures and finishes are dated', discoveredBy: ['contractor_walkthrough'] },
     { id: 'special_assessment_pending', name: 'Special Assessment Pending', severity: 'severe', costRangeMin: 8000, costRangeMax: 25000, timelineImpactWeeks: 0, description: 'Major building repair assessment pending approval', discoveredBy: ['title_search'] },
+    { id: 'parking_issues', name: 'Parking Situation', severity: 'mild', costRangeMin: 0, costRangeMax: 0, timelineImpactWeeks: 0, description: 'Limited parking, may affect resale or rental', discoveredBy: ['contractor_walkthrough'] },
+    { id: 'building_systems', name: 'Building Systems Age', severity: 'mild', costRangeMin: 0, costRangeMax: 0, timelineImpactWeeks: 0, description: 'Elevator and common area systems showing age', discoveredBy: ['inspection'] },
   ],
   townhouse: [
     { id: 'roof_shared', name: 'Shared Roof Concerns', severity: 'moderate', costRangeMin: 5000, costRangeMax: 12000, timelineImpactWeeks: 2, description: 'Roof shared with neighbors, coordination needed for repairs', discoveredBy: ['contractor_walkthrough'] },
@@ -853,6 +856,7 @@ const ISSUE_POOLS: Record<string, PropertyIssue[]> = {
     { id: 'outdated_hvac', name: 'Outdated HVAC', severity: 'moderate', costRangeMin: 4000, costRangeMax: 9000, timelineImpactWeeks: 2, description: 'HVAC system needs update', discoveredBy: ['contractor_walkthrough'] },
     { id: 'electrical_outdated', name: 'Electrical Upgrade Needed', severity: 'moderate', costRangeMin: 3000, costRangeMax: 7000, timelineImpactWeeks: 2, description: 'Panel insufficient for modern usage', discoveredBy: ['contractor_walkthrough', 'inspection'] },
     { id: 'plumbing_galvanized', name: 'Old Plumbing', severity: 'moderate', costRangeMin: 5000, costRangeMax: 12000, timelineImpactWeeks: 2, description: 'Galvanized pipes showing corrosion', discoveredBy: ['contractor_walkthrough'] },
+    { id: 'narrow_lot_access', name: 'Limited Access', severity: 'mild', costRangeMin: 0, costRangeMax: 0, timelineImpactWeeks: 0, description: 'Narrow lot limits renovation access, may increase costs', discoveredBy: ['contractor_walkthrough'] },
     { id: 'structural_settling', name: 'Settling Issues', severity: 'moderate', costRangeMin: 4000, costRangeMax: 10000, timelineImpactWeeks: 2, description: 'Building shows settling, cracked plaster throughout', discoveredBy: ['contractor_walkthrough', 'inspection'] },
     { id: 'knob_tube_wiring', name: 'Knob & Tube Wiring', severity: 'severe', costRangeMin: 8000, costRangeMax: 18000, timelineImpactWeeks: 3, description: 'Old wiring present, full rewire recommended', discoveredBy: ['inspection'] },
     { id: 'lead_paint', name: 'Lead Paint Present', severity: 'moderate', costRangeMin: 4000, costRangeMax: 10000, timelineImpactWeeks: 2, description: 'Lead paint in older home requires abatement', discoveredBy: ['inspection'] },
@@ -868,6 +872,7 @@ const ISSUE_POOLS: Record<string, PropertyIssue[]> = {
     { id: 'cosmetic_both_units', name: 'Cosmetic Updates Both Units', severity: 'mild', costRangeMin: 6000, costRangeMax: 15000, timelineImpactWeeks: 2, description: 'Both units need paint, flooring, and fixture updates', discoveredBy: ['contractor_walkthrough'] },
     { id: 'drainage_issues', name: 'Drainage Concerns', severity: 'mild', costRangeMin: 3000, costRangeMax: 7000, timelineImpactWeeks: 1, description: 'Poor grading causing water issues around foundation', discoveredBy: ['inspection'] },
     { id: 'lead_paint', name: 'Lead Paint (Both Units)', severity: 'moderate', costRangeMin: 8000, costRangeMax: 20000, timelineImpactWeeks: 3, description: 'Lead paint present in both units, abatement needed', discoveredBy: ['inspection'] },
+    { id: 'separate_meters', name: 'Meter Separation Needed', severity: 'mild', costRangeMin: 1500, costRangeMax: 4000, timelineImpactWeeks: 1, description: 'Electric/gas meters not separate, complicates tenant billing', discoveredBy: ['inspection'] },
   ],
   loft: [
     { id: 'industrial_conversion', name: 'Industrial Conversion Issues', severity: 'moderate', costRangeMin: 5000, costRangeMax: 15000, timelineImpactWeeks: 3, description: 'Former industrial space has non-residential quirks', discoveredBy: ['contractor_walkthrough', 'inspection'] },
@@ -876,22 +881,24 @@ const ISSUE_POOLS: Record<string, PropertyIssue[]> = {
     { id: 'hoa_assessment', name: 'Building Assessment', severity: 'moderate', costRangeMin: 4000, costRangeMax: 12000, timelineImpactWeeks: 0, description: 'Building assessment for facade or systems repair', discoveredBy: ['title_search'] },
     { id: 'window_replacement', name: 'Industrial Windows', severity: 'moderate', costRangeMin: 6000, costRangeMax: 15000, timelineImpactWeeks: 2, description: 'Large industrial windows inefficient, need updating', discoveredBy: ['contractor_walkthrough'] },
     { id: 'fire_suppression', name: 'Fire Suppression System', severity: 'mild', costRangeMin: 2000, costRangeMax: 5000, timelineImpactWeeks: 1, description: 'Fire suppression system needs inspection and updates', discoveredBy: ['inspection'] },
+    { id: 'loading_dock', name: 'Loading Dock Area', severity: 'mild', costRangeMin: 0, costRangeMax: 0, timelineImpactWeeks: 0, description: 'Building access through former loading area, limited appeal', discoveredBy: ['contractor_walkthrough'] },
     { id: 'elevator_issues', name: 'Freight Elevator Age', severity: 'moderate', costRangeMin: 5000, costRangeMax: 15000, timelineImpactWeeks: 0, description: 'Building elevator is old freight system, expensive to maintain', discoveredBy: ['inspection'] },
   ],
 };
 
 const ISSUE_CONFLICT_GROUPS: string[][] = [
-  ['roof_wear', 'roof_replacement', 'roof_shared'],
-  ['foundation_settling', 'foundation_major'],
-  ['outdated_hvac', 'hvac_commercial'],
-  ['electrical_outdated', 'electrical_upgrade'],
-  ['plumbing_galvanized', 'plumbing_shared', 'plumbing_stack'],
+  ['roof_replacement', 'roof_wear', 'roof_shared', 'roof_historic', 'barn_roof'],
+  ['plumbing_stack', 'plumbing_galvanized', 'plumbing_shared', 'plumbing_replacement'],
+  ['foundation_major', 'foundation_settling', 'foundation_stone', 'structural_settling'],
+  ['hvac_replacement', 'hvac_commercial', 'hvac_high_rise', 'outdated_hvac', 'dual_hvac'],
+  ['knob_tube_wiring', 'knob_tube', 'electrical_outdated', 'electrical_upgrade'],
+  ['utility_separation', 'separate_meters', 'separate_utilities'],
+  ['septic_issues', 'septic_maintenance', 'well_water', 'well_system'],
   ['hoa_assessment', 'hoa_assessment_pending', 'hoa_reserve_low', 'special_assessment_pending'],
   ['deferred_maintenance', 'cosmetic_updates', 'cosmetic_both_units'],
   ['drainage_issues', 'tree_root_damage'],
   ['party_wall', 'shared_wall_issues'],
   ['siding_damage', 'brick_repointing'],
-  ['septic_issues', 'septic_maintenance', 'well_water', 'well_system'],
 ];
 
 const WELL_ONLY_ISSUE_IDS = new Set([

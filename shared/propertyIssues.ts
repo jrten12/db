@@ -902,20 +902,18 @@ function seededRandom(seed: number): () => number {
 // Conflict groups: when a "major" issue is present, "minor" related issues are excluded
 // The first item in each group is the major issue, rest are excluded if major is present
 const CONFLICT_GROUPS: string[][] = [
-  // Roof conflicts: full replacement excludes minor wear issues
   ['roof_replacement', 'roof_wear', 'roof_shared', 'roof_historic', 'barn_roof'],
-  // Plumbing conflicts: full replacement excludes partial issues
   ['plumbing_stack', 'plumbing_galvanized', 'plumbing_shared', 'plumbing_replacement'],
-  // Foundation conflicts: major work excludes minor settling
   ['foundation_major', 'foundation_settling', 'foundation_stone', 'structural_settling'],
-  // HVAC conflicts: replacement excludes wear/age issues
   ['hvac_replacement', 'hvac_commercial', 'hvac_high_rise', 'outdated_hvac', 'dual_hvac'],
-  // Electrical conflicts: full rewire excludes panel upgrades
-  ['knob_tube_wiring', 'electrical_outdated', 'electrical_upgrade', 'knob_tube'],
-  // Utility separation: full separation excludes meter issues
+  ['knob_tube_wiring', 'knob_tube', 'electrical_outdated', 'electrical_upgrade'],
   ['utility_separation', 'separate_meters', 'separate_utilities'],
-  // Septic/well issues are mutually exclusive
   ['septic_issues', 'septic_maintenance', 'well_water', 'well_system'],
+  ['hoa_assessment', 'hoa_assessment_pending', 'hoa_reserve_low', 'special_assessment_pending'],
+  ['deferred_maintenance', 'cosmetic_updates', 'cosmetic_both_units'],
+  ['drainage_issues', 'tree_root_damage'],
+  ['party_wall', 'shared_wall_issues'],
+  ['siding_damage', 'brick_repointing'],
 ];
 
 const WELL_ONLY_ISSUE_IDS = new Set([

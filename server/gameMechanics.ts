@@ -15,7 +15,7 @@ import * as schema from '@shared/schema';
 import { db } from './storage';
 import { eq } from 'drizzle-orm';
 import { rollForCurveball, rollForCurveballWithIssues, type PropertyContext, type CurveballResult, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
-import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue, getPropertyIssues, getRandomizedPropertyIssues } from '@shared/propertyIssues';
+import { calculateSurpriseCosts, PropertyIssue, getRandomizedPropertyIssues } from '@shared/propertyIssues';
 
 /**
  * Market Conditions System
@@ -491,8 +491,13 @@ export async function completeFlipDeal(
   const didComps = completedDiligence.includes('appraisal');
   
   // Check for undiscovered property issues (surprise repair costs!)
-  const propertyName = property?.name || '';
-  const undiscoveredIssues = getUndiscoveredIssues(propertyName, completedDiligence);
+  // Use randomized issues (matching what the client shows) based on game run + property
+  const allIssues = property 
+    ? getRandomizedPropertyIssues(gameRun.id, deal.propertyId, property.propertyType, property.conditionTag, property.waterSource || 'public')
+    : [];
+  const undiscoveredIssues = allIssues.filter(issue =>
+    !issue.discoveredBy.some(method => completedDiligence.includes(method))
+  );
   let surpriseCosts = undiscoveredIssues.length > 0 ? calculateSurpriseCosts(undiscoveredIssues) : 0;
   
   // Check for title issues (20% chance if title search was skipped)
@@ -1679,8 +1684,13 @@ export async function activateRentalProperty(
   // NO upfront surprise costs for rentals - issues surface through:
   // 1. Higher maintenance event probability (3-5x via getAdjustedProbability)
   // 2. Lower sale price when selling (buyer's inspector finds issues)
-  const propertyName = property?.name || '';
-  const undiscoveredIssues = getUndiscoveredIssues(propertyName, completedDiligence);
+  // Use randomized issues (matching what the client shows) based on game run + property
+  const allIssuesForRental = property
+    ? getRandomizedPropertyIssues(gameRun.id, deal.propertyId, property.propertyType, property.conditionTag, property.waterSource || 'public')
+    : [];
+  const undiscoveredIssues = allIssuesForRental.filter(issue =>
+    !issue.discoveredBy.some(method => completedDiligence.includes(method))
+  );
   
   // Check for title issues (20% chance if title search was skipped)
   // Title issues ARE immediate for rentals as they affect ownership

@@ -374,11 +374,11 @@ interface PropertyDetailProps {
   onClose: () => void;
   onOpenProForma: (strategy: 'rent' | 'flip', contractor: 'cheap' | 'fast') => void;
   onPass: () => void;
+  onGoHome?: () => void;
   isProFormaComplete?: boolean;
   completedDiligence?: string[];
   onDiligencePurchase?: (propertyId: number, diligenceType: string, cost: number, weeks: number) => void;
   cash?: number;
-  // Inline pro forma props (optional - for inline editing)
   proFormaInputs?: any;
   onProFormaInputsChange?: (inputs: any) => void;
   touchedFields?: Set<any>;
@@ -391,6 +391,7 @@ export function PropertyDetail({
   onClose,
   onOpenProForma,
   onPass,
+  onGoHome,
   isProFormaComplete = false,
   completedDiligence = [],
   onDiligencePurchase,
@@ -550,15 +551,28 @@ export function PropertyDetail({
     <div className="fixed inset-0 z-[60] flex flex-col items-center pt-[calc(env(safe-area-inset-top,0px)+60px)] md:pt-8 p-2 md:p-4 bg-black/80 backdrop-blur-sm safe-area-x" data-testid="property-detail-modal">
       {/* Fixed header bar - always visible at top */}
       <div className="w-full max-w-6xl flex items-center justify-between gap-3 px-4 md:px-6 py-3 bg-slate-900 rounded-t-2xl border-b border-slate-700/50 flex-shrink-0">
-        <button 
-          onClick={onClose}
-          className="touch-target flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xl text-white transition-all duration-150 ios-spring tap-scale"
-          data-testid="button-back-to-market"
-          data-sound="close"
-        >
-          <ChevronLeft className="w-5 h-5" />
-          <span className="text-sm font-medium hidden sm:inline">Market</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={onClose}
+            className="touch-target flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xl text-white transition-all duration-150 ios-spring tap-scale"
+            data-testid="button-back-to-market"
+            data-sound="close"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            <span className="text-sm font-medium hidden sm:inline">Market</span>
+          </button>
+          {onGoHome && (
+            <button 
+              onClick={onGoHome}
+              className="touch-target flex items-center gap-2 px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 active:bg-emerald-600/40 border border-emerald-500/30 rounded-xl text-emerald-300 transition-all duration-150 ios-spring tap-scale"
+              data-testid="button-go-home"
+              data-sound="swoosh"
+            >
+              <Home className="w-4 h-4" />
+              <span className="text-sm font-medium hidden sm:inline">Home</span>
+            </button>
+          )}
+        </div>
         <h2 className="font-display text-white text-lg md:text-2xl font-bold tracking-wide truncate flex-1 text-center">
           {property.name}
         </h2>

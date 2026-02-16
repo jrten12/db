@@ -410,7 +410,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     ? getInterestRateWithPlayerState(inputs.ltv, playerFinancials, weekNumber)
     : getInterestRateFromLTV(inputs.ltv, weekNumber);
   // Construction loan premium: 1.5% higher rate when financing rehab costs
-  const constructionLoanPremium = inputs.strategy === 'flip' && inputs.financeRehab ? 1.5 : 0;
+  const constructionLoanPremium = inputs.financeRehab ? 1.5 : 0;
   const derivedInterestRate = baseInterestRate + constructionLoanPremium;
   const derivedLoanFeesPct = getLoanFeesFromLTV(inputs.ltv);
   const derivedDownPaymentPct = getDownPaymentFromLTV(inputs.ltv);
@@ -964,8 +964,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
               </div>
               
-              {/* FLIP ONLY: Finance Rehab Toggle - requires contractor walkthrough */}
-              {inputs.strategy === 'flip' && (inputs.rehabBudget ?? 0) > 0 && completedDiligence.includes('contractor_walkthrough') && (
+              {/* Finance Rehab Toggle - requires contractor walkthrough and a rehab budget */}
+              {(inputs.rehabBudget ?? 0) > 0 && completedDiligence.includes('contractor_walkthrough') && (
                 <div className="col-span-full">
                   <button
                     onClick={() => onInputsChange({ ...inputs, financeRehab: !inputs.financeRehab })}

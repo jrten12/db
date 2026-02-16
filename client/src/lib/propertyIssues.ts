@@ -880,6 +880,34 @@ const ISSUE_POOLS: Record<string, PropertyIssue[]> = {
   ],
 };
 
+const ISSUE_CONFLICT_GROUPS: string[][] = [
+  ['roof_wear', 'roof_replacement', 'roof_shared'],
+  ['foundation_settling', 'foundation_major'],
+  ['outdated_hvac', 'hvac_commercial'],
+  ['electrical_outdated', 'electrical_upgrade'],
+  ['plumbing_galvanized', 'plumbing_shared', 'plumbing_stack'],
+  ['hoa_assessment', 'hoa_assessment_pending', 'hoa_reserve_low', 'special_assessment_pending'],
+  ['deferred_maintenance', 'cosmetic_updates', 'cosmetic_both_units'],
+  ['drainage_issues', 'tree_root_damage'],
+  ['party_wall', 'shared_wall_issues'],
+  ['siding_damage', 'brick_repointing'],
+];
+
+function getConflictingIds(selectedIds: Set<string>): Set<string> {
+  const blocked = new Set<string>();
+  for (const group of ISSUE_CONFLICT_GROUPS) {
+    const hasSelected = group.some(id => selectedIds.has(id));
+    if (hasSelected) {
+      for (const id of group) {
+        if (!selectedIds.has(id)) {
+          blocked.add(id);
+        }
+      }
+    }
+  }
+  return blocked;
+}
+
 // Seeded random for consistent results per game
 function seededRandom(seed: number): () => number {
   return function() {
@@ -947,10 +975,11 @@ export function getRandomizedPropertyIssues(
   
   for (const issue of shuffled) {
     if (selected.length >= issueCount) break;
-    if (!usedIds.has(issue.id)) {
-      selected.push(issue);
-      usedIds.add(issue.id);
-    }
+    if (usedIds.has(issue.id)) continue;
+    const blocked = getConflictingIds(usedIds);
+    if (blocked.has(issue.id)) continue;
+    selected.push(issue);
+    usedIds.add(issue.id);
   }
   
   return selected;

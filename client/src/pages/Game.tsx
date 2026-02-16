@@ -1948,6 +1948,7 @@ export default function Game() {
             onClose={handleCloseDetail}
             onOpenProForma={handleOpenProForma}
             onPass={handlePassProperty}
+            onGoHome={() => { handleCloseDetail(); setCurrentScreen('home'); }}
             isProFormaComplete={proFormaCompletions[selectedProperty.id] || false}
             completedDiligence={completedDiligence[selectedProperty.id] || []}
             onDiligencePurchase={handleDiligencePurchase}

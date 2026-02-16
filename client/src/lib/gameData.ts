@@ -342,13 +342,13 @@ export const calculateProForma = (
     ? getInterestRateWithPlayerState(ltv, playerFinancials, weekNumber)
     : getInterestRateFromLTV(ltv, weekNumber);
   // Construction loan premium: 1.5% higher rate when financing rehab costs
-  const constructionLoanPremium = inputs.strategy === 'flip' && inputs.financeRehab ? 1.5 : 0;
+  const constructionLoanPremium = inputs.financeRehab ? 1.5 : 0;
   const interestRate = baseInterestRate + constructionLoanPremium;
   const loanOriginationPct = getLoanFeesFromLTV(ltv);
 
-  // For flips with financeRehab enabled, include rehab in the loan (acquisition + construction loan)
+  // When financeRehab is enabled, include rehab in the loan (acquisition + construction loan)
   // This allows players to finance both purchase and rehab with one loan
-  const rehabWithContingencyForLoan = inputs.strategy === 'flip' && inputs.financeRehab 
+  const rehabWithContingencyForLoan = inputs.financeRehab 
     ? rehabBudget * (1 + contingencyPct / 100) 
     : 0;
   const loanBasis = property.price + rehabWithContingencyForLoan;
@@ -389,9 +389,9 @@ export const calculateProForma = (
   const flipHoldingCosts = inputs.strategy === 'flip' ? holdingCostPerWeek * rehabWeeks : 0;
 
   // Total cash invested = all cash out of pocket:
-  // Down payment + Closing costs + Loan fees + Holding costs (flip) + Rehab with contingency (flip)
+  // Down payment + Closing costs + Loan fees + Holding costs (flip) + Rehab with contingency
   // Note: If financeRehab is true, rehab is included in the loan, not paid upfront
-  const rehabWithContingency = inputs.strategy === 'flip' ? rehabBudget * (1 + contingencyPct / 100) : 0;
+  const rehabWithContingency = rehabBudget * (1 + contingencyPct / 100);
   const rehabCashOutOfPocket = inputs.financeRehab ? 0 : rehabWithContingency;
   const totalCashInvested = downPaymentAmount + closingCosts + loanOriginationFees + flipHoldingCosts + rehabCashOutOfPocket;
   

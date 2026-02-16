@@ -313,21 +313,25 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <button 
                 onClick={onOpenLedger}
-                className="stat-card-mobile-compact stat-card-mobile-cash touch-target-sm tap-scale flex-1"
+                className="stat-card-mobile-compact stat-card-mobile-cash touch-target-sm tap-scale flex-[1.3] min-w-0"
                 data-testid="status-cash-mobile"
                 data-sound="swoosh"
               >
-                <AnimatedNumber value={cashDisplay} prefix="$" className="mobile-cash-value-compact" />
+                <div className="whitespace-nowrap overflow-hidden text-ellipsis">
+                  <AnimatedNumber value={cashDisplay} prefix="$ " className="mobile-cash-value-compact" />
+                </div>
                 <div className="stat-label-mobile-compact">Cash</div>
               </button>
               
-              <div className="stat-card-mobile-compact stat-card-mobile-time touch-target-sm flex-1" data-testid="status-time-mobile">
-                <AnimatedNumber value={weeksRemaining} suffix="M" className="mobile-time-value-compact" />
+              <div className="stat-card-mobile-compact stat-card-mobile-time touch-target-sm flex-1 min-w-0" data-testid="status-time-mobile">
+                <div className="whitespace-nowrap overflow-hidden text-ellipsis">
+                  <AnimatedNumber value={weeksRemaining} suffix=" M" className="mobile-time-value-compact" />
+                </div>
                 <div className="stat-label-mobile-compact">Time</div>
               </div>
               
-              <div className="stat-card-mobile-compact stat-card-mobile-goal touch-target-sm flex-1" data-testid="status-goal-mobile">
-                <span className="mobile-goal-value-compact">
+              <div className="stat-card-mobile-compact stat-card-mobile-goal touch-target-sm flex-1 min-w-0" data-testid="status-goal-mobile">
+                <span className="mobile-goal-value-compact whitespace-nowrap">
                   <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
                 </span>
                 <div className="stat-label-mobile-compact">Deals</div>

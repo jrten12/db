@@ -684,7 +684,7 @@
 
   /* Compact Mobile Stats - Single Row Layout */
   .stat-card-mobile-compact {
-    @apply px-2 py-1.5 rounded-md text-center transition-all duration-300;
+    @apply px-2 py-2 rounded-md text-center transition-all duration-300;
     background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
     border: 1px solid rgba(255,255,255,0.1);
   }
@@ -695,21 +695,21 @@
   }
 
   .mobile-cash-value-compact {
-    @apply font-mono font-bold text-sm;
+    @apply font-mono font-bold text-base;
     color: #10b981;
   }
 
   .mobile-time-value-compact {
-    @apply font-bold text-sm text-white;
+    @apply font-bold text-base text-white;
   }
 
   .mobile-goal-value-compact {
-    @apply font-bold text-sm;
+    @apply font-bold text-base;
   }
 
   .stat-label-mobile-compact {
-    @apply text-[10px] leading-tight;
-    color: rgba(255,255,255,0.4);
+    @apply text-[11px] leading-tight;
+    color: rgba(255,255,255,0.5);
   }
 
   .menu-stat-card {

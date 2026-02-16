@@ -128,10 +128,10 @@ function FinancialTermInfo({ type, isKnown }: { type: keyof typeof FINANCIAL_TER
       <PopoverTrigger asChild>
         <button 
           type="button" 
-          className="p-1 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70"
+          className="p-1.5 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70 min-w-[28px] min-h-[28px] flex items-center justify-center"
           aria-label={`Learn about ${tooltip.title}`}
         >
-          <HelpCircle className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300" />
+          <HelpCircle className="w-5 h-5 text-gray-400 hover:text-gray-200" />
         </button>
       </PopoverTrigger>
       <PopoverContent side="top" align="center" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-4 z-[100]">
@@ -207,13 +207,13 @@ function DiligenceEducationTooltip({ diligenceId }: { diligenceId: string }) {
     <Popover>
       <PopoverTrigger asChild>
         <span
-          className="p-1 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70 cursor-help inline-flex items-center justify-center"
+          className="p-1.5 -m-1 rounded-full hover:bg-white/10 transition-colors touch-manipulation active:opacity-70 cursor-help inline-flex items-center justify-center min-w-[28px] min-h-[28px]"
           onClick={(e) => e.stopPropagation()}
           aria-label="Learn about real-world data sources"
           role="button"
           tabIndex={0}
         >
-          <HelpCircle className="w-3.5 h-3.5 text-blue-400 hover:text-blue-300" />
+          <HelpCircle className="w-5 h-5 text-blue-400 hover:text-blue-300" />
         </span>
       </PopoverTrigger>
       <PopoverContent side="bottom" align="center" sideOffset={8} collisionPadding={16} className="max-w-[90vw] sm:max-w-sm bg-slate-800 border-blue-500/50 text-gray-200 text-sm p-4 z-[100]">
@@ -833,10 +833,10 @@ export function PropertyDetail({
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className={`font-bold text-sm ${isCompleted ? 'text-emerald-300' : 'text-white'}`}>{option.name}</span>
+                                <span className={`font-bold text-base ${isCompleted ? 'text-emerald-300' : 'text-white'}`}>{option.name}</span>
                                 <DiligenceEducationTooltip diligenceId={option.id} />
                               </div>
-                              <p className="text-xs text-gray-400 mt-0.5">{option.reveals}</p>
+                              <p className="text-sm text-gray-400 mt-0.5">{option.reveals}</p>
                             </div>
                           </div>
                           {isCompleted ? (
@@ -847,12 +847,12 @@ export function PropertyDetail({
                           ) : (
                             <div className="text-right flex-shrink-0">
                               {option.cost === 0 ? (
-                                <div className="text-xs text-emerald-400 font-semibold">
+                                <div className="text-sm text-emerald-400 font-semibold">
                                   Cost: {option.timeWeeks} month
                                   <div className="text-emerald-500/80">(Free — do it yourself!)</div>
                                 </div>
                               ) : (
-                                <div className="text-xs text-gray-300">
+                                <div className="text-sm text-gray-300">
                                   <span className="font-semibold text-white">Cost: {option.timeWeeks} month{option.timeWeeks > 1 ? 's' : ''} & {formatCurrency(option.cost)}</span>
                                 </div>
                               )}

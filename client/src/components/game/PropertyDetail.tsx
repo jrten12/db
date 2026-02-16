@@ -410,10 +410,10 @@ export function PropertyDetail({
 
   // Use randomized issues if we have a gameRunId, otherwise fall back to static issues
   const allIssues = gameRunId 
-    ? getRandomizedPropertyIssues(gameRunId, property.id, property.propertyType, property.conditionTag)
+    ? getRandomizedPropertyIssues(gameRunId, property.id, property.propertyType, property.conditionTag, property.waterSource || 'public')
     : getPropertyIssues(property.name);
   const revealedIssues = gameRunId
-    ? getRevealedRandomizedIssues(gameRunId, property.id, property.propertyType, property.conditionTag, completedDiligence)
+    ? getRevealedRandomizedIssues(gameRunId, property.id, property.propertyType, property.conditionTag, completedDiligence, property.waterSource || 'public')
     : getRevealedIssues(property.name, completedDiligence);
   const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
 

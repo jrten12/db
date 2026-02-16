@@ -151,6 +151,8 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.18,
     viabilityProfile: "time-bomb",
     isActive: true,
+    locationType: "suburban",
+    propertyType: "house",
   },
   {
     name: "Westside Manor",
@@ -734,8 +736,13 @@ export class DBStorage implements IStorage {
       else if (bedrooms === 4) bathrooms = 2;
       else bathrooms = 2.5;
 
-      // Water: urban = public, suburban large lots = well
-      const waterSource = location === 'urban' ? 'public' : (sqft > 1800 ? 'well' : 'public');
+      // Water: urban = public, suburban = well for rural properties, public for city-adjacent suburbs
+      const WELL_WATER_PROPERTIES = new Set([
+        'Hillside Retreat', 'Hudson Valley Farmhouse', 'Lakefront Estate',
+      ]);
+      const waterSource = location === 'urban' ? 'public' 
+        : WELL_WATER_PROPERTIES.has(prop.name) ? 'well' 
+        : (sqft > 1800 ? 'well' : 'public');
 
       // Heat type based on property type and price
       let heatType: string;
@@ -765,6 +772,15 @@ export class DBStorage implements IStorage {
           heatType,
         })
         .where(inArray(schema.properties.id, ids));
+    }
+
+    // Explicitly fix waterSource for properties that must have well/septic
+    const WELL_WATER_NAMES = ['Hillside Retreat', 'Hudson Valley Farmhouse', 'Lakefront Estate'];
+    for (const name of WELL_WATER_NAMES) {
+      await db
+        .update(schema.properties)
+        .set({ waterSource: 'well' })
+        .where(eq(schema.properties.name, name));
     }
   }
 

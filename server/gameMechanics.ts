@@ -2032,7 +2032,7 @@ export async function performContractorWalkthrough(
 
   // Get issues that would be discovered by contractor walkthrough
   // Use randomized issues based on property type, or fall back to static issues
-  const allIssues = getRandomizedPropertyIssues(gameRunId, deal.propertyId, property.propertyType, property.conditionTag);
+  const allIssues = getRandomizedPropertyIssues(gameRunId, deal.propertyId, property.propertyType, property.conditionTag, property.waterSource || 'public');
   const contractorIssues = allIssues.filter(issue => 
     issue.discoveredBy.includes('contractor_walkthrough')
   );

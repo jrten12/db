@@ -914,7 +914,18 @@ const CONFLICT_GROUPS: string[][] = [
   ['knob_tube_wiring', 'electrical_outdated', 'electrical_upgrade', 'knob_tube'],
   // Utility separation: full separation excludes meter issues
   ['utility_separation', 'separate_meters', 'separate_utilities'],
+  // Septic/well issues are mutually exclusive
+  ['septic_issues', 'septic_maintenance', 'well_water', 'well_system'],
 ];
+
+const WELL_ONLY_ISSUE_IDS = new Set([
+  'septic_issues', 'septic_maintenance', 'well_water', 'well_system',
+]);
+
+function filterPoolByWaterSource(pool: PropertyIssue[], waterSource: string): PropertyIssue[] {
+  if (waterSource === 'well') return pool;
+  return pool.filter(issue => !WELL_ONLY_ISSUE_IDS.has(issue.id));
+}
 
 // Filter out issues that conflict with already-selected issues
 function filterConflictingIssues(selectedIds: Set<string>, pool: PropertyIssue[]): PropertyIssue[] {
@@ -962,15 +973,17 @@ export function getRandomizedPropertyIssues(
   gameRunId: number,
   propertyId: number,
   propertyType: string,
-  conditionTag: string
+  conditionTag: string,
+  waterSource: string = 'public'
 ): PropertyIssue[] {
   // Create a seed based on game run and property for consistent results
   const seed = gameRunId * 1000 + propertyId;
   const random = seededRandom(seed);
   
-  // Get appropriate issue pool
+  // Get appropriate issue pool, filtered by water source compatibility
   const poolKey = getIssuePoolKey(propertyType);
-  const pool = ISSUE_POOLS[poolKey] || ISSUE_POOLS['house'];
+  const rawPool = ISSUE_POOLS[poolKey] || ISSUE_POOLS['house'];
+  const pool = filterPoolByWaterSource(rawPool, waterSource);
   
   // Determine how many issues based on condition
   const conditionIssueCount: Record<string, { min: number; max: number }> = {

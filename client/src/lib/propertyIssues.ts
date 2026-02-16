@@ -891,7 +891,17 @@ const ISSUE_CONFLICT_GROUPS: string[][] = [
   ['drainage_issues', 'tree_root_damage'],
   ['party_wall', 'shared_wall_issues'],
   ['siding_damage', 'brick_repointing'],
+  ['septic_issues', 'septic_maintenance', 'well_water', 'well_system'],
 ];
+
+const WELL_ONLY_ISSUE_IDS = new Set([
+  'septic_issues', 'septic_maintenance', 'well_water', 'well_system',
+]);
+
+function filterPoolByWaterSource(pool: PropertyIssue[], waterSource: string): PropertyIssue[] {
+  if (waterSource === 'well') return pool;
+  return pool.filter(issue => !WELL_ONLY_ISSUE_IDS.has(issue.id));
+}
 
 function getConflictingIds(selectedIds: Set<string>): Set<string> {
   const blocked = new Set<string>();
@@ -935,13 +945,15 @@ export function getRandomizedPropertyIssues(
   gameRunId: number,
   propertyId: number,
   propertyType: string,
-  conditionTag: string
+  conditionTag: string,
+  waterSource: string = 'public'
 ): PropertyIssue[] {
   const seed = gameRunId * 1000 + propertyId;
   const random = seededRandom(seed);
   
   const poolKey = getIssuePoolKey(propertyType);
-  const pool = ISSUE_POOLS[poolKey] || ISSUE_POOLS['house'];
+  const rawPool = ISSUE_POOLS[poolKey] || ISSUE_POOLS['house'];
+  const pool = filterPoolByWaterSource(rawPool, waterSource);
   
   const conditionIssueCount: Record<string, { min: number; max: number }> = {
     'Fixer-Upper': { min: 3, max: 5 },
@@ -991,9 +1003,10 @@ export function getRevealedRandomizedIssues(
   propertyId: number,
   propertyType: string,
   conditionTag: string,
-  completedDiligence: string[]
+  completedDiligence: string[],
+  waterSource: string = 'public'
 ): PropertyIssue[] {
-  const allIssues = getRandomizedPropertyIssues(gameRunId, propertyId, propertyType, conditionTag);
+  const allIssues = getRandomizedPropertyIssues(gameRunId, propertyId, propertyType, conditionTag, waterSource);
   return allIssues.filter(issue =>
     issue.discoveredBy.some(method => completedDiligence.includes(method))
   );

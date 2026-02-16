@@ -637,7 +637,10 @@ export function ContractorWalkthroughModal({
                           });
                           const data = await response.json();
                           if (data.success) {
-                            onStartRepairs(deal.id, property.name, selectedTotals.weeks, selectedTotals.cost);
+                            const actualRehabCost = data.totalCost != null && data.breakFee != null 
+                              ? data.totalCost - data.breakFee 
+                              : selectedTotals.cost;
+                            onStartRepairs(deal.id, property.name, data.actualWeeks ?? selectedTotals.weeks, actualRehabCost);
                             onComplete();
                             onClose();
                           } else {

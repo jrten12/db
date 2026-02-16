@@ -858,7 +858,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               
               {/* Finish Level Selector */}
               <div className="col-span-full bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
-                <label className="text-cyan-300 text-sm font-medium mb-3 block drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">
+                <label className="text-cyan-300 text-base font-semibold mb-3 block drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">
                   Finish Level
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -880,11 +880,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         }`}
                         type="button"
                       >
-                        <div className={`font-semibold text-sm ${isSelected ? colorMap.text : 'text-gray-400'}`}>
+                        <div className={`font-semibold text-base ${isSelected ? colorMap.text : 'text-gray-300'}`}>
                           {config.label}
                         </div>
-                        <div className="text-xs text-gray-500 text-center">{config.description}</div>
-                        <div className={`text-xs ${config.costMultiplier === 1.0 ? 'text-emerald-400' : 'text-amber-400'}`}>{costLabel}</div>
+                        <div className="text-sm text-gray-400 text-center">{config.description}</div>
+                        <div className={`text-sm font-medium ${config.costMultiplier === 1.0 ? 'text-emerald-400' : 'text-amber-400'}`}>{costLabel}</div>
                       </button>
                     );
                   })}
@@ -893,13 +893,13 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
               {/* LTV Slider - always available */}
               <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
-                <label className="text-cyan-300 text-sm font-medium mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)] flex items-center gap-2">
+                <label className="text-cyan-300 text-base font-semibold mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)] flex items-center gap-2">
                   Loan-to-Value (LTV)
                   <InfoTooltip term="ltv" />
                 </label>
                 <div className="flex items-center justify-between mb-2">
                   <span className={`text-2xl font-mono font-bold ${inputs.ltv > 90 ? 'text-red-400' : 'text-cyan-100'}`}>{inputs.ltv}%</span>
-                  <span className={`text-xs px-2 py-1 rounded ${
+                  <span className={`text-sm px-2 py-1 rounded font-medium ${
                     inputs.ltv > 90 ? 'bg-red-500/30 text-red-400 animate-pulse' : 
                     inputs.ltv >= 80 ? 'bg-amber-500/20 text-amber-400' : 
                     'bg-cyan-500/20 text-cyan-400'
@@ -917,7 +917,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   className="w-full h-3 rounded-lg appearance-none cursor-pointer"
                   data-testid="slider-ltv"
                 />
-                <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
+                <div className="flex justify-between text-sm text-cyan-400/70 mt-1">
                   <span>50%</span>
                   <span className={inputs.ltv > 90 ? 'text-red-400 font-semibold' : 'text-cyan-300'}>
                     {inputs.ltv > 90 ? 'DANGER ZONE - Rates climb fast!' : 'More leverage = higher risk'}
@@ -938,7 +938,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         derivedInterestRate > 8 ? 'text-amber-400' :
                         'text-cyan-400'
                       }`} />
-                      <span className="text-sm text-gray-300">Bank Rate</span>
+                      <span className="text-base text-gray-200 font-medium">Bank Rate</span>
                     </div>
                     <span className={`text-xl font-mono font-bold ${
                       derivedInterestRate > 12 ? 'text-red-400' :
@@ -948,7 +948,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       {derivedInterestRate.toFixed(1)}%
                     </span>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-sm text-gray-400 mt-1">
                     {derivedInterestRate > 12 
                       ? 'Extreme risk! Banks charging premium rates.'
                       : derivedInterestRate > 8
@@ -957,7 +957,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       ? 'Good financial position helps your rate.'
                       : 'Based on your LTV and financial position.'}
                   </div>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-300">
                     <span>Down: {derivedDownPaymentPct.toFixed(0)}%</span>
                     <span>Loan Fees: {derivedLoanFeesPct.toFixed(1)}%</span>
                   </div>
@@ -1011,14 +1011,14 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               
               {/* Total Cash Needed */}
               <div className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl p-4 border border-cyan-400/40">
-                <label className="text-cyan-200 text-sm font-medium mb-2 flex items-center gap-2">
+                <label className="text-cyan-200 text-base font-semibold mb-2 flex items-center gap-2">
                   Total Cash Needed
                   <InfoTooltip term="totalCashNeeded" />
                 </label>
-                <div className="text-cyan-100 text-2xl font-mono font-bold drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]">
+                <div className="text-cyan-100 text-3xl font-mono font-bold drop-shadow-[0_0_12px_rgba(34,211,238,0.4)]">
                   {formatCurrency(liveOutputs.totalCashInvested)}
                 </div>
-                <span className="text-cyan-300/60 text-xs mt-2 block">Your upfront investment</span>
+                <span className="text-cyan-300/70 text-sm mt-2 block">Your upfront investment</span>
               </div>
             </div>
 

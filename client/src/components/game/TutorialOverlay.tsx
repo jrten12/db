@@ -37,6 +37,8 @@ const PHASE_ICON_BG: Record<string, string> = {
   wrapup: 'from-yellow-400 to-amber-500',
 };
 
+type ArrowDirection = 'up' | 'down' | 'left' | 'right' | 'none';
+
 export function TutorialOverlay() {
   const {
     isActive,
@@ -55,6 +57,7 @@ export function TutorialOverlay() {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [cardRect, setCardRect] = useState<DOMRect | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -111,6 +114,21 @@ export function TutorialOverlay() {
     }
   }, [currentStep?.id]);
 
+  useEffect(() => {
+    if (cardRef.current) {
+      const observer = new ResizeObserver(() => {
+        if (cardRef.current) {
+          setCardRect(cardRef.current.getBoundingClientRect());
+        }
+      });
+      observer.observe(cardRef.current);
+      setTimeout(() => {
+        if (cardRef.current) setCardRect(cardRef.current.getBoundingClientRect());
+      }, 300);
+      return () => observer.disconnect();
+    }
+  }, [currentStep?.id, targetRect]);
+
   const spotlightStyle = useMemo(() => {
     if (!targetRect) return null;
     const pad = 8;
@@ -133,45 +151,64 @@ export function TutorialOverlay() {
   const hasDetail = !!currentStep.detail;
   const hasTip = !!currentStep.tip;
 
-  const getCardPosition = (): React.CSSProperties => {
-    if (isMobile) {
-      if (isWaitingForAction) {
-        return {
-          position: 'fixed',
-          bottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
-          left: '8px',
-          right: '8px',
-          zIndex: 102,
-        };
-      }
-      return {
-        position: 'fixed',
-        bottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
-        left: '8px',
-        right: '8px',
-        zIndex: 102,
-      };
-    }
-
+  const getCardPosition = (): { style: React.CSSProperties; direction: ArrowDirection } => {
     if (isCentered) {
       return {
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 480,
-        maxWidth: 'calc(100vw - 32px)',
-        zIndex: 102,
+        style: {
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: isMobile ? undefined : 480,
+          maxWidth: 'calc(100vw - 32px)',
+          zIndex: 102,
+          ...(isMobile ? { left: '16px', right: '16px', transform: 'translateY(-50%)' } : {}),
+        },
+        direction: 'none',
       };
     }
 
-    const cardW = 440;
-    const cardH = 340;
-    const gap = 20;
+    const rect = targetRect!;
+    const gap = 16;
+
+    if (isMobile) {
+      const targetCenterY = rect.top + rect.height / 2;
+      const screenMid = window.innerHeight / 2;
+
+      if (targetCenterY < screenMid) {
+        return {
+          style: {
+            position: 'fixed',
+            top: rect.bottom + gap,
+            left: '12px',
+            right: '12px',
+            zIndex: 102,
+          },
+          direction: 'up',
+        };
+      } else {
+        const measuredH = cardRect?.height || 280;
+        let topPos = rect.top - gap - measuredH;
+        if (topPos < 12) topPos = 12;
+        return {
+          style: {
+            position: 'fixed',
+            top: topPos,
+            left: '12px',
+            right: '12px',
+            zIndex: 102,
+          },
+          direction: 'down',
+        };
+      }
+    }
+
+    const cardW = 420;
+    const cardH = 320;
     let top = 0;
     let left = 0;
+    let dir: ArrowDirection = 'none';
 
-    const rect = targetRect!;
     const spaceBelow = window.innerHeight - rect.bottom;
     const spaceAbove = rect.top;
     const spaceRight = window.innerWidth - rect.right;
@@ -180,35 +217,191 @@ export function TutorialOverlay() {
     if (spaceBelow > cardH + gap) {
       top = rect.bottom + gap;
       left = rect.left + rect.width / 2 - cardW / 2;
+      dir = 'up';
     } else if (spaceAbove > cardH + gap) {
       top = rect.top - cardH - gap;
       left = rect.left + rect.width / 2 - cardW / 2;
+      dir = 'down';
     } else if (spaceRight > cardW + gap) {
       left = rect.right + gap;
       top = rect.top + rect.height / 2 - cardH / 2;
+      dir = 'left';
     } else if (spaceLeft > cardW + gap) {
       left = rect.left - cardW - gap;
       top = rect.top + rect.height / 2 - cardH / 2;
+      dir = 'right';
     } else {
       top = Math.max(16, rect.bottom + gap);
       left = window.innerWidth / 2 - cardW / 2;
+      dir = 'up';
     }
 
     top = Math.max(16, Math.min(top, window.innerHeight - cardH - 16));
     left = Math.max(16, Math.min(left, window.innerWidth - cardW - 16));
 
     return {
-      position: 'fixed',
-      top,
-      left,
-      width: cardW,
-      zIndex: 102,
+      style: {
+        position: 'fixed',
+        top,
+        left,
+        width: cardW,
+        zIndex: 102,
+      },
+      direction: dir,
     };
+  };
+
+  const { style: cardStyle, direction } = getCardPosition();
+
+  const getArrowElement = () => {
+    if (isCentered || !targetRect || direction === 'none') return null;
+
+    const rect = targetRect;
+    const targetCx = rect.left + rect.width / 2;
+    const targetCy = rect.top + rect.height / 2;
+    const arrowSize = 14;
+
+    if (isMobile) {
+      if (direction === 'up') {
+        return (
+          <div
+            className="fixed pointer-events-none z-[103]"
+            style={{
+              left: Math.max(32, Math.min(targetCx - arrowSize, window.innerWidth - 32 - arrowSize * 2)),
+              top: rect.bottom + 2,
+            }}
+          >
+            <div className="relative">
+              <div
+                style={{
+                  width: 0,
+                  height: 0,
+                  borderLeft: `${arrowSize}px solid transparent`,
+                  borderRight: `${arrowSize}px solid transparent`,
+                  borderBottom: `${arrowSize}px solid rgba(34,211,238,0.9)`,
+                  filter: 'drop-shadow(0 -2px 4px rgba(34,211,238,0.4))',
+                }}
+              />
+            </div>
+          </div>
+        );
+      }
+      if (direction === 'down') {
+        return (
+          <div
+            className="fixed pointer-events-none z-[103]"
+            style={{
+              left: Math.max(32, Math.min(targetCx - arrowSize, window.innerWidth - 32 - arrowSize * 2)),
+              top: rect.top - arrowSize - 2,
+            }}
+          >
+            <div className="relative">
+              <div
+                style={{
+                  width: 0,
+                  height: 0,
+                  borderLeft: `${arrowSize}px solid transparent`,
+                  borderRight: `${arrowSize}px solid transparent`,
+                  borderTop: `${arrowSize}px solid rgba(34,211,238,0.9)`,
+                  filter: 'drop-shadow(0 2px 4px rgba(34,211,238,0.4))',
+                }}
+              />
+            </div>
+          </div>
+        );
+      }
+    }
+
+    if (!cardRef.current) return null;
+    const card = cardRef.current.getBoundingClientRect();
+    const cardCx = card.left + card.width / 2;
+    const cardCy = card.top + card.height / 2;
+
+    if (direction === 'up') {
+      const arrowX = Math.max(card.left + 30, Math.min(targetCx, card.right - 30));
+      return (
+        <div
+          className="fixed pointer-events-none z-[103]"
+          style={{ left: arrowX - arrowSize, top: card.top - arrowSize }}
+        >
+          <div
+            style={{
+              width: 0,
+              height: 0,
+              borderLeft: `${arrowSize}px solid transparent`,
+              borderRight: `${arrowSize}px solid transparent`,
+              borderBottom: `${arrowSize}px solid rgb(30, 41, 59)`,
+              filter: 'drop-shadow(0 -2px 4px rgba(34,211,238,0.5))',
+            }}
+          />
+        </div>
+      );
+    }
+    if (direction === 'down') {
+      const arrowX = Math.max(card.left + 30, Math.min(targetCx, card.right - 30));
+      return (
+        <div
+          className="fixed pointer-events-none z-[103]"
+          style={{ left: arrowX - arrowSize, top: card.bottom }}
+        >
+          <div
+            style={{
+              width: 0,
+              height: 0,
+              borderLeft: `${arrowSize}px solid transparent`,
+              borderRight: `${arrowSize}px solid transparent`,
+              borderTop: `${arrowSize}px solid rgb(30, 41, 59)`,
+              filter: 'drop-shadow(0 2px 4px rgba(34,211,238,0.5))',
+            }}
+          />
+        </div>
+      );
+    }
+    if (direction === 'left') {
+      const arrowY = Math.max(card.top + 30, Math.min(targetCy, card.bottom - 30));
+      return (
+        <div
+          className="fixed pointer-events-none z-[103]"
+          style={{ left: card.left - arrowSize, top: arrowY - arrowSize }}
+        >
+          <div
+            style={{
+              width: 0,
+              height: 0,
+              borderTop: `${arrowSize}px solid transparent`,
+              borderBottom: `${arrowSize}px solid transparent`,
+              borderRight: `${arrowSize}px solid rgb(30, 41, 59)`,
+              filter: 'drop-shadow(-2px 0 4px rgba(34,211,238,0.5))',
+            }}
+          />
+        </div>
+      );
+    }
+    if (direction === 'right') {
+      const arrowY = Math.max(card.top + 30, Math.min(targetCy, card.bottom - 30));
+      return (
+        <div
+          className="fixed pointer-events-none z-[103]"
+          style={{ left: card.right, top: arrowY - arrowSize }}
+        >
+          <div
+            style={{
+              width: 0,
+              height: 0,
+              borderTop: `${arrowSize}px solid transparent`,
+              borderBottom: `${arrowSize}px solid transparent`,
+              borderLeft: `${arrowSize}px solid rgb(30, 41, 59)`,
+              filter: 'drop-shadow(2px 0 4px rgba(34,211,238,0.5))',
+            }}
+          />
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
     <>
-      {/* Dark overlay with spotlight cutout */}
       <div
         className={`fixed inset-0 z-[100] transition-opacity duration-200 ${isWaitingForAction ? 'pointer-events-none' : ''}`}
         data-testid="tutorial-overlay"
@@ -223,7 +416,6 @@ export function TutorialOverlay() {
           <div className="absolute inset-0 bg-black/50" />
         )}
 
-        {/* Spotlight ring around target element */}
         {spotlightStyle && !isCentered && (
           <div
             className="absolute rounded-xl pointer-events-none transition-all duration-300"
@@ -237,29 +429,30 @@ export function TutorialOverlay() {
           />
         )}
 
-        {/* Pulsing arrow pointing to target (mobile) */}
-        {spotlightStyle && !isCentered && isMobile && !isWaitingForAction && (
+        {spotlightStyle && !isCentered && (
           <div
-            className="absolute pointer-events-none z-[101] animate-bounce"
+            className="absolute pointer-events-none z-[101] animate-pulse"
             style={{
-              top: spotlightStyle.top - 32,
-              left: spotlightStyle.left + spotlightStyle.width / 2 - 12,
+              top: spotlightStyle.top - 2,
+              left: spotlightStyle.left - 2,
+              width: spotlightStyle.width + 4,
+              height: spotlightStyle.height + 4,
+              borderRadius: '0.75rem',
+              border: '2px solid rgba(34,211,238,0.5)',
             }}
-          >
-            <div className="w-6 h-6 border-b-2 border-r-2 border-cyan-400 rotate-45 transform" />
-          </div>
+          />
         )}
       </div>
 
-      {/* Tutorial card */}
+      {getArrowElement()}
+
       <div
         ref={cardRef}
         className={`fixed pointer-events-auto transition-all duration-250 ${isAnimating ? 'opacity-0 translate-y-2 scale-[0.98]' : 'opacity-100 translate-y-0 scale-100'}`}
-        style={getCardPosition()}
+        style={cardStyle}
         data-testid="tutorial-card"
       >
         <div className="bg-slate-900 rounded-2xl border border-slate-700/80 shadow-2xl shadow-black/50 overflow-hidden">
-          {/* Phase header bar */}
           <div className={`bg-gradient-to-r ${phaseGradient} px-4 py-2.5 flex items-center justify-between`}>
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-white/90 text-xs font-semibold uppercase tracking-wider truncate">
@@ -278,9 +471,7 @@ export function TutorialOverlay() {
             </button>
           </div>
 
-          {/* Content */}
           <div className="px-4 py-3 md:px-5 md:py-4">
-            {/* Title with icon */}
             <div className="flex items-start gap-3 mb-3">
               <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${iconBg} flex items-center justify-center shadow-lg flex-shrink-0`}>
                 <StepIcon className="w-5 h-5 text-white" />
@@ -290,12 +481,10 @@ export function TutorialOverlay() {
               </div>
             </div>
 
-            {/* Main content */}
             <p className="text-gray-300 text-sm leading-relaxed mb-2">
               {currentStep.content}
             </p>
 
-            {/* Detail text (expandable feel) */}
             {hasDetail && (
               <div className="bg-slate-800/60 rounded-lg px-3 py-2.5 mb-3 border border-slate-700/40">
                 <p className="text-gray-400 text-xs md:text-sm leading-relaxed whitespace-pre-line">
@@ -304,7 +493,6 @@ export function TutorialOverlay() {
               </div>
             )}
 
-            {/* Pro tip */}
             {hasTip && (
               <div className="bg-amber-500/10 rounded-lg px-3 py-2 mb-3 border border-amber-500/20 flex items-start gap-2">
                 <Lightbulb className="w-3.5 h-3.5 text-amber-400 mt-0.5 flex-shrink-0" />
@@ -314,7 +502,6 @@ export function TutorialOverlay() {
               </div>
             )}
 
-            {/* Action prompt */}
             {isWaitingForAction && currentStep.action && (
               <div className="bg-cyan-500/15 border border-cyan-400/30 rounded-lg px-3 py-2.5 mb-3 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse flex-shrink-0" />
@@ -324,7 +511,6 @@ export function TutorialOverlay() {
               </div>
             )}
 
-            {/* Progress bar */}
             <div className="flex items-center gap-3 mb-3">
               <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
                 <div
@@ -337,7 +523,6 @@ export function TutorialOverlay() {
               </span>
             </div>
 
-            {/* Navigation buttons */}
             <div className="flex items-center gap-2">
               <button
                 onClick={previousStep}

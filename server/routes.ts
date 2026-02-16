@@ -6,16 +6,17 @@ import { z } from "zod";
 import * as gameMechanics from "./gameMechanics";
 import { dealLimiter, ledgerLimiter, gameActionLimiter, authLimiter, purchaseLimiter } from "./rateLimiter";
 import OpenAI from "openai";
+import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
+
+const consumedCheckoutSessions = new Set<string>();
 
 const PREMIUM_SKU_MAP: Record<string, { cash: number; weeks: number }> = {
   'cash_small': { cash: 50000, weeks: 0 },
   'cash_medium': { cash: 150000, weeks: 0 },
-  'cash_large': { cash: 500000, weeks: 0 },
-  'weeks_small': { cash: 0, weeks: 4 },
-  'weeks_medium': { cash: 0, weeks: 12 },
-  'weeks_large': { cash: 0, weeks: 24 },
-  'bundle_starter': { cash: 100000, weeks: 8 },
-  'bundle_pro': { cash: 300000, weeks: 16 },
+  'cash_large': { cash: 300000, weeks: 0 },
+  'weeks_small': { cash: 0, weeks: 40 },
+  'weeks_medium': { cash: 0, weeks: 100 },
+  'bundle_ultimate': { cash: 200000, weeks: 80 },
 };
 
 function requireAdmin(req: Request, res: Response, next: NextFunction) {
@@ -667,6 +668,128 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Error purchasing bundle:", error);
       res.status(500).json({ error: error.message || "Failed to purchase bundle" });
+    }
+  });
+
+  // ============ STRIPE CHECKOUT ROUTES ============
+
+  app.get("/api/stripe/publishable-key", requirePremiumEnabled, async (_req, res) => {
+    try {
+      const publishableKey = await getStripePublishableKey();
+      res.json({ publishableKey });
+    } catch (error: any) {
+      console.error("Error getting publishable key:", error);
+      res.status(500).json({ error: "Stripe not configured" });
+    }
+  });
+
+  app.post("/api/stripe/create-checkout", requirePremiumEnabled, purchaseLimiter, async (req, res) => {
+    try {
+      const { sku, gameRunId } = req.body as { sku: string; gameRunId: number };
+
+      if (!sku || !PREMIUM_SKU_MAP[sku]) {
+        res.status(400).json({ error: "Invalid SKU", validSkus: Object.keys(PREMIUM_SKU_MAP) });
+        return;
+      }
+
+      if (!gameRunId) {
+        res.status(400).json({ error: "gameRunId is required" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const stripe = await getUncachableStripeClient();
+
+      const products = await stripe.products.search({ query: `metadata['sku']:'${sku}'` });
+      if (!products.data.length) {
+        res.status(404).json({ error: "Product not found in Stripe" });
+        return;
+      }
+
+      const product = products.data[0];
+      const prices = await stripe.prices.list({ product: product.id, active: true, limit: 1 });
+      if (!prices.data.length) {
+        res.status(404).json({ error: "No active price found for product" });
+        return;
+      }
+
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        line_items: [{
+          price: prices.data[0].id,
+          quantity: 1,
+        }],
+        metadata: {
+          sku,
+          gameRunId: String(gameRunId),
+        },
+        success_url: `${baseUrl}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/?checkout=cancelled`,
+      });
+
+      res.json({ sessionId: session.id, url: session.url });
+    } catch (error: any) {
+      console.error("Error creating checkout:", error);
+      res.status(500).json({ error: "Failed to create checkout session" });
+    }
+  });
+
+  app.post("/api/stripe/verify-session", requirePremiumEnabled, async (req, res) => {
+    try {
+      const { sessionId } = req.body as { sessionId: string };
+      if (!sessionId) {
+        res.status(400).json({ error: "sessionId is required" });
+        return;
+      }
+
+      const stripe = await getUncachableStripeClient();
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      if (session.payment_status !== 'paid') {
+        res.status(400).json({ error: "Payment not completed", status: session.payment_status });
+        return;
+      }
+
+      if (consumedCheckoutSessions.has(sessionId)) {
+        const gameRunId = parseInt(session.metadata?.gameRunId || '0');
+        const gameRun = gameRunId ? await storage.getGameRun(gameRunId) : null;
+        res.json({ success: true, gameRun, applied: null, alreadyApplied: true });
+        return;
+      }
+
+      const sku = session.metadata?.sku;
+      const gameRunId = parseInt(session.metadata?.gameRunId || '0');
+
+      if (!sku || !PREMIUM_SKU_MAP[sku] || !gameRunId) {
+        res.status(400).json({ error: "Invalid session metadata" });
+        return;
+      }
+
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      consumedCheckoutSessions.add(sessionId);
+
+      const skuData = PREMIUM_SKU_MAP[sku];
+      const updates: Record<string, number> = {};
+      if (skuData.cash > 0) updates.cash = gameRun.cash + skuData.cash;
+      if (skuData.weeks > 0) updates.weeksRemaining = gameRun.weeksRemaining + skuData.weeks;
+
+      const updatedGameRun = await storage.updateGameRun(gameRunId, updates);
+      res.json({ success: true, gameRun: updatedGameRun, applied: skuData });
+    } catch (error: any) {
+      console.error("Error verifying session:", error);
+      res.status(500).json({ error: "Failed to verify checkout session" });
     }
   });
 

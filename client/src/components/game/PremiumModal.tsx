@@ -31,6 +31,15 @@ interface PremiumPackage {
   popular?: boolean;
 }
 
+const SKU_MAP: Record<string, string> = {
+  'cash-small': 'cash_small',
+  'cash-medium': 'cash_medium',
+  'cash-large': 'cash_large',
+  'weeks-small': 'weeks_small',
+  'weeks-medium': 'weeks_medium',
+  'bundle-ultimate': 'bundle_ultimate',
+};
+
 const packages: PremiumPackage[] = [
   {
     id: 'cash-small',
@@ -160,28 +169,35 @@ export function PremiumModal({ isOpen, onClose, onPurchase, onCouponRedeemed, cu
   
   const alert = getAlertMessage();
 
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
+
   const handlePurchase = async (pkg: PremiumPackage) => {
     playPurchaseConfirmSound();
     setSelectedPackage(pkg.id);
     setPurchasing(true);
+    setPurchaseError(null);
 
     try {
-      if (pkg.type === 'bundle') {
-        await onPurchase(pkg.type, pkg.cashAmount || 0, pkg.weeksAmount || 0);
-      } else if (pkg.type === 'cash') {
-        await onPurchase(pkg.type, pkg.cashAmount || 0);
-      } else if (pkg.type === 'weeks') {
-        await onPurchase(pkg.type, pkg.weeksAmount || 0);
+      const sku = SKU_MAP[pkg.id];
+      if (!sku || !gameRunId) {
+        throw new Error('Missing SKU or game run');
       }
 
-      // Success animation delay before closing
-      setTimeout(() => {
-        setPurchasing(false);
-        setSelectedPackage(null);
-        onClose();
-      }, 800);
-    } catch (error) {
+      const response = await apiRequest('POST', '/api/stripe/create-checkout', {
+        sku,
+        gameRunId,
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+    } catch (error: any) {
       console.error('Purchase failed:', error);
+      setPurchaseError(error.message || 'Failed to start checkout');
       setPurchasing(false);
       setSelectedPackage(null);
     }
@@ -350,11 +366,18 @@ export function PremiumModal({ isOpen, onClose, onPurchase, onCouponRedeemed, cu
                     </div>
 
                     <button
-                      disabled={true}
-                      className="w-full py-3 rounded-xl font-bold transition-all bg-gray-600/50 text-gray-400 border border-gray-500/30 cursor-not-allowed"
+                      onClick={() => handlePurchase(pkg)}
+                      disabled={purchasing}
+                      className={`w-full py-3 rounded-xl font-bold transition-all ${
+                        isPurchasing
+                          ? 'bg-yellow-500 text-black'
+                          : purchasing
+                            ? 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
+                            : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black'
+                      }`}
                       data-testid={`button-purchase-${pkg.id}`}
                     >
-                      ${pkg.priceUSD.toFixed(2)} - Coming Soon
+                      {isPurchasing ? 'Redirecting...' : `$${pkg.priceUSD.toFixed(2)}`}
                     </button>
                   </div>
                 </div>
@@ -425,10 +448,19 @@ export function PremiumModal({ isOpen, onClose, onPurchase, onCouponRedeemed, cu
             </div>
           )}
 
+          {/* Purchase Error */}
+          {purchaseError && (
+            <div className="mt-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-center">
+              <div className="flex items-center justify-center gap-2 text-red-400">
+                <AlertCircle className="w-4 h-4" />
+                <span>{purchaseError}</span>
+              </div>
+            </div>
+          )}
+
           {/* Info Note */}
           <div className="text-center text-gray-500 text-sm mt-6">
-            <p>Premium purchases coming soon!</p>
-            <p className="mt-1">These boosts will be available after payment integration</p>
+            <p>Secure payment powered by Stripe</p>
           </div>
 
           {/* End Game Button - Only show when game is frozen (can't close) */}

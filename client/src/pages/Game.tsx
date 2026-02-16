@@ -1528,6 +1528,40 @@ export default function Game() {
     }
   }, [gameRun?.weeksRemaining, gameRun?.cash, isBankrupt, hasShownNoWeeksPopup, hasShownLowCashPopup, showPremiumModal, hasActiveRehab]);
 
+  // Handle Stripe checkout return
+  useEffect(() => {
+    if (!gameRun?.id) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get('checkout');
+    const sessionId = params.get('session_id');
+
+    if (checkout === 'success' && sessionId) {
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+
+      // Verify session and apply boost
+      (async () => {
+        try {
+          const response = await fetch('/api/stripe/verify-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId }),
+          });
+          const data = await response.json();
+          if (data.success && data.gameRun) {
+            setGameRun(data.gameRun);
+            queryClient.invalidateQueries({ queryKey: ['/api/games', gameRun.id] });
+          }
+        } catch (error) {
+          console.error('Failed to verify checkout:', error);
+        }
+      })();
+    } else if (checkout === 'cancelled') {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, [gameRun?.id]);
+
   const handleBankruptReturnHome = useCallback(async () => {
     // Record game end stats to Hall of Fame before resetting
     if (gameRun?.id) {

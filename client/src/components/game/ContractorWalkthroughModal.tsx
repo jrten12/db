@@ -637,7 +637,7 @@ export function ContractorWalkthroughModal({
                           });
                           const data = await response.json();
                           if (data.success) {
-                            onStartRepairs(deal.id, property.name, data.estimatedWeeks || selectedTotals.weeks, selectedTotals.cost);
+                            onStartRepairs(deal.id, property.name, selectedTotals.weeks, selectedTotals.cost);
                             onComplete();
                             onClose();
                           } else {

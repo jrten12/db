@@ -1488,6 +1488,10 @@ export default function Game() {
   const isPlayerFrozen = gameRun?.weeksRemaining !== undefined && gameRun.weeksRemaining <= 0 && !isBankrupt;
 
   // Auto-show premium popup when player runs out of weeks or cash is low
+  const hasActiveRehab = useMemo(() => {
+    return deals.some(d => d.rentalRehabActive || d.status === 'in_rehab');
+  }, [deals]);
+  
   useEffect(() => {
     if (!gameRun || isBankrupt) return;
     
@@ -1497,13 +1501,13 @@ export default function Game() {
       setShowPremiumModal(true);
       setHasShownNoWeeksPopup(true);
     }
-    // Check for low cash (below $1,000)
-    else if (gameRun.cash < 1000 && gameRun.weeksRemaining > 0 && !hasShownLowCashPopup && !showPremiumModal) {
+    // Check for low cash (below $1,000) - but not if player just started a renovation
+    else if (gameRun.cash < 1000 && gameRun.weeksRemaining > 0 && !hasShownLowCashPopup && !showPremiumModal && !hasActiveRehab) {
       setPremiumTriggerReason('low_cash');
       setShowPremiumModal(true);
       setHasShownLowCashPopup(true);
     }
-  }, [gameRun?.weeksRemaining, gameRun?.cash, isBankrupt, hasShownNoWeeksPopup, hasShownLowCashPopup, showPremiumModal]);
+  }, [gameRun?.weeksRemaining, gameRun?.cash, isBankrupt, hasShownNoWeeksPopup, hasShownLowCashPopup, showPremiumModal, hasActiveRehab]);
 
   const handleBankruptReturnHome = useCallback(async () => {
     // Record game end stats to Hall of Fame before resetting
@@ -2194,8 +2198,11 @@ export default function Game() {
             }}
             onStartRepairs={(dealId, propertyName, weeks, cost) => {
               addConstructionStart(propertyName, 'rent', weeks, cost);
-              queryClient.invalidateQueries({ queryKey: ['/api/deals'] });
-              queryClient.invalidateQueries({ queryKey: ['/api/game-runs'] });
+              queryClient.invalidateQueries({ queryKey: ['deals'] });
+              queryClient.invalidateQueries({ queryKey: ['ledger'] });
+              if (gameRun) {
+                api.getGameRun(gameRun.id).then(setGameRun).catch(console.error);
+              }
             }}
           />
         )}

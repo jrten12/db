@@ -22,6 +22,7 @@ import { WeekTimeline } from '@/components/game/WeekTimeline';
 import { generateTenantName, getRandomPersonalityType, getSpeechPatterns, getRandomMessage } from '@/lib/tenantGenerator';
 import type { Tenant } from '@shared/schema';
 import { PremiumModal } from '@/components/game/PremiumModal';
+import { BadgesModal } from '@/components/game/BadgesModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
 import { EndGameSummary } from '@/components/game/EndGameSummary';
@@ -135,6 +136,7 @@ export default function Game() {
   const [hasShownNoWeeksPopup, setHasShownNoWeeksPopup] = useState(false);
   const [hasShownLowCashPopup, setHasShownLowCashPopup] = useState(false);
   const [showHallOfFame, setShowHallOfFame] = useState(false);
+  const [showBadges, setShowBadges] = useState(false);
   const [showEndGameSummary, setShowEndGameSummary] = useState(false);
   const [endGameWon, setEndGameWon] = useState(false);
   const [endGameMidGame, setEndGameMidGame] = useState(false);
@@ -1807,7 +1809,7 @@ export default function Game() {
                 hasActiveGame={deals.length > 0 || (gameRun?.weeksRemaining ?? 52) < 52}
                 onPlayGame={() => setCurrentScreen('market')}
                 onHallOfFame={() => setShowHallOfFame(true)}
-                onBadges={() => setShowHallOfFame(true)}
+                onBadges={() => setShowBadges(true)}
                 onTutorial={() => { startTutorial(); setCurrentScreen('market'); }}
                 onSettings={() => { setPremiumTriggerReason('manual'); setShowPremiumModal(true); }}
                 onRestartGame={handleNewGame}
@@ -2174,6 +2176,13 @@ export default function Game() {
         <HallOfFameModal
           isOpen={showHallOfFame}
           onClose={() => setShowHallOfFame(false)}
+        />
+
+        {/* Badges & Trophies Modal */}
+        <BadgesModal
+          isOpen={showBadges}
+          onClose={() => setShowBadges(false)}
+          earnedTrophies={unlockedAchievements}
         />
 
         {/* End Game Summary Modal */}

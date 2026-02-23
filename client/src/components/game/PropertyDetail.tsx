@@ -395,7 +395,7 @@ export function PropertyDetail({
   isProFormaComplete = false,
   completedDiligence = [],
   onDiligencePurchase,
-  cash = 75000,
+  cash = 80000,
   proFormaInputs,
   onProFormaInputsChange,
   touchedFields,

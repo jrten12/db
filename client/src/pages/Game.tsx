@@ -183,7 +183,7 @@ export default function Game() {
     context: 'diligence' | 'walkthrough';
   } | null>(null);
 
-  const STARTING_CASH = 75000;
+  const STARTING_CASH = 80000;
 
   // Income notifications
   const { events: incomeEvents, dismissEvent, addRentalPayment, addFlipProceeds, addCurveballBonus } = useIncomeNotifications();
@@ -447,7 +447,7 @@ export default function Game() {
     const context: AchievementCheckContext = {
       deals,
       totalProfit,
-      startingCash: 75000,
+      startingCash: 80000,
       currentCash: gameRun.cash,
       consecutiveFlipProfits,
       activeRentals,
@@ -784,23 +784,22 @@ export default function Game() {
 
   const handleInputsChange = useCallback((inputs: ProFormaInputs) => {
     // Calculate fixedIssueIds based on rehab budget
-    // If rehab budget covers issue costs, those issues are considered "fixed"
     let updatedInputs = inputs;
     
-    if (selectedProperty && inputs.rehabBudget !== undefined && inputs.rehabBudget > 0) {
-      const discoveredIssueIds = inputs.discoveredIssueIds || [];
+    const hasExplicitIssueSelection = inputs.discoveredIssueIds && inputs.discoveredIssueIds.length > 0 && inputs.fixedIssueIds !== undefined;
+    
+    if (hasExplicitIssueSelection) {
+      updatedInputs = inputs;
+    } else if (selectedProperty && inputs.rehabBudget !== undefined && inputs.rehabBudget > 0) {
       const revealedIssues = getRevealedIssues(selectedProperty.name, completedDiligence[selectedProperty.id] || []);
       
-      // Calculate which issues are covered by the rehab budget
-      // Sort by cost (cheapest first) to maximize issues fixed per dollar
       const sortedIssues = [...revealedIssues].sort((a, b) => a.costRangeMax - b.costRangeMax);
       
-      let remainingBudget = inputs.rehabBudget;
+      let remainingBudget = inputs.rehabBudget ?? 0;
       const fixedIds: string[] = [];
       
       for (const issue of sortedIssues) {
-        // Use max cost to be conservative - issue is only "fixed" if budget covers worst case
-        if (remainingBudget >= issue.costRangeMax && discoveredIssueIds.includes(issue.id)) {
+        if (remainingBudget >= issue.costRangeMax) {
           fixedIds.push(issue.id);
           remainingBudget -= issue.costRangeMax;
         }
@@ -808,7 +807,6 @@ export default function Game() {
       
       updatedInputs = { ...inputs, fixedIssueIds: fixedIds };
     } else if (inputs.rehabBudget === 0 || inputs.rehabBudget === undefined) {
-      // No rehab budget means no issues are fixed
       updatedInputs = { ...inputs, fixedIssueIds: [] };
     }
     
@@ -1881,6 +1879,7 @@ export default function Game() {
                   onAdvanceWeek={handleAdvanceWeek}
                   onSellRental={handleSellRental}
                   onSellFlip={handleSellFlip}
+                  onSellProperty={handleSellProperty}
                   onRefinanceRental={handleOpenRefinanceModal}
                 />
                 {/* Week Timeline Visualization */}

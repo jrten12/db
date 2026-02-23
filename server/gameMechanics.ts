@@ -40,31 +40,31 @@ export interface MarketMultipliers {
 export function getMarketMultipliers(condition: MarketCondition): MarketMultipliers {
   switch (condition) {
     case 'terrible':
-      return { min: 0.85, max: 0.95 };
+      return { min: 0.88, max: 0.97 };
     case 'poor':
-      return { min: 0.90, max: 1.02 };
+      return { min: 0.92, max: 1.05 };
     case 'neutral':
-      return { min: 0.95, max: 1.05 };
+      return { min: 0.95, max: 1.08 };
     case 'good':
-      return { min: 0.97, max: 1.10 };
+      return { min: 0.98, max: 1.12 };
     case 'excellent':
-      return { min: 1.00, max: 1.15 };
+      return { min: 1.02, max: 1.18 };
     default:
-      return { min: 0.95, max: 1.05 };
+      return { min: 0.95, max: 1.08 };
   }
 }
 
 /**
  * Randomize starting market condition (BAL-003 fix)
  * Weighted distribution: not always "good" - any state is possible
- * Weights: terrible 10%, poor 15%, neutral 25%, good 30%, excellent 20%
+ * Weights: terrible 5%, poor 10%, neutral 20%, good 35%, excellent 30%
  */
 export function getRandomStartingMarket(): MarketCondition {
   const rand = Math.random();
-  if (rand < 0.10) return 'terrible';
-  if (rand < 0.25) return 'poor';
-  if (rand < 0.50) return 'neutral';
-  if (rand < 0.80) return 'good';
+  if (rand < 0.05) return 'terrible';
+  if (rand < 0.15) return 'poor';
+  if (rand < 0.35) return 'neutral';
+  if (rand < 0.70) return 'good';
   return 'excellent';
 }
 
@@ -73,11 +73,11 @@ export function getRandomStartingMarket(): MarketCondition {
  * Poor/Terrible probability weights increased by 25% vs original
  * 
  * Adjusted transition probabilities:
- * From terrible (0): 70% up, 30% stay (slower recovery, +25% stay weight)
- * From poor (1): 55% up, 20% stay, 25% down (stronger downward pull)
- * From neutral (2): 50% up, 20% stay, 30% down (more likely to dip)
- * From good (3): 25% up, 30% stay, 35% down to neutral, 10% CRASH to poor
- * From excellent (4): 40% stay, 45% down to good, 15% CRASH to neutral or worse
+ * From terrible (0): 75% up, 25% stay (faster recovery)
+ * From poor (1): 60% up, 20% stay, 20% down
+ * From neutral (2): 55% up, 25% stay, 20% down (slight upward bias)
+ * From good (3): 30% up, 35% stay, 30% down to neutral, 5% crash to poor
+ * From excellent (4): 45% stay, 42% down to good, 10% to neutral, 3% crash to poor
  */
 export function progressMarketCondition(currentCondition: MarketCondition): MarketCondition {
   const currentIndex = MARKET_CONDITIONS.indexOf(currentCondition);
@@ -86,33 +86,33 @@ export function progressMarketCondition(currentCondition: MarketCondition): Mark
   let newIndex: number;
   
   switch (currentIndex) {
-    case 0: // terrible - slower recovery than before
-      newIndex = rand < 0.70 ? 1 : 0;
+    case 0: // terrible - faster recovery
+      newIndex = rand < 0.75 ? 1 : 0;
       break;
-    case 1: // poor - weaker upward pull, stronger downward
-      if (rand < 0.55) newIndex = 2;
-      else if (rand < 0.75) newIndex = 1;
+    case 1: // poor - stronger upward pull
+      if (rand < 0.60) newIndex = 2;
+      else if (rand < 0.80) newIndex = 1;
       else newIndex = 0;
       break;
-    case 2: // neutral - more balanced, easier to slip
-      if (rand < 0.50) newIndex = 3;
-      else if (rand < 0.70) newIndex = 2;
+    case 2: // neutral - slight upward bias
+      if (rand < 0.55) newIndex = 3;
+      else if (rand < 0.80) newIndex = 2;
       else newIndex = 1;
       break;
-    case 3: // good - harder to stay, increased crash chance
-      if (rand < 0.25) newIndex = 4;
-      else if (rand < 0.55) newIndex = 3;
-      else if (rand < 0.90) newIndex = 2;
-      else newIndex = 1; // 10% crash to poor
-      break;
-    case 4: // excellent - more volatile, stronger downward pressure
-      if (rand < 0.40) newIndex = 4;
-      else if (rand < 0.85) newIndex = 3;
+    case 3: // good - more stable, reduced crash chance
+      if (rand < 0.30) newIndex = 4;
+      else if (rand < 0.65) newIndex = 3;
       else if (rand < 0.95) newIndex = 2;
-      else newIndex = 1; // 5% crash all the way to poor
+      else newIndex = 1; // 5% crash to poor
+      break;
+    case 4: // excellent - more stable, gentler corrections
+      if (rand < 0.45) newIndex = 4;
+      else if (rand < 0.87) newIndex = 3;
+      else if (rand < 0.97) newIndex = 2;
+      else newIndex = 1; // 3% crash to poor
       break;
     default:
-      newIndex = 2; // Default to neutral (not good)
+      newIndex = 2;
   }
   
   return MARKET_CONDITIONS[newIndex];

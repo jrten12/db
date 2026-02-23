@@ -110,26 +110,30 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     setIsActive(false);
     setCurrentStep(null);
     setPendingAction(null);
-    const newState: TutorialState = {
-      ...state,
-      hasCompletedTutorial: true,
-      currentStepId: null,
-    };
-    setState(newState);
-    saveState(newState);
+    setState(prev => {
+      const newState: TutorialState = {
+        ...prev,
+        hasCompletedTutorial: true,
+        currentStepId: null,
+      };
+      saveState(newState);
+      return newState;
+    });
     markPromptSeen();
-  }, [state]);
+  }, []);
 
   const advanceTo = useCallback((step: TutorialStep) => {
     setCurrentStep(step);
     setPendingAction(null);
-    const newState: TutorialState = {
-      ...state,
-      currentStepId: step.id,
-    };
-    setState(newState);
-    saveState(newState);
-  }, [state]);
+    setState(prev => {
+      const newState: TutorialState = {
+        ...prev,
+        currentStepId: step.id,
+      };
+      saveState(newState);
+      return newState;
+    });
+  }, []);
 
   const nextStep = useCallback(() => {
     if (!currentStep) return;
@@ -157,13 +161,15 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
   }, [advanceTo]);
 
   const completeAction = useCallback((action: string) => {
-    if (state.completedActions.includes(action)) return;
-    const newState: TutorialState = {
-      ...state,
-      completedActions: [...state.completedActions, action],
-    };
-    setState(newState);
-    saveState(newState);
+    setState(prev => {
+      if (prev.completedActions.includes(action)) return prev;
+      const newState: TutorialState = {
+        ...prev,
+        completedActions: [...prev.completedActions, action],
+      };
+      saveState(newState);
+      return newState;
+    });
 
     if (currentStep?.action?.completionEvent === action) {
       setPendingAction(null);
@@ -172,7 +178,7 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
         setTimeout(() => advanceTo(next), 400);
       }
     }
-  }, [state, currentStep, advanceTo]);
+  }, [currentStep, advanceTo]);
 
   const dismissPrompt = useCallback(() => {
     setShowTutorialPrompt(false);

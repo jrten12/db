@@ -60,7 +60,7 @@ export const DILIGENCE_OPTIONS: DiligenceOption[] = [
     id: 'title_search',
     name: 'Title Report',
     cost: 250,
-    timeWeeks: 3,
+    timeWeeks: 2,
     description: 'Required before purchasing. A title company researches the property\'s ownership history to make sure there are no liens, disputes, or legal issues that could affect your purchase.',
     reveals: 'Confirms the seller actually owns the property and there are no hidden claims against it',
     narrowsField: 'title',

@@ -25,6 +25,7 @@ interface TimeProgressionPanelProps {
   onAdvanceWeek: () => Promise<void>;
   onSellRental?: (dealId: number) => Promise<void>;
   onSellFlip?: (dealId: number) => Promise<void>;
+  onSellProperty?: (dealId: number, strategy: 'rent' | 'flip') => void;
   onRefinanceRental?: (dealId: number) => Promise<void>;
 }
 
@@ -223,6 +224,7 @@ export function TimeProgressionPanel({
   onAdvanceWeek,
   onSellRental,
   onSellFlip,
+  onSellProperty,
   onRefinanceRental,
 }: TimeProgressionPanelProps) {
   const [isAdvancing, setIsAdvancing] = useState(false);
@@ -242,6 +244,10 @@ export function TimeProgressionPanel({
   };
 
   const handleSellRental = async (dealId: number) => {
+    if (onSellProperty) {
+      onSellProperty(dealId, 'rent');
+      return;
+    }
     if (!onSellRental) return;
     playPurchaseConfirmSound();
     setSellingDealId(dealId);
@@ -253,6 +259,10 @@ export function TimeProgressionPanel({
   };
 
   const handleSellFlip = async (dealId: number) => {
+    if (onSellProperty) {
+      onSellProperty(dealId, 'flip');
+      return;
+    }
     if (!onSellFlip) return;
     playPurchaseConfirmSound();
     setSellingDealId(dealId);

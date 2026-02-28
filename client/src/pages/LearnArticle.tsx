@@ -354,9 +354,17 @@ export default function LearnArticle() {
         </div>
 
         <div className="space-y-8">
-          {article.sections.map((section, i) => (
-            <SectionBlock key={i} section={section} />
-          ))}
+          {article.sections.map((section, i) => {
+            const midPoint = Math.floor(article.sections.length / 2);
+            return (
+              <div key={i}>
+                <SectionBlock section={section} />
+                {i === midPoint && article.sections.length > 3 && (
+                  <AdBanner className="mt-8" />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="mt-10 p-6 rounded-xl border" style={{ background: 'rgba(16,185,129,0.04)', borderColor: 'rgba(16,185,129,0.15)' }}>

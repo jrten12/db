@@ -112,59 +112,64 @@ export default function Learn() {
         </p>
       </section>
 
-      {categories.map(category => (
-        <section key={category} className="max-w-5xl mx-auto px-5 pb-10">
-          <h2 className="text-sm font-semibold uppercase tracking-widest mb-5" style={{ color: 'rgba(212,175,55,0.5)' }}>
-            {category}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {LEARN_ARTICLES.filter(a => a.category === category).map(article => {
-              const heroSrc = article.heroImage ? HERO_IMAGES[article.heroImage] : null;
-              const diff = DIFFICULTY_COLORS[article.difficulty || 'beginner'];
-              return (
-                <Link key={article.slug} href={`/learn/${article.slug}`}>
-                  <div
-                    className="group rounded-xl border cursor-pointer transition-all hover:border-amber-700/40 overflow-hidden"
-                    style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(180,155,80,0.12)' }}
-                    data-testid={`card-article-${article.slug}`}
-                  >
-                    {heroSrc && (
-                      <div className="relative h-32 sm:h-36 overflow-hidden">
-                        <img
-                          src={heroSrc}
-                          alt={article.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          style={{ filter: 'brightness(0.5)' }}
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 40%, rgba(12,12,14,0.95) 100%)' }} />
-                        <div className="absolute bottom-3 left-4">
-                          <span className="text-2xl">{article.icon}</span>
+      {categories.map((category, catIndex) => (
+        <div key={category}>
+          <section className="max-w-5xl mx-auto px-5 pb-10">
+            <h2 className="text-sm font-semibold uppercase tracking-widest mb-5" style={{ color: 'rgba(212,175,55,0.5)' }}>
+              {category}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {LEARN_ARTICLES.filter(a => a.category === category).map(article => {
+                const heroSrc = article.heroImage ? HERO_IMAGES[article.heroImage] : null;
+                const diff = DIFFICULTY_COLORS[article.difficulty || 'beginner'];
+                return (
+                  <Link key={article.slug} href={`/learn/${article.slug}`}>
+                    <div
+                      className="group rounded-xl border cursor-pointer transition-all hover:border-amber-700/40 overflow-hidden"
+                      style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(180,155,80,0.12)' }}
+                      data-testid={`card-article-${article.slug}`}
+                    >
+                      {heroSrc && (
+                        <div className="relative h-32 sm:h-36 overflow-hidden">
+                          <img
+                            src={heroSrc}
+                            alt={article.title}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            style={{ filter: 'brightness(0.5)' }}
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 40%, rgba(12,12,14,0.95) 100%)' }} />
+                          <div className="absolute bottom-3 left-4">
+                            <span className="text-2xl">{article.icon}</span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="p-5">
+                        <h3 className="font-semibold text-base mb-1.5 group-hover:text-amber-200 transition-colors leading-snug" style={{ color: '#f0e6d0' }}>
+                          {article.title}
+                        </h3>
+                        <p className="text-sm leading-relaxed mb-3 line-clamp-2" style={{ color: 'rgba(200,195,180,0.5)' }}>
+                          {article.subtitle}
+                        </p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: diff.bg, color: diff.color }}>
+                            {article.difficulty.charAt(0).toUpperCase() + article.difficulty.slice(1)}
+                          </span>
+                          <span className="text-xs" style={{ color: 'rgba(200,195,180,0.3)' }}>
+                            {article.readTime} read
+                          </span>
                         </div>
                       </div>
-                    )}
-                    <div className="p-5">
-                      <h3 className="font-semibold text-base mb-1.5 group-hover:text-amber-200 transition-colors leading-snug" style={{ color: '#f0e6d0' }}>
-                        {article.title}
-                      </h3>
-                      <p className="text-sm leading-relaxed mb-3 line-clamp-2" style={{ color: 'rgba(200,195,180,0.5)' }}>
-                        {article.subtitle}
-                      </p>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: diff.bg, color: diff.color }}>
-                          {article.difficulty.charAt(0).toUpperCase() + article.difficulty.slice(1)}
-                        </span>
-                        <span className="text-xs" style={{ color: 'rgba(200,195,180,0.3)' }}>
-                          {article.readTime} read
-                        </span>
-                      </div>
                     </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+          {catIndex === 1 && (
+            <AdBanner className="max-w-5xl mx-auto px-5 pb-10" />
+          )}
+        </div>
       ))}
 
       <section className="max-w-5xl mx-auto px-5 py-10">

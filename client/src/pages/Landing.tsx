@@ -375,11 +375,11 @@ export default function Landing() {
                     </div>
                   </div>
 
-                  <div className="flex-shrink-0 lg:w-[280px]">
+                  <div className="flex-shrink-0 lg:w-[300px]">
                     <div className="space-y-2.5">
                       {[
                         { icon: '📊', title: 'What Is a Pro Forma?', tag: 'Beginner', tagColor: '#4ade80' },
-                        { icon: '⚡', title: 'The 1% Rule & Quick Filters', tag: 'Intermediate', tagColor: '#fbbf24' },
+                        { icon: '⚡', title: '1% Rule & Quick Filters', tag: 'Intermediate', tagColor: '#fbbf24' },
                         { icon: '🛡️', title: 'Survive a Market Crash', tag: 'Advanced', tagColor: '#f87171' },
                         { icon: '🏗️', title: 'Portfolio Strategy', tag: 'Advanced', tagColor: '#f87171' },
                       ].map((item, i) => (
@@ -390,9 +390,9 @@ export default function Landing() {
                         >
                           <span className="text-lg flex-shrink-0">{item.icon}</span>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium truncate" style={{ color: '#e8dfc8' }}>{item.title}</div>
+                            <div className="text-sm font-medium leading-snug" style={{ color: '#e8dfc8' }}>{item.title}</div>
                           </div>
-                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: `${item.tagColor}15`, color: item.tagColor }}>
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 whitespace-nowrap" style={{ background: `${item.tagColor}15`, color: item.tagColor }}>
                             {item.tag}
                           </span>
                         </div>

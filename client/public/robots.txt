@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /learn
+Allow: /learn/
+Allow: /terms
+Allow: /privacy
+
+Disallow: /api/
+
+Sitemap: https://dealbreak.replit.app/sitemap.xml

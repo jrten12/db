@@ -6,6 +6,7 @@ import { globalLimiter, checkBlockedIP } from "./rateLimiter";
 import { runMigrations } from 'stripe-replit-sync';
 import { getStripeSync } from './stripeClient';
 import { WebhookHandlers } from './webhookHandlers';
+import { generateSitemap } from './seo';
 
 const app = express();
 const httpServer = createServer(app);
@@ -129,6 +130,14 @@ app.use((req, res, next) => {
 
     res.status(status).json({ message });
     throw err;
+  });
+
+  app.get('/sitemap.xml', (req, res) => {
+    const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
+    const host = req.headers["x-forwarded-host"] || req.headers.host || "dealbreak.replit.app";
+    const baseUrl = `${proto}://${host}`;
+    res.set('Content-Type', 'application/xml');
+    res.send(generateSitemap(baseUrl));
   });
 
   // importantly only setup vite in development and after

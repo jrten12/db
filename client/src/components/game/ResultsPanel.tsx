@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { ProFormaOutputs, formatCurrency } from '@/lib/gameData';
 import { TrendingDown, TrendingUp, AlertTriangle, HelpCircle, Lightbulb, X, Check } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { AdBanner } from '@/components/game/AdBanner';
 import mortgageIcon from '@assets/generated_images/mortgage_document_game_icon.png';
 import coinsIcon from '@assets/generated_images/gold_coins_stack_icon.png';
 
@@ -490,8 +489,6 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
           </div>
         </div>
       </div>
-
-      <AdBanner className="px-6 mb-2" />
 
       {/* Footer with Continue Button */}
       <div className="p-6 pt-0">

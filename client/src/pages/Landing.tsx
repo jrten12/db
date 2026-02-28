@@ -45,6 +45,11 @@ export default function Landing() {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <Link href="/learn">
+              <span className="text-sm font-medium hidden sm:inline" style={{ color: 'rgba(212,175,55,0.7)' }} data-testid="link-learn-landing-nav">
+                Learn
+              </span>
+            </Link>
             <button
               onClick={toggleMusic}
               className="p-2 rounded-full transition-all active:scale-[0.97]"
@@ -273,6 +278,107 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* === WHAT YOU'LL LEARN === */}
+      <section
+        className="relative py-16 lg:py-20"
+        style={{
+          background: 'linear-gradient(180deg, #0f0f11 0%, #111114 100%)',
+        }}
+      >
+        <div
+          className="absolute inset-x-0 top-0 h-[1px]"
+          style={{
+            background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent)',
+          }}
+        />
+        <div className="max-w-4xl mx-auto px-5">
+          <h2
+            className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-4"
+            style={{ color: '#f0e6d0' }}
+          >
+            Real Skills, Real Knowledge
+          </h2>
+          <p className="text-center text-base max-w-2xl mx-auto mb-10" style={{ color: 'rgba(200,195,180,0.5)' }}>
+            Dealbreak teaches the same financial analysis skills used by professional real estate investors. Every concept in the game mirrors how real deals are evaluated.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <SkillCard
+              title="Pro Forma Analysis"
+              description="Build financial models that project income, expenses, and returns — the foundation of every investment decision."
+            />
+            <SkillCard
+              title="Cap Rates & Cash-on-Cash"
+              description="Understand the key metrics investors use to compare properties and evaluate whether a deal meets their return targets."
+            />
+            <SkillCard
+              title="Leverage & Financing"
+              description="Learn how loan-to-value ratios, interest rates, and down payments affect your risk and return profile."
+            />
+            <SkillCard
+              title="Due Diligence"
+              description="Discover why inspections, title searches, and market studies are worth every dollar and week they cost."
+            />
+            <SkillCard
+              title="Market Timing"
+              description="Experience how shifting market conditions affect property values, sale prices, and investment strategy."
+            />
+            <SkillCard
+              title="Risk Management"
+              description="Learn to balance cash reserves, leverage, and deal selection to survive unexpected setbacks."
+            />
+          </div>
+
+          <div className="text-center mt-8">
+            <Link href="/learn">
+              <button
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all hover:brightness-110 active:scale-[0.98]"
+                style={{
+                  background: 'rgba(212,175,55,0.08)',
+                  color: '#d4af37',
+                  border: '1px solid rgba(212,175,55,0.2)',
+                }}
+                data-testid="button-explore-guides"
+              >
+                Explore Free Guides
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* === FAQ === */}
+      <section className="py-14 lg:py-20 px-5">
+        <div className="max-w-3xl mx-auto">
+          <h2
+            className="text-center text-2xl sm:text-3xl font-bold mb-10"
+            style={{ color: '#f0e6d0' }}
+          >
+            Frequently Asked Questions
+          </h2>
+
+          <div className="space-y-4">
+            <FaqItem
+              question="Is Dealbreak free to play?"
+              answer="Yes. The full game is free to play with no signup required. Optional premium boosts are available for players who want extra cash or time, but they're never required to win."
+            />
+            <FaqItem
+              question="Will this teach me real estate investing?"
+              answer="Dealbreak teaches the analytical framework that professional investors use — pro forma modeling, cap rate analysis, due diligence, and risk assessment. While it's a simulation and not financial advice, the skills transfer directly to evaluating real deals."
+            />
+            <FaqItem
+              question="How long does a game take?"
+              answer="A typical game takes 20-40 minutes. You manage a 12-month timeline, evaluating properties, running numbers, and executing deals. Each playthrough is different thanks to randomized properties, market conditions, and events."
+            />
+            <FaqItem
+              question="What strategies can I use?"
+              answer="You can flip properties (buy, renovate, sell for profit) or rent them out (buy, hold, collect monthly income). Each strategy has different risk-reward profiles, and the best players learn to mix both depending on market conditions and their financial position."
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Disclaimer */}
       <div className="px-5 py-8 text-center">
         <p className="text-sm" style={{ color: 'rgba(200,195,180,0.3)' }}>
@@ -380,6 +486,48 @@ function StepCard({
         <h3 className="font-semibold text-lg mb-1" style={{ color: '#f0e6d0' }}>{title}</h3>
         <p className="text-sm leading-relaxed" style={{ color: 'rgba(200,195,180,0.5)' }}>{description}</p>
       </div>
+    </div>
+  );
+}
+
+function SkillCard({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div
+      className="p-4 rounded-xl border"
+      style={{
+        background: 'rgba(255,255,255,0.02)',
+        borderColor: 'rgba(180,155,80,0.08)',
+      }}
+    >
+      <h3 className="font-semibold text-sm mb-1.5" style={{ color: '#e8dfc8' }}>{title}</h3>
+      <p className="text-sm leading-relaxed" style={{ color: 'rgba(200,195,180,0.45)' }}>{description}</p>
+    </div>
+  );
+}
+
+function FaqItem({
+  question,
+  answer,
+}: {
+  question: string;
+  answer: string;
+}) {
+  return (
+    <div
+      className="p-5 rounded-xl border"
+      style={{
+        background: 'rgba(255,255,255,0.02)',
+        borderColor: 'rgba(180,155,80,0.08)',
+      }}
+    >
+      <h3 className="font-semibold text-base mb-2" style={{ color: '#f0e6d0' }}>{question}</h3>
+      <p className="text-sm leading-relaxed" style={{ color: 'rgba(200,195,180,0.5)' }}>{answer}</p>
     </div>
   );
 }

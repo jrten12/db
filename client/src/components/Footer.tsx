@@ -13,6 +13,10 @@ export default function Footer() {
           />
 
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm">
+            <Link href="/learn" className="text-emerald-400/80 hover:text-emerald-400 active:text-emerald-300 transition-colors touch-target-sm inline-flex items-center justify-center tap-scale" data-testid="link-footer-learn">
+              Learning Center
+            </Link>
+            <span className="text-gray-700 hidden sm:inline">•</span>
             <Link href="/terms" className="text-emerald-400/80 hover:text-emerald-400 active:text-emerald-300 transition-colors touch-target-sm inline-flex items-center justify-center tap-scale">
               Terms of Service
             </Link>

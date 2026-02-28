@@ -37,8 +37,15 @@ Preferred communication style: Simple, everyday language.
 - **Animations**: React Native Reanimated
 - **State**: TanStack React Query
 
+### Content & SEO (AdSense Compliance)
+- **Learning Center**: `/learn` hub page with 8 educational articles about real estate investing concepts
+- **Article Pages**: `/learn/:slug` individual article pages with 400-800 words of educational content each
+- **Article Data**: `client/src/lib/learnArticles.ts` — structured article content with sections, related articles, game connections
+- **Ad Placement**: Ads only on content-rich pages (Landing page, Learn hub, article pages). Removed from game UI screens (PropertySelector, ResultsPanel) per AdSense policy.
+- **Structured Data**: JSON-LD schema markup in `index.html` for WebApplication type
+
 ### Monetization
-- **Web**: Google AdSense with configurable banners.
+- **Web**: Google AdSense on content pages only (Landing, Learn hub, articles). Not on game screens.
 - **Mobile**: Google AdMob (Banner, Interstitial, Rewarded ads).
 - **Premium Boosts (Stripe)**: In-game purchases via Stripe Checkout for cash/time boosts.
   - `server/stripeClient.ts` - Stripe client using Replit connector credentials

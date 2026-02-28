@@ -177,7 +177,7 @@ export const LEARN_ARTICLES: LearnArticle[] = [
       }
     ],
     relatedSlugs: ["flip-vs-rent", "cap-rates-cash-on-cash", "common-mistakes"],
-    gameConnection: "Dealbreak simulates a dynamic market that shifts between five conditions — from terrible to excellent — every few weeks. Your flip sale prices and rental property values fluctuate with the market, teaching you to factor market risk into every deal."
+    gameConnection: "Dealbreak simulates a dynamic market that shifts between five conditions — from terrible to excellent — every few months. Your flip sale prices and rental property values fluctuate with the market, teaching you to factor market risk into every deal."
   },
   {
     slug: "rehab-budgets",

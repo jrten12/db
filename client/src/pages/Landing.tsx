@@ -329,22 +329,85 @@ export default function Landing() {
             />
           </div>
 
-          <div className="text-center mt-8">
-            <Link href="/learn">
-              <button
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm transition-all hover:brightness-110 active:scale-[0.98]"
-                style={{
-                  background: 'rgba(212,175,55,0.08)',
-                  color: '#d4af37',
-                  border: '1px solid rgba(212,175,55,0.2)',
-                }}
-                data-testid="button-explore-guides"
-              >
-                Explore Free Guides
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </Link>
-          </div>
+        </div>
+      </section>
+
+      {/* === LEARNING CENTER PROMO === */}
+      <section className="py-14 lg:py-20 px-5">
+        <div className="max-w-5xl mx-auto">
+          <Link href="/learn">
+            <div
+              className="group relative overflow-hidden rounded-2xl border cursor-pointer transition-all hover:border-amber-600/40"
+              style={{
+                background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, rgba(16,185,129,0.04) 50%, rgba(59,130,246,0.04) 100%)',
+                borderColor: 'rgba(180,155,80,0.2)',
+              }}
+              data-testid="section-learning-center-promo"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.07] pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(212,175,55,1) 0%, transparent 70%)' }} />
+              <div className="absolute bottom-0 left-0 w-48 h-48 opacity-[0.05] pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(16,185,129,1) 0%, transparent 70%)' }} />
+
+              <div className="relative p-8 sm:p-10 lg:p-12">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-8">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-2xl">📚</span>
+                      <span className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: 'rgba(212,175,55,0.12)', color: '#d4af37' }}>
+                        Free Learning Center
+                      </span>
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-3 group-hover:text-amber-200 transition-colors" style={{ color: '#f0e6d0' }}>
+                      Learn Before You Earn
+                    </h2>
+                    <p className="text-base leading-relaxed mb-5" style={{ color: 'rgba(200,195,180,0.6)' }}>
+                      13 in-depth guides on real estate investing — from pro forma analysis to surviving market crashes. No fluff, no textbook language. Just the knowledge that separates successful investors from expensive mistakes.
+                    </p>
+                    <div
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-base transition-all group-hover:brightness-110"
+                      style={{
+                        background: 'linear-gradient(180deg, #d4af37 0%, #b8962e 100%)',
+                        color: '#0c0c0e',
+                        boxShadow: '0 4px 16px rgba(212,175,55,0.3)',
+                      }}
+                    >
+                      Explore All Guides
+                      <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                    </div>
+                  </div>
+
+                  <div className="flex-shrink-0 lg:w-[280px]">
+                    <div className="space-y-2.5">
+                      {[
+                        { icon: '📊', title: 'What Is a Pro Forma?', tag: 'Beginner', tagColor: '#4ade80' },
+                        { icon: '⚡', title: 'The 1% Rule & Quick Filters', tag: 'Intermediate', tagColor: '#fbbf24' },
+                        { icon: '🛡️', title: 'Survive a Market Crash', tag: 'Advanced', tagColor: '#f87171' },
+                        { icon: '🏗️', title: 'Portfolio Strategy', tag: 'Advanced', tagColor: '#f87171' },
+                      ].map((item, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-3 p-3 rounded-lg transition-all"
+                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(180,155,80,0.08)' }}
+                        >
+                          <span className="text-lg flex-shrink-0">{item.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium truncate" style={{ color: '#e8dfc8' }}>{item.title}</div>
+                          </div>
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: `${item.tagColor}15`, color: item.tagColor }}>
+                            {item.tag}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="text-center pt-1">
+                        <span className="text-xs font-medium" style={{ color: 'rgba(212,175,55,0.5)' }}>
+                          + 9 more guides →
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
         </div>
       </section>
 

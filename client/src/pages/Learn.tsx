@@ -6,6 +6,40 @@ import { AdBanner } from '@/components/game/AdBanner';
 import Footer from '@/components/Footer';
 import dbLogoImage from '@assets/dealbreak_icon_sim_1767848951783.png';
 
+import imgProForma from '@assets/generated_images/learn_pro_forma.png';
+import imgCapRates from '@assets/generated_images/learn_cap_rates.png';
+import imgFlipVsRent from '@assets/generated_images/learn_flip_vs_rent.png';
+import imgDueDiligence from '@assets/generated_images/learn_due_diligence.png';
+import imgLtvFinancing from '@assets/generated_images/learn_ltv_financing.png';
+import imgMarketConditions from '@assets/generated_images/learn_market_conditions.png';
+import imgRehabBudgets from '@assets/generated_images/learn_rehab_budgets.png';
+import imgCommonMistakes from '@assets/generated_images/learn_common_mistakes.png';
+import imgQuickFilters from '@assets/generated_images/learn_quick_filters.png';
+import imgMarketCrash from '@assets/generated_images/learn_market_crash.png';
+import imgPortfolioStrategy from '@assets/generated_images/learn_portfolio_strategy.png';
+import imgTenantManagement from '@assets/generated_images/learn_tenant_management.png';
+
+const HERO_IMAGES: Record<string, string> = {
+  learn_pro_forma: imgProForma,
+  learn_cap_rates: imgCapRates,
+  learn_flip_vs_rent: imgFlipVsRent,
+  learn_due_diligence: imgDueDiligence,
+  learn_ltv_financing: imgLtvFinancing,
+  learn_market_conditions: imgMarketConditions,
+  learn_rehab_budgets: imgRehabBudgets,
+  learn_common_mistakes: imgCommonMistakes,
+  learn_quick_filters: imgQuickFilters,
+  learn_market_crash: imgMarketCrash,
+  learn_portfolio_strategy: imgPortfolioStrategy,
+  learn_tenant_management: imgTenantManagement,
+};
+
+const DIFFICULTY_COLORS: Record<string, { color: string; bg: string }> = {
+  beginner: { color: 'rgba(74,222,128,0.8)', bg: 'rgba(16,185,129,0.1)' },
+  intermediate: { color: 'rgba(251,191,36,0.8)', bg: 'rgba(251,191,36,0.1)' },
+  advanced: { color: 'rgba(239,68,68,0.7)', bg: 'rgba(239,68,68,0.1)' },
+};
+
 export default function Learn() {
   useEffect(() => {
     document.title = 'Learn Real Estate Investing | Dealbreak';
@@ -36,26 +70,17 @@ export default function Learn() {
           <Link href="/">
             <div className="flex items-center gap-2.5 cursor-pointer">
               <img src={dbLogoImage} alt="Dealbreak" className="w-8 h-8 rounded-lg" />
-              <span className="font-bold text-lg tracking-wide" style={{ color: '#d4af37' }}>
-                Dealbreak
-              </span>
+              <span className="font-bold text-lg tracking-wide" style={{ color: '#d4af37' }}>Dealbreak</span>
             </div>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/learn">
-              <span className="text-sm font-medium" style={{ color: '#d4af37' }} data-testid="link-learn-nav">
-                Learn
-              </span>
+              <span className="text-sm font-medium" style={{ color: '#d4af37' }} data-testid="link-learn-nav">Learn</span>
             </Link>
             <Link href="/game">
               <button
                 className="px-5 py-2 rounded-md font-semibold text-sm transition-all active:scale-[0.97]"
-                style={{
-                  background: 'linear-gradient(180deg, #d4af37 0%, #b8962e 100%)',
-                  color: '#0c0c0e',
-                  boxShadow: '0 2px 8px rgba(212,175,55,0.3)',
-                  border: '1px solid rgba(212,175,55,0.5)',
-                }}
+                style={{ background: 'linear-gradient(180deg, #d4af37 0%, #b8962e 100%)', color: '#0c0c0e', boxShadow: '0 2px 8px rgba(212,175,55,0.3)', border: '1px solid rgba(212,175,55,0.5)' }}
                 data-testid="button-play-from-learn"
               >
                 Play Now
@@ -79,8 +104,11 @@ export default function Learn() {
             Learning Center
           </h1>
         </div>
-        <p className="text-lg leading-relaxed max-w-2xl" style={{ color: 'rgba(220,215,200,0.65)' }}>
+        <p className="text-lg leading-relaxed max-w-2xl mb-2" style={{ color: 'rgba(220,215,200,0.65)' }}>
           Master the fundamentals of real estate investing. These guides cover the same concepts you'll encounter in the Dealbreak simulator — understanding them will help you make better decisions both in the game and in real life.
+        </p>
+        <p className="text-sm" style={{ color: 'rgba(200,195,180,0.4)' }}>
+          {LEARN_ARTICLES.length} articles across {categories.length} categories
         </p>
       </section>
 
@@ -90,39 +118,51 @@ export default function Learn() {
             {category}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {LEARN_ARTICLES.filter(a => a.category === category).map(article => (
-              <Link key={article.slug} href={`/learn/${article.slug}`}>
-                <div
-                  className="group p-5 rounded-xl border cursor-pointer transition-all hover:border-amber-700/40"
-                  style={{
-                    background: 'rgba(255,255,255,0.02)',
-                    borderColor: 'rgba(180,155,80,0.12)',
-                  }}
-                  data-testid={`card-article-${article.slug}`}
-                >
-                  <div className="flex items-start gap-4">
-                    <span className="text-2xl flex-shrink-0 mt-0.5">{article.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-base mb-1 group-hover:text-amber-200 transition-colors" style={{ color: '#f0e6d0' }}>
+            {LEARN_ARTICLES.filter(a => a.category === category).map(article => {
+              const heroSrc = article.heroImage ? HERO_IMAGES[article.heroImage] : null;
+              const diff = DIFFICULTY_COLORS[article.difficulty || 'beginner'];
+              return (
+                <Link key={article.slug} href={`/learn/${article.slug}`}>
+                  <div
+                    className="group rounded-xl border cursor-pointer transition-all hover:border-amber-700/40 overflow-hidden"
+                    style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(180,155,80,0.12)' }}
+                    data-testid={`card-article-${article.slug}`}
+                  >
+                    {heroSrc && (
+                      <div className="relative h-32 sm:h-36 overflow-hidden">
+                        <img
+                          src={heroSrc}
+                          alt={article.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          style={{ filter: 'brightness(0.5)' }}
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, transparent 40%, rgba(12,12,14,0.95) 100%)' }} />
+                        <div className="absolute bottom-3 left-4">
+                          <span className="text-2xl">{article.icon}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="p-5">
+                      <h3 className="font-semibold text-base mb-1.5 group-hover:text-amber-200 transition-colors leading-snug" style={{ color: '#f0e6d0' }}>
                         {article.title}
                       </h3>
-                      <p className="text-sm leading-relaxed mb-3" style={{ color: 'rgba(200,195,180,0.5)' }}>
+                      <p className="text-sm leading-relaxed mb-3 line-clamp-2" style={{ color: 'rgba(200,195,180,0.5)' }}>
                         {article.subtitle}
                       </p>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(212,175,55,0.1)', color: 'rgba(212,175,55,0.6)' }}>
-                          {article.category}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: diff.bg, color: diff.color }}>
+                          {article.difficulty.charAt(0).toUpperCase() + article.difficulty.slice(1)}
                         </span>
                         <span className="text-xs" style={{ color: 'rgba(200,195,180,0.3)' }}>
                           {article.readTime} read
                         </span>
                       </div>
                     </div>
-                    <ArrowRight className="w-4 h-4 flex-shrink-0 mt-1 opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: '#d4af37' }} />
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         </section>
       ))}
@@ -130,10 +170,7 @@ export default function Learn() {
       <section className="max-w-5xl mx-auto px-5 py-10">
         <div
           className="p-8 rounded-2xl border text-center"
-          style={{
-            background: 'rgba(16,185,129,0.04)',
-            borderColor: 'rgba(16,185,129,0.15)',
-          }}
+          style={{ background: 'rgba(16,185,129,0.04)', borderColor: 'rgba(16,185,129,0.15)' }}
         >
           <h2 className="text-xl font-bold mb-3" style={{ color: '#f0e6d0' }}>
             Ready to Put Theory Into Practice?
@@ -144,12 +181,7 @@ export default function Learn() {
           <Link href="/game">
             <button
               className="group py-3 px-8 rounded-lg font-bold text-base transition-all hover:brightness-110 active:scale-[0.98] inline-flex items-center gap-2"
-              style={{
-                background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
-                color: '#fff',
-                boxShadow: '0 4px 24px rgba(16,185,129,0.35)',
-                border: '1px solid rgba(16,185,129,0.4)',
-              }}
+              style={{ background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)', color: '#fff', boxShadow: '0 4px 24px rgba(16,185,129,0.35)', border: '1px solid rgba(16,185,129,0.4)' }}
               data-testid="button-play-from-learn-cta"
             >
               Start Playing Free

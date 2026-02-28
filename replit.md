@@ -38,11 +38,13 @@ Preferred communication style: Simple, everyday language.
 - **State**: TanStack React Query
 
 ### Content & SEO (AdSense Compliance)
-- **Learning Center**: `/learn` hub page with 8 educational articles about real estate investing concepts
-- **Article Pages**: `/learn/:slug` individual article pages with 400-800 words of educational content each
-- **Article Data**: `client/src/lib/learnArticles.ts` — structured article content with sections, related articles, game connections
+- **Learning Center**: `/learn` hub page with 13 educational articles about real estate investing concepts
+- **Article Pages**: `/learn/:slug` individual article pages with engaging content, hero images, CSS infographics, callout/warning/tip sections
+- **Article Data**: `client/src/lib/learnArticles.ts` — structured article content with sections (text/callout/warning/tip/infographic types), InfographicData (comparison/scale/breakdown/steps/spectrum), difficulty levels, seoKeywords, heroImage references
+- **Article Images**: AI-generated hero images in `attached_assets/generated_images/learn_*.png`, imported via `@assets` alias in LearnArticle.tsx and Learn.tsx
+- **SEO Server Module**: `server/seo.ts` — duplicate ARTICLE_DATA for server-side meta injection, per-article keywords, difficulty levels, JSON-LD Article/BreadcrumbList schemas
 - **Ad Placement**: Ads only on content-rich pages (Landing page, Learn hub, article pages). Removed from game UI screens (PropertySelector, ResultsPanel) per AdSense policy.
-- **Structured Data**: JSON-LD schema markup in `index.html` for WebApplication type
+- **Structured Data**: JSON-LD schema markup via server/seo.ts for WebApplication, FAQPage, Article, BreadcrumbList, CollectionPage types
 
 ### Monetization
 - **Web**: Google AdSense on content pages only (Landing, Learn hub, articles). Not on game screens.

@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { ArrowRight, Play, Volume2, VolumeX } from 'lucide-react';
+import { ArrowRight, Play, Volume2, VolumeX, BookOpen, BarChart3, Zap, Shield, Building2 } from 'lucide-react';
 import heroHouseImage from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_1771128403840.png';
 import dbLogoImage from '@assets/dealbreak_icon_sim_1767848951783.png';
 import heroBgPattern from '@/assets/images/hero-bg-pattern.png';
@@ -78,7 +78,6 @@ export default function Landing() {
 
       {/* === HERO SECTION with geometric background === */}
       <section className="relative overflow-hidden">
-        {/* Geometric gold/green background pattern */}
         <div className="absolute inset-0">
           <img
             src={heroBgPattern}
@@ -97,7 +96,6 @@ export default function Landing() {
           />
         </div>
 
-        {/* Gold accent lines */}
         <div
           className="absolute inset-x-0 bottom-0 h-[2px]"
           style={{
@@ -107,7 +105,6 @@ export default function Landing() {
 
         <div className="relative z-10 max-w-6xl mx-auto px-5 py-14 lg:py-20">
           <div className="flex flex-col lg:flex-row lg:items-center lg:gap-12 xl:gap-16">
-            {/* Left side: headline + CTA */}
             <div className="flex-1 text-center lg:text-left mb-10 lg:mb-0">
               <h1
                 className="text-[2.2rem] sm:text-[2.8rem] lg:text-5xl xl:text-[3.5rem] leading-[1.08] font-bold tracking-tight mb-5"
@@ -161,7 +158,6 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Right side: Hero house image */}
             <div className="relative w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[380px] xl:max-w-[420px] mx-auto lg:mx-0 lg:flex-shrink-0">
               <div
                 className="absolute -inset-12 rounded-full blur-[80px]"
@@ -178,6 +174,85 @@ export default function Landing() {
               />
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* === LEARNING CENTER PROMO (moved up near top) === */}
+      <section className="py-12 lg:py-16 px-5">
+        <div className="max-w-5xl mx-auto">
+          <Link href="/learn">
+            <div
+              className="group relative overflow-hidden rounded-2xl border cursor-pointer transition-all hover:border-amber-600/40"
+              style={{
+                background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, rgba(16,185,129,0.04) 50%, rgba(59,130,246,0.04) 100%)',
+                borderColor: 'rgba(180,155,80,0.2)',
+              }}
+              data-testid="section-learning-center-promo"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.07] pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(212,175,55,1) 0%, transparent 70%)' }} />
+              <div className="absolute bottom-0 left-0 w-48 h-48 opacity-[0.05] pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(16,185,129,1) 0%, transparent 70%)' }} />
+
+              <div className="relative p-6 sm:p-8 lg:p-10">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-8">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <BookOpen className="w-6 h-6" style={{ color: '#d4af37' }} />
+                      <span className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: 'rgba(212,175,55,0.12)', color: '#d4af37' }}>
+                        Free Learning Center
+                      </span>
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-3 group-hover:text-amber-200 transition-colors" style={{ color: '#f0e6d0' }}>
+                      Learn Before You Earn
+                    </h2>
+                    <p className="text-base sm:text-lg leading-relaxed mb-5" style={{ color: 'rgba(220,215,200,0.7)' }}>
+                      13 in-depth guides on real estate investing — from pro forma analysis to surviving market crashes. No fluff, no textbook language. Just the knowledge that separates successful investors from expensive mistakes.
+                    </p>
+                    <div
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-base transition-all group-hover:brightness-110"
+                      style={{
+                        background: 'linear-gradient(180deg, #d4af37 0%, #b8962e 100%)',
+                        color: '#0c0c0e',
+                        boxShadow: '0 4px 16px rgba(212,175,55,0.3)',
+                      }}
+                    >
+                      Explore All Guides
+                      <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                    </div>
+                  </div>
+
+                  <div className="flex-shrink-0 lg:w-[300px]">
+                    <div className="space-y-2.5">
+                      {[
+                        { Icon: BarChart3, title: 'What Is a Pro Forma?', tag: 'Beginner', tagColor: '#4ade80' },
+                        { Icon: Zap, title: '1% Rule & Quick Filters', tag: 'Intermediate', tagColor: '#fbbf24' },
+                        { Icon: Shield, title: 'Survive a Market Crash', tag: 'Advanced', tagColor: '#f87171' },
+                        { Icon: Building2, title: 'Portfolio Strategy', tag: 'Advanced', tagColor: '#f87171' },
+                      ].map((item, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-3 p-3 rounded-lg transition-all"
+                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(180,155,80,0.08)' }}
+                        >
+                          <item.Icon className="w-4 h-4 flex-shrink-0" style={{ color: item.tagColor }} />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium leading-snug" style={{ color: '#e8dfc8' }}>{item.title}</div>
+                          </div>
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 whitespace-nowrap" style={{ background: `${item.tagColor}15`, color: item.tagColor }}>
+                            {item.tag}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="text-center pt-1">
+                        <span className="text-xs font-medium" style={{ color: 'rgba(212,175,55,0.5)' }}>
+                          + 9 more guides →
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
         </div>
       </section>
 
@@ -298,7 +373,7 @@ export default function Landing() {
           >
             Real Skills, Real Knowledge
           </h2>
-          <p className="text-center text-base max-w-2xl mx-auto mb-10" style={{ color: 'rgba(200,195,180,0.5)' }}>
+          <p className="text-center text-base sm:text-lg max-w-2xl mx-auto mb-10" style={{ color: 'rgba(220,215,200,0.6)' }}>
             Dealbreak teaches the same financial analysis skills used by professional real estate investors. Every concept in the game mirrors how real deals are evaluated.
           </p>
 
@@ -329,85 +404,6 @@ export default function Landing() {
             />
           </div>
 
-        </div>
-      </section>
-
-      {/* === LEARNING CENTER PROMO === */}
-      <section className="py-14 lg:py-20 px-5">
-        <div className="max-w-5xl mx-auto">
-          <Link href="/learn">
-            <div
-              className="group relative overflow-hidden rounded-2xl border cursor-pointer transition-all hover:border-amber-600/40"
-              style={{
-                background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, rgba(16,185,129,0.04) 50%, rgba(59,130,246,0.04) 100%)',
-                borderColor: 'rgba(180,155,80,0.2)',
-              }}
-              data-testid="section-learning-center-promo"
-            >
-              <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.07] pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(212,175,55,1) 0%, transparent 70%)' }} />
-              <div className="absolute bottom-0 left-0 w-48 h-48 opacity-[0.05] pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(16,185,129,1) 0%, transparent 70%)' }} />
-
-              <div className="relative p-8 sm:p-10 lg:p-12">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-8">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-2xl">📚</span>
-                      <span className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: 'rgba(212,175,55,0.12)', color: '#d4af37' }}>
-                        Free Learning Center
-                      </span>
-                    </div>
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-3 group-hover:text-amber-200 transition-colors" style={{ color: '#f0e6d0' }}>
-                      Learn Before You Earn
-                    </h2>
-                    <p className="text-base leading-relaxed mb-5" style={{ color: 'rgba(200,195,180,0.6)' }}>
-                      13 in-depth guides on real estate investing — from pro forma analysis to surviving market crashes. No fluff, no textbook language. Just the knowledge that separates successful investors from expensive mistakes.
-                    </p>
-                    <div
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-base transition-all group-hover:brightness-110"
-                      style={{
-                        background: 'linear-gradient(180deg, #d4af37 0%, #b8962e 100%)',
-                        color: '#0c0c0e',
-                        boxShadow: '0 4px 16px rgba(212,175,55,0.3)',
-                      }}
-                    >
-                      Explore All Guides
-                      <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                    </div>
-                  </div>
-
-                  <div className="flex-shrink-0 lg:w-[300px]">
-                    <div className="space-y-2.5">
-                      {[
-                        { icon: '📊', title: 'What Is a Pro Forma?', tag: 'Beginner', tagColor: '#4ade80' },
-                        { icon: '⚡', title: '1% Rule & Quick Filters', tag: 'Intermediate', tagColor: '#fbbf24' },
-                        { icon: '🛡️', title: 'Survive a Market Crash', tag: 'Advanced', tagColor: '#f87171' },
-                        { icon: '🏗️', title: 'Portfolio Strategy', tag: 'Advanced', tagColor: '#f87171' },
-                      ].map((item, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center gap-3 p-3 rounded-lg transition-all"
-                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(180,155,80,0.08)' }}
-                        >
-                          <span className="text-lg flex-shrink-0">{item.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium leading-snug" style={{ color: '#e8dfc8' }}>{item.title}</div>
-                          </div>
-                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 whitespace-nowrap" style={{ background: `${item.tagColor}15`, color: item.tagColor }}>
-                            {item.tag}
-                          </span>
-                        </div>
-                      ))}
-                      <div className="text-center pt-1">
-                        <span className="text-xs font-medium" style={{ color: 'rgba(212,175,55,0.5)' }}>
-                          + 9 more guides →
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Link>
         </div>
       </section>
 
@@ -510,8 +506,8 @@ function FeatureColumn({
         {title}
       </h3>
       <p
-        className="text-sm leading-relaxed max-w-[280px]"
-        style={{ color: 'rgba(200,195,180,0.55)' }}
+        className="text-[15px] leading-relaxed max-w-[280px]"
+        style={{ color: 'rgba(220,215,200,0.65)' }}
       >
         {description}
       </p>
@@ -547,7 +543,7 @@ function StepCard({
       </div>
       <div>
         <h3 className="font-semibold text-lg mb-1" style={{ color: '#f0e6d0' }}>{title}</h3>
-        <p className="text-sm leading-relaxed" style={{ color: 'rgba(200,195,180,0.5)' }}>{description}</p>
+        <p className="text-[15px] leading-relaxed" style={{ color: 'rgba(220,215,200,0.6)' }}>{description}</p>
       </div>
     </div>
   );
@@ -562,14 +558,14 @@ function SkillCard({
 }) {
   return (
     <div
-      className="p-4 rounded-xl border"
+      className="p-5 rounded-xl border"
       style={{
         background: 'rgba(255,255,255,0.02)',
         borderColor: 'rgba(180,155,80,0.08)',
       }}
     >
-      <h3 className="font-semibold text-sm mb-1.5" style={{ color: '#e8dfc8' }}>{title}</h3>
-      <p className="text-sm leading-relaxed" style={{ color: 'rgba(200,195,180,0.45)' }}>{description}</p>
+      <h3 className="font-semibold text-base mb-1.5" style={{ color: '#e8dfc8' }}>{title}</h3>
+      <p className="text-[15px] leading-relaxed" style={{ color: 'rgba(220,215,200,0.55)' }}>{description}</p>
     </div>
   );
 }
@@ -589,8 +585,8 @@ function FaqItem({
         borderColor: 'rgba(180,155,80,0.08)',
       }}
     >
-      <h3 className="font-semibold text-base mb-2" style={{ color: '#f0e6d0' }}>{question}</h3>
-      <p className="text-sm leading-relaxed" style={{ color: 'rgba(200,195,180,0.5)' }}>{answer}</p>
+      <h3 className="font-semibold text-lg mb-2" style={{ color: '#f0e6d0' }}>{question}</h3>
+      <p className="text-[15px] leading-relaxed" style={{ color: 'rgba(220,215,200,0.6)' }}>{answer}</p>
     </div>
   );
 }

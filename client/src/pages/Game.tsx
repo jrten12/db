@@ -1674,6 +1674,7 @@ export default function Game() {
       <div 
         className="min-h-screen bg-cover bg-center bg-fixed"
         style={{ backgroundImage: `url(${woodTexture})` }}
+        data-game-area
       >
         <div className="min-h-screen bg-black/50 flex items-center justify-center">
           <Loader2 className="w-8 h-8 animate-spin text-gold" />
@@ -1687,6 +1688,7 @@ export default function Game() {
       <div 
         className="min-h-screen bg-cover bg-center bg-fixed"
         style={{ backgroundImage: `url(${woodTexture})` }}
+        data-game-area
       >
         <div className="min-h-screen bg-black/50">
           <PlayerNameModal
@@ -1752,6 +1754,7 @@ export default function Game() {
       className="bg-cover bg-center bg-fixed min-h-screen min-h-[100dvh]"
       style={{ backgroundImage: `url(${woodTexture})` }}
       data-testid="game-screen"
+      data-game-area
     >
       {/* Animated Background */}
       <AnimatedBackground />

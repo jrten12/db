@@ -156,10 +156,16 @@ function isTextInput(el: HTMLElement): boolean {
   return false;
 }
 
+function isInsideGameArea(el: HTMLElement): boolean {
+  return !!el.closest('[data-game-area]');
+}
+
 export function useGlobalClickSound() {
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
+
+      if (!isInsideGameArea(target)) return;
 
       if (target.closest('input[type="range"]') || target.closest('[role="slider"]')) return;
       if (isTextInput(target)) return;
@@ -201,6 +207,7 @@ export function useGlobalClickSound() {
     const handleKeydown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       if (!isTextInput(target)) return;
+      if (!isInsideGameArea(target)) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       if (e.key === 'Tab' || e.key === 'Escape' || e.key === 'Enter' || e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Meta') return;
       if (e.key.startsWith('Arrow') || e.key === 'Home' || e.key === 'End' || e.key === 'PageUp' || e.key === 'PageDown') return;

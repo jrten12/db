@@ -137,30 +137,63 @@ let lastKeystrokeTime = 0;
 export function playKeystrokeSound() {
   try {
     const now = performance.now();
-    if (now - lastKeystrokeTime < 30) return;
+    if (now - lastKeystrokeTime < 35) return;
     lastKeystrokeTime = now;
 
     const ctx = getSharedAudioContext();
     const t = ctx.currentTime;
-    const duration = 0.035;
 
-    const freq = 1800 + Math.random() * 800;
+    const variation = Math.random();
+    const tapDuration = 0.025 + variation * 0.015;
 
-    const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, t);
-    osc.frequency.exponentialRampToValueAtTime(freq * 0.6, t + duration);
+    const bufferSize = Math.ceil(ctx.sampleRate * (tapDuration + 0.02));
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
 
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.04, t + 0.003);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+    const hipass = ctx.createBiquadFilter();
+    hipass.type = 'highpass';
+    hipass.frequency.setValueAtTime(3000 + variation * 2000, t);
+    hipass.Q.setValueAtTime(0.7, t);
 
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+    const lopass = ctx.createBiquadFilter();
+    lopass.type = 'lowpass';
+    lopass.frequency.setValueAtTime(8000 + variation * 3000, t);
+    lopass.frequency.exponentialRampToValueAtTime(2000, t + tapDuration);
+    lopass.Q.setValueAtTime(1.2, t);
 
-    osc.start(t);
-    osc.stop(t + duration + 0.02);
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0, t);
+    noiseGain.gain.linearRampToValueAtTime(0.035 + variation * 0.015, t + 0.001);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + tapDuration);
+
+    noise.connect(hipass);
+    hipass.connect(lopass);
+    lopass.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+
+    const thumpFreq = 180 + variation * 80;
+    const thump = ctx.createOscillator();
+    thump.type = 'sine';
+    thump.frequency.setValueAtTime(thumpFreq, t);
+    thump.frequency.exponentialRampToValueAtTime(thumpFreq * 0.3, t + tapDuration * 0.8);
+
+    const thumpGain = ctx.createGain();
+    thumpGain.gain.setValueAtTime(0, t);
+    thumpGain.gain.linearRampToValueAtTime(0.02 + variation * 0.008, t + 0.001);
+    thumpGain.gain.exponentialRampToValueAtTime(0.001, t + tapDuration * 0.7);
+
+    thump.connect(thumpGain);
+    thumpGain.connect(ctx.destination);
+
+    noise.start(t);
+    noise.stop(t + tapDuration + 0.02);
+    thump.start(t);
+    thump.stop(t + tapDuration + 0.02);
   } catch (e) {}
 }
 

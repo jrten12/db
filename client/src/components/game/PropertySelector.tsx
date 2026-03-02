@@ -231,26 +231,9 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                 {/* Gradient overlays */}
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/30 to-transparent" />
                 
-                {/* Price Badge */}
-                <div className="absolute top-3 left-3">
-                  <div className="px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-white/10">
-                    <span className="text-xl md:text-2xl font-bold text-white font-mono">
-                      {formatCurrency(property.price)}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Size Badge - Clear sqft label */}
-                <div className="absolute top-3 right-3">
-                  <div className="flex items-center gap-1 px-2.5 py-1 bg-black/60 backdrop-blur-md rounded-lg border border-white/10">
-                    <span className="text-sm font-bold text-white">{property.sizeSqft.toLocaleString()}</span>
-                    <span className="text-xs text-gray-400">sqft</span>
-                  </div>
-                </div>
-
                 {/* Work in Progress Badge */}
                 {hasInvestigations && !isUnavailable && (
-                  <div className="absolute bottom-3 left-3">
+                  <div className="absolute top-3 left-3">
                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/90 backdrop-blur-md rounded-lg border border-amber-400/50 animate-pulse">
                       <Wrench className="w-4 h-4 text-white" />
                       <span className="text-xs font-semibold text-white">In Progress</span>
@@ -260,13 +243,26 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
 
                 {/* Question mark overlay - invites investigation */}
                 {!isUnavailable && (
-                  <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 cursor-help" title="Click to investigate this property and reveal hidden financial information">
                       <HelpCircle className="w-4 h-4 text-amber-400" />
                       <span className="text-xs text-white">Investigate</span>
                     </div>
                   </div>
                 )}
+
+                {/* Price & Size - bottom row over gradient */}
+                <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between gap-2">
+                  <div className="px-2.5 py-1 bg-black/70 backdrop-blur-md rounded-lg border border-white/10">
+                    <span className="text-lg font-bold text-white font-mono">
+                      {formatCurrency(property.price)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 px-2 py-1 bg-black/70 backdrop-blur-md rounded-lg border border-white/10">
+                    <span className="text-xs font-bold text-white">{property.sizeSqft.toLocaleString()}</span>
+                    <span className="text-[10px] text-gray-400">sqft</span>
+                  </div>
+                </div>
               </div>
 
               {/* Status Badge - at card level to avoid overflow clipping */}

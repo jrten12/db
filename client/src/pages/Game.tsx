@@ -18,7 +18,6 @@ import { ConstructionNotification, useConstructionNotifications } from '@/compon
 import { TenantIssuePopup, type TenantIssueEvent } from '@/components/game/TenantIssuePopup';
 import { TenantTextPopup } from '@/components/game/TenantTextPopup';
 import { AnimatedBackground } from '@/components/game/AnimatedBackground';
-import { WeekTimeline } from '@/components/game/WeekTimeline';
 import { generateTenantName, getRandomPersonalityType, getSpeechPatterns, getRandomMessage } from '@/lib/tenantGenerator';
 import type { Tenant } from '@shared/schema';
 import { PremiumModal } from '@/components/game/PremiumModal';
@@ -1885,13 +1884,6 @@ export default function Game() {
                   onSellProperty={handleSellProperty}
                   onRefinanceRental={handleOpenRefinanceModal}
                 />
-                {/* Week Timeline Visualization */}
-                <div className="bg-slate-900/80 backdrop-blur rounded-xl p-4 border border-slate-700">
-                  <WeekTimeline
-                    currentWeek={52 - (gameRun?.weeksRemaining ?? 52)}
-                    totalWeeks={52}
-                  />
-                </div>
                 <DebtPanelTrigger
                   deals={deals}
                   onClick={() => setShowDebtPanel(true)}

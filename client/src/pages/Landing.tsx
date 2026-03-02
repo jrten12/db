@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { ArrowRight, Play, Volume2, VolumeX, BookOpen, BarChart3, Zap, Shield, Building2 } from 'lucide-react';
+import { ArrowRight, Play, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2 } from 'lucide-react';
 import heroHouseImage from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_1771128403840.png';
 import dbLogoImage from '@assets/dealbreak_icon_sim_1767848951783.png';
 import heroBgPattern from '@/assets/images/hero-bg-pattern.png';
@@ -177,76 +177,105 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* === LEARNING CENTER PROMO (moved up near top) === */}
-      <section className="py-12 lg:py-16 px-5">
+      {/* === STRATEGY INTEL PROMO === */}
+      <section className="py-10 lg:py-14 px-5">
         <div className="max-w-5xl mx-auto">
           <Link href="/learn">
             <div
-              className="group relative overflow-hidden rounded-2xl border cursor-pointer transition-all hover:border-amber-600/40"
+              className="group relative overflow-hidden rounded-2xl cursor-pointer transition-all"
               style={{
-                background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, rgba(16,185,129,0.04) 50%, rgba(59,130,246,0.04) 100%)',
-                borderColor: 'rgba(180,155,80,0.2)',
+                background: 'linear-gradient(145deg, rgba(20,18,15,0.95) 0%, rgba(28,24,18,0.9) 40%, rgba(18,22,18,0.9) 100%)',
+                border: '1px solid rgba(180,155,80,0.15)',
+                boxShadow: '0 0 40px rgba(212,175,55,0.04), inset 0 1px 0 rgba(255,255,255,0.03)',
               }}
               data-testid="section-learning-center-promo"
             >
-              <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.07] pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(212,175,55,1) 0%, transparent 70%)' }} />
-              <div className="absolute bottom-0 left-0 w-48 h-48 opacity-[0.05] pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(16,185,129,1) 0%, transparent 70%)' }} />
+              <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(212,175,55,0.3) 40px, rgba(212,175,55,0.3) 41px), repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(212,175,55,0.3) 40px, rgba(212,175,55,0.3) 41px)' }} />
+              <div className="absolute top-0 right-0 w-80 h-80 opacity-[0.06] pointer-events-none" style={{ background: 'radial-gradient(circle at 80% 20%, rgba(212,175,55,1) 0%, transparent 60%)' }} />
+              <div className="absolute bottom-0 left-0 w-60 h-60 opacity-[0.04] pointer-events-none" style={{ background: 'radial-gradient(circle at 20% 80%, rgba(16,185,129,1) 0%, transparent 60%)' }} />
+
+              <div className="absolute top-0 inset-x-0 h-[2px]" style={{ background: 'linear-gradient(90deg, transparent 10%, rgba(212,175,55,0.4) 30%, rgba(212,175,55,0.6) 50%, rgba(212,175,55,0.4) 70%, transparent 90%)' }} />
 
               <div className="relative p-6 sm:p-8 lg:p-10">
-                <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-8">
+                <div className="flex flex-col lg:flex-row lg:items-start gap-8 lg:gap-10">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3">
-                      <BookOpen className="w-6 h-6" style={{ color: '#d4af37' }} />
-                      <span className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: 'rgba(212,175,55,0.12)', color: '#d4af37' }}>
-                        Free Learning Center
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded flex items-center justify-center" style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.25)' }}>
+                        <FileText className="w-4 h-4" style={{ color: '#d4af37' }} />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] px-2.5 py-1" style={{ color: 'rgba(212,175,55,0.7)', borderBottom: '1px solid rgba(212,175,55,0.2)' }}>
+                        Strategy Intel
                       </span>
                     </div>
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-3 group-hover:text-amber-200 transition-colors" style={{ color: '#f0e6d0' }}>
-                      Learn Before You Earn
+
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-2 tracking-tight group-hover:text-amber-300 transition-colors" style={{ color: '#f0e6d0' }}>
+                      Know the Game Before You Play It
                     </h2>
-                    <p className="text-base sm:text-lg leading-relaxed mb-5" style={{ color: 'rgba(220,215,200,0.7)' }}>
-                      13 in-depth guides on real estate investing — from pro forma analysis to surviving market crashes. No fluff, no textbook language. Just the knowledge that separates successful investors from expensive mistakes.
+                    <p className="text-sm sm:text-base leading-relaxed mb-6 max-w-lg" style={{ color: 'rgba(220,215,200,0.6)' }}>
+                      The deals that break look exactly like the ones that don't. These field guides teach you how to tell the difference.
                     </p>
+
+                    <div className="flex flex-wrap gap-3 mb-6">
+                      {[
+                        { label: 'Pro Forma', color: '#4ade80' },
+                        { label: 'Market Analysis', color: '#60a5fa' },
+                        { label: 'Risk Management', color: '#f87171' },
+                        { label: 'Deal Strategy', color: '#fbbf24' },
+                      ].map((topic) => (
+                        <span
+                          key={topic.label}
+                          className="text-[11px] font-semibold px-3 py-1.5 rounded-md"
+                          style={{ background: `${topic.color}08`, border: `1px solid ${topic.color}20`, color: topic.color }}
+                        >
+                          {topic.label}
+                        </span>
+                      ))}
+                    </div>
+
                     <div
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-bold text-base transition-all group-hover:brightness-110"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md font-bold text-sm transition-all group-hover:brightness-110 group-hover:gap-3"
                       style={{
-                        background: 'linear-gradient(180deg, #d4af37 0%, #b8962e 100%)',
-                        color: '#0c0c0e',
-                        boxShadow: '0 4px 16px rgba(212,175,55,0.3)',
+                        background: 'rgba(212,175,55,0.1)',
+                        color: '#d4af37',
+                        border: '1px solid rgba(212,175,55,0.3)',
                       }}
                     >
-                      Explore All Guides
-                      <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                      Open Briefing Room
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                     </div>
                   </div>
 
-                  <div className="flex-shrink-0 lg:w-[300px]">
-                    <div className="space-y-2.5">
+                  <div className="flex-shrink-0 lg:w-[280px]">
+                    <div className="text-[10px] font-bold uppercase tracking-[0.15em] mb-3 flex items-center gap-2" style={{ color: 'rgba(212,175,55,0.4)' }}>
+                      <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#4ade80', boxShadow: '0 0 6px rgba(74,222,128,0.5)' }} />
+                      Featured Intel
+                    </div>
+                    <div className="space-y-1.5">
                       {[
-                        { Icon: BarChart3, title: 'What Is a Pro Forma?', tag: 'Beginner', tagColor: '#4ade80' },
-                        { Icon: Zap, title: '1% Rule & Quick Filters', tag: 'Intermediate', tagColor: '#fbbf24' },
-                        { Icon: Shield, title: 'Survive a Market Crash', tag: 'Advanced', tagColor: '#f87171' },
-                        { Icon: Building2, title: 'Portfolio Strategy', tag: 'Advanced', tagColor: '#f87171' },
+                        { Icon: BarChart3, title: 'Break Down a Pro Forma', xp: '+200 XP', color: '#4ade80' },
+                        { Icon: Zap, title: 'The 1% Rule Shortcut', xp: '+150 XP', color: '#fbbf24' },
+                        { Icon: Shield, title: 'Surviving a Crash', xp: '+300 XP', color: '#f87171' },
+                        { Icon: Building2, title: 'Portfolio Playbook', xp: '+250 XP', color: '#60a5fa' },
                       ].map((item, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-3 p-3 rounded-lg transition-all"
-                          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(180,155,80,0.08)' }}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group-hover:bg-white/[0.02]"
+                          style={{ borderLeft: `2px solid ${item.color}30` }}
                         >
-                          <item.Icon className="w-4 h-4 flex-shrink-0" style={{ color: item.tagColor }} />
+                          <item.Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: item.color, opacity: 0.7 }} />
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium leading-snug" style={{ color: '#e8dfc8' }}>{item.title}</div>
+                            <div className="text-[13px] font-medium leading-tight" style={{ color: '#ddd5c0' }}>{item.title}</div>
                           </div>
-                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded flex-shrink-0 whitespace-nowrap" style={{ background: `${item.tagColor}15`, color: item.tagColor }}>
-                            {item.tag}
+                          <span className="text-[9px] font-bold tracking-wide flex-shrink-0" style={{ color: `${item.color}90` }}>
+                            {item.xp}
                           </span>
                         </div>
                       ))}
-                      <div className="text-center pt-1">
-                        <span className="text-xs font-medium" style={{ color: 'rgba(212,175,55,0.5)' }}>
-                          + 9 more guides →
-                        </span>
-                      </div>
+                    </div>
+                    <div className="mt-3 pt-2 text-center" style={{ borderTop: '1px solid rgba(180,155,80,0.08)' }}>
+                      <span className="text-[11px] font-medium" style={{ color: 'rgba(212,175,55,0.35)' }}>
+                        + more field guides inside
+                      </span>
                     </div>
                   </div>
                 </div>

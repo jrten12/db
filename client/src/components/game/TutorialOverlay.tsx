@@ -79,10 +79,28 @@ export function TutorialOverlay() {
       return;
     }
 
+    let hasScrolled = false;
+
     const findTarget = () => {
       for (const testId of testIds) {
-        const el = document.querySelector(`[data-testid="${testId}"]`);
+        const el = document.querySelector(`[data-testid="${testId}"]`) as HTMLElement | null;
         if (el) {
+          if (!hasScrolled) {
+            hasScrolled = true;
+            const elRect = el.getBoundingClientRect();
+            const viewH = window.innerHeight;
+            const isOffScreen = elRect.top < 0 || elRect.bottom > viewH || elRect.top > viewH * 0.7;
+            if (isOffScreen) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              setTimeout(() => {
+                const updatedRect = el.getBoundingClientRect();
+                if (updatedRect.width > 0 && updatedRect.height > 0) {
+                  setTargetRect(updatedRect);
+                }
+              }, 400);
+              return;
+            }
+          }
           const rect = el.getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
             setTargetRect(rect);
@@ -172,28 +190,33 @@ export function TutorialOverlay() {
     const gap = 16;
 
     if (isMobile) {
+      const viewH = window.innerHeight;
+      const measuredH = cardRect?.height || 260;
+      const safeTop = 10;
+      const safeBottom = viewH - 10;
       const targetCenterY = rect.top + rect.height / 2;
-      const screenMid = window.innerHeight / 2;
 
-      if (targetCenterY < screenMid) {
+      const spaceAboveTarget = rect.top - safeTop;
+      const spaceBelowTarget = safeBottom - rect.bottom;
+
+      if (spaceBelowTarget >= measuredH + gap && rect.bottom + gap + measuredH < safeBottom) {
         return {
           style: {
             position: 'fixed',
-            top: rect.bottom + gap,
+            top: Math.min(rect.bottom + gap, safeBottom - measuredH),
             left: '12px',
             right: '12px',
             zIndex: 102,
           },
           direction: 'up',
         };
-      } else {
-        const measuredH = cardRect?.height || 280;
-        let topPos = rect.top - gap - measuredH;
-        if (topPos < 12) topPos = 12;
+      }
+
+      if (spaceAboveTarget >= measuredH + gap) {
         return {
           style: {
             position: 'fixed',
-            top: topPos,
+            top: Math.max(safeTop, rect.top - gap - measuredH),
             left: '12px',
             right: '12px',
             zIndex: 102,
@@ -201,6 +224,21 @@ export function TutorialOverlay() {
           direction: 'down',
         };
       }
+
+      const cardTop = targetCenterY < viewH / 2
+        ? Math.min(rect.bottom + gap, safeBottom - measuredH)
+        : Math.max(safeTop, rect.top - gap - measuredH);
+
+      return {
+        style: {
+          position: 'fixed',
+          top: Math.max(safeTop, Math.min(cardTop, safeBottom - measuredH)),
+          left: '12px',
+          right: '12px',
+          zIndex: 102,
+        },
+        direction: targetCenterY < viewH / 2 ? 'up' : 'down',
+      };
     }
 
     const cardW = 420;
@@ -452,8 +490,8 @@ export function TutorialOverlay() {
         style={cardStyle}
         data-testid="tutorial-card"
       >
-        <div className="bg-slate-900 rounded-2xl border border-slate-700/80 shadow-2xl shadow-black/50 overflow-hidden">
-          <div className={`bg-gradient-to-r ${phaseGradient} px-4 py-2.5 flex items-center justify-between`}>
+        <div className="bg-slate-900 rounded-2xl border border-slate-700/80 shadow-2xl shadow-black/50 overflow-hidden" style={{ maxHeight: 'calc(100vh - 80px)' }}>
+          <div className={`bg-gradient-to-r ${phaseGradient} px-4 py-2 flex items-center justify-between`}>
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-white/90 text-xs font-semibold uppercase tracking-wider truncate">
                 {phaseLabel}
@@ -471,7 +509,7 @@ export function TutorialOverlay() {
             </button>
           </div>
 
-          <div className="px-4 py-3 md:px-5 md:py-4">
+          <div className="px-4 py-3 md:px-5 md:py-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 140px)' }}>
             <div className="flex items-start gap-3 mb-3">
               <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${iconBg} flex items-center justify-center shadow-lg flex-shrink-0`}>
                 <StepIcon className="w-5 h-5 text-white" />

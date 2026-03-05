@@ -387,6 +387,10 @@ export function injectSeoMeta(html: string, url: string, req: Request): string {
     /<meta property="og:type" content="[^"]*" \/>/,
     `<meta property="og:type" content="${meta.ogType}" />`
   );
+  html = html.replace(
+    /<meta property="og:url" content="[^"]*" \/>/,
+    `<meta property="og:url" content="${escapeAttr(meta.canonical)}" />`
+  );
 
   html = html.replace(
     /<meta name="twitter:title" content="[^"]*" \/>/,

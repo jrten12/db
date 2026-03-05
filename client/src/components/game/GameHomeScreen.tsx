@@ -66,14 +66,14 @@ export function GameHomeScreen({
               <div className="text-sm font-bold text-emerald-400 font-mono" data-testid="home-stat-cash">
                 {formatCurrency(cash)}
               </div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wider">Cash</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wider">Cash</div>
             </div>
             <div className="bg-slate-800/80 backdrop-blur rounded-xl p-3 border border-blue-500/20 text-center">
               <Clock className="w-4 h-4 text-blue-400 mx-auto mb-1" />
               <div className="text-sm font-bold text-blue-400" data-testid="home-stat-time">
                 {weeksRemaining}M
               </div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wider">Time Left</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wider">Time Left</div>
             </div>
             <div className="bg-slate-800/80 backdrop-blur rounded-xl p-3 border border-amber-500/20 text-center">
               <Target className="w-4 h-4 text-amber-400 mx-auto mb-1" />
@@ -81,7 +81,7 @@ export function GameHomeScreen({
                 <span className="text-emerald-400">{profitableDeals}</span>
                 <span className="text-gray-400">/{goalDeals}</span>
               </div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wider">Deals</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wider">Deals</div>
             </div>
           </div>
         )}

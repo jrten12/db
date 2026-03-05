@@ -759,7 +759,7 @@ export function PropertyDetail({
                     </div>
                     <div className="min-w-0">
                       <div className="text-blue-400 text-sm font-semibold truncate">{propChars.typeLabel}</div>
-                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Type</div>
+                      <div className="text-gray-500 text-xs uppercase tracking-wider">Type</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
@@ -770,7 +770,7 @@ export function PropertyDetail({
                       <div className={`text-sm font-semibold truncate ${property.conditionTag === 'Excellent' ? 'text-emerald-400' : property.conditionTag === 'Good' ? 'text-blue-400' : property.conditionTag === 'Fair' ? 'text-amber-400' : 'text-red-400'}`}>
                         {getConditionDescription(property.conditionTag)}
                       </div>
-                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Condition</div>
+                      <div className="text-gray-500 text-xs uppercase tracking-wider">Condition</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
@@ -779,7 +779,7 @@ export function PropertyDetail({
                     </div>
                     <div className="min-w-0">
                       <div className="text-gray-200 text-sm font-semibold truncate">{propChars.waterLabel}</div>
-                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Water</div>
+                      <div className="text-gray-500 text-xs uppercase tracking-wider">Water</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
@@ -788,7 +788,7 @@ export function PropertyDetail({
                     </div>
                     <div className="min-w-0">
                       <div className="text-gray-200 text-sm font-semibold truncate">{propChars.heatLabel}</div>
-                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Heating</div>
+                      <div className="text-gray-500 text-xs uppercase tracking-wider">Heating</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
@@ -797,7 +797,7 @@ export function PropertyDetail({
                     </div>
                     <div className="min-w-0">
                       <div className="text-teal-400 text-sm font-semibold truncate">{getNeighborhoodTraits(property.neighborhood)}</div>
-                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Area</div>
+                      <div className="text-gray-500 text-xs uppercase tracking-wider">Area</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
@@ -806,7 +806,7 @@ export function PropertyDetail({
                     </div>
                     <div className="min-w-0">
                       <div className="text-amber-400 text-sm font-bold font-mono">${Math.round(property.price / property.sizeSqft)}/sqft</div>
-                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Price/Sqft</div>
+                      <div className="text-gray-500 text-xs uppercase tracking-wider">Price/Sqft</div>
                     </div>
                   </div>
                 </div>

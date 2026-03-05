@@ -15,6 +15,7 @@ Preferred communication style: Simple, everyday language.
 - **Routing**: Wouter
 - **State Management**: TanStack React Query (server state), React `useState` (local state)
 - **Styling**: Tailwind CSS v4 with custom CSS variables, shadcn/ui component library built on Radix UI primitives
+- **Typography**: Inter (primary sans-serif, closest free match to GT America), Fraunces (serif), Space Mono (monospace for financial figures)
 - **Build Tool**: Vite
 
 ### Backend

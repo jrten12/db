@@ -149,7 +149,7 @@ export function MarketBar({ condition, className = '', compact = false }: Market
         data-testid="market-bar"
       >
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <span className="text-[10px] uppercase tracking-wider text-white/60 font-medium">Market</span>
+          <span className="text-xs uppercase tracking-wider text-white/60 font-medium">Market</span>
           <button
             onClick={() => setShowInfo(true)}
             className="p-0.5 rounded-full hover:bg-white/10 transition-colors"
@@ -214,11 +214,11 @@ export function MarketBar({ condition, className = '', compact = false }: Market
               </button>
             </div>
             
-            <p className="text-[11px] text-slate-300 mb-2">
+            <p className="text-xs text-slate-300 mb-2">
               Affects flip sale prices. Changes monthly.
             </p>
             
-            <div className="space-y-1 text-[11px]">
+            <div className="space-y-1 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-cyan-400" />
                 <span className="text-cyan-300 font-medium">Excellent</span>
@@ -246,7 +246,7 @@ export function MarketBar({ condition, className = '', compact = false }: Market
               </div>
             </div>
             
-            <p className="text-slate-500 text-[10px] mt-2 pt-2 border-t border-slate-700">
+            <p className="text-slate-500 text-xs mt-2 pt-2 border-t border-slate-700">
               Time your flip sales for better markets!
             </p>
           </div>

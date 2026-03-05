@@ -79,26 +79,26 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
               Projection vs. Reality
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-1 text-[11px] mb-1.5">
+          <div className="grid grid-cols-3 gap-1 text-xs mb-1.5">
             <span className="text-gray-500"></span>
             <span className="text-gray-400 text-center">You Said</span>
             <span className="text-gray-400 text-center">Actual</span>
           </div>
-          <div className="grid grid-cols-3 gap-1 text-[11px]">
+          <div className="grid grid-cols-3 gap-1 text-xs">
             <span className="text-gray-400">Rent</span>
             <span className="text-center text-gray-300">${fmt(projectedRent)}</span>
             <span className={`text-center font-medium ${monthlyRent > projectedRent ? 'text-emerald-400' : monthlyRent < projectedRent ? 'text-red-400' : 'text-gray-300'}`}>
               ${fmt(monthlyRent)}
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-1 text-[11px] mt-1">
+          <div className="grid grid-cols-3 gap-1 text-xs mt-1">
             <span className="text-gray-400">Vacancy</span>
             <span className="text-center text-gray-300">{projectedVacancy}%</span>
             <span className={`text-center font-medium ${Number(displayVacancyRate) < projectedVacancy ? 'text-emerald-400' : Number(displayVacancyRate) > projectedVacancy ? 'text-red-400' : 'text-gray-300'}`}>
               {displayVacancyRate}%
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-1 text-[11px] mt-1 border-t border-white/10 pt-1.5">
+          <div className="grid grid-cols-3 gap-1 text-xs mt-1 border-t border-white/10 pt-1.5">
             <span className="text-gray-400">Cash Flow</span>
             <span className="text-center text-gray-300">${fmt(realityCheck.projectedCashFlow)}</span>
             <span className={`text-center font-bold ${realityCheck.actualCashFlow >= realityCheck.projectedCashFlow ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -106,7 +106,7 @@ function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; 
             </span>
           </div>
           {realityCheck.explanation && (
-            <p className={`mt-2 text-[10px] leading-tight ${realityCheck.wasOptimistic ? 'text-red-400/70' : 'text-emerald-400/70'}`}>
+            <p className={`mt-2 text-xs leading-tight ${realityCheck.wasOptimistic ? 'text-red-400/70' : 'text-emerald-400/70'}`}>
               {realityCheck.explanation}
             </p>
           )}
@@ -348,7 +348,7 @@ export function TimeProgressionPanel({
 
       {/* Portfolio Cycle Indicator - Shows investment progression */}
       {hasActiveProperties && (
-        <div className="flex items-center justify-center gap-1 text-[10px] text-gray-500 mb-2 px-2">
+        <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-2 px-2">
           <span className="text-emerald-400">Deal</span>
           <span>→</span>
           <span className={totalMonthlyIncome > 0 ? 'text-green-400' : 'text-gray-400'}>Cash Flow</span>
@@ -456,7 +456,7 @@ export function TimeProgressionPanel({
                       </PopoverContent>
                     </Popover>
                   )}
-                  <span className="text-[10px] text-gray-500 hidden sm:inline">
+                  <span className="text-xs text-gray-500 hidden sm:inline">
                     ${estimatedSaleMin.toLocaleString()}-${estimatedSaleMax.toLocaleString()}
                   </span>
                   <Button
@@ -498,7 +498,7 @@ export function TimeProgressionPanel({
                         <span className="text-xs text-white">{propertyName}</span>
                         <Info className="w-3 h-3 text-gray-500" />
                       </div>
-                      <Badge variant="secondary" className="h-5 text-[10px] bg-amber-500/20 text-amber-300 border-amber-500/30">
+                      <Badge variant="secondary" className="h-5 text-xs bg-amber-500/20 text-amber-300 border-amber-500/30">
                         {weeksLeft}mo left
                       </Badge>
                     </div>
@@ -528,10 +528,10 @@ export function TimeProgressionPanel({
                 <div className="flex items-center gap-2 min-w-0">
                   <DollarSign className="w-3 h-3 text-emerald-400 flex-shrink-0" />
                   <span className="text-xs text-white truncate">{getPropertyName(deal.propertyId)}</span>
-                  <Badge className="h-5 text-[10px] bg-emerald-500 text-white">READY</Badge>
+                  <Badge className="h-5 text-xs bg-emerald-500 text-white">READY</Badge>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-[10px] text-gray-400 hidden sm:inline">
+                  <span className="text-xs text-gray-400 hidden sm:inline">
                     ${estimatedSaleMin.toLocaleString()}-${estimatedSaleMax.toLocaleString()}
                   </span>
                   <Button
@@ -565,7 +565,7 @@ export function TimeProgressionPanel({
             <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-xs text-amber-300 font-medium">Low on cash?</p>
-              <p className="text-[10px] text-amber-400/70 mt-0.5">
+              <p className="text-xs text-amber-400/70 mt-0.5">
                 You can still advance time — look for cheaper properties, or tap the menu to start a new game.
               </p>
             </div>
@@ -577,7 +577,7 @@ export function TimeProgressionPanel({
         <div className="mt-2 p-2.5 bg-emerald-900/30 border border-emerald-500/30 rounded-lg" data-testid="sell-flip-hint">
           <div className="flex items-start gap-2">
             <DollarSign className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-            <p className="text-[10px] text-emerald-300/80">
+            <p className="text-xs text-emerald-300/80">
               You have flips ready to sell! Tap the "Sell!" button above to cash out.
             </p>
           </div>

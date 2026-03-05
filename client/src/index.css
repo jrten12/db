@@ -43,9 +43,9 @@
   --color-wood: hsl(var(--wood));
   --color-wood-dark: hsl(var(--wood-dark));
 
-  --font-display: 'Sora', sans-serif;
+  --font-display: 'Inter', sans-serif;
   --font-serif: 'Fraunces', serif;
-  --font-sans: 'Space Grotesk', sans-serif;
+  --font-sans: 'Inter', sans-serif;
   --font-mono: 'Space Mono', monospace;
 }
 
@@ -93,7 +93,7 @@
   --wood: 25 35% 25%;
   --wood-dark: 25 40% 15%;
 
-  --font-sans: 'Space Grotesk', sans-serif;
+  --font-sans: 'Inter', sans-serif;
   --font-serif: 'Fraunces', serif;
   --font-mono: 'Space Mono', monospace;
   --radius: .5rem;

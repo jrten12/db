@@ -212,7 +212,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
               {/* Corner Ribbon for Rehab In Progress */}
               {isInRehab && (
                 <div className="absolute top-0 right-0 z-20 overflow-hidden w-24 h-24">
-                  <div className="absolute top-3 -right-8 w-32 bg-orange-500 text-white text-[10px] font-bold py-1 text-center transform rotate-45 shadow-lg">
+                  <div className="absolute top-3 -right-8 w-32 bg-orange-500 text-white text-xs font-bold py-1 text-center transform rotate-45 shadow-lg">
                     RENOVATING
                   </div>
                 </div>
@@ -259,8 +259,8 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                     </span>
                   </div>
                   <div className="flex items-center gap-1 px-2 py-1 bg-black/70 backdrop-blur-md rounded-lg border border-white/10">
-                    <span className="text-xs font-bold text-white">{property.sizeSqft.toLocaleString()}</span>
-                    <span className="text-[10px] text-gray-400">sqft</span>
+                    <span className="text-sm font-bold text-white">{property.sizeSqft.toLocaleString()}</span>
+                    <span className="text-xs text-gray-400">sqft</span>
                   </div>
                 </div>
               </div>
@@ -283,7 +283,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                               e.preventDefault();
                               onContractorWalkthrough(dealInfo.dealId);
                             }}
-                            className="bg-amber-500 text-white font-bold text-[10px] sm:text-xs shadow-lg border border-amber-300 px-2 sm:px-3"
+                            className="bg-amber-500 text-white font-bold text-xs shadow-lg border border-amber-300 px-2.5 sm:px-3"
                             data-testid={`button-walkthrough-${property.id}`}
                           >
                             <HardHat className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
@@ -297,7 +297,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                               e.preventDefault();
                               onContractorWalkthrough(dealInfo.dealId);
                             }}
-                            className="bg-cyan-500 text-white font-bold text-[10px] sm:text-xs shadow-lg border border-cyan-300 px-2 sm:px-3"
+                            className="bg-cyan-500 text-white font-bold text-xs shadow-lg border border-cyan-300 px-2.5 sm:px-3"
                             data-testid={`button-renovate-${property.id}`}
                           >
                             <Wrench className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
@@ -313,7 +313,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                             e.preventDefault();
                             onRefinanceProperty(dealInfo.dealId);
                           }}
-                          className="bg-blue-500 text-white font-bold text-[10px] sm:text-xs shadow-lg border border-blue-300 px-2 sm:px-3"
+                          className="bg-blue-500 text-white font-bold text-xs shadow-lg border border-blue-300 px-2.5 sm:px-3"
                           data-testid={`button-refi-${property.id}`}
                         >
                           <Landmark className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
@@ -328,7 +328,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                             e.preventDefault();
                             onSellProperty(dealInfo.dealId, dealInfo.strategy);
                           }}
-                          className="bg-emerald-500 text-white font-bold text-[10px] sm:text-xs shadow-lg border border-emerald-300 px-2 sm:px-3"
+                          className="bg-emerald-500 text-white font-bold text-xs shadow-lg border border-emerald-300 px-2.5 sm:px-3"
                           data-testid={`button-sell-${property.id}`}
                         >
                           <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />

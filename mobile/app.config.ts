@@ -47,7 +47,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   extra: {
     eas: {
-      projectId: 'ca795b33-d8b3-480f-95b6-f2219ff7c326',
+      projectId: 'd8482835-c595-4478-a09c-a3a4232b7c73',
     },
   },
   plugins: [],
@@ -55,6 +55,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     policy: 'appVersion',
   },
   updates: {
-    url: 'https://u.expo.dev/ca795b33-d8b3-480f-95b6-f2219ff7c326',
+    url: 'https://u.expo.dev/d8482835-c595-4478-a09c-a3a4232b7c73',
   },
 });

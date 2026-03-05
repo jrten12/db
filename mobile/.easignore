@@ -1,0 +1,12 @@
+node_modules
+.expo
+dist
+*.log
+attached_assets
+client
+server
+shared
+references
+.local
+.agents
+.git

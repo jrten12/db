@@ -1,0 +1,11 @@
+attached_assets
+client
+server
+shared
+references
+.local
+.agents
+node_modules
+.expo
+dist
+*.log

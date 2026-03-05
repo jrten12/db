@@ -13,8 +13,12 @@ import Landing from "@/pages/Landing";
 import Game from "@/pages/Game";
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
+
 import Learn from "@/pages/Learn";
 import LearnArticle from "@/pages/LearnArticle";
+
+import Methodology from "@/pages/Methodology";
+
 
 interface SplashContextType {
   showSplashScreen: () => void;
@@ -39,6 +43,7 @@ function Router() {
       <Route path="/learn/:slug" component={LearnArticle} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/methodology" component={Methodology} />
       <Route component={NotFound} />
     </Switch>
   );

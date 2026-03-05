@@ -475,7 +475,10 @@ export default function Landing() {
       {/* Disclaimer */}
       <div className="px-5 py-5 text-center">
         <p className="text-sm" style={{ color: 'rgba(200,195,180,0.3)' }}>
-          A real estate strategy game. Not financial advice.
+          A real estate strategy game. Not financial advice.{' '}
+          <Link href="/methodology" className="underline hover:no-underline" style={{ color: 'rgba(200,195,180,0.45)' }}>
+            Read our methodology
+          </Link>.
         </p>
         <div className="mt-2 flex items-center justify-center gap-3">
           <p className="text-xs font-mono" style={{ color: 'rgba(200,195,180,0.2)' }}>

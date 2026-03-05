@@ -55,6 +55,7 @@ export function getMarketMultipliers(condition: MarketCondition): MarketMultipli
 }
 
 /**
+
  * Randomize starting market condition (BAL-003 fix)
  * Weighted distribution: not always "good" - any state is possible
  * Weights: terrible 5%, poor 10%, neutral 20%, good 35%, excellent 30%
@@ -65,6 +66,18 @@ export function getRandomStartingMarket(): MarketCondition {
   if (rand < 0.15) return 'poor';
   if (rand < 0.35) return 'neutral';
   if (rand < 0.70) return 'good';
+
+ * Randomize starting market condition (BAL-003 fix, BAL-004 rebalance)
+ * Weighted distribution: any state is possible but slightly friendlier start
+ * Weights: terrible 8%, poor 12%, neutral 25%, good 32%, excellent 23%
+ */
+export function getRandomStartingMarket(): MarketCondition {
+  const rand = Math.random();
+  if (rand < 0.08) return 'terrible';
+  if (rand < 0.20) return 'poor';
+  if (rand < 0.45) return 'neutral';
+  if (rand < 0.77) return 'good';
+
   return 'excellent';
 }
 
@@ -489,6 +502,19 @@ export async function completeFlipDeal(
     .filter(inv => inv.propertyId === deal.propertyId)
     .map(inv => inv.investigationType);
   const didComps = completedDiligence.includes('appraisal');
+
+  // Calculate diligence depth bonus
+  // Informed investors price better, market effectively, negotiate from strength
+  // Each property-investigation type (appraisal, contractor_walkthrough, inspection, title_search) counts
+  const diligenceTypes = ['appraisal', 'contractor_walkthrough', 'inspection', 'title_search'];
+  const diligenceCount = diligenceTypes.filter(d => completedDiligence.includes(d)).length;
+  // 0 types = 0%, 1 = +1%, 2 = +3%, 3 = +5%, 4 = +6%
+  const diligenceBonusPct = diligenceCount === 0 ? 0
+    : diligenceCount === 1 ? 0.01
+    : diligenceCount === 2 ? 0.03
+    : diligenceCount === 3 ? 0.05
+    : 0.06;
+  const diligenceBonusMultiplier = 1 + diligenceBonusPct;
   
   // Check for undiscovered property issues (surprise repair costs!)
   // Use randomized issues (matching what the client shows) based on game run + property
@@ -549,18 +575,23 @@ export async function completeFlipDeal(
       // WITH COMPS: Sale price scales predictably from purchase price to ARV
       // 0% rehab = ~purchase price (maybe tiny premium for marketing)
       // 100% rehab = near ARV (full value)
-      
+
       // Base price scales linearly from purchase price to ARV based on rehab
+      // Diligent investors capture more of the spread (95% vs 90%) through better execution
+      const spreadCapture = diligenceCount >= 3 ? 0.95 : 0.90;
       const priceSpread = maxArv - purchasePrice;
-      let baseSalePrice = purchasePrice + (completionFactor * priceSpread * 0.9); // 90% of spread achievable
-      
+      let baseSalePrice = purchasePrice + (completionFactor * priceSpread * spreadCapture);
+
       // Apply condition penalty for unfixed issues
       baseSalePrice = baseSalePrice * conditionMultiplier;
-      
+
+      // Apply diligence bonus: informed investors price, stage, and market more effectively
+      baseSalePrice = baseSalePrice * diligenceBonusMultiplier;
+
       // Apply MARKET-BASED variance
       const marketVariance = marketMult.min + (Math.random() * (marketMult.max - marketMult.min));
       salePrice = Math.round(baseSalePrice * marketVariance);
-      
+
       // If no rehab was done, cap sale price near purchase price (can't profit without work)
       if (rehabBudget === 0) {
         const noRehabMax = purchasePrice * 1.05 * marketVariance; // Max 5% above purchase + market
@@ -623,7 +654,11 @@ export async function completeFlipDeal(
   // via chargeFlipCarryingCosts() in advanceGameWeek() - no lump-sum needed here
 
   // Calculate selling costs (realtor commission, closing costs, etc.)
-  const sellingCostsPct = proFormaInputs?.sellingCostsPct || 8; // Default 8% if not specified
+  // Diligent investors who did comp analysis negotiate better agent terms and price
+  // more accurately, reducing days on market and overall selling costs
+  const baseSellingCostsPct = proFormaInputs?.sellingCostsPct || 8;
+  const sellingCostDiscount = didComps ? 1.5 : 0; // 1.5% discount with comp analysis
+  const sellingCostsPct = Math.max(3, baseSellingCostsPct - sellingCostDiscount);
   const sellingCosts = Math.round(salePrice * (sellingCostsPct / 100));
 
   // Calculate total holding costs already paid (for profit calculation only)

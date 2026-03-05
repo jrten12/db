@@ -33,10 +33,15 @@ Preferred communication style: Simple, everyday language.
 
 ### Mobile App (iOS)
 - **Framework**: React Native with Expo SDK 52
-- **Navigation**: Expo Router
-- **Styling**: NativeWind
+- **Navigation**: Expo Router (file-based routing)
+- **Styling**: NativeWind (Tailwind for RN)
 - **Animations**: React Native Reanimated
 - **State**: TanStack React Query
+- **API Client**: `mobile/src/lib/api.ts` — centralized API client matching all server endpoints
+- **Game Logic**: `mobile/src/lib/gameLogic.ts` — pro forma calculations, LTV curves, formatters
+- **Screens**: Landing (`index.tsx`), Game (`game.tsx`), Property Detail (`property/[id].tsx`), Pro Forma (`proforma/[id].tsx`), Deal Management (`deal/[id].tsx`), Results (`results.tsx`)
+- **App Config**: `mobile/app.config.ts` — iOS 17+ privacy manifests, bundle ID `com.dealbreak.simulator`
+- **App Store Checklist**: `mobile/APP_STORE_CHECKLIST.md`
 
 ### Content & SEO (AdSense Compliance)
 - **Learning Center**: `/learn` hub page with 13 educational articles about real estate investing concepts

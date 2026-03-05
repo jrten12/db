@@ -1,14 +1,79 @@
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Modal, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { api, GameRun } from '../src/lib/api';
 
 export default function Landing() {
   const router = useRouter();
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [playerName, setPlayerName] = useState('');
+  const [activeGame, setActiveGame] = useState<GameRun | null>(null);
+  const [checkingGame, setCheckingGame] = useState(true);
 
-  const startGame = () => {
-    router.push('/game');
+  useEffect(() => {
+    checkForActiveGame();
+  }, []);
+
+  const checkForActiveGame = async () => {
+    try {
+      const game = await api.getActiveGameRun();
+      setActiveGame(game);
+    } catch {
+    } finally {
+      setCheckingGame(false);
+    }
+  };
+
+  const startNewGame = () => {
+    if (activeGame) {
+      Alert.alert(
+        'Active Game Found',
+        `You have an active game as "${activeGame.playerName}". Starting a new game will end the current one.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Start New',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await api.deleteGameRun(activeGame.id);
+                setActiveGame(null);
+                setShowNameModal(true);
+              } catch {
+                Alert.alert('Error', 'Failed to end current game.');
+              }
+            },
+          },
+        ]
+      );
+    } else {
+      setShowNameModal(true);
+    }
+  };
+
+  const confirmStartGame = async () => {
+    const name = playerName.trim();
+    if (!name) {
+      Alert.alert('Name Required', 'Please enter your investor name.');
+      return;
+    }
+    try {
+      const game = await api.createGameRun({ playerName: name });
+      setShowNameModal(false);
+      setPlayerName('');
+      router.push({ pathname: '/game', params: { gameId: game.id.toString() } });
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Failed to start game.');
+    }
+  };
+
+  const continueGame = () => {
+    if (activeGame) {
+      router.push({ pathname: '/game', params: { gameId: activeGame.id.toString() } });
+    }
   };
 
   return (
@@ -18,7 +83,6 @@ export default function Landing() {
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View className="flex-row items-center justify-between px-5 py-4">
           <View className="flex-row items-center">
             <LinearGradient
@@ -32,11 +96,10 @@ export default function Landing() {
         </View>
 
         <View className="flex-1 px-5 pb-8">
-          {/* Stats Pills */}
           <View className="flex-row justify-center gap-2 mb-6">
             <View className="flex-row items-center px-3 py-2 rounded-full bg-white/5 border border-white/10">
               <Ionicons name="cash-outline" size={14} color="#10b981" />
-              <Text className="text-white/90 text-sm font-medium ml-1.5">$75K Start</Text>
+              <Text className="text-white/90 text-sm font-medium ml-1.5">$80K Start</Text>
             </View>
             <View className="flex-row items-center px-3 py-2 rounded-full bg-white/5 border border-white/10">
               <Ionicons name="time-outline" size={14} color="#f59e0b" />
@@ -48,7 +111,6 @@ export default function Landing() {
             </View>
           </View>
 
-          {/* Hero Section */}
           <View className="items-center mb-8">
             <Text className="text-3xl font-bold text-white text-center mb-1">
               Master Real Estate
@@ -61,7 +123,6 @@ export default function Landing() {
             </Text>
           </View>
 
-          {/* Trust Indicators */}
           <View className="flex-row justify-center gap-6 mb-8">
             <View className="flex-row items-center">
               <View className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />
@@ -73,9 +134,8 @@ export default function Landing() {
             </View>
           </View>
 
-          {/* CTA Button */}
           <TouchableOpacity
-            onPress={startGame}
+            onPress={startNewGame}
             activeOpacity={0.9}
             testID="button-start-game"
             className="mb-4"
@@ -100,18 +160,31 @@ export default function Landing() {
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Secondary Button */}
           <TouchableOpacity
-            className="py-4 rounded-2xl items-center bg-white/5 border border-white/10 mb-8"
+            onPress={continueGame}
+            disabled={!activeGame || checkingGame}
+            className={`py-4 rounded-2xl items-center border mb-8 ${
+              activeGame ? 'bg-white/5 border-white/10' : 'bg-white/[0.02] border-white/[0.05]'
+            }`}
             activeOpacity={0.7}
             testID="button-continue-game"
           >
-            <Text className="text-white/80 font-semibold">
-              Continue Saved Game
-            </Text>
+            {checkingGame ? (
+              <Text className="text-white/40 font-semibold">Checking for saved game...</Text>
+            ) : activeGame ? (
+              <View>
+                <Text className="text-white/80 font-semibold text-center">
+                  Continue as {activeGame.playerName}
+                </Text>
+                <Text className="text-emerald-400/60 text-xs text-center mt-1">
+                  Week {activeGame.currentWeek} · {activeGame.profitableDeals}/{activeGame.goalDeals} deals
+                </Text>
+              </View>
+            ) : (
+              <Text className="text-white/30 font-semibold">No Saved Game</Text>
+            )}
           </TouchableOpacity>
 
-          {/* Features Section */}
           <View className="mb-6">
             <Text className="text-xl font-bold text-white text-center mb-2">
               Learn by Doing
@@ -143,12 +216,11 @@ export default function Landing() {
                 icon="time"
                 iconColor="#f59e0b"
                 title="Time Pressure"
-                description="12 months to prove yourself"
+                description="52 weeks to prove yourself"
               />
             </View>
           </View>
 
-          {/* How it Works */}
           <View className="mb-6">
             <Text className="text-xl font-bold text-white text-center mb-6">
               How It Works
@@ -162,17 +234,55 @@ export default function Landing() {
             </View>
           </View>
 
-          {/* Disclaimer */}
           <View className="items-center pt-4">
             <Text className="text-gray-600 text-sm text-center">
               A real estate decision simulator.{'\n'}Not financial advice.
             </Text>
             <Text className="text-gray-700 text-xs mt-2 font-mono">
-              v1.65
+              v2.0.0
             </Text>
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={showNameModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowNameModal(false)}
+      >
+        <View className="flex-1 bg-black/60 justify-end">
+          <View className="bg-[#1a1a2e] rounded-t-3xl p-6 pb-10">
+            <Text className="text-white text-xl font-bold mb-2">Enter Your Investor Name</Text>
+            <Text className="text-gray-400 mb-6">This will appear on the Hall of Fame if you win.</Text>
+            <TextInput
+              value={playerName}
+              onChangeText={setPlayerName}
+              placeholder="e.g., Warren B."
+              placeholderTextColor="#64748b"
+              className="bg-slate-800 text-white px-4 py-4 rounded-xl text-lg border border-slate-700 mb-4"
+              autoFocus
+              maxLength={20}
+              returnKeyType="go"
+              onSubmitEditing={confirmStartGame}
+              testID="input-player-name"
+            />
+            <TouchableOpacity
+              onPress={confirmStartGame}
+              className="bg-emerald-500 py-4 rounded-xl items-center mb-3"
+              testID="button-confirm-start"
+            >
+              <Text className="text-white font-bold text-lg">Start Game</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => { setShowNameModal(false); setPlayerName(''); }}
+              className="py-3 items-center"
+            >
+              <Text className="text-gray-400">Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

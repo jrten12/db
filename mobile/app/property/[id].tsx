@@ -1,33 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-interface Property {
-  id: number;
-  name: string;
-  address: string;
-  askingPrice: number;
-  propertyType: string;
-  locationType: string;
-  rentMin: number;
-  rentMax: number;
-  rehabCostMin: number;
-  rehabCostMax: number;
-  arvMin: number;
-  arvMax: number;
-  yearBuilt: number;
-  sqft: number;
-  bedrooms: number;
-  bathrooms: number;
-}
+import { api, Property, Investigation, GameRun, formatCurrency } from '../../src/lib/api';
 
 type Strategy = 'rent' | 'flip';
 type Contractor = 'cheap' | 'fast';
-
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://dealbreaksimulator.com';
 
 const DILIGENCE_OPTIONS = [
   {
@@ -58,33 +37,59 @@ const DILIGENCE_OPTIONS = [
 
 export default function PropertyDetail() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const queryClient = useQueryClient();
+  const { id, gameId } = useLocalSearchParams<{ id: string; gameId: string }>();
 
   const [strategy, setStrategy] = useState<Strategy>('rent');
   const [contractor, setContractor] = useState<Contractor>('cheap');
-  const [completedDiligence, setCompletedDiligence] = useState<string[]>([]);
+  const [property, setProperty] = useState<Property | null>(null);
+  const [gameState, setGameState] = useState<GameRun | null>(null);
+  const [investigations, setInvestigations] = useState<Investigation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const { data: property, isLoading } = useQuery<Property>({
-    queryKey: ['property', id],
-    queryFn: async () => {
-      const res = await fetch(`${API_BASE}/api/properties/${id}`);
-      return res.json();
-    },
-  });
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+  const loadData = async () => {
+    try {
+      const gid = parseInt(gameId || '0');
+      if (!gid) {
+        setError('No active game found.');
+        setLoading(false);
+        return;
+      }
+      const [props, game, invs] = await Promise.all([
+        api.getProperties(),
+        api.getGameRun(gid),
+        api.getInvestigations(gid),
+      ]);
+      const prop = props.find(p => p.id === parseInt(id || '0'));
+      if (!prop) {
+        setError('Property not found.');
+        setLoading(false);
+        return;
+      }
+      setProperty(prop);
+      setGameState(game);
+      setInvestigations(invs.filter(inv => inv.propertyId === parseInt(id || '0')));
+    } catch (err: any) {
+      setError(err.message || 'Failed to load property data.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const completedTypes = investigations.map(inv => inv.investigationType);
 
   const handleDiligencePurchase = (optionId: string) => {
     const option = DILIGENCE_OPTIONS.find(o => o.id === optionId);
-    if (!option) return;
+    if (!option || !gameState || !property) return;
+
+    if (gameState.cash < option.cost) {
+      Alert.alert('Insufficient Funds', `You need ${formatCurrency(option.cost)} but only have ${formatCurrency(gameState.cash)}.`);
+      return;
+    }
 
     Alert.alert(
       'Confirm Investigation',
@@ -93,8 +98,19 @@ export default function PropertyDetail() {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Purchase',
-          onPress: () => {
-            setCompletedDiligence(prev => [...prev, optionId]);
+          onPress: async () => {
+            try {
+              await api.createInvestigation({
+                gameRunId: gameState.id,
+                propertyId: property.id,
+                investigationType: option.id,
+                cost: option.cost,
+                weeksUsed: option.weeks,
+              });
+              await loadData();
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to create investigation.');
+            }
           },
         },
       ]
@@ -104,16 +120,32 @@ export default function PropertyDetail() {
   const openProForma = () => {
     router.push({
       pathname: '/proforma/[id]',
-      params: { 
-        id: id!, 
-        strategy, 
+      params: {
+        id: id!,
+        gameId: gameId!,
+        strategy,
         contractor,
-        diligence: completedDiligence.join(','),
+        diligence: completedTypes.join(','),
       },
     });
   };
 
-  if (isLoading || !property) {
+  if (error) {
+    return (
+      <SafeAreaView className="flex-1 bg-slate-900 items-center justify-center p-6">
+        <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
+        <Text className="text-white font-bold text-lg mt-4 text-center">{error}</Text>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="bg-emerald-500 px-8 py-3 rounded-xl mt-6"
+        >
+          <Text className="text-white font-semibold">Go Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
+  if (loading || !property) {
     return (
       <SafeAreaView className="flex-1 bg-slate-900 items-center justify-center">
         <ActivityIndicator size="large" color="#10b981" />
@@ -121,15 +153,14 @@ export default function PropertyDetail() {
     );
   }
 
-  const hasAppraisal = completedDiligence.includes('appraisal');
-  const hasMarketStudy = completedDiligence.includes('market_study');
-  const hasInspection = completedDiligence.includes('inspection');
+  const hasAppraisal = completedTypes.includes('appraisal');
+  const hasMarketStudy = completedTypes.includes('market_study');
+  const hasInspection = completedTypes.includes('inspection');
 
   return (
     <SafeAreaView className="flex-1 bg-slate-900">
-      {/* Header */}
       <View className="px-4 py-3 flex-row items-center border-b border-slate-800">
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => router.back()}
           className="p-2 -ml-2"
           testID="button-back"
@@ -141,22 +172,21 @@ export default function PropertyDetail() {
             {property.name}
           </Text>
           <Text className="text-gray-400 text-sm" numberOfLines={1}>
-            {property.address}
+            {property.neighborhood}
           </Text>
         </View>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="p-4">
-          {/* Price & Key Stats */}
           <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700">
             <View className="flex-row justify-between items-center mb-4">
               <Text className="text-gray-400">Asking Price</Text>
               <Text className="text-emerald-400 font-bold text-2xl">
-                {formatCurrency(property.askingPrice)}
+                {formatCurrency(property.price)}
               </Text>
             </View>
-            
+
             <View className="flex-row justify-between">
               <View className="items-center flex-1">
                 <Text className="text-white font-semibold text-lg">{property.bedrooms}</Text>
@@ -167,20 +197,19 @@ export default function PropertyDetail() {
                 <Text className="text-gray-500 text-xs">Baths</Text>
               </View>
               <View className="items-center flex-1">
-                <Text className="text-white font-semibold text-lg">{property.sqft.toLocaleString()}</Text>
+                <Text className="text-white font-semibold text-lg">{property.sizeSqft.toLocaleString()}</Text>
                 <Text className="text-gray-500 text-xs">Sqft</Text>
               </View>
               <View className="items-center flex-1">
-                <Text className="text-white font-semibold text-lg">{property.yearBuilt}</Text>
-                <Text className="text-gray-500 text-xs">Built</Text>
+                <Text className="text-white font-semibold text-lg capitalize">{property.conditionTag}</Text>
+                <Text className="text-gray-500 text-xs">Condition</Text>
               </View>
             </View>
           </View>
 
-          {/* Market Data (locked/unlocked) */}
           <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700">
             <Text className="text-gray-300 font-semibold mb-3">Market Data</Text>
-            
+
             <View className="flex-row justify-between mb-3">
               <Text className="text-gray-400">Rent Potential</Text>
               {hasMarketStudy ? (
@@ -190,7 +219,7 @@ export default function PropertyDetail() {
               ) : (
                 <View className="flex-row items-center">
                   <Ionicons name="lock-closed" size={14} color="#f59e0b" />
-                  <Text className="text-amber-400 ml-1">Requires Market Study</Text>
+                  <Text className="text-amber-400 ml-1 text-sm">Requires Market Study</Text>
                 </View>
               )}
             </View>
@@ -204,7 +233,7 @@ export default function PropertyDetail() {
               ) : (
                 <View className="flex-row items-center">
                   <Ionicons name="lock-closed" size={14} color="#f59e0b" />
-                  <Text className="text-amber-400 ml-1">Requires Comp Analysis</Text>
+                  <Text className="text-amber-400 ml-1 text-sm">Requires Comp Analysis</Text>
                 </View>
               )}
             </View>
@@ -213,31 +242,30 @@ export default function PropertyDetail() {
               <Text className="text-gray-400">Rehab Estimate</Text>
               {hasInspection ? (
                 <Text className="text-red-400 font-medium">
-                  {formatCurrency(property.rehabCostMin)} - {formatCurrency(property.rehabCostMax)}
+                  {formatCurrency(property.rehabMin)} - {formatCurrency(property.rehabMax)}
                 </Text>
               ) : (
                 <View className="flex-row items-center">
                   <Ionicons name="lock-closed" size={14} color="#f59e0b" />
-                  <Text className="text-amber-400 ml-1">Requires Inspection</Text>
+                  <Text className="text-amber-400 ml-1 text-sm">Requires Inspection</Text>
                 </View>
               )}
             </View>
           </View>
 
-          {/* Due Diligence Options */}
           <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700">
             <Text className="text-gray-300 font-semibold mb-3">Due Diligence</Text>
-            
+
             {DILIGENCE_OPTIONS.map((option) => {
-              const isCompleted = completedDiligence.includes(option.id);
+              const isCompleted = completedTypes.includes(option.id);
               return (
                 <TouchableOpacity
                   key={option.id}
                   onPress={() => !isCompleted && handleDiligencePurchase(option.id)}
                   disabled={isCompleted}
                   className={`flex-row items-center p-3 rounded-xl mb-2 ${
-                    isCompleted 
-                      ? 'bg-emerald-500/20 border border-emerald-500/50' 
+                    isCompleted
+                      ? 'bg-emerald-500/20 border border-emerald-500/50'
                       : 'bg-slate-700/50 border border-slate-600'
                   }`}
                   testID={`button-diligence-${option.id}`}
@@ -270,10 +298,9 @@ export default function PropertyDetail() {
             })}
           </View>
 
-          {/* Strategy Selection */}
           <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700">
             <Text className="text-gray-300 font-semibold mb-3">Choose Strategy</Text>
-            
+
             <View className="flex-row">
               <TouchableOpacity
                 onPress={() => setStrategy('rent')}
@@ -284,10 +311,10 @@ export default function PropertyDetail() {
                 }`}
                 testID="button-strategy-rent"
               >
-                <Ionicons 
-                  name="home" 
-                  size={24} 
-                  color={strategy === 'rent' ? '#10b981' : '#9ca3af'} 
+                <Ionicons
+                  name="home"
+                  size={24}
+                  color={strategy === 'rent' ? '#10b981' : '#9ca3af'}
                 />
                 <Text className={`font-semibold mt-2 ${
                   strategy === 'rent' ? 'text-emerald-400' : 'text-gray-400'
@@ -308,10 +335,10 @@ export default function PropertyDetail() {
                 }`}
                 testID="button-strategy-flip"
               >
-                <Ionicons 
-                  name="trending-up" 
-                  size={24} 
-                  color={strategy === 'flip' ? '#10b981' : '#9ca3af'} 
+                <Ionicons
+                  name="trending-up"
+                  size={24}
+                  color={strategy === 'flip' ? '#10b981' : '#9ca3af'}
                 />
                 <Text className={`font-semibold mt-2 ${
                   strategy === 'flip' ? 'text-emerald-400' : 'text-gray-400'
@@ -325,10 +352,9 @@ export default function PropertyDetail() {
             </View>
           </View>
 
-          {/* Contractor Selection */}
           <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700">
             <Text className="text-gray-300 font-semibold mb-3">Contractor Choice</Text>
-            
+
             <View className="flex-row">
               <TouchableOpacity
                 onPress={() => setContractor('cheap')}
@@ -339,17 +365,17 @@ export default function PropertyDetail() {
                 }`}
                 testID="button-contractor-cheap"
               >
-                <Ionicons 
-                  name="time" 
-                  size={24} 
-                  color={contractor === 'cheap' ? '#60a5fa' : '#9ca3af'} 
+                <Ionicons
+                  name="time"
+                  size={24}
+                  color={contractor === 'cheap' ? '#60a5fa' : '#9ca3af'}
                 />
                 <Text className={`font-semibold mt-2 ${
                   contractor === 'cheap' ? 'text-blue-400' : 'text-gray-400'
                 }`}>
                   Cheap & Slow
                 </Text>
-                <Text className="text-amber-400 text-xs mt-1">-2 weeks penalty</Text>
+                <Text className="text-amber-400 text-xs mt-1">+2 weeks</Text>
                 <Text className="text-emerald-400 text-xs">Standard cost</Text>
               </TouchableOpacity>
 
@@ -362,10 +388,10 @@ export default function PropertyDetail() {
                 }`}
                 testID="button-contractor-fast"
               >
-                <Ionicons 
-                  name="flash" 
-                  size={24} 
-                  color={contractor === 'fast' ? '#c084fc' : '#9ca3af'} 
+                <Ionicons
+                  name="flash"
+                  size={24}
+                  color={contractor === 'fast' ? '#c084fc' : '#9ca3af'}
                 />
                 <Text className={`font-semibold mt-2 ${
                   contractor === 'fast' ? 'text-purple-400' : 'text-gray-400'
@@ -380,7 +406,6 @@ export default function PropertyDetail() {
         </View>
       </ScrollView>
 
-      {/* Bottom Action */}
       <View className="p-4 border-t border-slate-800">
         <TouchableOpacity
           onPress={openProForma}

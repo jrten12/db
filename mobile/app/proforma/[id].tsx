@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, ActivityIndicator,
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import Slider from '@react-native-community/slider';
 import {
   ProFormaInputs,
@@ -19,21 +19,13 @@ import {
   LTV_MIN,
   LTV_MAX,
 } from '@/lib/gameLogic';
-
-interface Property {
-  id: number;
-  name: string;
-  askingPrice: number;
-  rentMin: number;
-  rentMax: number;
-}
-
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://dealbreaksimulator.com';
+import { api, Property } from '../../src/lib/api';
 
 export default function ProFormaScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     id: string;
+    gameId: string;
     strategy: 'rent' | 'flip';
     contractor: 'cheap' | 'fast';
     diligence: string;
@@ -45,14 +37,14 @@ export default function ProFormaScreen() {
     contractorType: params.contractor || 'cheap',
   });
 
-  const { data: property, isLoading } = useQuery<Property>({
-    queryKey: ['property', params.id],
-    queryFn: async () => {
-      const res = await fetch(`${API_BASE}/api/properties/${params.id}`);
-      return res.json();
-    },
+  const [submitting, setSubmitting] = useState(false);
+
+  const { data: properties, isLoading } = useQuery<Property[]>({
+    queryKey: ['properties'],
+    queryFn: () => api.getProperties(),
   });
 
+  const property = properties?.find(p => p.id === parseInt(params.id || '0'));
   const completedDiligence = params.diligence?.split(',').filter(Boolean) || [];
   const hasMarketStudy = completedDiligence.includes('market_study');
 
@@ -65,14 +57,14 @@ export default function ProFormaScreen() {
 
   const outputs = useMemo(() => {
     if (!property || inputs.strategy !== 'rent') return null;
-    return calculateRentalOutputs(inputs, property.askingPrice);
+    return calculateRentalOutputs(inputs, property.price);
   }, [inputs, property]);
 
   const isComplete = isProFormaInputsComplete(inputs);
   const missingFields = getMissingFields(inputs);
 
   const handleMakeOffer = () => {
-    if (!isComplete) {
+    if (!isComplete || !property) {
       Alert.alert(
         'Incomplete Pro Forma',
         `Please fill in all required fields:\n${missingFields.join(', ')}`
@@ -80,15 +72,49 @@ export default function ProFormaScreen() {
       return;
     }
 
+    const gameRunId = parseInt(params.gameId || '0');
+    if (!gameRunId) {
+      Alert.alert('Error', 'No active game found.');
+      return;
+    }
+
     Alert.alert(
       'Confirm Offer',
-      `Make an offer on ${property?.name} for ${formatCurrency(property?.askingPrice || 0)}?`,
+      `Make an offer on ${property.name} for ${formatCurrency(property.price)}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Make Offer',
-          onPress: () => {
-            router.replace('/game');
+          onPress: async () => {
+            setSubmitting(true);
+            try {
+              const deal = await api.createDeal({
+                gameRunId,
+                propertyId: property.id,
+                strategy: inputs.strategy === 'rent' ? 'rental' : 'flip',
+                proFormaInputs: inputs,
+                proFormaOutputs: outputs || {},
+                purchasePrice: property.price,
+              });
+
+              Alert.alert(
+                'Offer Accepted!',
+                `You now own ${property.name}. Head to your portfolio to manage the deal.`,
+                [
+                  {
+                    text: 'View Portfolio',
+                    onPress: () => {
+                      router.dismissAll();
+                      router.push({ pathname: '/game', params: { gameId: params.gameId! } });
+                    },
+                  },
+                ]
+              );
+            } catch (err: any) {
+              Alert.alert('Offer Failed', err.message || 'Failed to create deal.');
+            } finally {
+              setSubmitting(false);
+            }
           },
         },
       ]
@@ -109,7 +135,6 @@ export default function ProFormaScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-900">
-      {/* Header */}
       <View className="px-4 py-3 flex-row items-center border-b border-slate-800">
         <TouchableOpacity
           onPress={() => router.back()}
@@ -126,12 +151,11 @@ export default function ProFormaScreen() {
         </View>
         <View className="bg-emerald-500/20 px-3 py-1 rounded-full">
           <Text className="text-emerald-400 font-semibold">
-            {formatCurrency(property.askingPrice)}
+            {formatCurrency(property.price)}
           </Text>
         </View>
       </View>
 
-      {/* Progress Banner */}
       <View className="px-4 py-2 bg-slate-800/50 border-b border-slate-700">
         <View className="flex-row items-center justify-between">
           <Text className="text-gray-400 text-sm">
@@ -150,7 +174,6 @@ export default function ProFormaScreen() {
         <View className="p-4">
           {inputs.strategy === 'rent' ? (
             <>
-              {/* Income Section */}
               <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700">
                 <Text className="text-gray-300 font-semibold mb-4">Income Assumptions</Text>
 
@@ -173,7 +196,6 @@ export default function ProFormaScreen() {
                 />
               </View>
 
-              {/* Expenses Section */}
               <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700">
                 <Text className="text-gray-300 font-semibold mb-4">Operating Expenses</Text>
 
@@ -213,7 +235,6 @@ export default function ProFormaScreen() {
               </View>
             </>
           ) : (
-            /* Flip Strategy Inputs */
             <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700">
               <Text className="text-gray-300 font-semibold mb-4">Flip Assumptions</Text>
 
@@ -253,7 +274,6 @@ export default function ProFormaScreen() {
             </View>
           )}
 
-          {/* Financing Section */}
           <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700">
             <Text className="text-gray-300 font-semibold mb-4">Financing</Text>
 
@@ -281,7 +301,7 @@ export default function ProFormaScreen() {
             <View className="bg-slate-700/50 rounded-xl p-3 space-y-2">
               <View className="flex-row justify-between">
                 <Text className="text-gray-400 text-sm">Down Payment</Text>
-                <Text className="text-white">{formatPercent(downPaymentPct)} ({formatCurrency(property.askingPrice * (downPaymentPct / 100))})</Text>
+                <Text className="text-white">{formatPercent(downPaymentPct)} ({formatCurrency(property.price * (downPaymentPct / 100))})</Text>
               </View>
               <View className="flex-row justify-between">
                 <Text className="text-gray-400 text-sm">Interest Rate</Text>
@@ -298,9 +318,8 @@ export default function ProFormaScreen() {
             </Text>
           </View>
 
-          {/* Results Section */}
           {inputs.strategy === 'rent' && outputs && (
-            <View className="bg-gradient-to-br from-emerald-500/20 to-slate-800 rounded-2xl p-4 mb-4 border border-emerald-500/30">
+            <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-emerald-500/30">
               <Text className="text-emerald-400 font-semibold mb-4">Projected Returns</Text>
 
               <View className="space-y-3">
@@ -338,22 +357,25 @@ export default function ProFormaScreen() {
         </View>
       </ScrollView>
 
-      {/* Bottom Action */}
       <View className="p-4 border-t border-slate-800">
         <TouchableOpacity
           onPress={handleMakeOffer}
-          disabled={!isComplete}
+          disabled={!isComplete || submitting}
           className={`py-4 rounded-2xl items-center ${
-            isComplete
+            isComplete && !submitting
               ? 'bg-emerald-500'
               : 'bg-slate-700'
           }`}
           activeOpacity={0.8}
           testID="button-make-offer"
         >
-          <Text className={`font-bold text-lg ${isComplete ? 'text-white' : 'text-gray-500'}`}>
-            {isComplete ? 'Make Offer' : `Complete ${missingFields.length} More Field${missingFields.length > 1 ? 's' : ''}`}
-          </Text>
+          {submitting ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text className={`font-bold text-lg ${isComplete ? 'text-white' : 'text-gray-500'}`}>
+              {isComplete ? 'Make Offer' : `Complete ${missingFields.length} More Field${missingFields.length > 1 ? 's' : ''}`}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -3,7 +3,7 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Dealbreak',
   slug: 'dealbreak',
-  version: '1.0.0',
+  version: '2.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'dark',
@@ -22,6 +22,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         NSAllowsArbitraryLoads: false,
       },
       ITSAppUsesNonExemptEncryption: false,
+    },
+    privacyManifests: {
+      NSPrivacyAccessedAPITypes: [
+        {
+          NSPrivacyAccessedAPIType: 'NSPrivacyAccessedAPICategoryUserDefaults',
+          NSPrivacyAccessedAPITypeReasons: ['CA92.1'],
+        },
+      ],
+      NSPrivacyCollectedDataTypes: [],
+      NSPrivacyTracking: false,
     },
   },
   android: {

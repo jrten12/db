@@ -6,9 +6,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@shared/*": [
-        "../shared/*"
       ]
     },
     "baseUrl": "."
@@ -18,7 +15,6 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "../shared/**/*.ts",
     "nativewind-env.d.ts"
   ]
 }

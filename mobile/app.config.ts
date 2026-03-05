@@ -15,7 +15,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   assetBundlePatterns: ['**/*'],
   ios: {
     bundleIdentifier: 'com.dealbreak.simulator',
-    buildNumber: '1',
     supportsTablet: true,
     infoPlist: {
       NSAppTransportSecurity: {
@@ -51,10 +50,4 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   plugins: [],
-  runtimeVersion: {
-    policy: 'appVersion',
-  },
-  updates: {
-    url: 'https://u.expo.dev/d8482835-c595-4478-a09c-a3a4232b7c73',
-  },
 });

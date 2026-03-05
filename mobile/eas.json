@@ -20,13 +20,17 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "credentialsSource": "remote"
       }
     }
   },
   "submit": {
     "production": {
-      "ios": {}
+      "ios": {
+        "appleId": "jrose022@gmail.com",
+        "appleTeamId": "9G2NL8NSRT"
+      }
     }
   }
 }

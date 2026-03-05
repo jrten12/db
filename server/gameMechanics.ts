@@ -55,18 +55,6 @@ export function getMarketMultipliers(condition: MarketCondition): MarketMultipli
 }
 
 /**
-
- * Randomize starting market condition (BAL-003 fix)
- * Weighted distribution: not always "good" - any state is possible
- * Weights: terrible 5%, poor 10%, neutral 20%, good 35%, excellent 30%
- */
-export function getRandomStartingMarket(): MarketCondition {
-  const rand = Math.random();
-  if (rand < 0.05) return 'terrible';
-  if (rand < 0.15) return 'poor';
-  if (rand < 0.35) return 'neutral';
-  if (rand < 0.70) return 'good';
-
  * Randomize starting market condition (BAL-003 fix, BAL-004 rebalance)
  * Weighted distribution: any state is possible but slightly friendlier start
  * Weights: terrible 8%, poor 12%, neutral 25%, good 32%, excellent 23%
@@ -77,7 +65,6 @@ export function getRandomStartingMarket(): MarketCondition {
   if (rand < 0.20) return 'poor';
   if (rand < 0.45) return 'neutral';
   if (rand < 0.77) return 'good';
-
   return 'excellent';
 }
 

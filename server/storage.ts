@@ -1231,8 +1231,6 @@ export class DBStorage implements IStorage {
 
   async addNewUrbanProperties(): Promise<void> {
 
-    for (const prop of ALL_PROPERTIES) {
-
     const newUrbanProperties: InsertProperty[] = [
       {
         name: "South Street Twin",

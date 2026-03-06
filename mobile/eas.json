@@ -29,7 +29,8 @@
     "production": {
       "ios": {
         "appleId": "jrose022@gmail.com",
-        "appleTeamId": "9G2NL8NSRT"
+        "appleTeamId": "9G2NL8NSRT",
+        "companyName": "Infarill LLC"
       }
     }
   }

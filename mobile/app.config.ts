@@ -25,6 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       SKAdNetworkItems: [
         { SKAdNetworkIdentifier: 'cstr6suwn9.skadnetwork' },
       ],
+      NSUserTrackingUsageDescription: 'This allows us to show you relevant ads.',
     },
     privacyManifests: {
       NSPrivacyAccessedAPITypes: [
@@ -58,6 +59,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'react-native-google-mobile-ads',
       {
         iosAppId: 'ca-app-pub-2744316013184797~5324139821',
+      },
+    ],
+    [
+      'expo-tracking-transparency',
+      {
+        userTrackingPermission: 'This allows us to show you relevant ads.',
       },
     ],
   ],

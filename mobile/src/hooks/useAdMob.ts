@@ -1,50 +1,30 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getAdUnitId } from '../lib/admob';
+import { Platform } from 'react-native';
 
-let mobileAds: any = null;
-let InterstitialAd: any = null;
-let AdEventType: any = null;
+const INTERSTITIAL_ID = __DEV__
+  ? 'ca-app-pub-3940256099942544/1033173712'
+  : Platform.OS === 'ios'
+    ? 'ca-app-pub-2744316013184797/4011058152'
+    : 'ca-app-pub-2744316013184797/4011058152';
 
-try {
-  const adsModule = require('react-native-google-mobile-ads');
-  mobileAds = adsModule.default;
-  InterstitialAd = adsModule.InterstitialAd;
-  AdEventType = adsModule.AdEventType;
-} catch (e) {
-  console.log('AdMob not available');
-}
+let adsInitialized = false;
+let adsInitPromise: Promise<void> | null = null;
 
-export function useAdMobInit() {
-  const [initialized, setInitialized] = useState(false);
+function initAdsOnce(): Promise<void> {
+  if (adsInitialized) return Promise.resolve();
+  if (adsInitPromise) return adsInitPromise;
 
-  useEffect(() => {
-    async function init() {
-      if (!mobileAds) return;
-
-      try {
-        let trackingModule;
-        try {
-          trackingModule = require('expo-tracking-transparency');
-        } catch (e) {}
-
-        if (trackingModule) {
-          const { status } = await trackingModule.getTrackingPermissionsAsync();
-          if (status === 'undetermined') {
-            await trackingModule.requestTrackingPermissionsAsync();
-          }
-        }
-
-        await mobileAds().initialize();
-        setInitialized(true);
-      } catch (error) {
-        console.error('Failed to initialize AdMob:', error);
-      }
+  adsInitPromise = (async () => {
+    try {
+      const adsModule = require('react-native-google-mobile-ads');
+      await adsModule.default().initialize();
+      adsInitialized = true;
+    } catch (e) {
+      console.log('AdMob init failed:', e);
     }
+  })();
 
-    init();
-  }, []);
-
-  return initialized;
+  return adsInitPromise;
 }
 
 export function useInterstitialAd() {
@@ -53,44 +33,58 @@ export function useInterstitialAd() {
   const weekCountRef = useRef(0);
 
   useEffect(() => {
-    if (!InterstitialAd) return;
+    let unsubLoaded: (() => void) | undefined;
+    let unsubClosed: (() => void) | undefined;
 
-    const ad = InterstitialAd.createForAdRequest(getAdUnitId('interstitial'));
+    (async () => {
+      try {
+        await initAdsOnce();
+        const { InterstitialAd, AdEventType } = require('react-native-google-mobile-ads');
+        const ad = InterstitialAd.createForAdRequest(INTERSTITIAL_ID);
 
-    const unsubscribeLoaded = ad.addAdEventListener(AdEventType.LOADED, () => {
-      setLoaded(true);
-    });
+        unsubLoaded = ad.addAdEventListener(AdEventType.LOADED, () => {
+          setLoaded(true);
+        });
 
-    const unsubscribeClosed = ad.addAdEventListener(AdEventType.CLOSED, () => {
-      setLoaded(false);
-      setTimeout(() => ad.load(), 1000);
-    });
+        unsubClosed = ad.addAdEventListener(AdEventType.CLOSED, () => {
+          setLoaded(false);
+          setTimeout(() => {
+            try { ad.load(); } catch (e) {}
+          }, 1000);
+        });
 
-    ad.load();
-    adRef.current = ad;
+        ad.load();
+        adRef.current = ad;
+      } catch (e) {
+        console.log('Interstitial setup failed:', e);
+      }
+    })();
 
     return () => {
-      unsubscribeLoaded();
-      unsubscribeClosed();
+      try { unsubLoaded?.(); } catch (e) {}
+      try { unsubClosed?.(); } catch (e) {}
     };
   }, []);
 
   const showIfReady = useCallback(() => {
-    if (adRef.current && loaded) {
-      adRef.current.show();
-      return true;
+    try {
+      if (adRef.current && loaded) {
+        adRef.current.show();
+        return true;
+      }
+    } catch (e) {
+      console.log('Ad show failed:', e);
     }
     return false;
   }, [loaded]);
 
   const showAfterWeekAdvance = useCallback(() => {
     weekCountRef.current += 1;
-    if (weekCountRef.current % 4 === 0 && loaded && adRef.current) {
-      adRef.current.show();
-      return true;
+    if (weekCountRef.current % 4 === 0) {
+      return showIfReady();
     }
     return false;
-  }, [loaded]);
+  }, [showIfReady]);
 
   const showOnGameOver = useCallback(() => {
     return showIfReady();

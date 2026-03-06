@@ -4,6 +4,7 @@ import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api, GameRun, Property, Deal, formatCurrency, formatCompactCurrency, MARKET_LABELS } from '../src/lib/api';
+import { useInterstitialAd } from '../src/hooks/useAdMob';
 
 type Tab = 'market' | 'portfolio';
 
@@ -18,6 +19,7 @@ export default function Game() {
   const [refreshing, setRefreshing] = useState(false);
   const [advancing, setAdvancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { showAfterWeekAdvance, showOnGameOver } = useInterstitialAd();
 
   const loadData = useCallback(async () => {
     try {
@@ -64,10 +66,11 @@ export default function Game() {
       const result = await api.advanceWeek(gameState.id);
       await loadData();
 
-      if (result.gameRun?.status === 'won') {
+      if (result.gameRun?.status === 'won' || result.gameRun?.status === 'lost') {
+        showOnGameOver();
         router.push({ pathname: '/results', params: { gameId: gameState.id.toString() } });
-      } else if (result.gameRun?.status === 'lost') {
-        router.push({ pathname: '/results', params: { gameId: gameState.id.toString() } });
+      } else {
+        showAfterWeekAdvance();
       }
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Failed to advance week.');

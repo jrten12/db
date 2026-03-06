@@ -21,6 +21,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         NSAllowsArbitraryLoads: false,
       },
       ITSAppUsesNonExemptEncryption: false,
+      GADApplicationIdentifier: 'ca-app-pub-2744316013184797~5324139821',
+      SKAdNetworkItems: [
+        { SKAdNetworkIdentifier: 'cstr6suwn9.skadnetwork' },
+      ],
     },
     privacyManifests: {
       NSPrivacyAccessedAPITypes: [
@@ -49,5 +53,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       projectId: 'd8482835-c595-4478-a09c-a3a4232b7c73',
     },
   },
-  plugins: [],
+  plugins: [
+    [
+      'react-native-google-mobile-ads',
+      {
+        iosAppId: 'ca-app-pub-2744316013184797~5324139821',
+      },
+    ],
+  ],
 });

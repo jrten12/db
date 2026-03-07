@@ -1502,10 +1502,10 @@ export default function Game() {
     }
   }, [isBankrupt]);
   
-  // Derived state: is the player frozen (out of weeks)?
-  const isPlayerFrozen = gameRun?.weeksRemaining !== undefined && gameRun.weeksRemaining <= 0 && !isBankrupt;
+  // Player is in overtime (past 52 weeks) - can keep playing but no new awards
+  const isOvertime = gameRun?.weeksRemaining !== undefined && gameRun.weeksRemaining <= 0;
 
-  // Auto-show premium popup when player runs out of weeks or cash is low
+  // Auto-show premium popup when cash is low (removed weeks freeze - players can keep playing)
   const hasActiveRehab = useMemo(() => {
     return deals.some(d => d.rentalRehabActive || d.status === 'in_rehab');
   }, [deals]);
@@ -1513,19 +1513,13 @@ export default function Game() {
   useEffect(() => {
     if (!gameRun || isBankrupt) return;
     
-    // Check for 0 weeks - highest priority, freezes game
-    if (gameRun.weeksRemaining <= 0 && !hasShownNoWeeksPopup && !showPremiumModal) {
-      setPremiumTriggerReason('no_weeks');
-      setShowPremiumModal(true);
-      setHasShownNoWeeksPopup(true);
-    }
     // Check for low cash (below $1,000) - but not if player just started a renovation
-    else if (gameRun.cash < 1000 && gameRun.weeksRemaining > 0 && !hasShownLowCashPopup && !showPremiumModal && !hasActiveRehab) {
+    if (gameRun.cash < 1000 && gameRun.weeksRemaining > 0 && !hasShownLowCashPopup && !showPremiumModal && !hasActiveRehab) {
       setPremiumTriggerReason('low_cash');
       setShowPremiumModal(true);
       setHasShownLowCashPopup(true);
     }
-  }, [gameRun?.weeksRemaining, gameRun?.cash, isBankrupt, hasShownNoWeeksPopup, hasShownLowCashPopup, showPremiumModal, hasActiveRehab]);
+  }, [gameRun?.weeksRemaining, gameRun?.cash, isBankrupt, hasShownLowCashPopup, showPremiumModal, hasActiveRehab]);
 
   // Handle Stripe checkout return
   useEffect(() => {
@@ -2162,8 +2156,8 @@ export default function Game() {
           currentWeeks={gameRun.weeksRemaining}
           gameRunId={gameRun.id}
           triggerReason={premiumTriggerReason}
-          canClose={!isPlayerFrozen}
-          onEndGame={isPlayerFrozen ? handleBankruptReturnHome : undefined}
+          canClose={true}
+          onEndGame={undefined}
         />
 
         {/* Hall of Fame Modal */}

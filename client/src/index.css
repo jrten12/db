@@ -695,16 +695,16 @@
   }
 
   .mobile-cash-value-compact {
-    @apply font-mono font-bold text-base;
+    @apply font-mono font-bold text-sm;
     color: #10b981;
   }
 
   .mobile-time-value-compact {
-    @apply font-bold text-base text-white;
+    @apply font-bold text-sm text-white;
   }
 
   .mobile-goal-value-compact {
-    @apply font-bold text-base;
+    @apply font-bold text-sm;
   }
 
   .stat-label-mobile-compact {

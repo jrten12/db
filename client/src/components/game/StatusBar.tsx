@@ -216,8 +216,12 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <AnimatedNumber value={cashDisplay} prefix="$" className="cash-value" variant="cash" />
               </StatCard>
 
-              <StatCard icon={Clock} label="TIME LEFT" variant="time" testId="status-time" pulse={timePulse}>
-                <AnimatedNumber value={weeksRemaining} suffix=" Months" className="time-value" variant="time" />
+              <StatCard icon={Clock} label={weeksRemaining <= 0 ? "OVERTIME" : "WEEKS LEFT"} variant="time" testId="status-time" pulse={timePulse}>
+                {weeksRemaining <= 0 ? (
+                  <span className="time-value text-amber-400">Overtime</span>
+                ) : (
+                  <AnimatedNumber value={weeksRemaining} suffix=" Weeks" className="time-value" variant="time" />
+                )}
               </StatCard>
 
               {/* Progress Ring for Goals */}
@@ -239,7 +243,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             {onAdvanceWeek && (
               <button
                 onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
-                disabled={isAdvancingWeek || weeksRemaining <= 0}
+                disabled={isAdvancingWeek}
                 className="touch-target flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-lg transition-all duration-150 ios-spring tap-scale disabled:tap-scale-none"
                 data-testid="button-advance-week"
                 data-no-click-sound
@@ -286,7 +290,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             {onAdvanceWeek && (
               <button
                 onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
-                disabled={isAdvancingWeek || weeksRemaining <= 0}
+                disabled={isAdvancingWeek}
                 className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
                 data-testid="button-advance-week-mobile-left"
                 data-no-click-sound
@@ -313,21 +317,25 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <button 
                 onClick={onOpenLedger}
-                className="stat-card-mobile-compact stat-card-mobile-cash touch-target-sm tap-scale flex-[1.3] min-w-0"
+                className="stat-card-mobile-compact stat-card-mobile-cash touch-target-sm tap-scale flex-[1.5] min-w-0 overflow-hidden"
                 data-testid="status-cash-mobile"
                 data-sound="swoosh"
               >
                 <div className="whitespace-nowrap overflow-hidden text-ellipsis">
-                  <AnimatedNumber value={cashDisplay} prefix="$ " className="mobile-cash-value-compact" />
+                  <AnimatedNumber value={cashDisplay} prefix="$" className="mobile-cash-value-compact" />
                 </div>
                 <div className="stat-label-mobile-compact">Cash</div>
               </button>
               
               <div className="stat-card-mobile-compact stat-card-mobile-time touch-target-sm flex-1 min-w-0" data-testid="status-time-mobile">
-                <div className="whitespace-nowrap overflow-hidden text-ellipsis">
-                  <AnimatedNumber value={weeksRemaining} suffix=" M" className="mobile-time-value-compact" />
+                <div className="whitespace-nowrap">
+                  {weeksRemaining <= 0 ? (
+                    <span className="mobile-time-value-compact text-amber-400">OT</span>
+                  ) : (
+                    <AnimatedNumber value={weeksRemaining} className="mobile-time-value-compact" />
+                  )}
                 </div>
-                <div className="stat-label-mobile-compact">Time</div>
+                <div className="stat-label-mobile-compact">{weeksRemaining <= 0 ? 'Overtime' : 'Weeks'}</div>
               </div>
               
               <div className="stat-card-mobile-compact stat-card-mobile-goal touch-target-sm flex-1 min-w-0" data-testid="status-goal-mobile">
@@ -342,7 +350,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             {onAdvanceWeek && (
               <button
                 onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
-                disabled={isAdvancingWeek || weeksRemaining <= 0}
+                disabled={isAdvancingWeek}
                 className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
                 data-testid="button-advance-week-mobile-right"
                 data-no-click-sound
@@ -473,8 +481,8 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <div className="text-gray-500 text-xs">Cash</div>
               </div>
               <div className="menu-stat-card">
-                <span className="menu-time-value">{weeksRemaining}M</span>
-                <div className="text-gray-500 text-xs">Left</div>
+                <span className="menu-time-value">{weeksRemaining <= 0 ? 'OT' : `${weeksRemaining}W`}</span>
+                <div className="text-gray-500 text-xs">{weeksRemaining <= 0 ? 'Overtime' : 'Left'}</div>
               </div>
               <div className="menu-stat-card">
                 <span className="menu-goal-value">

@@ -728,8 +728,8 @@ export async function completeFlipDeal(
     actualProfit: profit,
   });
 
-  // Update profitable deals count if profit > 0
-  if (profit > 0) {
+  // Update profitable deals count if profit > 0 (only if still within 52 weeks)
+  if (profit > 0 && gameRun.weeksRemaining > 0) {
     await storage.updateGameRun(gameRun.id, {
       profitableDeals: gameRun.profitableDeals + 1,
     });
@@ -1147,8 +1147,8 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     throw new Error('Game run not found');
   }
 
-  if (gameRun.weeksRemaining <= 0) {
-    throw new Error('Game time has expired');
+  if (gameRun.status === 'won' || gameRun.status === 'lost') {
+    throw new Error('Game has already ended');
   }
 
   const deals = await storage.getDealsByGameRun(gameRunId);

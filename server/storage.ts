@@ -1715,7 +1715,7 @@ export class DBStorage implements IStorage {
     }
     
     const newCash = runningBalance;
-    const isProfitable = saleProfit > 0;
+    const isProfitable = saleProfit > 0 && gameRun.weeksRemaining > 0;
     const newProfitableDeals = isProfitable ? gameRun.profitableDeals + 1 : gameRun.profitableDeals;
     
     const [updatedGameRun] = await db
@@ -1900,7 +1900,7 @@ export class DBStorage implements IStorage {
     }
     
     const newCash = runningBalance;
-    const isProfitable = saleProfit > 0;
+    const isProfitable = saleProfit > 0 && gameRun.weeksRemaining > 0;
     const newProfitableDeals = isProfitable ? gameRun.profitableDeals + 1 : gameRun.profitableDeals;
     
     const [updatedGameRun] = await db

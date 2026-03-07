@@ -87,6 +87,7 @@ Preferred communication style: Simple, everyday language.
 - **Rental Refinancing**: Cash-out refinance available after an 8-week seasoning period, subject to appraisal and LTV limits.
 - **Debt Tracking & Amortization**: Visual loan paydown system with accelerated amortization for bookkeeping.
 - **Tenant Text Messages**: Interactive tenant communication system with personality types, generated names, and optional AI-generated portraits.
+- **Overtime Mode**: Players can keep playing past 52 weeks but cannot earn new profitable deal awards. StatusBar shows "Overtime"/"OT" indicator. Server allows week advancement past 0 but blocks won/lost status games.
 
 ## External Dependencies
 

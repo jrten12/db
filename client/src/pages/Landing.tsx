@@ -1,11 +1,11 @@
 import { Link } from 'wouter';
 import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2 } from 'lucide-react';
-import heroHouseImage from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_1771128403840.png';
-import dbLogoImage from '@assets/new_icon_db_1772940176909.png';
-import heroBgPattern from '@/assets/images/hero-bg-pattern.png';
-import iconAnalyzeMarket from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_1771128403840.png';
-import iconBuildWealth from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_(1)_1771128403839.png';
-import iconMasterGame from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_(3)_1771128403840.png';
+import heroHouseImage from '@assets/Gemini_hero.webp';
+import dbLogoImage from '@assets/db_logo_64.webp';
+import heroBgPattern from '@/assets/images/hero-bg-pattern.webp';
+import iconAnalyzeMarket from '@assets/Gemini_hero.webp';
+import iconBuildWealth from '@assets/Gemini_feature1.webp';
+import iconMasterGame from '@assets/Gemini_feature3.webp';
 import Footer from '@/components/Footer';
 import { AdBanner } from '@/components/game/AdBanner';
 import { useMusic } from '@/hooks/useMusicPlayer';
@@ -80,8 +80,12 @@ export default function Landing() {
           <img
             src={heroBgPattern}
             alt=""
+            role="presentation"
             className="w-full h-full object-cover"
             style={{ opacity: 0.6 }}
+            fetchPriority="high"
+            width={1408}
+            height={768}
           />
           <div
             className="absolute inset-0"
@@ -163,8 +167,11 @@ export default function Landing() {
               />
               <img
                 src={heroHouseImage}
-                alt="Dealbreak - Real Estate Investment Simulator"
+                alt="Dealbreak real estate investment simulator - analyze properties and close deals"
                 className="relative w-full h-auto"
+                width={420}
+                height={420}
+                fetchPriority="high"
                 style={{
                   filter: 'drop-shadow(0 16px 48px rgba(0,0,0,0.5)) drop-shadow(0 4px 16px rgba(212,175,55,0.1))',
                 }}
@@ -515,6 +522,9 @@ function FeatureColumn({
           src={imageSrc}
           alt={title}
           className="w-full h-full object-contain"
+          loading="lazy"
+          width={112}
+          height={112}
           style={{
             filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))',
           }}

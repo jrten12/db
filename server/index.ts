@@ -19,6 +19,15 @@ declare module "http" {
 
 app.set('trust proxy', 1);
 
+app.use((req, res, next) => {
+  const host = req.hostname;
+  if (host && host.startsWith('www.')) {
+    const newHost = host.slice(4);
+    return res.redirect(301, `https://${newHost}${req.originalUrl}`);
+  }
+  next();
+});
+
 app.use(checkBlockedIP);
 
 app.use('/api', globalLimiter);

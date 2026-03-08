@@ -48,7 +48,7 @@ export function AdBanner({ slot, format = 'horizontal', className = '' }: AdBann
     return null;
   }
 
-  const heightClass = format === 'rectangle' ? 'min-h-[250px]' : 'min-h-[50px] max-h-[90px]';
+  const heightClass = format === 'rectangle' ? 'min-h-[250px]' : 'max-h-[90px]';
 
   const adProps: Record<string, string> = {
     'data-ad-client': pubId,

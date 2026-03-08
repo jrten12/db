@@ -34,7 +34,7 @@ Preferred communication style: Simple, everyday language.
 ### Mobile App (iOS)
 - **Framework**: React Native with Expo SDK 52
 - **Navigation**: Expo Router (file-based routing)
-- **Styling**: NativeWind (Tailwind for RN)
+- **Styling**: NativeWind v4 (Tailwind for RN) — requires `jsxImportSource: 'nativewind'` in babel.config.js
 - **Animations**: React Native Reanimated
 - **State**: TanStack React Query
 - **API Client**: `mobile/src/lib/api.ts` — centralized API client matching all server endpoints

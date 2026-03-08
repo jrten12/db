@@ -99,7 +99,7 @@ export default function Landing() {
           <View className="flex-row justify-center gap-2 mb-6">
             <View className="flex-row items-center px-3 py-2 rounded-full bg-white/5 border border-white/10">
               <Ionicons name="cash-outline" size={14} color="#10b981" />
-              <Text className="text-white/90 text-sm font-medium ml-1.5">$80K Start</Text>
+              <Text className="text-white/90 text-sm font-medium ml-1.5">$100K Start</Text>
             </View>
             <View className="flex-row items-center px-3 py-2 rounded-full bg-white/5 border border-white/10">
               <Ionicons name="time-outline" size={14} color="#f59e0b" />

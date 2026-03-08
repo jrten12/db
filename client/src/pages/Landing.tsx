@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { ArrowRight, Play, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2 } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2 } from 'lucide-react';
 import heroHouseImage from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_1771128403840.png';
 import dbLogoImage from '@assets/new_icon_db_1772940176909.png';
 import heroBgPattern from '@/assets/images/hero-bg-pattern.png';
@@ -8,11 +8,9 @@ import iconBuildWealth from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_(1)
 import iconMasterGame from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_(3)_1771128403840.png';
 import Footer from '@/components/Footer';
 import { AdBanner } from '@/components/game/AdBanner';
-import { useSplash } from '@/App';
 import { useMusic } from '@/hooks/useMusicPlayer';
 
 export default function Landing() {
-  const { showSplashScreen } = useSplash();
   const { isPlaying: isMusicPlaying, toggleMusic } = useMusic();
 
   return (
@@ -480,23 +478,10 @@ export default function Landing() {
             Read our methodology
           </Link>.
         </p>
-        <div className="mt-2 flex items-center justify-center gap-3">
+        <div className="mt-2 flex items-center justify-center">
           <p className="text-xs font-mono" style={{ color: 'rgba(200,195,180,0.2)' }}>
             v1.89
           </p>
-          <button
-            onClick={showSplashScreen}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] transition-all"
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              borderColor: 'rgba(180,155,80,0.1)',
-              color: 'rgba(200,195,180,0.35)',
-            }}
-            data-testid="button-replay-intro"
-          >
-            <Play className="w-2.5 h-2.5" />
-            Intro
-          </button>
         </div>
       </div>
 

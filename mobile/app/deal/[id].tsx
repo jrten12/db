@@ -3,7 +3,26 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } fr
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { api, Deal, Property, GameRun, formatCurrency } from '../../src/lib/api';
+
+function StatRow({ label, value, valueColor = '#e2e8f0', icon, iconColor }: {
+  label: string;
+  value: string;
+  valueColor?: string;
+  icon?: string;
+  iconColor?: string;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        {icon && <Ionicons name={icon as any} size={14} color={iconColor || '#9ca3af'} />}
+        <Text style={{ color: '#9ca3af', fontSize: 13 }}>{label}</Text>
+      </View>
+      <Text style={{ color: valueColor, fontSize: 13, fontWeight: '600' }}>{value}</Text>
+    </View>
+  );
+}
 
 export default function DealDetail() {
   const router = useRouter();
@@ -151,190 +170,465 @@ export default function DealDetail() {
 
   if (loading || !deal) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-900 items-center justify-center">
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#0f172a', alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color="#10b981" />
       </SafeAreaView>
     );
   }
 
-  const statusColors: Record<string, string> = {
-    planned: '#3b82f6',
-    in_rehab: '#f59e0b',
-    ready_to_list: '#8b5cf6',
-    leasing: '#6366f1',
-    active_rental: '#10b981',
-    listing: '#f97316',
-    completed: '#22c55e',
-    sold_rental: '#6b7280',
+  const statusConfig: Record<string, { color: string; bg: string; border: string; icon: string; label: string }> = {
+    planned: { color: '#60a5fa', bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)', icon: 'cart', label: 'Purchased' },
+    in_rehab: { color: '#fbbf24', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)', icon: 'construct', label: 'In Rehab' },
+    ready_to_list: { color: '#a78bfa', bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.3)', icon: 'checkmark-circle', label: 'Ready to List' },
+    leasing: { color: '#818cf8', bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.3)', icon: 'key', label: 'Leasing' },
+    active_rental: { color: '#34d399', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)', icon: 'home', label: 'Active Rental' },
+    listing: { color: '#fb923c', bg: 'rgba(249,115,22,0.12)', border: 'rgba(249,115,22,0.3)', icon: 'pricetag', label: 'Listed for Sale' },
+    completed: { color: '#4ade80', bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.3)', icon: 'checkmark-done', label: 'Completed' },
+    sold_rental: { color: '#9ca3af', bg: 'rgba(107,114,128,0.12)', border: 'rgba(107,114,128,0.3)', icon: 'flag', label: 'Sold' },
   };
 
-  const statusLabels: Record<string, string> = {
-    planned: 'Purchased',
-    in_rehab: 'In Rehab',
-    ready_to_list: 'Ready to List',
-    leasing: 'Leasing',
-    active_rental: 'Active Rental',
-    listing: 'Listed for Sale',
-    completed: 'Completed',
-    sold_rental: 'Sold',
-  };
+  const status = statusConfig[deal.status] || statusConfig.planned;
+  const proFormaOutputs = deal.proFormaOutputs as any;
+  const proFormaInputs = deal.proFormaInputs as any;
 
-  const color = statusColors[deal.status] || '#6b7280';
-  const label = statusLabels[deal.status] || deal.status;
+  const monthlyRent = proFormaOutputs?.monthlyGrossRent || 0;
+  const monthlyVacancy = proFormaOutputs?.monthlyVacancyLoss || 0;
+  const monthlyOpEx = proFormaOutputs?.monthlyOperatingExpenses || 0;
+  const monthlyDebt = proFormaOutputs?.debtServiceMonthly || proFormaOutputs?.monthlyDebtService || 0;
+  const monthlyCashFlow = monthlyRent - monthlyVacancy - monthlyOpEx - monthlyDebt;
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
-      <View className="px-4 py-3 flex-row items-center border-b border-slate-800">
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0f172a' }}>
+      <View style={{
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.08)',
+        gap: 8,
+      }}>
         <TouchableOpacity
           onPress={() => router.back()}
-          className="p-2 -ml-2"
+          style={{ padding: 6, marginLeft: -6 }}
           testID="button-back"
         >
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Ionicons name="arrow-back" size={22} color="white" />
         </TouchableOpacity>
-        <View className="flex-1 ml-2">
-          <Text className="text-white font-bold text-lg" numberOfLines={1}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: 'white', fontWeight: '700', fontSize: 17 }} numberOfLines={1}>
             {property?.name || `Deal #${deal.id}`}
           </Text>
-          <Text className="text-gray-400 text-sm capitalize">{deal.strategy} Strategy</Text>
+          <Text style={{ color: '#9ca3af', fontSize: 12, textTransform: 'capitalize', marginTop: 1 }}>
+            {deal.strategy} Strategy
+          </Text>
         </View>
-        <View className="px-3 py-1 rounded-full" style={{ backgroundColor: `${color}20` }}>
-          <Text style={{ color }} className="font-semibold text-sm">{label}</Text>
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: status.bg,
+          borderWidth: 1,
+          borderColor: status.border,
+          borderRadius: 20,
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+          gap: 4,
+        }}>
+          <Ionicons name={status.icon as any} size={12} color={status.color} />
+          <Text style={{ color: status.color, fontWeight: '600', fontSize: 12 }}>{status.label}</Text>
         </View>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="p-4">
-          <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700">
-            <Text className="text-gray-300 font-semibold mb-3">Deal Summary</Text>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <View style={{ padding: 16, gap: 12 }}>
 
-            <View className="space-y-2">
-              {deal.purchasePrice && (
-                <View className="flex-row justify-between">
-                  <Text className="text-gray-400">Purchase Price</Text>
-                  <Text className="text-white font-medium">{formatCurrency(deal.purchasePrice)}</Text>
-                </View>
+          <View style={{
+            backgroundColor: 'rgba(30,41,59,0.8)',
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.08)',
+            overflow: 'hidden',
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingHorizontal: 14,
+              paddingVertical: 10,
+              borderBottomWidth: 1,
+              borderBottomColor: 'rgba(255,255,255,0.06)',
+              gap: 6,
+            }}>
+              <Ionicons name="document-text" size={14} color="#60a5fa" />
+              <Text style={{ color: 'white', fontWeight: '600', fontSize: 14 }}>Deal Summary</Text>
+            </View>
+            <View style={{ paddingHorizontal: 14, paddingVertical: 8 }}>
+              {deal.purchasePrice != null && (
+                <StatRow label="Purchase Price" value={formatCurrency(deal.purchasePrice)} valueColor="#e2e8f0" icon="cash-outline" iconColor="#60a5fa" />
               )}
-              <View className="flex-row justify-between">
-                <Text className="text-gray-400">Strategy</Text>
-                <Text className="text-white font-medium capitalize">{deal.strategy}</Text>
-              </View>
-              {deal.originalLoanAmount && (
-                <View className="flex-row justify-between">
-                  <Text className="text-gray-400">Loan Amount</Text>
-                  <Text className="text-amber-400 font-medium">{formatCurrency(deal.originalLoanAmount)}</Text>
-                </View>
+              <StatRow label="Strategy" value={deal.strategy.charAt(0).toUpperCase() + deal.strategy.slice(1)} valueColor="#e2e8f0" icon="git-branch-outline" iconColor="#a78bfa" />
+              {deal.originalLoanAmount != null && (
+                <StatRow label="Loan Amount" value={formatCurrency(deal.originalLoanAmount)} valueColor="#fbbf24" icon="card-outline" iconColor="#fbbf24" />
               )}
-              {deal.loanInterestRate && (
-                <View className="flex-row justify-between">
-                  <Text className="text-gray-400">Interest Rate</Text>
-                  <Text className="text-amber-400 font-medium">{deal.loanInterestRate.toFixed(1)}%</Text>
-                </View>
+              {deal.loanInterestRate != null && (
+                <StatRow label="Interest Rate" value={`${deal.loanInterestRate.toFixed(1)}%`} valueColor="#fbbf24" icon="trending-up" iconColor="#fbbf24" />
               )}
-              {deal.currentLoanBalance && (
-                <View className="flex-row justify-between">
-                  <Text className="text-gray-400">Current Loan Balance</Text>
-                  <Text className="text-red-400 font-medium">{formatCurrency(deal.currentLoanBalance)}</Text>
-                </View>
+              {deal.currentLoanBalance != null && (
+                <StatRow label="Loan Balance" value={formatCurrency(deal.currentLoanBalance)} valueColor="#f87171" icon="alert-circle-outline" iconColor="#f87171" />
               )}
             </View>
           </View>
 
-          {deal.status === 'in_rehab' && deal.weeksUntilCompletion !== null && (
-            <View className="bg-amber-500/10 rounded-2xl p-4 mb-4 border border-amber-500/30">
-              <View className="flex-row items-center mb-2">
-                <Ionicons name="construct" size={20} color="#f59e0b" />
-                <Text className="text-amber-400 font-semibold ml-2">Renovation In Progress</Text>
+          {deal.status === 'in_rehab' && deal.weeksUntilCompletion !== null && (() => {
+            const totalWeeks = (proFormaInputs?.rehabWeeks || (deal.weeksSpent || 0) + deal.weeksUntilCompletion);
+            const weeksSpent = deal.weeksSpent || 0;
+            const progress = totalWeeks > 0 ? Math.min(100, (weeksSpent / totalWeeks) * 100) : 10;
+            return (
+              <View style={{
+                backgroundColor: 'rgba(245,158,11,0.08)',
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: 'rgba(245,158,11,0.25)',
+                overflow: 'hidden',
+              }}>
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  borderBottomWidth: 1,
+                  borderBottomColor: 'rgba(245,158,11,0.15)',
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Ionicons name="construct" size={16} color="#fbbf24" />
+                    <Text style={{ color: '#fbbf24', fontWeight: '600', fontSize: 14 }}>Renovation In Progress</Text>
+                  </View>
+                  <View style={{
+                    backgroundColor: 'rgba(245,158,11,0.2)',
+                    borderRadius: 10,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                  }}>
+                    <Text style={{ color: '#fbbf24', fontSize: 11, fontWeight: '700' }}>
+                      {deal.weeksUntilCompletion}mo left
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ paddingHorizontal: 14, paddingVertical: 12 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Text style={{ color: '#d1d5db', fontSize: 12 }}>
+                      {weeksSpent} of {totalWeeks} months complete
+                    </Text>
+                    <Text style={{ color: '#fbbf24', fontSize: 12, fontWeight: '600' }}>
+                      {Math.round(progress)}%
+                    </Text>
+                  </View>
+                  <View style={{
+                    backgroundColor: 'rgba(30,41,59,0.8)',
+                    height: 8,
+                    borderRadius: 4,
+                    overflow: 'hidden',
+                  }}>
+                    <LinearGradient
+                      colors={['#f59e0b', '#d97706']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={{
+                        height: '100%',
+                        width: `${progress}%`,
+                        borderRadius: 4,
+                      }}
+                    />
+                  </View>
+                  {proFormaInputs?.contractorType && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
+                      <Text style={{ color: '#9ca3af', fontSize: 12 }}>Contractor</Text>
+                      <Text style={{ color: '#e2e8f0', fontSize: 12, fontWeight: '500', textTransform: 'capitalize' }}>
+                        {proFormaInputs.contractorType}
+                      </Text>
+                    </View>
+                  )}
+                  {proFormaInputs?.rehabBudget != null && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+                      <Text style={{ color: '#9ca3af', fontSize: 12 }}>Rehab Budget</Text>
+                      <Text style={{ color: '#e2e8f0', fontSize: 12, fontWeight: '500' }}>
+                        {formatCurrency(proFormaInputs.rehabBudget)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
-              <Text className="text-gray-300">
-                {deal.weeksUntilCompletion} week{deal.weeksUntilCompletion !== 1 ? 's' : ''} remaining
-              </Text>
-              <View className="bg-slate-700 h-2 rounded-full mt-3 overflow-hidden">
-                <View
-                  className="bg-amber-500 h-full rounded-full"
-                  style={{
-                    width: deal.weeksSpent
-                      ? `${Math.min(100, (deal.weeksSpent / (deal.weeksSpent + deal.weeksUntilCompletion)) * 100)}%`
-                      : '10%',
-                  }}
-                />
-              </View>
-            </View>
-          )}
+            );
+          })()}
 
-          {deal.status === 'active_rental' && deal.weeklyIncome && (
-            <View className="bg-emerald-500/10 rounded-2xl p-4 mb-4 border border-emerald-500/30">
-              <View className="flex-row items-center mb-2">
-                <Ionicons name="cash" size={20} color="#10b981" />
-                <Text className="text-emerald-400 font-semibold ml-2">Rental Income</Text>
+          {deal.status === 'active_rental' && (
+            <View style={{
+              backgroundColor: 'rgba(16,185,129,0.08)',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: 'rgba(16,185,129,0.25)',
+              overflow: 'hidden',
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                borderBottomWidth: 1,
+                borderBottomColor: 'rgba(16,185,129,0.15)',
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="cash" size={16} color="#34d399" />
+                  <Text style={{ color: '#34d399', fontWeight: '600', fontSize: 14 }}>Rental Income</Text>
+                </View>
+                <View style={{
+                  backgroundColor: monthlyCashFlow >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
+                  borderRadius: 10,
+                  paddingHorizontal: 8,
+                  paddingVertical: 2,
+                }}>
+                  <Text style={{
+                    color: monthlyCashFlow >= 0 ? '#34d399' : '#f87171',
+                    fontSize: 11,
+                    fontWeight: '700',
+                  }}>
+                    {monthlyCashFlow >= 0 ? 'Cash Flow +' : 'Cash Flow -'}
+                  </Text>
+                </View>
               </View>
-              <Text className="text-white text-2xl font-bold">
-                {formatCurrency(deal.weeklyIncome)}/week
-              </Text>
-              <Text className="text-gray-400 text-sm mt-1">
-                {formatCurrency(deal.weeklyIncome * 4)}/month estimated
-              </Text>
+              <View style={{ paddingHorizontal: 14, paddingVertical: 12 }}>
+                {deal.weeklyIncome != null && (
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'baseline',
+                    marginBottom: 12,
+                    gap: 4,
+                  }}>
+                    <Text style={{
+                      color: (deal.weeklyIncome || 0) >= 0 ? '#34d399' : '#f87171',
+                      fontSize: 28,
+                      fontWeight: '800',
+                    }}>
+                      {(deal.weeklyIncome || 0) >= 0 ? '+' : ''}{formatCurrency(deal.weeklyIncome || 0)}
+                    </Text>
+                    <Text style={{ color: '#9ca3af', fontSize: 13 }}>/month</Text>
+                  </View>
+                )}
+
+                <View style={{
+                  backgroundColor: 'rgba(30,41,59,0.6)',
+                  borderRadius: 8,
+                  padding: 10,
+                  gap: 6,
+                }}>
+                  {monthlyRent > 0 && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <Text style={{ color: '#9ca3af', fontSize: 12 }}>Monthly Rent</Text>
+                      <Text style={{ color: '#4ade80', fontSize: 12, fontWeight: '600' }}>
+                        +{formatCurrency(monthlyRent)}
+                      </Text>
+                    </View>
+                  )}
+                  {monthlyVacancy > 0 && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <Text style={{ color: '#9ca3af', fontSize: 12 }}>Vacancy Loss</Text>
+                      <Text style={{ color: '#f87171', fontSize: 12, fontWeight: '600' }}>
+                        -{formatCurrency(monthlyVacancy)}
+                      </Text>
+                    </View>
+                  )}
+                  {monthlyOpEx > 0 && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <Text style={{ color: '#9ca3af', fontSize: 12 }}>Operating Expenses</Text>
+                      <Text style={{ color: '#f87171', fontSize: 12, fontWeight: '600' }}>
+                        -{formatCurrency(monthlyOpEx)}
+                      </Text>
+                    </View>
+                  )}
+                  {monthlyDebt > 0 && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <Text style={{ color: '#9ca3af', fontSize: 12 }}>Mortgage Payment</Text>
+                      <Text style={{ color: '#f87171', fontSize: 12, fontWeight: '600' }}>
+                        -{formatCurrency(monthlyDebt)}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    borderTopWidth: 1,
+                    borderTopColor: 'rgba(255,255,255,0.08)',
+                    paddingTop: 6,
+                    marginTop: 2,
+                  }}>
+                    <Text style={{ color: '#e2e8f0', fontSize: 12, fontWeight: '600' }}>Net Cash Flow</Text>
+                    <Text style={{
+                      color: monthlyCashFlow >= 0 ? '#4ade80' : '#f87171',
+                      fontSize: 12,
+                      fontWeight: '700',
+                    }}>
+                      {monthlyCashFlow >= 0 ? '+' : ''}{formatCurrency(Math.round(monthlyCashFlow))}
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </View>
           )}
 
           {deal.actualProfit !== null && (
-            <View className={`rounded-2xl p-4 mb-4 border ${
-              deal.actualProfit >= 0
-                ? 'bg-emerald-500/10 border-emerald-500/30'
-                : 'bg-red-500/10 border-red-500/30'
-            }`}>
-              <Text className={deal.actualProfit >= 0 ? 'text-emerald-400' : 'text-red-400'} style={{ fontSize: 14, fontWeight: '600' }}>
-                {deal.actualProfit >= 0 ? 'Profit' : 'Loss'}
-              </Text>
-              <Text className={`text-2xl font-bold ${deal.actualProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                {formatCurrency(Math.abs(deal.actualProfit))}
-              </Text>
-              {deal.salePrice && (
-                <Text className="text-gray-400 text-sm mt-1">
-                  Sale price: {formatCurrency(deal.salePrice)}
+            <View style={{
+              backgroundColor: deal.actualProfit >= 0 ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: deal.actualProfit >= 0 ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)',
+              overflow: 'hidden',
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                borderBottomWidth: 1,
+                borderBottomColor: deal.actualProfit >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                gap: 6,
+              }}>
+                <Ionicons
+                  name={deal.actualProfit >= 0 ? 'trending-up' : 'trending-down'}
+                  size={16}
+                  color={deal.actualProfit >= 0 ? '#34d399' : '#f87171'}
+                />
+                <Text style={{
+                  color: deal.actualProfit >= 0 ? '#34d399' : '#f87171',
+                  fontWeight: '600',
+                  fontSize: 14,
+                }}>
+                  {deal.actualProfit >= 0 ? 'Profit' : 'Loss'}
                 </Text>
-              )}
+              </View>
+              <View style={{ paddingHorizontal: 14, paddingVertical: 12 }}>
+                <Text style={{
+                  color: deal.actualProfit >= 0 ? '#34d399' : '#f87171',
+                  fontSize: 28,
+                  fontWeight: '800',
+                }}>
+                  {deal.actualProfit >= 0 ? '+' : '-'}{formatCurrency(Math.abs(deal.actualProfit))}
+                </Text>
+                {deal.salePrice != null && (
+                  <Text style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>
+                    Sale price: {formatCurrency(deal.salePrice)}
+                  </Text>
+                )}
+              </View>
             </View>
           )}
 
           {property && (
-            <View className="bg-slate-800 rounded-2xl p-4 mb-4 border border-slate-700">
-              <Text className="text-gray-300 font-semibold mb-3">Property Info</Text>
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-gray-400">Location</Text>
-                <Text className="text-white">{property.neighborhood}</Text>
+            <View style={{
+              backgroundColor: 'rgba(30,41,59,0.8)',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.08)',
+              overflow: 'hidden',
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                borderBottomWidth: 1,
+                borderBottomColor: 'rgba(255,255,255,0.06)',
+                gap: 6,
+              }}>
+                <Ionicons name="home" size={14} color="#60a5fa" />
+                <Text style={{ color: 'white', fontWeight: '600', fontSize: 14 }}>Property Info</Text>
               </View>
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-gray-400">Type</Text>
-                <Text className="text-white capitalize">{property.propertyType}</Text>
-              </View>
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-gray-400">Size</Text>
-                <Text className="text-white">{property.sizeSqft.toLocaleString()} sqft</Text>
-              </View>
-              <View className="flex-row justify-between">
-                <Text className="text-gray-400">Beds/Baths</Text>
-                <Text className="text-white">{property.bedrooms} bed / {property.bathrooms} bath</Text>
+              <View style={{ paddingHorizontal: 14, paddingVertical: 8 }}>
+                <StatRow label="Location" value={property.neighborhood} icon="location-outline" iconColor="#60a5fa" />
+                <StatRow label="Type" value={property.propertyType.charAt(0).toUpperCase() + property.propertyType.slice(1)} icon="business-outline" iconColor="#a78bfa" />
+                <StatRow label="Size" value={`${property.sizeSqft.toLocaleString()} sqft`} icon="resize-outline" iconColor="#fbbf24" />
+                <StatRow label="Beds / Baths" value={`${property.bedrooms} bed / ${property.bathrooms} bath`} icon="bed-outline" iconColor="#34d399" />
               </View>
             </View>
           )}
+
+          {proFormaOutputs && deal.strategy === 'flip' && (
+            <View style={{
+              backgroundColor: 'rgba(30,41,59,0.8)',
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.08)',
+              overflow: 'hidden',
+            }}>
+              <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                borderBottomWidth: 1,
+                borderBottomColor: 'rgba(255,255,255,0.06)',
+                gap: 6,
+              }}>
+                <Ionicons name="analytics" size={14} color="#a78bfa" />
+                <Text style={{ color: 'white', fontWeight: '600', fontSize: 14 }}>Flip Projections</Text>
+              </View>
+              <View style={{ paddingHorizontal: 14, paddingVertical: 8 }}>
+                {proFormaOutputs.arv != null && (
+                  <StatRow label="After Repair Value" value={formatCurrency(proFormaOutputs.arv)} valueColor="#60a5fa" icon="trending-up" iconColor="#60a5fa" />
+                )}
+                {proFormaOutputs.profit != null && (
+                  <StatRow
+                    label="Projected Profit"
+                    value={`${proFormaOutputs.profit >= 0 ? '+' : ''}${formatCurrency(proFormaOutputs.profit)}`}
+                    valueColor={proFormaOutputs.profit >= 0 ? '#4ade80' : '#f87171'}
+                    icon="bar-chart"
+                    iconColor={proFormaOutputs.profit >= 0 ? '#4ade80' : '#f87171'}
+                  />
+                )}
+              </View>
+            </View>
+          )}
+
         </View>
       </ScrollView>
 
       {gameState?.status === 'active' && (
-        <View className="p-4 border-t border-slate-800">
+        <View style={{
+          padding: 16,
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(255,255,255,0.08)',
+          gap: 8,
+        }}>
           {deal.status === 'planned' && deal.strategy === 'flip' && (
             <TouchableOpacity
               onPress={handleStartRehab}
               disabled={actionLoading}
-              className="bg-amber-500 py-4 rounded-2xl items-center"
               testID="button-start-rehab"
+              activeOpacity={0.85}
             >
-              {actionLoading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text className="text-white font-bold text-lg">Start Rehab</Text>
-              )}
+              <LinearGradient
+                colors={['#f59e0b', '#d97706']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 8,
+                  opacity: actionLoading ? 0.6 : 1,
+                }}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <>
+                    <Ionicons name="construct" size={18} color="white" />
+                    <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>Start Rehab</Text>
+                  </>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
           )}
 
@@ -342,14 +636,32 @@ export default function DealDetail() {
             <TouchableOpacity
               onPress={handleActivateRental}
               disabled={actionLoading}
-              className="bg-emerald-500 py-4 rounded-2xl items-center"
               testID="button-activate-rental"
+              activeOpacity={0.85}
             >
-              {actionLoading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text className="text-white font-bold text-lg">Activate Rental</Text>
-              )}
+              <LinearGradient
+                colors={['#10b981', '#059669']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 8,
+                  opacity: actionLoading ? 0.6 : 1,
+                }}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <>
+                    <Ionicons name="key" size={18} color="white" />
+                    <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>Activate Rental</Text>
+                  </>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
           )}
 
@@ -357,14 +669,32 @@ export default function DealDetail() {
             <TouchableOpacity
               onPress={handleCompleteFlip}
               disabled={actionLoading}
-              className="bg-emerald-500 py-4 rounded-2xl items-center"
               testID="button-complete-flip"
+              activeOpacity={0.85}
             >
-              {actionLoading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text className="text-white font-bold text-lg">Complete Flip Sale</Text>
-              )}
+              <LinearGradient
+                colors={['#10b981', '#059669']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 8,
+                  opacity: actionLoading ? 0.6 : 1,
+                }}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-circle" size={18} color="white" />
+                    <Text style={{ color: 'white', fontWeight: '700', fontSize: 16 }}>Complete Flip Sale</Text>
+                  </>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
           )}
 
@@ -372,14 +702,30 @@ export default function DealDetail() {
             <TouchableOpacity
               onPress={handleSellRental}
               disabled={actionLoading}
-              className="bg-red-500/80 py-4 rounded-2xl items-center"
               testID="button-sell-rental"
+              activeOpacity={0.85}
             >
-              {actionLoading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <Text className="text-white font-bold text-lg">Sell Property</Text>
-              )}
+              <View style={{
+                paddingVertical: 14,
+                borderRadius: 12,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                gap: 8,
+                backgroundColor: 'rgba(239,68,68,0.15)',
+                borderWidth: 1,
+                borderColor: 'rgba(239,68,68,0.3)',
+                opacity: actionLoading ? 0.6 : 1,
+              }}>
+                {actionLoading ? (
+                  <ActivityIndicator size="small" color="#f87171" />
+                ) : (
+                  <>
+                    <Ionicons name="pricetag" size={18} color="#f87171" />
+                    <Text style={{ color: '#f87171', fontWeight: '700', fontSize: 16 }}>Sell Property</Text>
+                  </>
+                )}
+              </View>
             </TouchableOpacity>
           )}
         </View>

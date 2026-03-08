@@ -27,7 +27,7 @@ export const gameRuns = pgTable("game_runs", {
   id: serial("id").primaryKey(),
   playerName: text("player_name").notNull(),
   difficulty: text("difficulty").notNull().default("apprentice"),
-  cash: integer("cash").notNull().default(80000),
+  cash: integer("cash").notNull().default(100000),
   weeksRemaining: integer("weeks_remaining").notNull().default(52),
   currentWeek: integer("current_week").notNull().default(0), // Track progression through game
   profitableDeals: integer("profitable_deals").notNull().default(0),

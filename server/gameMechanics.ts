@@ -62,9 +62,9 @@ export function getMarketMultipliers(condition: MarketCondition): MarketMultipli
 export function getRandomStartingMarket(): MarketCondition {
   const rand = Math.random();
   if (rand < 0.08) return 'terrible';
-  if (rand < 0.20) return 'poor';
-  if (rand < 0.45) return 'neutral';
-  if (rand < 0.77) return 'good';
+  if (rand < 0.10) return 'poor';
+  if (rand < 0.30) return 'neutral';
+  if (rand < 0.70) return 'good';
   return 'excellent';
 }
 
@@ -257,11 +257,11 @@ const TITLE_ISSUES = [
   { name: 'Mechanics lien from previous owner', minCost: 3000, maxCost: 20000 },
   { name: 'Boundary dispute resolution', minCost: 5000, maxCost: 35000 },
   { name: 'Easement clearance', minCost: 2000, maxCost: 10000 },
-  { name: 'Estate heir claim settlement', minCost: 10000, maxCost: 50000 },
-  { name: 'Forged deed in chain of title', minCost: 25000, maxCost: 100000 },
-  { name: 'Outstanding HOA liens', minCost: 2000, maxCost: 12000 },
-  { name: 'Judgment lien from previous owner', minCost: 8000, maxCost: 40000 },
-  { name: 'Unpaid contractor liens', minCost: 4000, maxCost: 18000 },
+  { name: 'Estate heir claim settlement', minCost: 5000, maxCost: 25000 },
+  { name: 'Forged deed in chain of title', minCost: 10000, maxCost: 40000 },
+  { name: 'Outstanding HOA liens', minCost: 1500, maxCost: 8000 },
+  { name: 'Judgment lien from previous owner', minCost: 5000, maxCost: 20000 },
+  { name: 'Unpaid contractor liens', minCost: 3000, maxCost: 12000 },
 ];
 
 /**
@@ -555,8 +555,8 @@ export async function completeFlipDeal(
     // Each undiscovered issue that wasn't fixed reduces sale price
     // Buyers WILL find these issues during their inspection!
     const issueCount = undiscoveredIssues.length;
-    const conditionPenalty = issueCount * 0.03; // Each unfixed issue = 3% price reduction
-    const conditionMultiplier = Math.max(0.70, 1 - conditionPenalty); // Cap at 30% reduction
+    const conditionPenalty = issueCount * 0.02; // Each unfixed issue = 2% price reduction
+    const conditionMultiplier = Math.max(0.80, 1 - conditionPenalty); // Cap at 20% reduction
     
     if (didComps) {
       // WITH COMPS: Sale price scales predictably from purchase price to ARV

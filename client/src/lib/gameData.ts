@@ -54,7 +54,7 @@ export const FINISH_LEVEL_CONFIG = {
 export const LTV_MIN = 50;
 export const LTV_MAX = 100;
 export const INTEREST_MIN = 4.0; // At 50% LTV - competitive rate for conservative leverage
-export const INTEREST_MAX = 12.0; // At 100% LTV - steep but not punitive for max leverage
+export const INTEREST_MAX = 9.5; // At 100% LTV - high but not devastating for max leverage
 
 // Market rate variability - rates fluctuate +/- this amount randomly over time
 export const MARKET_RATE_SWING = 0.75; // +/- 0.75% market fluctuation
@@ -153,17 +153,17 @@ export const getInterestRateWithPlayerState = (ltv: number, playerFinancials: Pl
   return Math.max(3.5, Math.min(15, baseRate + dtiAdjustment + reserveAdjustment + assetAdjustment));
 };
 
-// Loan origination fees: 1% at 50% LTV, scaling up to 6% at 100% LTV
-// Fees climb steeply above 90% LTV as lenders charge premium for risky loans
+// Loan origination fees: 1% at 50% LTV, scaling up to 4% at 100% LTV
+// Fees climb above 90% LTV as lenders charge premium for risky loans
 export const getLoanFeesFromLTV = (ltv: number): number => {
   if (ltv <= 90) {
-    // 1% at 50%, 4% at 90% (linear)
+    // 1% at 50%, 2.5% at 90% (linear)
     const normalizedLTV = (ltv - LTV_MIN) / (90 - LTV_MIN);
-    return 1 + normalizedLTV * 3;
+    return 1 + normalizedLTV * 1.5;
   } else {
-    // 4% at 90%, 6% at 100% (steeper climb)
+    // 2.5% at 90%, 4% at 100% (steeper climb)
     const dangerNormalized = (ltv - 90) / 10;
-    return 4 + dangerNormalized * 2;
+    return 2.5 + dangerNormalized * 1.5;
   }
 };
 
@@ -203,7 +203,7 @@ export const MARKET_DEFAULTS = {
   
   // Flip defaults (conservative estimates)
   contingencyPct: 15,       // 15% buffer for surprises
-  sellingCostsPct: 8,       // 8% for realtor + closing costs
+  sellingCostsPct: 6,       // 6% for realtor + closing costs
   rehabWeeks: 8,            // 8 weeks for typical rehab
 };
 

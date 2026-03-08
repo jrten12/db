@@ -273,37 +273,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
           </div>
 
           {/* Mobile Layout - Condensed Single Row */}
-          <div className="md:hidden flex items-center gap-2">
-            {/* Home Button - Mobile */}
-            {onGoHome && (
-              <button
-                onClick={onGoHome}
-                className="touch-target flex items-center justify-center bg-slate-700/60 hover:bg-slate-600/60 rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
-                data-testid="button-home-mobile"
-                data-sound="swoosh"
-              >
-                <Home className="w-5 h-5 text-gray-300" />
-              </button>
-            )}
-
-            {/* Advance Week Button - Mobile Left */}
-            {onAdvanceWeek && (
-              <button
-                onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
-                disabled={isAdvancingWeek}
-                className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
-                data-testid="button-advance-week-mobile-left"
-                data-no-click-sound
-                title="Skip ahead one month"
-              >
-                {isAdvancingWeek ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-white" />
-                ) : (
-                  <Play className="w-5 h-5 text-white" />
-                )}
-              </button>
-            )}
-
+          <div className="md:hidden flex items-center gap-1.5">
             {/* Menu Button */}
             <button
               onClick={() => setMenuOpen(true)}
@@ -317,7 +287,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <button 
                 onClick={onOpenLedger}
-                className="stat-card-mobile-compact stat-card-mobile-cash touch-target-sm tap-scale flex-[1.5] min-w-0 overflow-hidden"
+                className="stat-card-mobile-compact stat-card-mobile-cash touch-target-sm tap-scale flex-[2] min-w-0 overflow-hidden"
                 data-testid="status-cash-mobile"
                 data-sound="swoosh"
               >
@@ -346,13 +316,13 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               </div>
             </div>
             
-            {/* Advance Week Button - Mobile Right */}
+            {/* Advance Week Button - Single */}
             {onAdvanceWeek && (
               <button
                 onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
                 disabled={isAdvancingWeek}
                 className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
-                data-testid="button-advance-week-mobile-right"
+                data-testid="button-advance-week-mobile"
                 data-no-click-sound
               >
                 {isAdvancingWeek ? (

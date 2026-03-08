@@ -5,7 +5,7 @@ import { getArticleBySlug, LEARN_ARTICLES } from '@/lib/learnArticles';
 import type { ArticleSection, InfographicData } from '@/lib/learnArticles';
 import { AdBanner } from '@/components/game/AdBanner';
 import Footer from '@/components/Footer';
-import dbLogoImage from '@assets/dealbreak_icon_sim_1767848951783.png';
+import dbLogoImage from '@assets/new_icon_db_1772940176909.png';
 
 import imgProForma from '@assets/generated_images/learn_pro_forma.png';
 import imgCapRates from '@assets/generated_images/learn_cap_rates.png';

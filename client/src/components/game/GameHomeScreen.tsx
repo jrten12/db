@@ -1,6 +1,6 @@
 import { Play, Trophy, Award, BookOpen, Wallet, Clock, Target, RotateCcw, GraduationCap, Lightbulb } from 'lucide-react';
 import { TrophyShelf } from './TrophyShelf';
-import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
+import logo from '@assets/new_icon_db_1772940176909.png';
 import { formatCurrency } from '@/lib/gameData';
 import { useState } from 'react';
 import { Link } from 'wouter';

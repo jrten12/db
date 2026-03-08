@@ -1,7 +1,7 @@
 import { Link } from 'wouter';
 import { ArrowRight, Play, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2 } from 'lucide-react';
 import heroHouseImage from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_1771128403840.png';
-import dbLogoImage from '@assets/dealbreak_icon_sim_1767848951783.png';
+import dbLogoImage from '@assets/new_icon_db_1772940176909.png';
 import heroBgPattern from '@/assets/images/hero-bg-pattern.png';
 import iconAnalyzeMarket from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_1771128403840.png';
 import iconBuildWealth from '@assets/Gemini_Generated_Image_wz0yqlwz0yqlwz0y_(1)_1771128403839.png';

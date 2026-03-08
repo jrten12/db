@@ -7,7 +7,7 @@ import { ProgressRing } from './ProgressRing';
 import { WeekTimeline } from './WeekTimeline';
 import { playAdvanceWeekSound } from '@/hooks/useClickSound';
 import { useMusic } from '@/hooks/useMusicPlayer';
-import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
+import logo from '@assets/new_icon_db_1772940176909.png';
 
 interface StatusBarProps {
   cash: number;

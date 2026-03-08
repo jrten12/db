@@ -684,7 +684,7 @@ export function PropertyDetail({
 
               {/* Thumbnail Gallery */}
               {allImages.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-2">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
                   {allImages.map((img, index) => (
                     <button
                       key={img.url}
@@ -752,61 +752,61 @@ export function PropertyDetail({
                 </div>
 
                 {/* Property Details Grid */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/25 flex items-center justify-center">
-                      <Building2 className="w-4 h-4 text-blue-400" />
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                    <div className="flex-shrink-0 w-7 h-7 rounded-md bg-blue-500/15 border border-blue-500/25 flex items-center justify-center">
+                      <Building2 className="w-3.5 h-3.5 text-blue-400" />
                     </div>
-                    <div className="min-w-0">
-                      <div className="text-blue-400 text-sm font-semibold truncate">{propChars.typeLabel}</div>
-                      <div className="text-gray-500 text-xs uppercase tracking-wider">Type</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-blue-400 text-xs font-semibold leading-tight">{propChars.typeLabel}</div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Type</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${property.conditionTag === 'Excellent' ? 'bg-emerald-500/15 border border-emerald-500/25' : property.conditionTag === 'Good' ? 'bg-blue-500/15 border border-blue-500/25' : property.conditionTag === 'Fair' ? 'bg-amber-500/15 border border-amber-500/25' : 'bg-red-500/15 border border-red-500/25'}`}>
-                      <Wrench className={`w-4 h-4 ${property.conditionTag === 'Excellent' ? 'text-emerald-400' : property.conditionTag === 'Good' ? 'text-blue-400' : property.conditionTag === 'Fair' ? 'text-amber-400' : 'text-red-400'}`} />
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                    <div className={`flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center ${property.conditionTag === 'Excellent' ? 'bg-emerald-500/15 border border-emerald-500/25' : property.conditionTag === 'Good' ? 'bg-blue-500/15 border border-blue-500/25' : property.conditionTag === 'Fair' ? 'bg-amber-500/15 border border-amber-500/25' : 'bg-red-500/15 border border-red-500/25'}`}>
+                      <Wrench className={`w-3.5 h-3.5 ${property.conditionTag === 'Excellent' ? 'text-emerald-400' : property.conditionTag === 'Good' ? 'text-blue-400' : property.conditionTag === 'Fair' ? 'text-amber-400' : 'text-red-400'}`} />
                     </div>
-                    <div className="min-w-0">
-                      <div className={`text-sm font-semibold truncate ${property.conditionTag === 'Excellent' ? 'text-emerald-400' : property.conditionTag === 'Good' ? 'text-blue-400' : property.conditionTag === 'Fair' ? 'text-amber-400' : 'text-red-400'}`}>
+                    <div className="min-w-0 flex-1">
+                      <div className={`text-xs font-semibold leading-tight ${property.conditionTag === 'Excellent' ? 'text-emerald-400' : property.conditionTag === 'Good' ? 'text-blue-400' : property.conditionTag === 'Fair' ? 'text-amber-400' : 'text-red-400'}`}>
                         {getConditionDescription(property.conditionTag)}
                       </div>
-                      <div className="text-gray-500 text-xs uppercase tracking-wider">Condition</div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Condition</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center">
-                      <Droplets className="w-4 h-4 text-cyan-400" />
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                    <div className="flex-shrink-0 w-7 h-7 rounded-md bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center">
+                      <Droplets className="w-3.5 h-3.5 text-cyan-400" />
                     </div>
-                    <div className="min-w-0">
-                      <div className="text-gray-200 text-sm font-semibold truncate">{propChars.waterLabel}</div>
-                      <div className="text-gray-500 text-xs uppercase tracking-wider">Water</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-orange-500/15 border border-orange-500/25 flex items-center justify-center">
-                      <Thermometer className="w-4 h-4 text-orange-400" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-gray-200 text-sm font-semibold truncate">{propChars.heatLabel}</div>
-                      <div className="text-gray-500 text-xs uppercase tracking-wider">Heating</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-gray-200 text-xs font-semibold leading-tight">{propChars.waterLabel}</div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Water</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-teal-500/15 border border-teal-500/25 flex items-center justify-center">
-                      <MapPin className="w-4 h-4 text-teal-400" />
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                    <div className="flex-shrink-0 w-7 h-7 rounded-md bg-orange-500/15 border border-orange-500/25 flex items-center justify-center">
+                      <Thermometer className="w-3.5 h-3.5 text-orange-400" />
                     </div>
-                    <div className="min-w-0">
-                      <div className="text-teal-400 text-sm font-semibold truncate">{getNeighborhoodTraits(property.neighborhood)}</div>
-                      <div className="text-gray-500 text-xs uppercase tracking-wider">Area</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-gray-200 text-xs font-semibold leading-tight">{propChars.heatLabel}</div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Heating</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2.5 rounded-lg p-2.5 bg-slate-800/40 border border-slate-700/50">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
-                      <DollarSign className="w-4 h-4 text-amber-400" />
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                    <div className="flex-shrink-0 w-7 h-7 rounded-md bg-teal-500/15 border border-teal-500/25 flex items-center justify-center">
+                      <MapPin className="w-3.5 h-3.5 text-teal-400" />
                     </div>
-                    <div className="min-w-0">
-                      <div className="text-amber-400 text-sm font-bold font-mono">${Math.round(property.price / property.sizeSqft)}/sqft</div>
-                      <div className="text-gray-500 text-xs uppercase tracking-wider">Price/Sqft</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-teal-400 text-xs font-semibold leading-tight">{getNeighborhoodTraits(property.neighborhood)}</div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Area</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                    <div className="flex-shrink-0 w-7 h-7 rounded-md bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
+                      <DollarSign className="w-3.5 h-3.5 text-amber-400" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-amber-400 text-xs font-bold font-mono">${Math.round(property.price / property.sizeSqft)}/sqft</div>
+                      <div className="text-gray-500 text-[10px] uppercase tracking-wider">Price/Sqft</div>
                     </div>
                   </div>
                 </div>

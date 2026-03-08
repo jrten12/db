@@ -1805,7 +1805,6 @@ export default function Game() {
                 onHallOfFame={() => setShowHallOfFame(true)}
                 onBadges={() => setShowBadges(true)}
                 onTutorial={() => { startTutorial(); setCurrentScreen('market'); }}
-                onSettings={() => { setPremiumTriggerReason('manual'); setShowPremiumModal(true); }}
                 onRestartGame={handleNewGame}
                 earnedTrophies={unlockedAchievements}
                 cash={gameRun.cash}

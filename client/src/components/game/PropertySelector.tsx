@@ -81,7 +81,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
       </div>
 
       {/* Location Filter Tabs - iOS style with proper touch targets */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scroll-smooth-ios">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scroll-smooth-ios scrollbar-none">
         <button
           onClick={() => onLocationFilterChange('all')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ios-spring touch-target-sm tap-scale flex-shrink-0 ${

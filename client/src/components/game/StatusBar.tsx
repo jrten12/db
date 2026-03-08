@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
-import { Menu, Home, X, Wallet, Clock, Target, Sparkles, Trophy, Play, Loader2, RotateCcw, Volume2, VolumeX, BarChart3 } from 'lucide-react';
+import { Menu, Home, X, Wallet, Clock, Target, Trophy, Play, Loader2, RotateCcw, Volume2, VolumeX, BarChart3 } from 'lucide-react';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ProgressRing } from './ProgressRing';
@@ -386,19 +386,6 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               >
                 <Trophy className="w-5 h-5" />
                 Hall of Fame
-              </button>
-
-              <button
-                onClick={() => {
-                  setMenuOpen(false);
-                  onOpenPremium?.();
-                }}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 active:from-yellow-500/40 active:to-orange-500/40 backdrop-blur-md rounded-xl border border-yellow-500/30 text-yellow-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
-                data-testid="button-premium"
-                data-sound="swoosh"
-              >
-                <Sparkles className="w-5 h-5" />
-                Premium Boosts
               </button>
 
               {onGoHome && (

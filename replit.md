@@ -55,13 +55,10 @@ Preferred communication style: Simple, everyday language.
 ### Monetization
 - **Web**: Google AdSense on content pages only (Landing, Learn hub, articles). Not on game screens.
 - **Mobile**: Google AdMob (Banner, Interstitial, Rewarded ads).
-- **Premium Boosts (Stripe)**: In-game purchases via Stripe Checkout for cash/time boosts.
+- **Premium Boosts (Stripe)**: In-game purchases via Stripe Checkout for cash/time boosts. Currently hidden from all game UI (home screen and in-game menu). Server routes remain but are gated by ENABLE_PREMIUM_PURCHASES env var.
   - `server/stripeClient.ts` - Stripe client using Replit connector credentials
   - `server/webhookHandlers.ts` - Processes Stripe webhooks via stripe-replit-sync
-  - `server/seed-stripe-products.ts` - Seeds 6 boost products in Stripe
   - Webhook route registered BEFORE express.json() in `server/index.ts` for raw Buffer access
-  - Checkout flow: PremiumModal -> POST /api/stripe/create-checkout -> Stripe Checkout -> redirect back -> POST /api/stripe/verify-session -> grant boost
-  - SKU map in `server/routes.ts` defines server-side amounts (cash_small, cash_medium, cash_large, weeks_small, weeks_medium, bundle_ultimate)
   - Gated by ENABLE_PREMIUM_PURCHASES env var (set to 'true' to enable)
 
 ### Tutorial System

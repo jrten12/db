@@ -80,7 +80,7 @@ export function useInterstitialAd() {
 
   const showAfterWeekAdvance = useCallback(() => {
     weekCountRef.current += 1;
-    if (weekCountRef.current % 4 === 0) {
+    if (weekCountRef.current % 6 === 0) {
       return showIfReady();
     }
     return false;

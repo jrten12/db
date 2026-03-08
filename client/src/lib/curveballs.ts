@@ -77,11 +77,11 @@ export interface Curveball {
 // Condition probability multipliers (worse condition = more issues)
 // Keys are lowercase - normalize input values before lookup
 const CONDITION_MULTIPLIERS: Record<string, number> = {
-  'fixer-upper': 1.8,    // 80% more likely to have issues
-  'needs-work': 1.5,     // 50% more likely
-  'dated': 1.3,          // 30% more likely
+  'fixer-upper': 1.4,    // 40% more likely to have issues (BAL-005: reduced from 1.8)
+  'needs-work': 1.3,     // 30% more likely (BAL-005: reduced from 1.5)
+  'dated': 1.2,          // 20% more likely (BAL-005: reduced from 1.3)
   'cosmetic': 1.1,       // 10% more likely
-  'fair': 1.2,           // 20% more likely (common DB value)
+  'fair': 1.15,          // 15% more likely (BAL-005: reduced from 1.2)
   'good': 0.8,           // 20% less likely
   'excellent': 0.5,      // 50% less likely - premium properties
   'turnkey': 0.5,        // 50% less likely - premium properties have fewer issues
@@ -1153,9 +1153,9 @@ export function rollForCurveballWithIssues(
     for (const issueId of undiscoveredIssues) {
       const relatedCurveballIds = ISSUE_TO_CURVEBALL_MAP[issueId];
       if (relatedCurveballIds && relatedCurveballIds.length > 0) {
-        // 15% chance per issue per check
+        // 10% chance per issue per check (BAL-005: reduced from 15%)
         const issueRoll = Math.random() * 100;
-        if (issueRoll < 15) {
+        if (issueRoll < 10) {
           // Pick a related curveball
           const curveballId = relatedCurveballIds[Math.floor(Math.random() * relatedCurveballIds.length)];
           const curveball = getCurveballById(curveballId);

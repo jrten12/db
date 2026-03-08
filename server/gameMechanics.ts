@@ -424,16 +424,28 @@ interface RentalIncomeResult {
     description: string;
     cashImpact: number;
     emoji?: string;
-    tenantMessage?: string | null;  // Text message from tenant about this issue
-    fromIssue?: boolean;            // Whether repair was caused by undiscovered property issue
-    issueId?: string;               // The undiscovered issue that caused this
+    tenantMessage?: string | null;
+    fromIssue?: boolean;
+    issueId?: string;
   };
   newCash: number;
   dealId: number;
-  // Loan tracking
   principalPaid?: number;
   interestPaid?: number;
   remainingBalance?: number;
+  proFormaComparison?: {
+    projectedRent: number;
+    actualRent: number;
+    projectedExpenses: number;
+    actualExpenses: number;
+    projectedCashFlow: number;
+    actualCashFlow: number;
+    rentDelta: number;
+    expenseDelta: number;
+    explanation: string;
+    wasOptimistic: boolean;
+    propertyName: string;
+  };
 }
 
 interface CompletedRentalRehab {
@@ -1068,11 +1080,42 @@ export async function processRentalIncome(
   
   await storage.updateDeal(deal.id, updateData);
 
+  const playerProjectedRent = proFormaInputs?.expectedRent || proFormaInputs?.monthlyRent || 0;
+  const playerProjectedVacancy = playerProjectedRent * ((proFormaInputs?.vacancyRate || 5) / 100);
+  const playerProjectedOpEx = proFormaOutputs?.monthlyOperatingExpenses || monthlyOperatingExpenses;
+  const playerProjectedDebt = proFormaOutputs?.monthlyDebtService || proFormaOutputs?.debtServiceMonthly || monthlyDebtService;
+  const playerProjectedExpenses = playerProjectedVacancy + playerProjectedOpEx + playerProjectedDebt;
+  const actualMonthlyExpenses = scaledVacancyLoss + fixedOperatingExpenses + fixedDebtService;
+  const projectedCashFlow = playerProjectedRent - playerProjectedExpenses;
+  const actualCashFlow = scaledGrossRent - actualMonthlyExpenses;
+  const rentDelta = scaledGrossRent - playerProjectedRent;
+  const expenseDelta = actualMonthlyExpenses - playerProjectedExpenses;
+
+  const realityCheckData = proFormaOutputs?.realityCheck;
+  const hasMeaningfulDelta = playerProjectedRent > 0 && playerProjectedExpenses > 0 && (
+    Math.abs(rentDelta) > playerProjectedRent * 0.05 || Math.abs(expenseDelta) > playerProjectedExpenses * 0.05
+  );
+
+  let comparisonExplanation = '';
+  if (realityCheckData?.explanation) {
+    comparisonExplanation = realityCheckData.explanation;
+  } else if (hasMeaningfulDelta) {
+    if (rentDelta < 0) {
+      comparisonExplanation = 'Actual rent is lower than your pro forma projection.';
+    } else if (rentDelta > 0) {
+      comparisonExplanation = 'Actual rent is exceeding your pro forma projection.';
+    }
+    if (expenseDelta > 0) {
+      comparisonExplanation += comparisonExplanation ? ' ' : '';
+      comparisonExplanation += 'Expenses are higher than projected.';
+    }
+  }
+
   return {
     weeklyIncome: netWeeklyIncome,
-    grossRent: scaledGrossRent, // After rent multiplier applied
+    grossRent: scaledGrossRent,
     totalExpenses: totalWeeklyExpenses,
-    vacancyLoss: scaledVacancyLoss, // After rent multiplier applied
+    vacancyLoss: scaledVacancyLoss,
     vacancyRate: proFormaOutputs?.effectiveVacancyRate || 0,
     curveball: curveball ? {
       id: curveball.id,
@@ -1086,10 +1129,22 @@ export async function processRentalIncome(
     } : undefined,
     newCash,
     dealId: deal.id,
-    // Loan tracking data
     principalPaid,
     interestPaid,
     remainingBalance: newLoanBalance,
+    proFormaComparison: (hasMeaningfulDelta && playerProjectedRent > 0) ? {
+      projectedRent: playerProjectedRent,
+      actualRent: scaledGrossRent,
+      projectedExpenses: playerProjectedExpenses,
+      actualExpenses: actualMonthlyExpenses,
+      projectedCashFlow,
+      actualCashFlow,
+      rentDelta,
+      expenseDelta,
+      explanation: comparisonExplanation,
+      wasOptimistic: actualCashFlow < projectedCashFlow,
+      propertyName: property?.name || `Property #${deal.propertyId}`,
+    } : undefined,
   };
 }
 

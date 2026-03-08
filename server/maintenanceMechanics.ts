@@ -30,8 +30,8 @@ export function getPropertyQualityTier(purchasePrice: number): PropertyQualityTi
  * Budget properties have 2.5x higher maintenance frequency than luxury
  */
 const QUALITY_TIER_MULTIPLIERS: Record<PropertyQualityTier, number> = {
-  'budget': 2.5,      // $100k-$150k: Higher risk, older systems
-  'mid-range': 1.5,   // $150k-$300k: Moderate maintenance
+  'budget': 1.8,      // $100k-$150k: Higher risk, older systems (BAL-005: reduced from 2.5)
+  'mid-range': 1.2,   // $150k-$300k: Moderate maintenance (BAL-005: reduced from 1.5)
   'high-end': 0.8,    // $300k-$500k: Newer systems, better condition
   'luxury': 0.5,      // $500k+: Premium construction, less frequent issues
 };

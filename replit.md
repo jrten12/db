@@ -71,9 +71,11 @@ Preferred communication style: Simple, everyday language.
 - Pro forma calculations are client-side. Inputs start empty to encourage manual entry, with validation and visual feedback.
 
 ### Game Logic
+- **Starting Cash**: $100,000 (BAL-005: increased from $80K for better early game flexibility)
 - Property issue system for due diligence reveals.
 - Surprise repair costs if due diligence is skipped.
 - Reality check system for rental income and vacancy assumptions.
+- **Pro Forma vs Actual Notifications**: First-time comparison toast when actual rental cash flow differs from pro forma projections by >5%. Server returns `proFormaComparison` in `RentalIncomeResult`.
 - Dual-path due diligence gating with consequences.
 - Strategy options: Rent vs. Flip, each with distinct financial models.
 - **LTV-Based Financing**: Single LTV slider drives interest rates and loan fees, with exponential curves in "danger zones" (90-100% LTV) and player-state adjustments.
@@ -87,6 +89,8 @@ Preferred communication style: Simple, everyday language.
 - **Debt Tracking & Amortization**: Visual loan paydown system with accelerated amortization for bookkeeping.
 - **Tenant Text Messages**: Interactive tenant communication system with personality types, generated names, and optional AI-generated portraits.
 - **Overtime Mode**: Players can keep playing past 52 weeks but cannot earn new profitable deal awards. StatusBar shows "Overtime"/"OT" indicator. Server allows week advancement past 0 but blocks won/lost status games.
+- **Mobile Advance Button**: Floating "Next Month" button at bottom-right on mobile (hidden from top StatusBar). Desktop retains the advance button in TimeProgressionPanel.
+- **Balance Tuning (BAL-005)**: Reduced maintenance frequency multipliers for budget (2.5→1.8) and mid-range (1.5→1.2) properties. Reduced condition-based curveball multipliers (fixer-upper 1.8→1.4, needs-work 1.5→1.3, fair 1.2→1.15). Undiscovered issue curveball chance reduced from 15% to 10% per check.
 
 ## External Dependencies
 

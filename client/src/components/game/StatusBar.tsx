@@ -316,22 +316,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               </div>
             </div>
             
-            {/* Advance Week Button - Single */}
-            {onAdvanceWeek && (
-              <button
-                onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
-                disabled={isAdvancingWeek}
-                className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
-                data-testid="button-advance-week-mobile"
-                data-no-click-sound
-              >
-                {isAdvancingWeek ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-white" />
-                ) : (
-                  <Play className="w-5 h-5 text-white" />
-                )}
-              </button>
-            )}
+            
           </div>
         </div>
       </div>

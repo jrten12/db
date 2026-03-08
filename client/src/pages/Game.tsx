@@ -62,7 +62,8 @@ import { saveGame, loadGame, getSaveInfo, clearSave } from '@/lib/saveGame';
 import type { GameRun, Property, LedgerEntry, Deal, HallOfFamePlayer } from '@shared/schema';
 import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.png';
 import Footer from '@/components/Footer';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Play } from 'lucide-react';
+import { playAdvanceWeekSound } from '@/hooks/useClickSound';
 import { toast } from 'sonner';
 
 type GameScreen = 'home' | 'market' | 'detail' | 'proforma' | 'results';
@@ -111,6 +112,7 @@ export default function Game() {
   const [proFormaOutputs, setProFormaOutputs] = useState<ProFormaOutputs | null>(null);
   const [isProFormaComplete, setIsProFormaComplete] = useState(false);
   const [touchedFields, setTouchedFields] = useState<Set<keyof ProFormaInputs>>(new Set());
+  const [proFormaComparisonShown, setProFormaComparisonShown] = useState<Set<number>>(new Set());
   const [completedDiligence, setCompletedDiligence] = useState<DiligenceState>({});
   const [proFormaCompletions, setProFormaCompletions] = useState<ProFormaCompletionState>({});
   const [skippedDiligenceDeals, setSkippedDiligenceDeals] = useState<Set<number>>(() => {
@@ -182,7 +184,7 @@ export default function Game() {
     context: 'diligence' | 'walkthrough';
   } | null>(null);
 
-  const STARTING_CASH = 80000;
+  const STARTING_CASH = 100000;
 
   // Income notifications
   const { events: incomeEvents, dismissEvent, addRentalPayment, addFlipProceeds, addCurveballBonus } = useIncomeNotifications();
@@ -446,7 +448,7 @@ export default function Game() {
     const context: AchievementCheckContext = {
       deals,
       totalProfit,
-      startingCash: 80000,
+      startingCash: STARTING_CASH,
       currentCash: gameRun.cash,
       consecutiveFlipProfits,
       activeRentals,
@@ -1099,6 +1101,23 @@ export default function Game() {
           payment.totalExpenses || 0,
           property?.name
         );
+
+        if (payment.proFormaComparison && !proFormaComparisonShown.has(payment.dealId)) {
+          const comp = payment.proFormaComparison;
+          const cashFlowDiff = comp.actualCashFlow - comp.projectedCashFlow;
+          const pctDiff = comp.projectedCashFlow !== 0 ? Math.round((cashFlowDiff / Math.abs(comp.projectedCashFlow)) * 100) : 0;
+          if (Math.abs(pctDiff) >= 5) {
+            setProFormaComparisonShown(prev => new Set(prev).add(payment.dealId));
+            if (comp.wasOptimistic) {
+              toast.warning(
+                `${comp.propertyName}: Cash flow is $${Math.abs(cashFlowDiff).toLocaleString()}/mo (${Math.abs(pctDiff)}%) below your pro forma. ${comp.explanation}`,
+                { duration: 6000 }
+              );
+            } else {
+              toast(`${comp.propertyName}: Cash flow is $${cashFlowDiff.toLocaleString()}/mo (+${pctDiff}%) above your pro forma projection!`, { duration: 5000 });
+            }
+          }
+        }
       });
 
       // Show flip completion notifications
@@ -1984,6 +2003,25 @@ export default function Game() {
           />
         )}
 
+
+        {currentScreen === 'market' && gameRun && (
+          <div className="md:hidden fixed bottom-6 right-4 z-40" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)' }}>
+            <button
+              onClick={() => { playAdvanceWeekSound(); handleAdvanceWeek(); }}
+              disabled={isAdvancingWeek}
+              className="touch-target flex items-center gap-2 px-5 py-3 bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-full shadow-lg shadow-blue-500/30 text-white font-semibold text-base transition-all duration-150"
+              data-testid="button-advance-week-floating"
+              data-no-click-sound
+            >
+              {isAdvancingWeek ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Play className="w-5 h-5" />
+              )}
+              <span>Next Month</span>
+            </button>
+          </div>
+        )}
 
         {/* Copyright Footer */}
         <Footer />

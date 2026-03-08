@@ -29,6 +29,7 @@
     "production": {
       "ios": {
         "appleId": "jrose022@gmail.com",
+        "ascAppId": "6760164395",
         "appleTeamId": "9G2NL8NSRT",
         "companyName": "Infarill LLC"
       }

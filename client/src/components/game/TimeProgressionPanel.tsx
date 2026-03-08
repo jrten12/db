@@ -370,7 +370,7 @@ export function TimeProgressionPanel({
             const purchasePrice = deal.purchasePrice || 0;
             const estimatedSaleMin = Math.round(purchasePrice * 0.85);
             const estimatedSaleMax = Math.round(purchasePrice * 1.10);
-            const canSell = gameRun.weeksRemaining >= 2 && onSellRental;
+            const canSell = !!onSellRental;
             const propertyName = getPropertyName(deal.propertyId);
             
             // Refinancing check - use gameRun.currentWeek for consistency with server
@@ -517,7 +517,7 @@ export function TimeProgressionPanel({
             const purchasePrice = deal.purchasePrice || 0;
             const estimatedSaleMin = Math.round(purchasePrice * 0.90);
             const estimatedSaleMax = Math.round(purchasePrice * 1.15);
-            const canSell = gameRun.weeksRemaining >= 2 && onSellFlip;
+            const canSell = !!onSellFlip;
             
             return (
               <div

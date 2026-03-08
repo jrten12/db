@@ -991,13 +991,6 @@ export async function registerRoutes(
         return;
       }
 
-      // Selling costs 2 weeks
-      const WEEKS_TO_SELL = 2;
-      if (gameRun.weeksRemaining < WEEKS_TO_SELL) {
-        res.status(400).json({ error: "Not enough time to sell (requires 2 months)" });
-        return;
-      }
-
       const result = await storage.sellRentalProperty(dealId, gameRunId);
       res.json(result);
     } catch (error: any) {
@@ -1025,13 +1018,6 @@ export async function registerRoutes(
       const gameRun = await storage.getGameRun(gameRunId);
       if (!gameRun) {
         res.status(404).json({ error: "Game run not found" });
-        return;
-      }
-
-      // Selling costs 2 weeks
-      const WEEKS_TO_SELL = 2;
-      if (gameRun.weeksRemaining < WEEKS_TO_SELL) {
-        res.status(400).json({ error: "Not enough time to sell (requires 2 months)" });
         return;
       }
 

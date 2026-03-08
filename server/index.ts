@@ -134,7 +134,7 @@ app.use((req, res, next) => {
 
   app.get('/sitemap.xml', (req, res) => {
     const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
-    const host = req.headers["x-forwarded-host"] || req.headers.host || "dealbreak.replit.app";
+    const host = req.headers["x-forwarded-host"] || req.headers.host || "dealbreaksimulator.com";
     const baseUrl = `${proto}://${host}`;
     res.set('Content-Type', 'application/xml');
     res.send(generateSitemap(baseUrl));

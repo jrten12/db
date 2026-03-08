@@ -9,7 +9,8 @@ interface PageMeta {
 }
 
 const SITE_NAME = "Dealbreak: Real Estate Simulator";
-const BASE_DESCRIPTION = "$80,000. 12 months. Three profitable deals or you're out. Master real estate investing through realistic pro forma analysis in this immersive property simulation game.";
+const BASE_URL = "https://dealbreaksimulator.com";
+const BASE_DESCRIPTION = "Learn real estate investing by doing. Analyze properties, build pro formas, manage rehabs, and close deals in this realistic property investment simulator. Free to play — no experience needed.";
 
 const ARTICLE_DATA: Record<string, { title: string; subtitle: string; category: string; readTime: string; difficulty: string; keywords: string[]; sections: { heading: string; content: string }[] }> = {
   "what-is-a-pro-forma": {
@@ -216,7 +217,7 @@ const FAQ_DATA = [
 
 function getBaseUrl(req: Request): string {
   const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
-  const host = req.headers["x-forwarded-host"] || req.headers.host || "dealbreak.replit.app";
+  const host = req.headers["x-forwarded-host"] || req.headers.host || "dealbreaksimulator.com";
   return `${proto}://${host}`;
 }
 
@@ -242,7 +243,7 @@ function getPageMeta(url: string, req: Request): PageMeta {
           "operatingSystem": "Web Browser",
           "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
           "author": { "@type": "Organization", "name": "Infarill LLC & LVI Properties, LLC" },
-          "screenshot": baseUrl + "/opengraph.jpg",
+          "screenshot": baseUrl + "/favicon.png",
           "featureList": ["Pro Forma Financial Analysis", "Cap Rate & Cash-on-Cash Calculations", "Flip vs Rent Strategy", "Due Diligence Simulation", "Market Conditions Modeling", "Rehab Budget Planning", "Tenant Management"]
         },
         {

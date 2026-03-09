@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { View, ActivityIndicator, Text, BackHandler, Platform, StatusBar as RNStatusBar } from 'react-native';
+import { View, ActivityIndicator, Text, BackHandler, Platform, StatusBar as RNStatusBar, Image, Animated } from 'react-native';
 import { WebView as RNWebView } from 'react-native-webview';
 const WebView = RNWebView as any;
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +22,8 @@ export default function App() {
   const [canGoBack, setCanGoBack] = useState(false);
   const [adLoaded, setAdLoaded] = useState(false);
   const lastAdWeek = useRef(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const hasFinishedFirstLoad = useRef(false);
 
   useEffect(() => {
     const unsubLoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
@@ -68,16 +70,21 @@ export default function App() {
 
   const injectedJS = `
     (function() {
-      // Hide web ads since we use native AdMob
       var style = document.createElement('style');
-      style.textContent = '.adsbygoogle, [data-ad-slot], ins.adsbygoogle { display: none !important; }';
+      style.textContent = [
+        '.adsbygoogle, [data-ad-slot], ins.adsbygoogle { display: none !important; }',
+        '* { -webkit-touch-callout: none !important; -webkit-user-select: none !important; user-select: none !important; -webkit-tap-highlight-color: transparent !important; }',
+        'input, textarea, [contenteditable="true"] { -webkit-user-select: text !important; user-select: text !important; }',
+        'body { overscroll-behavior: none !important; -webkit-overflow-scrolling: touch; }',
+        '::-webkit-scrollbar { display: none !important; }',
+        'body { -webkit-text-size-adjust: 100% !important; }',
+        'a { -webkit-touch-callout: none !important; }',
+      ].join(' ');
       document.head.appendChild(style);
 
-      // Observe game state for ad triggers
       var lastWeek = 0;
       var observer = new MutationObserver(function() {
-        // Look for week indicator in the game UI
-        var weekEl = document.querySelector('[data-testid="text-weeks-remaining"], [data-testid="status-week"]');
+        var weekEl = document.querySelector('[data-testid="status-time"], [data-testid="text-weeks-remaining"], [data-testid="status-week"]');
         if (weekEl) {
           var text = weekEl.textContent || '';
           var match = text.match(/(\\d+)/);
@@ -89,7 +96,6 @@ export default function App() {
             }
           }
         }
-        // Look for game over state
         var resultEl = document.querySelector('[data-testid="text-game-result"], [data-testid="results-panel"]');
         if (resultEl) {
           window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'gameOver' }));
@@ -97,11 +103,7 @@ export default function App() {
       });
       observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
-      // Viewport meta for proper scaling
-      var meta = document.querySelector('meta[name="viewport"]');
-      if (meta) {
-        meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
-      }
+      document.addEventListener('contextmenu', function(e) { e.preventDefault(); }, false);
 
       true;
     })();
@@ -118,6 +120,23 @@ export default function App() {
     } catch {}
   }, [showAdIfNeeded, showGameOverAd]);
 
+  const handleLoadEnd = useCallback(() => {
+    if (!hasFinishedFirstLoad.current) {
+      hasFinishedFirstLoad.current = true;
+      setTimeout(() => {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }).start(() => {
+          setLoading(false);
+        });
+      }, 300);
+    } else {
+      setLoading(false);
+    }
+  }, [fadeAnim]);
+
   if (error) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#0f172a' }}>
@@ -127,7 +146,7 @@ export default function App() {
             Connection Error
           </Text>
           <Text style={{ color: '#94a3b8', fontSize: 14, textAlign: 'center', marginBottom: 24 }}>
-            Unable to connect to the game server. Please check your internet connection and try again.
+            Unable to connect. Please check your internet connection and try again.
           </Text>
           <View
             style={{
@@ -144,6 +163,8 @@ export default function App() {
               onPress={() => {
                 setError(false);
                 setLoading(true);
+                hasFinishedFirstLoad.current = false;
+                fadeAnim.setValue(1);
                 webViewRef.current?.reload();
               }}
             >
@@ -165,8 +186,12 @@ export default function App() {
         style={{ flex: 1, backgroundColor: '#0f172a' }}
         injectedJavaScript={injectedJS}
         onMessage={handleMessage}
-        onLoadStart={() => setLoading(true)}
-        onLoadEnd={() => setLoading(false)}
+        onLoadStart={() => {
+          if (!hasFinishedFirstLoad.current) {
+            setLoading(true);
+          }
+        }}
+        onLoadEnd={handleLoadEnd}
         onError={() => {
           setError(true);
           setLoading(false);
@@ -180,28 +205,31 @@ export default function App() {
         onNavigationStateChange={(navState: any) => {
           setCanGoBack(navState.canGoBack);
         }}
-        allowsBackForwardNavigationGestures={true}
+        allowsBackForwardNavigationGestures={false}
         allowsInlineMediaPlayback={true}
+        allowsLinkPreview={false}
         mediaPlaybackRequiresUserAction={false}
         javaScriptEnabled={true}
         domStorageEnabled={true}
         startInLoadingState={false}
-        scalesPageToFit={true}
         contentMode="mobile"
-        pullToRefreshEnabled={true}
+        pullToRefreshEnabled={false}
         sharedCookiesEnabled={true}
         thirdPartyCookiesEnabled={true}
         cacheEnabled={true}
         overScrollMode="never"
         decelerationRate="normal"
         showsHorizontalScrollIndicator={false}
-        bounces={true}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
         scrollEnabled={true}
+        automaticallyAdjustContentInsets={false}
+        contentInsetAdjustmentBehavior="never"
         testID="webview-main"
       />
       <View style={{ height: insets.bottom, backgroundColor: '#0f172a' }} />
       {loading && (
-        <View
+        <Animated.View
           style={{
             position: 'absolute',
             top: 0,
@@ -211,13 +239,19 @@ export default function App() {
             backgroundColor: '#0f172a',
             justifyContent: 'center',
             alignItems: 'center',
+            opacity: fadeAnim,
           }}
         >
-          <ActivityIndicator size="large" color="#10b981" />
-          <Text style={{ color: '#94a3b8', marginTop: 16, fontSize: 14 }}>
-            Loading Dealbreak...
-          </Text>
-        </View>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ color: '#ffffff', fontSize: 32, fontWeight: '800', letterSpacing: -1, marginBottom: 4 }}>
+              DEALBREAK
+            </Text>
+            <Text style={{ color: '#10b981', fontSize: 13, fontWeight: '600', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 40 }}>
+              Real Estate Simulator
+            </Text>
+            <ActivityIndicator size="small" color="#10b981" />
+          </View>
+        </Animated.View>
       )}
     </View>
   );

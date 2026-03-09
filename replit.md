@@ -40,7 +40,7 @@ Preferred communication style: Simple, everyday language.
 - **API Client**: `mobile/src/lib/api.ts` — centralized API client matching all server endpoints
 - **Game Logic**: `mobile/src/lib/gameLogic.ts` — pro forma calculations, LTV curves, formatters
 - **Screens**: Landing (`index.tsx`), Game (`game.tsx`), Property Detail (`property/[id].tsx`), Pro Forma (`proforma/[id].tsx`), Deal Management (`deal/[id].tsx`), Results (`results.tsx`)
-- **UI Design**: Matches web game's visual language — gradient buttons, bordered stat cards, color-coded sections, `LinearGradient` from expo-linear-gradient for button styling
+- **UI Design**: WebView wrapper loading dealbreaksimulator.com with native-feel CSS injection (no text selection, no tap highlights, no callouts, no bounce/pull-to-refresh, no link previews). Branded loading screen with fade transition.
 - **App Config**: `mobile/app.config.ts` — iOS 17+ privacy manifests, bundle ID `com.dealbreak.simulator`
 - **EAS Submit**: `eas.json` — ascAppId `6760164395`, Apple Team `9G2NL8NSRT`, uses `eas submit --platform ios --latest` for TestFlight
 - **App Store Checklist**: `mobile/APP_STORE_CHECKLIST.md`

@@ -22,7 +22,7 @@ export const tutorialSteps: TutorialStep[] = [
     id: 'welcome',
     title: 'Welcome to Dealbreak!',
     content: 'You\'re about to learn real estate investing by actually doing it. No textbooks, no lectures - just real deals with real consequences.',
-    detail: 'You start with $80,000 in cash and 12 months on the clock. Your goal: complete 3 profitable deals before time runs out.',
+    detail: 'You start with $100,000 in cash and 12 months on the clock. Your goal: complete 2 profitable deals before time runs out.',
     icon: 'wave',
     position: 'center',
     phase: 'welcome',
@@ -63,7 +63,7 @@ export const tutorialSteps: TutorialStep[] = [
   {
     id: 'your_goal',
     title: 'Your Goal',
-    content: 'Complete 3 profitable deals to win! A "profitable deal" means you made money - either from rent or from flipping.',
+    content: 'Complete 2 profitable deals to win! A "profitable deal" means you made money - either from rent or from flipping.',
     detail: 'You don\'t need to hit a home run every time. Even small profits count toward your goal.',
     targetTestId: 'status-goal-mobile',
     fallbackTestId: 'status-bar',

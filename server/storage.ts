@@ -1819,9 +1819,9 @@ export class DBStorage implements IStorage {
     const netProceeds = salePrice - mortgagePayoff;
     
     // Calculate all-in cost for true profit calculation
-    const closingCosts = Math.round(purchasePrice * 0.03);
+    const closingCosts = Math.round(purchasePrice * 0.025);
     const loanFees = proFormaOutputs?.loanOriginationFees || Math.round((proFormaOutputs?.loanAmount || 0) * 0.02);
-    const sellingCostsPct = proFormaInputs?.sellingCostsPct || 6;
+    const sellingCostsPct = proFormaInputs?.sellingCostsPct || 5;
     const sellingCosts = Math.round(salePrice * (sellingCostsPct / 100));
     
     // True profit = sale price - purchase price - rehab - closing costs - loan fees - selling costs

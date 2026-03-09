@@ -31,7 +31,7 @@ export const gameRuns = pgTable("game_runs", {
   weeksRemaining: integer("weeks_remaining").notNull().default(52),
   currentWeek: integer("current_week").notNull().default(0), // Track progression through game
   profitableDeals: integer("profitable_deals").notNull().default(0),
-  goalDeals: integer("goal_deals").notNull().default(3),
+  goalDeals: integer("goal_deals").notNull().default(2),
   status: text("status").notNull().default("active"),
   marketCondition: text("market_condition").notNull().default("good"), // Current market: terrible, poor, neutral, good, excellent
   lastMarketChangeWeek: integer("last_market_change_week").notNull().default(0), // Week when market last changed

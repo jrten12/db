@@ -203,7 +203,7 @@ export const MARKET_DEFAULTS = {
   
   // Flip defaults (conservative estimates)
   contingencyPct: 15,       // 15% buffer for surprises
-  sellingCostsPct: 6,       // 6% for realtor + closing costs
+  sellingCostsPct: 5,       // 5% for realtor + closing costs (BAL-006: reduced from 6%)
   rehabWeeks: 8,            // 8 weeks for typical rehab
 };
 
@@ -356,7 +356,7 @@ export const calculateProForma = (
   const loanAmount = loanBasis * (ltv / 100);
   const downPaymentAmount = loanBasis * (1 - ltv / 100);
   const loanOriginationFees = loanAmount * (loanOriginationPct / 100);
-  const closingCosts = Math.round(property.price * 0.03);
+  const closingCosts = Math.round(property.price * 0.025);
 
   const monthlyRate = interestRate / 100 / 12;
   const numPayments = 30 * 12;

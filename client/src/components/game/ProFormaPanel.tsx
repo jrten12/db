@@ -384,7 +384,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     return risks;
   }, [inputs, effectiveRanges]);
 
-  const closingCosts = Math.round(property.price * 0.03);
+  const closingCosts = Math.round(property.price * 0.025);
   const allInBasis = property.price + closingCosts + n(inputs.rehabBudget) * (1 + n(inputs.contingencyPct) / 100);
   
   const liveOutputs = useMemo(() => {

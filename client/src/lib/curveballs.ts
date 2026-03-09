@@ -77,8 +77,8 @@ export interface Curveball {
 // Condition probability multipliers (worse condition = more issues)
 // Keys are lowercase - normalize input values before lookup
 const CONDITION_MULTIPLIERS: Record<string, number> = {
-  'fixer-upper': 1.4,    // 40% more likely to have issues (BAL-005: reduced from 1.8)
-  'needs-work': 1.3,     // 30% more likely (BAL-005: reduced from 1.5)
+  'fixer-upper': 1.25,   // 25% more likely to have issues (BAL-006: reduced from 1.4)
+  'needs-work': 1.15,    // 15% more likely (BAL-006: reduced from 1.3)
   'dated': 1.2,          // 20% more likely (BAL-005: reduced from 1.3)
   'cosmetic': 1.1,       // 10% more likely
   'fair': 1.15,          // 15% more likely (BAL-005: reduced from 1.2)

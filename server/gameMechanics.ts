@@ -40,11 +40,11 @@ export interface MarketMultipliers {
 export function getMarketMultipliers(condition: MarketCondition): MarketMultipliers {
   switch (condition) {
     case 'terrible':
-      return { min: 0.88, max: 0.97 };
+      return { min: 0.90, max: 0.98 };
     case 'poor':
-      return { min: 0.92, max: 1.05 };
+      return { min: 0.93, max: 1.06 };
     case 'neutral':
-      return { min: 0.95, max: 1.08 };
+      return { min: 0.96, max: 1.08 };
     case 'good':
       return { min: 0.98, max: 1.12 };
     case 'excellent':
@@ -57,14 +57,14 @@ export function getMarketMultipliers(condition: MarketCondition): MarketMultipli
 /**
  * Randomize starting market condition (BAL-003 fix, BAL-004 rebalance)
  * Weighted distribution: any state is possible but slightly friendlier start
- * Weights: terrible 8%, poor 12%, neutral 25%, good 32%, excellent 23%
+ * Weights: terrible 5%, poor 10%, neutral 25%, good 35%, excellent 25% (BAL-006: friendlier starts)
  */
 export function getRandomStartingMarket(): MarketCondition {
   const rand = Math.random();
-  if (rand < 0.08) return 'terrible';
-  if (rand < 0.10) return 'poor';
-  if (rand < 0.30) return 'neutral';
-  if (rand < 0.70) return 'good';
+  if (rand < 0.05) return 'terrible';
+  if (rand < 0.15) return 'poor';
+  if (rand < 0.40) return 'neutral';
+  if (rand < 0.75) return 'good';
   return 'excellent';
 }
 
@@ -99,17 +99,17 @@ export function progressMarketCondition(currentCondition: MarketCondition): Mark
       else if (rand < 0.80) newIndex = 2;
       else newIndex = 1;
       break;
-    case 3: // good - more stable, reduced crash chance
-      if (rand < 0.30) newIndex = 4;
-      else if (rand < 0.65) newIndex = 3;
-      else if (rand < 0.95) newIndex = 2;
-      else newIndex = 1; // 5% crash to poor
+    case 3: // good - more stable, reduced crash chance (BAL-006: crash 5%→2%)
+      if (rand < 0.35) newIndex = 4;
+      else if (rand < 0.70) newIndex = 3;
+      else if (rand < 0.98) newIndex = 2;
+      else newIndex = 1; // 2% crash to poor
       break;
-    case 4: // excellent - more stable, gentler corrections
-      if (rand < 0.45) newIndex = 4;
-      else if (rand < 0.87) newIndex = 3;
-      else if (rand < 0.97) newIndex = 2;
-      else newIndex = 1; // 3% crash to poor
+    case 4: // excellent - more stable, gentler corrections (BAL-006: crash 3%→1%)
+      if (rand < 0.50) newIndex = 4;
+      else if (rand < 0.90) newIndex = 3;
+      else if (rand < 0.99) newIndex = 2;
+      else newIndex = 1; // 1% crash to poor
       break;
     default:
       newIndex = 2;
@@ -655,7 +655,7 @@ export async function completeFlipDeal(
   // Calculate selling costs (realtor commission, closing costs, etc.)
   // Diligent investors who did comp analysis negotiate better agent terms and price
   // more accurately, reducing days on market and overall selling costs
-  const baseSellingCostsPct = proFormaInputs?.sellingCostsPct || 8;
+  const baseSellingCostsPct = proFormaInputs?.sellingCostsPct || 5;
   const sellingCostDiscount = didComps ? 1.5 : 0; // 1.5% discount with comp analysis
   const sellingCostsPct = Math.max(3, baseSellingCostsPct - sellingCostDiscount);
   const sellingCosts = Math.round(salePrice * (sellingCostsPct / 100));

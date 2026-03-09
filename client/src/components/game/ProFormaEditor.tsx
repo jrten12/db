@@ -338,7 +338,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
   const taxGuidance = `${formatCurrency(Math.round(property.price * 0.01))}-${formatCurrency(Math.round(property.price * 0.02))} (1-2% of value)`;
   const insuranceGuidance = `${formatCurrency(Math.round(property.price * 0.005))}-${formatCurrency(Math.round(property.price * 0.01))} (0.5-1% of value)`;
 
-  const closingCosts = Math.round(property.price * 0.03);
+  const closingCosts = Math.round(property.price * 0.025);
   const allInBasis = property.price + closingCosts + n(inputs.rehabBudget) * (1 + n(inputs.contingencyPct) / 100);
 
   const leverageLevel = inputs.ltv > 85 ? 'high' : inputs.ltv > 70 ? 'moderate' : 'low';

@@ -263,7 +263,7 @@ export default function Game() {
         cash: STARTING_CASH,
         weeksRemaining: 52,
         profitableDeals: 0,
-        goalDeals: 3,
+        goalDeals: 2,
         status: 'active',
       });
       
@@ -726,7 +726,7 @@ export default function Game() {
 
   const handleShowEndGameSummary = useCallback((isMidGame = false) => {
     if (gameRun) {
-      const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 3);
+      const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 2);
       setEndGameWon(won);
       setEndGameMidGame(isMidGame);
       setShowEndGameSummary(true);
@@ -739,7 +739,7 @@ export default function Game() {
       try {
         const finalCash = gameRun.cash;
         const weeksRemaining = gameRun.weeksRemaining;
-        const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 3);
+        const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 2);
         await api.endGame(gameRun.id, won, finalCash, weeksRemaining);
         console.log('Game stats recorded to Hall of Fame');
       } catch (err) {
@@ -899,7 +899,7 @@ export default function Game() {
       return;
     }
 
-    const closingCosts = Math.round(selectedProperty.price * 0.03);
+    const closingCosts = Math.round(selectedProperty.price * 0.025);
     const loanFeesPct = getLoanFeesFromLTV(proFormaInputs.ltv);
     const loanOriginationFee = Math.round((selectedProperty.price - proFormaOutputs.downPaymentAmount) * (loanFeesPct / 100));
     
@@ -976,7 +976,7 @@ export default function Game() {
             direction: 'debit',
             category: 'closing_cost',
             amount: closingCosts,
-            description: `Closing costs (3%) - ${selectedProperty.name}`,
+            description: `Closing costs (2.5%) - ${selectedProperty.name}`,
             propertyId: selectedProperty.id,
           },
           {
@@ -1580,7 +1580,7 @@ export default function Game() {
       try {
         const finalCash = gameRun.cash;
         const weeksRemaining = gameRun.weeksRemaining;
-        const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 3);
+        const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 2);
         await api.endGame(gameRun.id, won, finalCash, weeksRemaining);
         console.log('Game stats recorded to Hall of Fame');
       } catch (err) {
@@ -1619,7 +1619,7 @@ export default function Game() {
       try {
         const finalCash = gameRun.cash;
         const weeksRemaining = gameRun.weeksRemaining;
-        const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 3);
+        const won = (gameRun.profitableDeals || 0) >= (gameRun.goalDeals || 2);
         await api.endGame(oldGameRunId, won, finalCash, weeksRemaining);
         console.log('Game stats recorded to Hall of Fame');
       } catch (err) {
@@ -1647,7 +1647,7 @@ export default function Game() {
         weeksRemaining: 52,
         currentWeek: 0,
         profitableDeals: 0,
-        goalDeals: 3,
+        goalDeals: 2,
         status: 'active',
       });
       

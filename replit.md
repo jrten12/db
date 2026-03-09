@@ -92,6 +92,7 @@ Preferred communication style: Simple, everyday language.
 - **Overtime Mode**: Players can keep playing past 52 weeks but cannot earn new profitable deal awards. StatusBar shows "Overtime"/"OT" indicator. Server allows week advancement past 0 but blocks won/lost status games.
 - **Mobile Advance Button**: Floating "Next Month" button at bottom-right on mobile (hidden from top StatusBar). Desktop retains the advance button in TimeProgressionPanel.
 - **Balance Tuning (BAL-005)**: Reduced maintenance frequency multipliers for budget (2.5→1.8) and mid-range (1.5→1.2) properties. Reduced condition-based curveball multipliers (fixer-upper 1.8→1.4, needs-work 1.5→1.3, fair 1.2→1.15). Undiscovered issue curveball chance reduced from 15% to 10% per check.
+- **Balance Tuning (BAL-006)**: Goal reduced from 3→2 profitable deals. Selling costs 6%→5%. Closing costs 3%→2.5%. Market crash probability reduced (good→poor 5%→2%, excellent→poor 3%→1%). Friendlier starting market (terrible 8%→5%, excellent 23%→25%). Market floor raised (terrible min 0.88→0.90, poor min 0.92→0.93). Maintenance multipliers reduced (budget 1.8→1.5, mid-range 1.2→1.0, high-end 0.8→0.7, luxury 0.5→0.4). Curveball condition multipliers reduced (fixer-upper 1.4→1.25, needs-work 1.3→1.15).
 
 ## External Dependencies
 

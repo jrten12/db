@@ -225,10 +225,10 @@ export const trophyTypes = [
   { id: 'landlord', name: 'Landlord', description: 'Own 3 rental properties in one game', icon: 'home', tier: 'silver' },
   { id: 'due_diligence', name: 'Detective', description: 'Complete all due diligence on 5 properties', icon: 'search', tier: 'bronze' },
   { id: 'big_spender', name: 'Big Spender', description: 'Spend over $750,000 on properties', icon: 'credit-card', tier: 'silver' },
-  { id: 'speed_demon', name: 'Speed Demon', description: 'Win a game with 20+ weeks remaining', icon: 'zap', tier: 'gold' },
+  { id: 'speed_demon', name: 'Speed Demon', description: 'Win a game with 20+ months remaining', icon: 'zap', tier: 'gold' },
   { id: 'millionaire', name: 'Millionaire', description: 'Earn $750,000 total profit across all games', icon: 'gem', tier: 'gold' },
   { id: 'perfectionist', name: 'Perfectionist', description: 'Win without any failed deals', icon: 'star', tier: 'gold' },
-  { id: 'survivor', name: 'Survivor', description: 'Win with less than 2 weeks remaining', icon: 'clock', tier: 'silver' },
+  { id: 'survivor', name: 'Survivor', description: 'Win with less than 2 months remaining', icon: 'clock', tier: 'silver' },
   { id: 'urban_expert', name: 'Urban Expert', description: 'Complete 5 deals in urban areas', icon: 'building', tier: 'silver' },
 ] as const;
 

@@ -216,11 +216,11 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <AnimatedNumber value={cashDisplay} prefix="$" className="cash-value" variant="cash" />
               </StatCard>
 
-              <StatCard icon={Clock} label={weeksRemaining <= 0 ? "OVERTIME" : "WEEKS LEFT"} variant="time" testId="status-time" pulse={timePulse}>
+              <StatCard icon={Clock} label={weeksRemaining <= 0 ? "OVERTIME" : "MONTHS LEFT"} variant="time" testId="status-time" pulse={timePulse}>
                 {weeksRemaining <= 0 ? (
                   <span className="time-value text-amber-400">Overtime</span>
                 ) : (
-                  <AnimatedNumber value={weeksRemaining} suffix=" Weeks" className="time-value" variant="time" />
+                  <AnimatedNumber value={weeksRemaining} suffix=" Months" className="time-value" variant="time" />
                 )}
               </StatCard>
 
@@ -305,7 +305,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                     <AnimatedNumber value={weeksRemaining} className="mobile-time-value-compact" />
                   )}
                 </div>
-                <div className="stat-label-mobile-compact">{weeksRemaining <= 0 ? 'Overtime' : 'Weeks'}</div>
+                <div className="stat-label-mobile-compact">{weeksRemaining <= 0 ? 'Overtime' : 'Months'}</div>
               </div>
               
               <div className="stat-card-mobile-compact stat-card-mobile-goal touch-target-sm flex-1 min-w-0" data-testid="status-goal-mobile">
@@ -423,7 +423,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <div className="text-gray-500 text-xs">Cash</div>
               </div>
               <div className="menu-stat-card">
-                <span className="menu-time-value">{weeksRemaining <= 0 ? 'OT' : `${weeksRemaining}W`}</span>
+                <span className="menu-time-value">{weeksRemaining <= 0 ? 'OT' : `${weeksRemaining}M`}</span>
                 <div className="text-gray-500 text-xs">{weeksRemaining <= 0 ? 'Overtime' : 'Left'}</div>
               </div>
               <div className="menu-stat-card">

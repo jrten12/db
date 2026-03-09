@@ -86,7 +86,7 @@ export function AchievementPopup({ achievementId, onClose }: AchievementPopupPro
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -50, scale: 0.9 }}
           transition={{ type: 'spring', damping: 15, stiffness: 300 }}
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] pointer-events-auto"
+          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] pointer-events-auto"
         >
           <div 
             className={`

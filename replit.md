@@ -71,6 +71,7 @@ Preferred communication style: Simple, everyday language.
 - Pro forma calculations are client-side. Inputs start empty to encourage manual entry, with validation and visual feedback.
 
 ### Game Logic
+- **Time Unit**: Months (UI consistently uses "months" everywhere; internal code still uses `weeksRemaining` field names for backward compatibility)
 - **Starting Cash**: $100,000 (BAL-005: increased from $80K for better early game flexibility)
 - Property issue system for due diligence reveals.
 - Surprise repair costs if due diligence is skipped.

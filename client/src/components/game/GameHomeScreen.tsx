@@ -1,5 +1,7 @@
 import { Play, Trophy, Award, BookOpen, Wallet, Clock, Target, RotateCcw, GraduationCap, Lightbulb } from 'lucide-react';
 import { TrophyShelf } from './TrophyShelf';
+import { TOTAL_VISIBLE_ACHIEVEMENTS } from './BadgesModal';
+import { ACHIEVEMENT_DEFINITIONS } from '@/lib/achievements';
 import logo from '@assets/new_icon_db_1772940176909.png';
 import { formatCurrency } from '@/lib/gameData';
 import { useState } from 'react';
@@ -34,7 +36,7 @@ export function GameHomeScreen({
   profitableDeals,
   goalDeals,
 }: GameHomeScreenProps) {
-  const totalTrophies = 11;
+  const totalTrophies = TOTAL_VISIBLE_ACHIEVEMENTS;
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
 
   return (
@@ -176,7 +178,7 @@ export function GameHomeScreen({
             <Award className="w-5 h-5" />
             Badges & Trophies
             <span className="ml-auto text-xs bg-purple-500/30 px-2 py-0.5 rounded-full text-purple-300">
-              {earnedTrophies.length}/{totalTrophies}
+              {earnedTrophies.filter(id => ACHIEVEMENT_DEFINITIONS[id] && !ACHIEVEMENT_DEFINITIONS[id].secret).length}/{totalTrophies}
             </span>
           </button>
 

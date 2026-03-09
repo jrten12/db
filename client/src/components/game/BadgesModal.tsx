@@ -1,26 +1,72 @@
-import { X, Trophy, Lock, Target, Zap, Home, DollarSign, Clock, MapPin, Star, Crown } from 'lucide-react';
+import { X, Trophy, Lock, Banknote, TrendingUp, Crown, Coins, Rocket, Flame, Building2, Hammer, RefreshCw, ShieldCheck, Home, Key, RotateCcw, Zap, Layers, Dices } from 'lucide-react';
+import { ACHIEVEMENT_DEFINITIONS, TIER_COLORS, type AchievementTier } from '@/lib/achievements';
 
-interface TrophyInfo {
-  id: string;
-  name: string;
-  icon: typeof Trophy;
-  tier: 'bronze' | 'silver' | 'gold';
-  description: string;
+const ICON_MAP: Record<string, typeof Trophy> = {
+  'banknote': Banknote,
+  'trending-up': TrendingUp,
+  'crown': Crown,
+  'coins': Coins,
+  'rocket': Rocket,
+  'flame': Flame,
+  'building-2': Building2,
+  'hammer': Hammer,
+  'refresh-cw': RefreshCw,
+  'shield-check': ShieldCheck,
+  'home': Home,
+  'key': Key,
+  'rotate-ccw': RotateCcw,
+  'zap': Zap,
+  'layers': Layers,
+  'dice-5': Dices,
+  'trophy': Trophy,
+};
+
+function getIcon(iconName: string) {
+  return ICON_MAP[iconName] || Trophy;
 }
 
-const TROPHIES: TrophyInfo[] = [
-  { id: 'first_blood', name: 'First Blood', icon: Target, tier: 'bronze', description: 'Complete your first deal' },
-  { id: 'in_the_black', name: 'In the Black', icon: DollarSign, tier: 'bronze', description: 'Complete a profitable deal' },
-  { id: 'detective', name: 'Detective', icon: Zap, tier: 'bronze', description: 'Complete all due diligence on 5 properties' },
-  { id: 'flip_master', name: 'Flip Master', icon: Home, tier: 'silver', description: 'Complete 5 successful flips' },
-  { id: 'landlord', name: 'Landlord', icon: Home, tier: 'silver', description: 'Own 3 rental properties in one game' },
-  { id: 'big_spender', name: 'Big Spender', icon: DollarSign, tier: 'silver', description: 'Spend over $750,000 on properties' },
-  { id: 'survivor', name: 'Survivor', icon: Clock, tier: 'silver', description: 'Win with less than 2 months remaining' },
-  { id: 'urban_expert', name: 'Urban Expert', icon: MapPin, tier: 'silver', description: 'Complete 5 deals in urban areas' },
-  { id: 'speed_demon', name: 'Speed Demon', icon: Zap, tier: 'gold', description: 'Win a game with 20+ months remaining' },
-  { id: 'millionaire', name: 'Millionaire', icon: Crown, tier: 'gold', description: 'Earn $750,000 total profit across all games' },
-  { id: 'perfectionist', name: 'Perfectionist', icon: Star, tier: 'gold', description: 'Win without any failed deals' },
-];
+const TIER_ORDER: AchievementTier[] = ['bronze', 'silver', 'gold', 'platinum', 'diamond'];
+
+const TIER_DISPLAY: Record<AchievementTier, { label: string; bg: string; border: string; iconBg: string; text: string }> = {
+  bronze: {
+    label: 'Bronze',
+    bg: 'from-amber-700/30 to-amber-900/20',
+    border: 'border-amber-600/40',
+    iconBg: 'bg-gradient-to-br from-amber-700 to-amber-900',
+    text: 'text-amber-400',
+  },
+  silver: {
+    label: 'Silver',
+    bg: 'from-gray-400/20 to-gray-600/10',
+    border: 'border-gray-400/40',
+    iconBg: 'bg-gradient-to-br from-gray-300 to-gray-500',
+    text: 'text-gray-300',
+  },
+  gold: {
+    label: 'Gold',
+    bg: 'from-yellow-400/20 to-amber-500/10',
+    border: 'border-yellow-500/40',
+    iconBg: 'bg-gradient-to-br from-yellow-400 to-amber-500',
+    text: 'text-yellow-400',
+  },
+  platinum: {
+    label: 'Platinum',
+    bg: 'from-cyan-400/20 to-cyan-600/10',
+    border: 'border-cyan-400/40',
+    iconBg: 'bg-gradient-to-br from-cyan-400 to-cyan-600',
+    text: 'text-cyan-300',
+  },
+  diamond: {
+    label: 'Diamond',
+    bg: 'from-purple-400/20 to-purple-600/10',
+    border: 'border-purple-400/40',
+    iconBg: 'bg-gradient-to-br from-purple-400 to-purple-600',
+    text: 'text-purple-300',
+  },
+};
+
+const ALL_ACHIEVEMENTS = Object.values(ACHIEVEMENT_DEFINITIONS).filter(a => !a.secret);
+export const TOTAL_VISIBLE_ACHIEVEMENTS = ALL_ACHIEVEMENTS.length;
 
 interface BadgesModalProps {
   isOpen: boolean;
@@ -31,32 +77,7 @@ interface BadgesModalProps {
 export function BadgesModal({ isOpen, onClose, earnedTrophies }: BadgesModalProps) {
   if (!isOpen) return null;
 
-  const tierConfig = {
-    bronze: {
-      label: 'Bronze',
-      bg: 'from-amber-700/30 to-amber-900/20',
-      border: 'border-amber-600/40',
-      iconBg: 'bg-gradient-to-br from-amber-700 to-amber-900',
-      text: 'text-amber-400',
-    },
-    silver: {
-      label: 'Silver',
-      bg: 'from-gray-400/20 to-gray-600/10',
-      border: 'border-gray-400/40',
-      iconBg: 'bg-gradient-to-br from-gray-300 to-gray-500',
-      text: 'text-gray-300',
-    },
-    gold: {
-      label: 'Gold',
-      bg: 'from-yellow-400/20 to-amber-500/10',
-      border: 'border-yellow-500/40',
-      iconBg: 'bg-gradient-to-br from-yellow-400 to-amber-500',
-      text: 'text-yellow-400',
-    },
-  };
-
-  const tiers: ('bronze' | 'silver' | 'gold')[] = ['bronze', 'silver', 'gold'];
-  const earnedCount = earnedTrophies.length;
+  const earnedCount = earnedTrophies.filter(id => ACHIEVEMENT_DEFINITIONS[id] && !ACHIEVEMENT_DEFINITIONS[id].secret).length;
 
   return (
     <div
@@ -84,20 +105,21 @@ export function BadgesModal({ isOpen, onClose, earnedTrophies }: BadgesModalProp
               Badges & Trophies
             </h2>
             <p className="text-gray-400">
-              {earnedCount} of {TROPHIES.length} earned
+              {earnedCount} of {TOTAL_VISIBLE_ACHIEVEMENTS} earned
             </p>
           </div>
 
           <div className="w-full bg-white/5 rounded-full h-2 mb-8 overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-700"
-              style={{ width: `${(earnedCount / TROPHIES.length) * 100}%` }}
+              style={{ width: `${(earnedCount / TOTAL_VISIBLE_ACHIEVEMENTS) * 100}%` }}
             />
           </div>
 
-          {tiers.map((tier) => {
-            const config = tierConfig[tier];
-            const tierTrophies = TROPHIES.filter((t) => t.tier === tier);
+          {TIER_ORDER.map((tier) => {
+            const config = TIER_DISPLAY[tier];
+            const tierAchievements = ALL_ACHIEVEMENTS.filter((a) => a.tier === tier);
+            if (tierAchievements.length === 0) return null;
 
             return (
               <div key={tier} className="mb-6">
@@ -105,19 +127,19 @@ export function BadgesModal({ isOpen, onClose, earnedTrophies }: BadgesModalProp
                   {config.label} Tier
                 </h3>
                 <div className="space-y-2">
-                  {tierTrophies.map((trophy) => {
-                    const isEarned = earnedTrophies.includes(trophy.id);
-                    const Icon = trophy.icon;
+                  {tierAchievements.map((achievement) => {
+                    const isEarned = earnedTrophies.includes(achievement.id);
+                    const Icon = getIcon(achievement.icon);
 
                     return (
                       <div
-                        key={trophy.id}
+                        key={achievement.id}
                         className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
                           isEarned
                             ? `bg-gradient-to-r ${config.bg} ${config.border}`
                             : 'bg-white/[0.03] border-white/[0.06] opacity-60'
                         }`}
-                        data-testid={`badge-${trophy.id}`}
+                        data-testid={`badge-${achievement.id}`}
                       >
                         <div
                           className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
@@ -132,10 +154,10 @@ export function BadgesModal({ isOpen, onClose, earnedTrophies }: BadgesModalProp
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className={`font-semibold ${isEarned ? 'text-white' : 'text-gray-500'}`}>
-                            {trophy.name}
+                            {achievement.name}
                           </div>
                           <div className={`text-sm ${isEarned ? 'text-gray-300' : 'text-gray-600'}`}>
-                            {trophy.description}
+                            {achievement.description}
                           </div>
                         </div>
                         {isEarned && (

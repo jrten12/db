@@ -1,10 +1,10 @@
-import { Play, Trophy, Award, BookOpen, Wallet, Clock, Target, RotateCcw, GraduationCap, Lightbulb } from 'lucide-react';
+import { Play, Trophy, Award, BookOpen, Wallet, Clock, Target, RotateCcw, GraduationCap, Lightbulb, Building } from 'lucide-react';
 import { TrophyShelf } from './TrophyShelf';
 import { TOTAL_VISIBLE_ACHIEVEMENTS } from './BadgesModal';
 import { ACHIEVEMENT_DEFINITIONS } from '@/lib/achievements';
 import logo from '@assets/new_icon_db_1772940176909.png';
 import { formatCurrency } from '@/lib/gameData';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 
 interface GameHomeScreenProps {
@@ -38,53 +38,82 @@ export function GameHomeScreen({
 }: GameHomeScreenProps) {
   const totalTrophies = TOTAL_VISIBLE_ACHIEVEMENTS;
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-start px-4 py-4 md:py-8">
-      <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-4">
-        <div className="relative">
-          <div className="absolute -inset-6 bg-emerald-500/15 rounded-full blur-2xl animate-pulse" style={{ animationDuration: '3s' }} />
-          <div className="absolute -inset-3 bg-emerald-500/10 rounded-3xl blur-lg" />
-          <img
-            src={logo}
-            alt="Dealbreak: Real Estate Simulator"
-            className="relative w-20 h-20 md:w-28 md:h-28 rounded-2xl shadow-2xl"
-            style={{
-              boxShadow: '0 12px 60px rgba(0,0,0,0.6), 0 0 0 3px rgba(16,185,129,0.4)',
-            }}
-            data-testid="home-game-logo"
-          />
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-5">
+        <div
+          className="relative flex flex-col items-center gap-3 pt-2 pb-1 transition-all duration-700"
+          style={{ opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(-12px)' }}
+        >
+          <div className="absolute -inset-10 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.04) 60%, transparent 100%)' }} />
+          <div className="absolute -inset-4 rounded-full blur-xl animate-pulse" style={{ animationDuration: '4s', background: 'radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)' }} />
+
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-2xl bg-emerald-500/25 blur-md" />
+            <img
+              src={logo}
+              alt="Dealbreak: Real Estate Simulator"
+              className="relative w-[72px] h-[72px] md:w-24 md:h-24 rounded-2xl"
+              style={{
+                boxShadow: '0 16px 48px rgba(0,0,0,0.5), 0 0 0 2.5px rgba(16,185,129,0.45), 0 0 40px rgba(16,185,129,0.15)',
+              }}
+              data-testid="home-game-logo"
+            />
+          </div>
+
+          <div className="text-center">
+            <h1 className="text-[11px] md:text-xs font-bold tracking-[0.35em] uppercase text-emerald-400/80" data-testid="home-title">
+              Dealbreak
+            </h1>
+            <p className="text-[9px] md:text-[10px] tracking-[0.2em] uppercase text-slate-500 mt-0.5">
+              Real Estate Simulator
+            </p>
+          </div>
         </div>
 
-        <div className="text-center">
-          <h1 className="text-lg md:text-2xl font-bold text-white" data-testid="home-greeting">
-            Welcome back, <span className="text-emerald-400">{playerName}</span>!
-          </h1>
+        <div
+          className="text-center transition-all duration-500 delay-200"
+          style={{ opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(8px)' }}
+        >
+          <h2 className="text-base md:text-xl font-semibold text-white" data-testid="home-greeting">
+            Welcome back, <span className="text-emerald-400">{playerName}</span>
+          </h2>
         </div>
 
         {hasActiveGame && cash !== undefined && weeksRemaining !== undefined && profitableDeals !== undefined && goalDeals !== undefined && (
-          <div className="w-full grid grid-cols-3 gap-2" data-testid="home-stats-preview">
-            <div className="bg-slate-800/80 backdrop-blur rounded-xl p-2.5 border border-emerald-500/20 text-center">
+          <div
+            className="w-full grid grid-cols-3 gap-2 transition-all duration-500 delay-300"
+            style={{ opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(8px)' }}
+            data-testid="home-stats-preview"
+          >
+            <div className="bg-slate-800/70 backdrop-blur-md rounded-xl p-2.5 border border-emerald-500/15 text-center">
               <Wallet className="w-3.5 h-3.5 text-emerald-400 mx-auto mb-0.5" />
               <div className="text-sm font-bold text-emerald-400 font-mono" data-testid="home-stat-cash">
                 {formatCurrency(cash)}
               </div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wider">Cash</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider">Cash</div>
             </div>
-            <div className="bg-slate-800/80 backdrop-blur rounded-xl p-2.5 border border-blue-500/20 text-center">
+            <div className="bg-slate-800/70 backdrop-blur-md rounded-xl p-2.5 border border-blue-500/15 text-center">
               <Clock className="w-3.5 h-3.5 text-blue-400 mx-auto mb-0.5" />
               <div className="text-sm font-bold text-blue-400" data-testid="home-stat-time">
                 {weeksRemaining <= 0 ? 'OT' : `${weeksRemaining}M`}
               </div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wider">{weeksRemaining <= 0 ? 'Overtime' : 'Time Left'}</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider">{weeksRemaining <= 0 ? 'Overtime' : 'Time Left'}</div>
             </div>
-            <div className="bg-slate-800/80 backdrop-blur rounded-xl p-2.5 border border-amber-500/20 text-center">
+            <div className="bg-slate-800/70 backdrop-blur-md rounded-xl p-2.5 border border-amber-500/15 text-center">
               <Target className="w-3.5 h-3.5 text-amber-400 mx-auto mb-0.5" />
               <div className="text-sm font-bold" data-testid="home-stat-deals">
                 <span className="text-emerald-400">{profitableDeals}</span>
-                <span className="text-gray-400">/{goalDeals}</span>
+                <span className="text-slate-500">/{goalDeals}</span>
               </div>
-              <div className="text-[10px] text-gray-400 uppercase tracking-wider">Deals</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider">Deals</div>
             </div>
           </div>
         )}

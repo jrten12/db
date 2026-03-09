@@ -545,7 +545,7 @@ export async function completeFlipDeal(
     // Apply finish level multiplier - luxury finishes cost more but boost ARV
     const finishLevel = proFormaInputs?.finishLevel || 'builder';
     const finishCostMult = finishLevel === 'luxury' ? 1.4 : 1.0;
-    const finishArvBoost = finishLevel === 'luxury' ? 0.08 : 0;
+    const finishArvBoost = finishLevel === 'luxury' ? 0.10 : 0;
     const rawRehabBudget = proFormaInputs?.rehabBudget || 0;
     const rehabBudget = Math.round(rawRehabBudget * finishCostMult);
     const contingencyPct = proFormaInputs?.contingencyPct || 10;
@@ -554,7 +554,7 @@ export async function completeFlipDeal(
     // The "as-is" value is what you paid - the purchase price
     // ARV is only achievable with FULL renovation
     const purchasePrice = deal.purchasePrice || proFormaInputs?.purchasePrice || property.arvMin * 0.7;
-    const maxArv = property.arvMax;
+    const maxArv = Math.round(property.arvMax * (1 + finishArvBoost));
     
     // Calculate rehab completion factor (0 to 1)
     // Based on how much of the FULL rehab was done
@@ -563,12 +563,21 @@ export async function completeFlipDeal(
       ? Math.max(0, Math.min(1, actualRehabSpend / fullRehabCost))
       : 0;
     
-    // Calculate CONDITION PENALTY from unfixed issues
-    // Each undiscovered issue that wasn't fixed reduces sale price
+    // Calculate CONDITION PENALTY from ALL unfixed issues (both undiscovered AND known-but-skipped)
     // Buyers WILL find these issues during their inspection!
-    const issueCount = undiscoveredIssues.length;
-    const conditionPenalty = issueCount * 0.02; // Each unfixed issue = 2% price reduction
+    const rawFixedIssueIds = proFormaInputs?.fixedIssueIds || [];
+    const fixedIssueIds = [...new Set(rawFixedIssueIds)].filter(id => allIssues.some(i => i.id === id));
+    const discoveredButSkipped = allIssues.filter(issue =>
+      issue.discoveredBy.some(method => completedDiligence.includes(method)) &&
+      !fixedIssueIds.includes(issue.id)
+    );
+    const undiscoveredCount = undiscoveredIssues.length;
+    const skippedCount = discoveredButSkipped.length;
+    const conditionPenalty = (undiscoveredCount * 0.02) + (skippedCount * 0.015);
     const conditionMultiplier = Math.max(0.80, 1 - conditionPenalty); // Cap at 20% reduction
+
+    const fixedCount = fixedIssueIds.length;
+    const fixedBonus = fixedCount > 0 ? Math.min(fixedCount * 0.01, 0.05) : 0;
     
     if (didComps) {
       // WITH COMPS: Sale price scales predictably from purchase price to ARV
@@ -580,6 +589,9 @@ export async function completeFlipDeal(
       const spreadCapture = diligenceCount >= 3 ? 0.95 : 0.90;
       const priceSpread = maxArv - purchasePrice;
       let baseSalePrice = purchasePrice + (completionFactor * priceSpread * spreadCapture);
+
+      // Fixed issues boost: targeted repairs increase buyer confidence (+1% per fix, max +5%)
+      baseSalePrice = baseSalePrice * (1 + fixedBonus);
 
       // Apply condition penalty for unfixed issues
       baseSalePrice = baseSalePrice * conditionMultiplier;
@@ -608,6 +620,7 @@ export async function completeFlipDeal(
       // Calculate what the property is actually worth based on work done
       const priceSpread = maxArv - purchasePrice;
       let actualValue = purchasePrice + (completionFactor * priceSpread * 0.85);
+      actualValue = actualValue * (1 + fixedBonus);
       actualValue = actualValue * conditionMultiplier;
       
       // Blend player estimate (with uncertainty) and actual value
@@ -1342,11 +1355,11 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           return sum + Math.max(minBumpPerItem, pctBump);
         }, 0);
         
-        // Unfixed issues only mildly depress rent (0.25% per unfixed item, much less aggressive)
+        // Unfixed issues depress rent (1% per unfixed item)
         const unfixedIssues = allIssues.filter(item => !allCompletedIds.includes(item.id));
         const unfixedIssueCount = unfixedIssues.length;
         const unfixedDepressionAmt = unfixedIssues.reduce((sum, _item) => {
-          return sum + Math.round(baseMonthlyRent * 0.0025);
+          return sum + Math.round(baseMonthlyRent * 0.01);
         }, 0);
         
         // Net rent change: gains from this round's fixes minus mild depression (capped at 25% of base)
@@ -1687,6 +1700,7 @@ export async function activateRentalProperty(
       const conditionPenalty = 0.85 + (Math.random() * 0.10); // 5-15% penalty
       actualRent = Math.round(actualRent * conditionPenalty);
     }
+
   } else {
     // WITHOUT market study: Player is flying blind on BOTH market AND condition
     // This is risky but NOT guaranteed failure - sometimes you get lucky
@@ -1720,7 +1734,28 @@ export async function activateRentalProperty(
       }
     }
   }
-  
+
+  // Apply penalty for discovered-but-skipped repairs (known issues the player chose not to fix)
+  // Applies regardless of market study — real condition impacts rent either way
+  const rentalFixedIds = proFormaInputs?.fixedIssueIds || [];
+  const rentalAllIssues = property
+    ? getRandomizedPropertyIssues(gameRun.id, deal.propertyId, property.propertyType, property.conditionTag, property.waterSource || 'public')
+    : [];
+  const validFixedIds = rentalFixedIds.filter(id => rentalAllIssues.some(i => i.id === id));
+  const rentalSkippedIssues = rentalAllIssues.filter(issue =>
+    issue.discoveredBy.some(method => completedDiligence.includes(method)) &&
+    !validFixedIds.includes(issue.id)
+  );
+  if (rentalSkippedIssues.length > 0) {
+    const rentPenaltyPct = Math.min(rentalSkippedIssues.length * 0.01, 0.08);
+    actualRent = Math.round(actualRent * (1 - rentPenaltyPct));
+  }
+  // Boost for fixed issues: targeted repairs attract better tenants (+1.5% per fix, max +8%)
+  if (validFixedIds.length > 0) {
+    const rentBoostPct = Math.min(validFixedIds.length * 0.015, 0.08);
+    actualRent = Math.round(actualRent * (1 + rentBoostPct));
+  }
+
   // MINIMAL safety floor - allow true failure but prevent completely absurd values
   // Players CAN get underwater if they skip diligence and make wrong assumptions
   // Floor at 50% of rentMin (vs flip which has no floor) - this allows "trap" outcomes

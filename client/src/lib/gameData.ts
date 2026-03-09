@@ -43,8 +43,8 @@ export const FINISH_LEVEL_CONFIG = {
     label: 'Luxury',
     description: 'Hardwood floors, upgraded fixtures, stone counters, premium appliances',
     costMultiplier: 1.4,
-    rentBoostPct: 10,
-    arvBoostPct: 8,
+    rentBoostPct: 12,
+    arvBoostPct: 10,
   },
 } as const;
 

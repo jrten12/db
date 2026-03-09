@@ -16,6 +16,7 @@ import Learn from "@/pages/Learn";
 import LearnArticle from "@/pages/LearnArticle";
 
 import Methodology from "@/pages/Methodology";
+import AppStoreScreenshots from "@/pages/AppStoreScreenshots";
 
 
 function Router() {
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/terms" component={TermsOfService} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/methodology" component={Methodology} />
+      <Route path="/screenshots" component={AppStoreScreenshots} />
       <Route component={NotFound} />
     </Switch>
   );

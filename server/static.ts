@@ -11,12 +11,20 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  app.use("/assets", express.static(path.join(distPath, "assets"), {
+    maxAge: "1y",
+    immutable: true,
+  }));
+
+  app.use(express.static(distPath, {
+    maxAge: "1h",
+  }));
 
   app.use("*", (req, res) => {
     let html = fs.readFileSync(path.resolve(distPath, "index.html"), "utf-8");
     html = injectSeoMeta(html, req.originalUrl, req);
     res.set("Content-Type", "text/html");
+    res.set("Cache-Control", "no-cache");
     res.send(html);
   });
 }

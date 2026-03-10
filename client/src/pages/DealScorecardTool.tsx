@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import { ArrowLeft, Award, CheckCircle, XCircle, AlertTriangle, Info, ChevronDown, Copy, Check, ArrowRight } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { AdBanner } from '@/components/game/AdBanner';
-import dbLogoImage from '@assets/new_icon_db_1772940176909.png';
+import dbLogoImage from '@assets/new_icon_db_1772940176909.webp';
 
 interface Inputs {
   purchasePrice: string;

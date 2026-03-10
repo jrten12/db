@@ -4,20 +4,20 @@ import { ArrowRight, BookOpen, ArrowLeft } from 'lucide-react';
 import { LEARN_ARTICLES } from '@/lib/learnArticles';
 import { AdBanner } from '@/components/game/AdBanner';
 import Footer from '@/components/Footer';
-import dbLogoImage from '@assets/new_icon_db_1772940176909.png';
+import dbLogoImage from '@assets/new_icon_db_1772940176909.webp';
 
-import imgProForma from '@assets/generated_images/learn_pro_forma.png';
-import imgCapRates from '@assets/generated_images/learn_cap_rates.png';
-import imgFlipVsRent from '@assets/generated_images/learn_flip_vs_rent.png';
-import imgDueDiligence from '@assets/generated_images/learn_due_diligence.png';
-import imgLtvFinancing from '@assets/generated_images/learn_ltv_financing.png';
-import imgMarketConditions from '@assets/generated_images/learn_market_conditions.png';
-import imgRehabBudgets from '@assets/generated_images/learn_rehab_budgets.png';
-import imgCommonMistakes from '@assets/generated_images/learn_common_mistakes.png';
-import imgQuickFilters from '@assets/generated_images/learn_quick_filters.png';
-import imgMarketCrash from '@assets/generated_images/learn_market_crash.png';
-import imgPortfolioStrategy from '@assets/generated_images/learn_portfolio_strategy.png';
-import imgTenantManagement from '@assets/generated_images/learn_tenant_management.png';
+import imgProForma from '@assets/generated_images/learn_pro_forma.webp';
+import imgCapRates from '@assets/generated_images/learn_cap_rates.webp';
+import imgFlipVsRent from '@assets/generated_images/learn_flip_vs_rent.webp';
+import imgDueDiligence from '@assets/generated_images/learn_due_diligence.webp';
+import imgLtvFinancing from '@assets/generated_images/learn_ltv_financing.webp';
+import imgMarketConditions from '@assets/generated_images/learn_market_conditions.webp';
+import imgRehabBudgets from '@assets/generated_images/learn_rehab_budgets.webp';
+import imgCommonMistakes from '@assets/generated_images/learn_common_mistakes.webp';
+import imgQuickFilters from '@assets/generated_images/learn_quick_filters.webp';
+import imgMarketCrash from '@assets/generated_images/learn_market_crash.webp';
+import imgPortfolioStrategy from '@assets/generated_images/learn_portfolio_strategy.webp';
+import imgTenantManagement from '@assets/generated_images/learn_tenant_management.webp';
 
 const HERO_IMAGES: Record<string, string> = {
   learn_pro_forma: imgProForma,

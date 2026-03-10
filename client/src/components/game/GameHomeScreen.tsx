@@ -2,7 +2,7 @@ import { Play, Trophy, Award, BookOpen, Wallet, Clock, Target, RotateCcw, Gradua
 import { TrophyShelf } from './TrophyShelf';
 import { TOTAL_VISIBLE_ACHIEVEMENTS } from './BadgesModal';
 import { ACHIEVEMENT_DEFINITIONS } from '@/lib/achievements';
-import logo from '@assets/new_icon_db_1772940176909.png';
+import logo from '@assets/new_icon_db_1772940176909.webp';
 import { formatCurrency } from '@/lib/gameData';
 import { useState, useEffect } from 'react';
 import { Link } from 'wouter';

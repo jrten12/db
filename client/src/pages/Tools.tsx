@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import { ArrowRight, ArrowLeft, Calculator, BarChart3, Scale, Award } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { AdBanner } from '@/components/game/AdBanner';
-import dbLogoImage from '@assets/new_icon_db_1772940176909.png';
+import dbLogoImage from '@assets/new_icon_db_1772940176909.webp';
 
 const TOOLS = [
   {

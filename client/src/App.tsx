@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -6,38 +7,38 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { TutorialProvider } from "@/contexts/TutorialContext";
 import { useGlobalClickSound } from "@/hooks/useClickSound";
 import { MusicProvider, useMusic } from "@/hooks/useMusicPlayer";
-import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
-import Game from "@/pages/Game";
-import TermsOfService from "@/pages/TermsOfService";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
 
-import Learn from "@/pages/Learn";
-import LearnArticle from "@/pages/LearnArticle";
-
-import Methodology from "@/pages/Methodology";
-import AppStoreScreenshots from "@/pages/AppStoreScreenshots";
-import Tools from "@/pages/Tools";
-import FlipOrRentTool from "@/pages/FlipOrRentTool";
-import DealScorecardTool from "@/pages/DealScorecardTool";
-
+const Game = lazy(() => import("@/pages/Game"));
+const Learn = lazy(() => import("@/pages/Learn"));
+const LearnArticle = lazy(() => import("@/pages/LearnArticle"));
+const Tools = lazy(() => import("@/pages/Tools"));
+const FlipOrRentTool = lazy(() => import("@/pages/FlipOrRentTool"));
+const DealScorecardTool = lazy(() => import("@/pages/DealScorecardTool"));
+const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
+const Methodology = lazy(() => import("@/pages/Methodology"));
+const AppStoreScreenshots = lazy(() => import("@/pages/AppStoreScreenshots"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Landing} />
-      <Route path="/game" component={Game} />
-      <Route path="/learn" component={Learn} />
-      <Route path="/learn/:slug" component={LearnArticle} />
-      <Route path="/tools" component={Tools} />
-      <Route path="/tools/flip-or-rent" component={FlipOrRentTool} />
-      <Route path="/tools/deal-scorecard" component={DealScorecardTool} />
-      <Route path="/terms" component={TermsOfService} />
-      <Route path="/privacy" component={PrivacyPolicy} />
-      <Route path="/methodology" component={Methodology} />
-      <Route path="/screenshots" component={AppStoreScreenshots} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<div className="min-h-screen" style={{ background: '#0f0f12' }} />}>
+      <Switch>
+        <Route path="/" component={Landing} />
+        <Route path="/game" component={Game} />
+        <Route path="/learn" component={Learn} />
+        <Route path="/learn/:slug" component={LearnArticle} />
+        <Route path="/tools" component={Tools} />
+        <Route path="/tools/flip-or-rent" component={FlipOrRentTool} />
+        <Route path="/tools/deal-scorecard" component={DealScorecardTool} />
+        <Route path="/terms" component={TermsOfService} />
+        <Route path="/privacy" component={PrivacyPolicy} />
+        <Route path="/methodology" component={Methodology} />
+        <Route path="/screenshots" component={AppStoreScreenshots} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 

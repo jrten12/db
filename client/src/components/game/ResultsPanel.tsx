@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { ProFormaOutputs, formatCurrency } from '@/lib/gameData';
 import { TrendingDown, TrendingUp, AlertTriangle, HelpCircle, Lightbulb, X, Check } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import mortgageIcon from '@assets/generated_images/mortgage_document_game_icon.png';
-import coinsIcon from '@assets/generated_images/gold_coins_stack_icon.png';
+import mortgageIcon from '@assets/generated_images/mortgage_document_game_icon.webp';
+import coinsIcon from '@assets/generated_images/gold_coins_stack_icon.webp';
 
 interface ResultsPanelProps {
   strategy: 'rent' | 'flip';

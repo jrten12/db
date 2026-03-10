@@ -60,7 +60,7 @@ import { type Curveball, getTenantMessageForCurveball, curveballHasTenantMessage
 import { api } from '@/lib/api';
 import { saveGame, loadGame, getSaveInfo, clearSave } from '@/lib/saveGame';
 import type { GameRun, Property, LedgerEntry, Deal, HallOfFamePlayer } from '@shared/schema';
-import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.png';
+import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.webp';
 import Footer from '@/components/Footer';
 import { Loader2, Play } from 'lucide-react';
 import { playAdvanceWeekSound } from '@/hooks/useClickSound';

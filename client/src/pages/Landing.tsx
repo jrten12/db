@@ -48,6 +48,11 @@ export default function Landing() {
                 Learn
               </span>
             </Link>
+            <Link href="/tools">
+              <span className="text-sm font-medium hidden sm:inline" style={{ color: 'rgba(212,175,55,0.7)' }} data-testid="link-tools-landing-nav">
+                Tools
+              </span>
+            </Link>
             <button
               onClick={toggleMusic}
               className="p-2 rounded-full transition-all active:scale-[0.97]"

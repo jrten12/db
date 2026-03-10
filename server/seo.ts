@@ -340,6 +340,151 @@ function getPageMeta(url: string, req: Request): PageMeta {
     }
   }
 
+  if (path === "/tools") {
+    return {
+      title: "Free Real Estate Investment Calculators | " + SITE_NAME,
+      description: "Free interactive tools for real estate investors. Flip or Rent strategy analyzer, Deal Scorecard with 7 rules of thumb, ROI calculators, and more.",
+      ogType: "website",
+      canonical: baseUrl + "/tools",
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "Real Estate Investment Calculators",
+          "description": "Free interactive tools to analyze investment properties, compare strategies, and make smarter real estate decisions.",
+          "url": baseUrl + "/tools",
+          "isPartOf": { "@type": "WebSite", "name": SITE_NAME, "url": baseUrl },
+          "hasPart": [
+            { "@type": "WebApplication", "name": "Flip or Rent Strategy Analyzer", "url": baseUrl + "/tools/flip-or-rent" },
+            { "@type": "WebApplication", "name": "Deal Scorecard", "url": baseUrl + "/tools/deal-scorecard" }
+          ]
+        }
+      ]
+    };
+  }
+
+  if (path === "/tools/flip-or-rent") {
+    return {
+      title: "Flip or Rent Calculator — Compare Real Estate Strategies | " + SITE_NAME,
+      description: "Free flip vs rent calculator. Compare ROI, cash flow, and total returns side-by-side. See which real estate strategy produces better results at 1, 3, and 5-year horizons.",
+      ogType: "website",
+      canonical: baseUrl + "/tools/flip-or-rent",
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": "Flip or Rent? Strategy Analyzer",
+          "description": "Compare flipping vs renting a property side-by-side. Calculate ROI, cash flow, and break-even timeline for both strategies.",
+          "url": baseUrl + "/tools/flip-or-rent",
+          "applicationCategory": "FinanceApplication",
+          "operatingSystem": "Any",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+          "isPartOf": { "@type": "WebSite", "name": SITE_NAME, "url": baseUrl }
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is the 70% Rule for flipping houses?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The 70% Rule states you should pay no more than 70% of a property's After-Repair Value (ARV) minus repair costs. For example, if a home's ARV is $300,000 and needs $40,000 in repairs, the maximum purchase price should be $300,000 × 70% − $40,000 = $170,000."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What is a good cash-on-cash return for a rental property?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Most investors target 8-12% cash-on-cash return. In high-appreciation markets, investors may accept 4-6% because property values are growing. In cash-flow markets, 10-15% is common. Below 4% is generally considered poor unless appreciation potential is exceptional."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Should I flip or rent an investment property?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "It depends on your goals and market conditions. Flipping provides a lump-sum profit in 3-6 months but requires renovation expertise and involves higher risk. Renting provides ongoing passive income and builds long-term wealth through appreciation and equity. In hot markets, flipping often wins short-term. In stable markets, renting typically wins long-term."
+              }
+            }
+          ]
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": baseUrl },
+            { "@type": "ListItem", "position": 2, "name": "Tools", "item": baseUrl + "/tools" },
+            { "@type": "ListItem", "position": 3, "name": "Flip or Rent Calculator", "item": baseUrl + "/tools/flip-or-rent" }
+          ]
+        }
+      ]
+    };
+  }
+
+  if (path === "/tools/deal-scorecard") {
+    return {
+      title: "Deal Scorecard — Grade Any Investment Property | " + SITE_NAME,
+      description: "Free investment property analyzer. Test any property against the 1% Rule, 50% Rule, 70% Rule, Cap Rate, GRM, and Cash-on-Cash Return. Get an instant letter grade from A to F.",
+      ogType: "website",
+      canonical: baseUrl + "/tools/deal-scorecard",
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": "Deal Scorecard — Investment Property Analyzer",
+          "description": "Test any investment property against 7 real estate rules of thumb simultaneously. Get an instant letter grade and detailed breakdown.",
+          "url": baseUrl + "/tools/deal-scorecard",
+          "applicationCategory": "FinanceApplication",
+          "operatingSystem": "Any",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+          "isPartOf": { "@type": "WebSite", "name": SITE_NAME, "url": baseUrl }
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is the 1% Rule in real estate investing?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "The 1% Rule states that a rental property's monthly rent should be at least 1% of the purchase price. A $200,000 property should rent for at least $2,000/month. It is a quick screening tool for cash flow potential."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What is a good cap rate for an investment property?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Cap rates of 5-10% are typical for investment properties. 3-4% is common in premium areas where investors bet on appreciation. 7-8% is considered the sweet spot for cash flow investors. 9-10%+ usually indicates higher risk or a less desirable area."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can a property fail these rules and still be a good investment?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. These are rules of thumb, not absolute laws. A property in a rapidly appreciating market might have a low cap rate but generate excellent total returns through value growth. Context matters — consider the specific market, your investment goals, and your risk tolerance."
+              }
+            }
+          ]
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": baseUrl },
+            { "@type": "ListItem", "position": 2, "name": "Tools", "item": baseUrl + "/tools" },
+            { "@type": "ListItem", "position": 3, "name": "Deal Scorecard", "item": baseUrl + "/tools/deal-scorecard" }
+          ]
+        }
+      ]
+    };
+  }
+
   if (path === "/terms") {
     return {
       title: "Terms of Service | " + SITE_NAME,
@@ -429,6 +574,9 @@ export function generateSitemap(baseUrl: string): string {
       priority: "0.8",
       changefreq: "monthly" as const
     })),
+    { loc: "/tools", priority: "0.9", changefreq: "weekly" },
+    { loc: "/tools/flip-or-rent", priority: "0.9", changefreq: "monthly" },
+    { loc: "/tools/deal-scorecard", priority: "0.9", changefreq: "monthly" },
     { loc: "/terms", priority: "0.3", changefreq: "yearly" },
     { loc: "/privacy", priority: "0.3", changefreq: "yearly" },
   ];

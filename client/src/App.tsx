@@ -17,6 +17,9 @@ import LearnArticle from "@/pages/LearnArticle";
 
 import Methodology from "@/pages/Methodology";
 import AppStoreScreenshots from "@/pages/AppStoreScreenshots";
+import Tools from "@/pages/Tools";
+import FlipOrRentTool from "@/pages/FlipOrRentTool";
+import DealScorecardTool from "@/pages/DealScorecardTool";
 
 
 function Router() {
@@ -26,6 +29,9 @@ function Router() {
       <Route path="/game" component={Game} />
       <Route path="/learn" component={Learn} />
       <Route path="/learn/:slug" component={LearnArticle} />
+      <Route path="/tools" component={Tools} />
+      <Route path="/tools/flip-or-rent" component={FlipOrRentTool} />
+      <Route path="/tools/deal-scorecard" component={DealScorecardTool} />
       <Route path="/terms" component={TermsOfService} />
       <Route path="/privacy" component={PrivacyPolicy} />
       <Route path="/methodology" component={Methodology} />

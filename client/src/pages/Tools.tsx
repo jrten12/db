@@ -21,7 +21,7 @@ const TOOLS = [
     slug: 'deal-scorecard',
     title: 'Deal Scorecard',
     subtitle: 'Grade any investment property in 30 seconds',
-    description: 'Test a property against 6 real estate rules of thumb simultaneously — the 1% Rule, 50% Rule, 70% Rule, Cap Rate, GRM, and Cash-on-Cash Return. Get an instant letter grade from A to F.',
+    description: 'Test a property against 7 real estate rules of thumb simultaneously — the 1% Rule, 2% Rule, 50% Rule, 70% Rule, Cap Rate, GRM, and Cash-on-Cash Return. Get an instant letter grade from A to F.',
     icon: Award,
     color: '#f59e0b',
     bgColor: 'rgba(245,158,11,0.08)',

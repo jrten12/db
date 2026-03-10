@@ -10,6 +10,10 @@ export default function Footer() {
               Learning Center
             </Link>
             <span className="text-gray-700 hidden sm:inline">•</span>
+            <Link href="/tools" className="text-emerald-400/80 hover:text-emerald-400 active:text-emerald-300 transition-colors touch-target-sm inline-flex items-center justify-center tap-scale" data-testid="link-footer-tools">
+              Free Tools
+            </Link>
+            <span className="text-gray-700 hidden sm:inline">•</span>
             <Link href="/terms" className="text-emerald-400/80 hover:text-emerald-400 active:text-emerald-300 transition-colors touch-target-sm inline-flex items-center justify-center tap-scale">
               Terms of Service
             </Link>

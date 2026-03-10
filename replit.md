@@ -54,8 +54,16 @@ Preferred communication style: Simple, everyday language.
 - **Ad Placement**: Ads only on content-rich pages (Landing page, Learn hub, article pages). Removed from game UI screens (PropertySelector, ResultsPanel) per AdSense policy.
 - **Structured Data**: JSON-LD schema markup via server/seo.ts for WebApplication, FAQPage, Article, BreadcrumbList, CollectionPage types
 
+### SEO Tools (Backlink Assets)
+- **Tools Hub**: `/tools` — landing page listing all free interactive tools
+- **Flip or Rent? Strategy Analyzer**: `/tools/flip-or-rent` — side-by-side comparison calculator (flip profit vs rental cash flow, 1/3/5-year horizon bars, winner badges)
+- **Deal Scorecard**: `/tools/deal-scorecard` — grades properties A-F against 7 rules of thumb (1% Rule, 2% Rule, 50% Rule, 70% Rule, Cap Rate, GRM, Cash-on-Cash)
+- Both pages have FAQPage + WebApplication JSON-LD structured data, breadcrumb schemas, copy-to-clipboard results, cross-links to Learn articles, and CTA to simulator
+- Added to sitemap at priority 0.9, navigation bar, and footer
+- Files: `client/src/pages/Tools.tsx`, `client/src/pages/FlipOrRentTool.tsx`, `client/src/pages/DealScorecardTool.tsx`
+
 ### Monetization
-- **Web**: Google AdSense on content pages only (Landing, Learn hub, articles). Not on game screens.
+- **Web**: Google AdSense on content pages only (Landing, Learn hub, articles, Tools pages). Not on game screens.
 - **Mobile**: Google AdMob (Banner, Interstitial, Rewarded ads).
 - **Premium Boosts (Stripe)**: In-game purchases via Stripe Checkout for cash/time boosts. Currently hidden from all game UI (home screen and in-game menu). Server routes remain but are gated by ENABLE_PREMIUM_PURCHASES env var.
   - `server/stripeClient.ts` - Stripe client using Replit connector credentials

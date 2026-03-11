@@ -6,7 +6,7 @@ import type { Deal, Property, PropertyInvestigation, GameRun } from '@shared/sch
 import {
   calculateGameStats,
   calculateScorecard,
-  classifyInvestorProfile,
+  getDynamicProfile,
   generateBenchmarks,
   type InvestorProfile,
   type PlayerScorecard,
@@ -124,7 +124,7 @@ export function EndGameSummary({
       const weeksUsed = 52 - (gameRun.weeksRemaining || 0);
       const gameStats = calculateGameStats(deals, investigations, properties, weeksUsed);
       const playerScorecard = calculateScorecard(gameStats);
-      const investorProfile = classifyInvestorProfile(gameStats, playerScorecard);
+      const investorProfile = getDynamicProfile(gameStats, playerScorecard, gameRun, deals);
       const playerBenchmarks = generateBenchmarks(gameStats, playerScorecard);
       
       setStats(gameStats);

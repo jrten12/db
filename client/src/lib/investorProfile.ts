@@ -1,4 +1,4 @@
-import type { Deal, Property, PropertyInvestigation } from '@shared/schema';
+import type { Deal, Property, PropertyInvestigation, GameRun } from '@shared/schema';
 
 export type InvestorProfileType = 
   | 'conservative_cashflow' 
@@ -6,7 +6,9 @@ export type InvestorProfileType =
   | 'high_risk_opportunist' 
   | 'detail_oriented_operator'
   | 'balanced_investor'
-  | 'cautious_newcomer';
+  | 'cautious_newcomer'
+  | 'methodical_researcher'
+  | 'quick_starter';
 
 export interface InvestorProfile {
   type: InvestorProfileType;
@@ -44,21 +46,20 @@ export interface GameStats {
   fullDiligenceDeals: number;
   highLeverageDeals: number;
   conservativeDeals: number;
+  pipelineDeals: number;
+  activeRentals: number;
+  inRehabDeals: number;
+  totalInvestigations: number;
+  propertiesResearched: number;
 }
 
-const INVESTOR_PROFILES: Record<InvestorProfileType, InvestorProfile> = {
+const BASE_PROFILES: Record<string, Omit<InvestorProfile, 'traits'>> = {
   conservative_cashflow: {
     type: 'conservative_cashflow',
     title: 'Conservative Cash Flow Investor',
     description: 'You prioritize steady rental income over quick profits. Low leverage and thorough due diligence define your approach.',
     icon: 'landmark',
     color: 'emerald',
-    traits: [
-      'Prefers rental properties for steady income',
-      'Uses conservative leverage (under 70% LTV)',
-      'Never skips due diligence',
-      'Values cash flow over appreciation'
-    ]
   },
   aggressive_appreciation: {
     type: 'aggressive_appreciation',
@@ -66,12 +67,6 @@ const INVESTOR_PROFILES: Record<InvestorProfileType, InvestorProfile> = {
     description: 'You bet on property values going up. High leverage and quick flips are your specialty.',
     icon: 'trending-up',
     color: 'blue',
-    traits: [
-      'Focuses on flip deals for quick profits',
-      'Uses high leverage to maximize returns',
-      'Moves fast, sometimes skipping diligence',
-      'Bets on market appreciation'
-    ]
   },
   high_risk_opportunist: {
     type: 'high_risk_opportunist',
@@ -79,12 +74,6 @@ const INVESTOR_PROFILES: Record<InvestorProfileType, InvestorProfile> = {
     description: 'You take big swings with minimal research. Sometimes it pays off big, sometimes it doesn\'t.',
     icon: 'zap',
     color: 'red',
-    traits: [
-      'Minimal due diligence on deals',
-      'Maximum leverage on purchases',
-      'Quick decisions, high volume',
-      'Embraces uncertainty for potential upside'
-    ]
   },
   detail_oriented_operator: {
     type: 'detail_oriented_operator',
@@ -92,12 +81,6 @@ const INVESTOR_PROFILES: Record<InvestorProfileType, InvestorProfile> = {
     description: 'You leave nothing to chance. Every deal is thoroughly researched before you commit.',
     icon: 'search',
     color: 'purple',
-    traits: [
-      'Completes all available due diligence',
-      'Takes time to analyze each opportunity',
-      'Balanced approach to strategy',
-      'Minimizes surprises through preparation'
-    ]
   },
   balanced_investor: {
     type: 'balanced_investor',
@@ -105,12 +88,6 @@ const INVESTOR_PROFILES: Record<InvestorProfileType, InvestorProfile> = {
     description: 'You blend cash flow and appreciation strategies with moderate risk management.',
     icon: 'scale',
     color: 'amber',
-    traits: [
-      'Mix of rental and flip properties',
-      'Moderate leverage (70-85% LTV)',
-      'Selective due diligence based on deal size',
-      'Adaptable to market conditions'
-    ]
   },
   cautious_newcomer: {
     type: 'cautious_newcomer',
@@ -118,13 +95,21 @@ const INVESTOR_PROFILES: Record<InvestorProfileType, InvestorProfile> = {
     description: 'You\'re still finding your style. Fewer deals but careful analysis shows promise.',
     icon: 'sprout',
     color: 'teal',
-    traits: [
-      'Taking time to learn the market',
-      'Careful with each decision',
-      'Building experience gradually',
-      'Room to develop a signature style'
-    ]
-  }
+  },
+  methodical_researcher: {
+    type: 'methodical_researcher' as InvestorProfileType,
+    title: 'Methodical Researcher',
+    description: 'You believe in doing your homework. Properties get thoroughly analyzed before you commit a dollar.',
+    icon: 'search',
+    color: 'purple',
+  },
+  quick_starter: {
+    type: 'quick_starter' as InvestorProfileType,
+    title: 'Quick Starter',
+    description: 'You jumped into deals fast. Speed can mean opportunity — or unexpected surprises.',
+    icon: 'zap',
+    color: 'blue',
+  },
 };
 
 export function calculateGameStats(
@@ -138,11 +123,15 @@ export function calculateGameStats(
     d.status === 'active_rental' || 
     d.status === 'sold_rental'
   );
+
+  const allActiveDealStatuses = ['purchased', 'in_rehab', 'active_rental', 'completed', 'sold_rental'];
+  const allActiveDeals = deals.filter(d => allActiveDealStatuses.includes(d.status || ''));
   
   const rentalDeals = completedDeals.filter(d => d.strategy === 'rent');
   const flipDeals = completedDeals.filter(d => d.strategy === 'flip');
   
-  const ltvValues = completedDeals.map(d => {
+  const dealsForLTV = allActiveDeals.length > 0 ? allActiveDeals : completedDeals;
+  const ltvValues = dealsForLTV.map(d => {
     const inputs = d.proFormaInputs as any;
     return inputs?.ltv || 75;
   });
@@ -160,7 +149,7 @@ export function calculateGameStats(
     return sum + profit;
   }, 0);
   
-  const purchasedPropertyIds = new Set(completedDeals.map(d => d.propertyId));
+  const purchasedPropertyIds = new Set(allActiveDeals.map(d => d.propertyId));
   
   let completedDiligenceItems = 0;
   const diligenceTypesAvailable = 4;
@@ -171,25 +160,31 @@ export function calculateGameStats(
     completedDiligenceItems += Math.min(propInvestigations.length, diligenceTypesAvailable);
   });
   
-  const skippedDiligenceDeals = completedDeals.filter(d => {
+  const skippedDiligenceDeals = allActiveDeals.filter(d => {
     const propInvestigations = investigations.filter(i => i.propertyId === d.propertyId);
     return propInvestigations.length < 2;
   }).length;
   
-  const fullDiligenceDeals = completedDeals.filter(d => {
+  const fullDiligenceDeals = allActiveDeals.filter(d => {
     const propInvestigations = investigations.filter(i => i.propertyId === d.propertyId);
     return propInvestigations.length >= 4;
   }).length;
   
-  const highLeverageDeals = completedDeals.filter(d => {
+  const highLeverageDeals = allActiveDeals.filter(d => {
     const inputs = d.proFormaInputs as any;
     return (inputs?.ltv || 75) >= 85;
   }).length;
   
-  const conservativeDeals = completedDeals.filter(d => {
+  const conservativeDeals = allActiveDeals.filter(d => {
     const inputs = d.proFormaInputs as any;
     return (inputs?.ltv || 75) <= 70;
   }).length;
+
+  const pipelineDeals = deals.filter(d => d.status === 'purchased' || d.status === 'in_rehab').length;
+  const activeRentals = deals.filter(d => d.status === 'active_rental').length;
+  const inRehabDeals = deals.filter(d => d.status === 'in_rehab').length;
+
+  const researchedPropertyIds = new Set(investigations.map(i => i.propertyId));
   
   return {
     totalDeals: completedDeals.length,
@@ -204,22 +199,33 @@ export function calculateGameStats(
     skippedDiligenceDeals,
     fullDiligenceDeals,
     highLeverageDeals,
-    conservativeDeals
+    conservativeDeals,
+    pipelineDeals,
+    activeRentals,
+    inRehabDeals,
+    totalInvestigations: investigations.length,
+    propertiesResearched: researchedPropertyIds.size,
   };
 }
 
 export function calculateScorecard(stats: GameStats): PlayerScorecard {
+  const dealCount = Math.max(stats.totalDeals, stats.pipelineDeals + stats.totalDeals);
+
   const riskTolerance = Math.min(100, Math.max(0, 
     ((stats.averageLTV - 50) / 50) * 60 +
-    (stats.highLeverageDeals / Math.max(1, stats.totalDeals)) * 40
+    (stats.highLeverageDeals / Math.max(1, dealCount)) * 40
   ));
   
   const dueDiligenceThoroughness = stats.totalPossibleDiligence > 0
     ? Math.min(100, (stats.completedDiligenceItems / stats.totalPossibleDiligence) * 100)
-    : 50;
+    : stats.totalInvestigations > 0
+      ? Math.min(100, stats.totalInvestigations * 15)
+      : 50;
   
   const cashFlowVsAppreciation = stats.totalDeals > 0
     ? (stats.rentalDeals / stats.totalDeals) * 100
+    : stats.activeRentals > 0 ? 70
+    : stats.inRehabDeals > 0 ? 30
     : 50;
   
   const roi = stats.totalInvested > 0 
@@ -275,32 +281,215 @@ export function calculateScorecard(stats: GameStats): PlayerScorecard {
   };
 }
 
-export function classifyInvestorProfile(stats: GameStats, scorecard: PlayerScorecard): InvestorProfile {
-  if (stats.totalDeals < 2) {
-    return INVESTOR_PROFILES.cautious_newcomer;
+function generateDynamicTraits(
+  stats: GameStats,
+  scorecard: PlayerScorecard,
+  gameRun: GameRun,
+  deals: Deal[]
+): string[] {
+  const traits: string[] = [];
+  const monthsUsed = 52 - (gameRun.weeksRemaining || 0);
+  const cashPct = (gameRun.cash / 100000) * 100;
+
+  if (stats.totalDeals === 0 && stats.pipelineDeals === 0) {
+    if (stats.propertiesResearched >= 3) {
+      traits.push(`Researched ${stats.propertiesResearched} properties before buying`);
+    } else if (stats.totalInvestigations > 0) {
+      traits.push('Starting to investigate properties');
+    } else if (monthsUsed <= 3) {
+      traits.push('Taking time to learn the market');
+    } else {
+      traits.push('Still scouting for the right opportunity');
+    }
+
+    if (cashPct >= 95) {
+      traits.push('Keeping cash reserves intact');
+    } else if (cashPct < 50) {
+      traits.push('Spending on research and due diligence');
+    }
+
+    traits.push('Building experience gradually');
+    traits.push('Room to develop a signature style');
+    return traits;
   }
-  
-  if (scorecard.dueDiligenceThoroughness >= 75 && stats.fullDiligenceDeals >= stats.totalDeals * 0.6) {
-    return INVESTOR_PROFILES.detail_oriented_operator;
+
+  if (stats.totalDeals + stats.pipelineDeals >= 1) {
+    if (stats.flipDeals > 0 && (stats.rentalDeals > 0 || stats.activeRentals > 0)) {
+      const rentalCount = Math.max(stats.rentalDeals, stats.activeRentals);
+      traits.push(`Diversified: ${stats.flipDeals} flip${stats.flipDeals > 1 ? 's' : ''} and ${rentalCount} rental${rentalCount > 1 ? 's' : ''}`);
+    } else if (stats.flipDeals > 0) {
+      traits.push(`Flip-focused — ${stats.flipDeals} completed flip${stats.flipDeals > 1 ? 's' : ''}`);
+    } else if (stats.rentalDeals > 0 || stats.activeRentals > 0) {
+      const rentalCount = Math.max(stats.rentalDeals, stats.activeRentals);
+      traits.push(`Building rental portfolio — ${rentalCount} rental propert${rentalCount > 1 ? 'ies' : 'y'}`);
+    } else if (stats.inRehabDeals > 0) {
+      traits.push(`${stats.inRehabDeals} propert${stats.inRehabDeals > 1 ? 'ies' : 'y'} currently in rehab`);
+    } else if (stats.pipelineDeals > 0 && stats.totalDeals === 0) {
+      traits.push(`${stats.pipelineDeals} deal${stats.pipelineDeals > 1 ? 's' : ''} in the pipeline — waiting to close`);
+    }
+  }
+
+  if (stats.fullDiligenceDeals > 0) {
+    const rate = stats.totalDeals + stats.pipelineDeals > 0
+      ? Math.round((stats.fullDiligenceDeals / (stats.totalDeals + stats.pipelineDeals)) * 100)
+      : 0;
+    if (rate >= 80) {
+      traits.push('Full due diligence on nearly every deal');
+    } else if (rate >= 50) {
+      traits.push('Thorough research on most purchases');
+    }
+  } else if (stats.skippedDiligenceDeals > 0 && stats.totalDeals + stats.pipelineDeals > 0) {
+    traits.push('Skipping due diligence on some deals');
+  } else if (stats.propertiesResearched > 0 && stats.totalDeals === 0) {
+    traits.push(`Researching before committing — ${stats.propertiesResearched} properties analyzed`);
+  }
+
+  if (stats.averageLTV >= 90) {
+    traits.push(`High leverage strategy — averaging ${Math.round(stats.averageLTV)}% LTV`);
+  } else if (stats.averageLTV <= 65) {
+    traits.push(`Conservative financing — averaging ${Math.round(stats.averageLTV)}% LTV`);
+  } else if (stats.totalDeals + stats.pipelineDeals > 0) {
+    traits.push(`Moderate leverage at ${Math.round(stats.averageLTV)}% LTV`);
+  }
+
+  if (stats.totalProfit > 0 && stats.totalDeals > 0) {
+    const roi = stats.totalInvested > 0 ? (stats.totalProfit / stats.totalInvested) * 100 : 0;
+    if (roi >= 20) {
+      traits.push(`Strong returns — ${Math.round(roi)}% ROI so far`);
+    } else if (roi >= 5) {
+      traits.push(`Profitable — ${Math.round(roi)}% ROI on closed deals`);
+    } else {
+      traits.push('Thin margins on completed deals');
+    }
+  } else if (stats.totalProfit < 0 && stats.totalDeals > 0) {
+    traits.push('Learning from losses — refining strategy');
+  }
+
+  if (cashPct < 20 && stats.totalDeals > 0) {
+    traits.push('Cash reserves running low');
+  } else if (cashPct > 150 && monthsUsed > 10) {
+    traits.push('Sitting on significant cash reserves');
+  }
+
+  if (stats.totalDeals + stats.pipelineDeals === 1 && monthsUsed <= 8) {
+    traits.push('Moved quickly on first deal');
+  } else if (stats.totalDeals === 0 && monthsUsed > 15) {
+    traits.push('Patient approach — still waiting for the right deal');
+  }
+
+  return traits.slice(0, 4);
+}
+
+export function classifyInvestorProfile(stats: GameStats, scorecard: PlayerScorecard): InvestorProfile {
+  if (stats.totalDeals >= 2) {
+    return classifyEstablishedProfile(stats, scorecard);
+  }
+
+  const hasActivity = stats.pipelineDeals > 0 || stats.totalDeals >= 1;
+
+  if (hasActivity) {
+    return classifyEarlyProfile(stats, scorecard);
+  }
+
+  if (stats.propertiesResearched >= 3) {
+    return {
+      ...BASE_PROFILES.methodical_researcher,
+      traits: [],
+    };
+  }
+
+  return {
+    ...BASE_PROFILES.cautious_newcomer,
+    traits: [],
+  };
+}
+
+function classifyEstablishedProfile(stats: GameStats, scorecard: PlayerScorecard): InvestorProfile {
+  if (scorecard.dueDiligenceThoroughness >= 75 && stats.fullDiligenceDeals >= (stats.totalDeals + stats.pipelineDeals) * 0.6) {
+    return { ...BASE_PROFILES.detail_oriented_operator, traits: [] };
   }
   
   if (scorecard.riskTolerance >= 70 && scorecard.dueDiligenceThoroughness < 40) {
-    return INVESTOR_PROFILES.high_risk_opportunist;
+    return { ...BASE_PROFILES.high_risk_opportunist, traits: [] };
   }
   
   if (scorecard.cashFlowVsAppreciation >= 65 && scorecard.riskTolerance < 50) {
-    return INVESTOR_PROFILES.conservative_cashflow;
+    return { ...BASE_PROFILES.conservative_cashflow, traits: [] };
   }
   
   if (scorecard.cashFlowVsAppreciation <= 35 && scorecard.riskTolerance >= 50) {
-    return INVESTOR_PROFILES.aggressive_appreciation;
+    return { ...BASE_PROFILES.aggressive_appreciation, traits: [] };
   }
   
-  return INVESTOR_PROFILES.balanced_investor;
+  return { ...BASE_PROFILES.balanced_investor, traits: [] };
+}
+
+function classifyEarlyProfile(stats: GameStats, scorecard: PlayerScorecard): InvestorProfile {
+  if (scorecard.dueDiligenceThoroughness >= 70) {
+    return { ...BASE_PROFILES.methodical_researcher, traits: [] };
+  }
+
+  if (scorecard.dueDiligenceThoroughness < 30 && scorecard.riskTolerance >= 60) {
+    return { ...BASE_PROFILES.quick_starter, traits: [] };
+  }
+
+  if (stats.activeRentals > 0 && scorecard.riskTolerance < 50) {
+    return { ...BASE_PROFILES.conservative_cashflow, traits: [] };
+  }
+
+  if (stats.inRehabDeals > 0 && scorecard.riskTolerance >= 50) {
+    return { ...BASE_PROFILES.aggressive_appreciation, traits: [] };
+  }
+
+  return { ...BASE_PROFILES.balanced_investor, traits: [] };
+}
+
+export function getDynamicProfile(
+  stats: GameStats,
+  scorecard: PlayerScorecard,
+  gameRun: GameRun,
+  deals: Deal[]
+): InvestorProfile {
+  const baseProfile = classifyInvestorProfile(stats, scorecard);
+  const dynamicTraits = generateDynamicTraits(stats, scorecard, gameRun, deals);
+
+  const monthsUsed = 52 - (gameRun.weeksRemaining || 0);
+  let description = baseProfile.description;
+
+  if (stats.totalDeals === 0 && stats.pipelineDeals === 0) {
+    if (stats.propertiesResearched >= 3) {
+      description = `You've analyzed ${stats.propertiesResearched} properties without buying yet. Knowledge is power — when you strike, you'll be informed.`;
+    } else if (monthsUsed <= 5) {
+      description = "You're still finding your style. Fewer deals but careful analysis shows promise.";
+    } else if (monthsUsed > 20) {
+      description = "Taking the slow approach. The clock is ticking — the best investors act on their research.";
+    } else {
+      description = "You're surveying the landscape. Time to start narrowing down on a target property.";
+    }
+  } else if (stats.totalDeals === 0 && stats.pipelineDeals > 0) {
+    description = `You have ${stats.pipelineDeals} deal${stats.pipelineDeals > 1 ? 's' : ''} in the pipeline. Your investing style will take shape as deals close.`;
+  } else if (stats.totalDeals === 1) {
+    const deal = deals.find(d => d.status === 'completed' || d.status === 'active_rental' || d.status === 'sold_rental');
+    if (deal && (deal.actualProfit || 0) > 0) {
+      description = "Your first deal was profitable. One down — keep the momentum going.";
+    } else if (deal && (deal.actualProfit || 0) < 0) {
+      description = "First deal didn't go as planned, but every investor learns from the first one. Adjust and go again.";
+    } else {
+      description = "You've closed your first deal. Your investing personality is starting to emerge.";
+    }
+  }
+
+  return {
+    ...baseProfile,
+    description,
+    traits: dynamicTraits,
+  };
 }
 
 export function getInvestorProfile(type: InvestorProfileType): InvestorProfile {
-  return INVESTOR_PROFILES[type];
+  const base = BASE_PROFILES[type];
+  if (!base) return { ...BASE_PROFILES.cautious_newcomer, traits: [] };
+  return { ...base, traits: [] };
 }
 
 export interface Benchmark {

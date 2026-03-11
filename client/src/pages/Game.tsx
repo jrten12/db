@@ -1316,6 +1316,25 @@ export default function Game() {
       }
 
       toast.success(`Month ${result.newWeek} complete!`);
+
+      const STATS_REMINDER_MONTHS = [10, 20, 30, 40];
+      if (STATS_REMINDER_MONTHS.includes(result.newWeek)) {
+        setTimeout(() => {
+          let message = '';
+          if (result.newWeek === 10) {
+            message = "10 months in — check your Performance Stats to see your investor profile. Open the menu to view.";
+          } else if (result.newWeek === 20) {
+            message = "20 months in. How's your strategy shaping up? Tap the menu to review your Performance Stats.";
+          } else if (result.newWeek === 30) {
+            message = "Past the halfway mark. Your scorecard is tracking your progress — review it in the menu.";
+          } else if (result.newWeek === 40) {
+            message = "12 months to go. Time to review your benchmarks and make final moves. Check Performance Stats.";
+          }
+          if (message) {
+            toast(message, { duration: 5000 });
+          }
+        }, 2000);
+      }
     } catch (error: any) {
       toast.error(error.message || 'Failed to advance month');
     } finally {

@@ -252,21 +252,21 @@ import { rollForEnhancedMaintenance, updateRecentCurveballIds, ENHANCED_MAINTENA
  * Title Issue Types that can occur when skipping title search
  */
 const TITLE_ISSUES = [
-  { name: 'Unknown lien', minCost: 5000, maxCost: 25000 },
-  { name: 'Unpaid property taxes', minCost: 2000, maxCost: 15000 },
-  { name: 'Mechanics lien from previous owner', minCost: 3000, maxCost: 20000 },
-  { name: 'Boundary dispute resolution', minCost: 5000, maxCost: 35000 },
-  { name: 'Easement clearance', minCost: 2000, maxCost: 10000 },
-  { name: 'Estate heir claim settlement', minCost: 5000, maxCost: 25000 },
-  { name: 'Forged deed in chain of title', minCost: 10000, maxCost: 40000 },
-  { name: 'Outstanding HOA liens', minCost: 1500, maxCost: 8000 },
-  { name: 'Judgment lien from previous owner', minCost: 5000, maxCost: 20000 },
-  { name: 'Unpaid contractor liens', minCost: 3000, maxCost: 12000 },
+  { name: 'Unknown lien', minCost: 3000, maxCost: 15000 },
+  { name: 'Unpaid property taxes', minCost: 1500, maxCost: 10000 },
+  { name: 'Mechanics lien from previous owner', minCost: 2000, maxCost: 12000 },
+  { name: 'Boundary dispute resolution', minCost: 3000, maxCost: 20000 },
+  { name: 'Easement clearance', minCost: 1500, maxCost: 8000 },
+  { name: 'Estate heir claim settlement', minCost: 3000, maxCost: 15000 },
+  { name: 'Forged deed in chain of title', minCost: 5000, maxCost: 25000 },
+  { name: 'Outstanding HOA liens', minCost: 1000, maxCost: 6000 },
+  { name: 'Judgment lien from previous owner', minCost: 3000, maxCost: 12000 },
+  { name: 'Unpaid contractor liens', minCost: 2000, maxCost: 8000 },
 ];
 
 /**
  * Check for title issues when player skipped title search
- * 20% chance of a title issue occurring, with costs ranging $2,000-$100,000
+ * 15% chance of a title issue occurring (BAL-008), with costs ranging $1,000-$25,000
  */
 interface TitleIssueResult {
   hasIssue: boolean;
@@ -280,9 +280,9 @@ function checkForTitleIssue(didTitleSearch: boolean): TitleIssueResult {
     return { hasIssue: false, cost: 0 };
   }
   
-  // 20% chance of title issue when skipping title search
+  // 15% chance of title issue when skipping title search (BAL-008)
   const roll = Math.random();
-  if (roll > 0.20) {
+  if (roll > 0.15) {
     return { hasIssue: false, cost: 0 };
   }
   
@@ -507,12 +507,12 @@ export async function completeFlipDeal(
   // Each property-investigation type (appraisal, contractor_walkthrough, inspection, title_search) counts
   const diligenceTypes = ['appraisal', 'contractor_walkthrough', 'inspection', 'title_search'];
   const diligenceCount = diligenceTypes.filter(d => completedDiligence.includes(d)).length;
-  // 0 types = 0%, 1 = +1%, 2 = +3%, 3 = +5%, 4 = +6%
+  // 0 types = 0%, 1 = +2%, 2 = +4%, 3 = +6%, 4 = +8% (BAL-008: rewarding thorough diligence)
   const diligenceBonusPct = diligenceCount === 0 ? 0
-    : diligenceCount === 1 ? 0.01
-    : diligenceCount === 2 ? 0.03
-    : diligenceCount === 3 ? 0.05
-    : 0.06;
+    : diligenceCount === 1 ? 0.02
+    : diligenceCount === 2 ? 0.04
+    : diligenceCount === 3 ? 0.06
+    : 0.08;
   const diligenceBonusMultiplier = 1 + diligenceBonusPct;
   
   // Check for undiscovered property issues (surprise repair costs!)
@@ -612,9 +612,9 @@ export async function completeFlipDeal(
       // WITHOUT COMPS: Player is flying blind! Market reality may differ wildly
       const playerEstimate = proFormaInputs?.arv || ((property.arvMin + property.arvMax) / 2);
       
-      // Generate a "reality check" - actual market price varies widely
-      const baseRealityMin = 0.70 * marketMult.min;
-      const baseRealityMax = 1.20 * marketMult.max; // Reduced upside without research
+      // Generate a "reality check" - actual market price varies without comps (BAL-008: narrowed range)
+      const baseRealityMin = 0.75 * marketMult.min;
+      const baseRealityMax = 1.15 * marketMult.max;
       const realityFactor = baseRealityMin + (Math.random() * (baseRealityMax - baseRealityMin));
       
       // Calculate what the property is actually worth based on work done
@@ -1730,28 +1730,27 @@ export async function activateRentalProperty(
     // Base rent is condition-dependent but with uncertainty
     const conditionBasedRent = property.rentMin + (rehabCompletionFactor * rentRange);
     
-    // Reality factor: Most of the time (75%) rent is lower due to ignorance
-    // But ~25% of the time the property might perform at or above expectations (lucky!)
+    // Reality factor: Without market study, rent outcomes are uncertain (BAL-008: softened penalties)
     const luckyRoll = Math.random();
     let realityFactor: number;
-    if (luckyRoll < 0.25) {
-      // 25% chance: Player got lucky - property performs well (90-115%)
-      realityFactor = 0.90 + (Math.random() * 0.25);
-    } else if (luckyRoll < 0.50) {
-      // 25% chance: Property performs okay - slight discount (80-95%)
-      realityFactor = 0.80 + (Math.random() * 0.15);
+    if (luckyRoll < 0.30) {
+      // 30% chance: Player got lucky - property performs well (92-115%)
+      realityFactor = 0.92 + (Math.random() * 0.23);
+    } else if (luckyRoll < 0.60) {
+      // 30% chance: Property performs okay - slight discount (82-95%)
+      realityFactor = 0.82 + (Math.random() * 0.13);
     } else {
-      // 50% chance: Property underperforms as expected for no diligence (60-85%)
-      realityFactor = 0.60 + (Math.random() * 0.25);
+      // 40% chance: Property underperforms for no diligence (68-88%)
+      realityFactor = 0.68 + (Math.random() * 0.20);
     }
     actualRent = Math.round(conditionBasedRent * realityFactor);
     
     // If they ALSO skipped condition diligence on a property needing work,
     // additional penalty - but still not 100% guaranteed underwater
     if (!didContractorWalkthrough && !didInspection && (property.rehabMin || 0) > 5000) {
-      // 80% chance of blindness penalty, 20% chance of no extra penalty
-      if (Math.random() < 0.80) {
-        const blindnessPenalty = 0.85 + (Math.random() * 0.12); // 3-15% additional penalty
+      // 70% chance of blindness penalty, 30% chance of no extra penalty (BAL-008)
+      if (Math.random() < 0.70) {
+        const blindnessPenalty = 0.88 + (Math.random() * 0.10); // 2-12% additional penalty
         actualRent = Math.round(actualRent * blindnessPenalty);
       }
     }

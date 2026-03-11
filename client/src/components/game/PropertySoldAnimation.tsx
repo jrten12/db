@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, DollarSign, TrendingUp, Banknote, PartyPopper, Sparkles, BadgeDollarSign, ArrowRight } from 'lucide-react';
+import { Home, DollarSign, TrendingUp, Banknote, PartyPopper, Sparkles, BadgeDollarSign, ArrowRight, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { playSaleCompleteSound } from '@/hooks/useClickSound';
@@ -7,6 +7,7 @@ import { playSaleCompleteSound } from '@/hooks/useClickSound';
 interface PropertySoldAnimationProps {
   isOpen: boolean;
   onClose: () => void;
+  onShareCard?: () => void;
   saleData: {
     propertyName: string;
     salePrice: number;
@@ -15,6 +16,7 @@ interface PropertySoldAnimationProps {
     netProceeds: number;
     saleProfit: number;
     isRental: boolean;
+    rehabCost?: number;
   } | null;
 }
 
@@ -85,7 +87,7 @@ function MoneyRain() {
   );
 }
 
-export function PropertySoldAnimation({ isOpen, onClose, saleData }: PropertySoldAnimationProps) {
+export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData }: PropertySoldAnimationProps) {
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
@@ -269,7 +271,23 @@ export function PropertySoldAnimation({ isOpen, onClose, saleData }: PropertySol
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.6 }}
+                      className="space-y-2"
                     >
+                      {onShareCard && (
+                        <button
+                          onClick={onShareCard}
+                          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.97]"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(99,102,241,0.2))',
+                            border: '1.5px solid rgba(99,102,241,0.4)',
+                            color: '#a5b4fc',
+                          }}
+                          data-testid="button-share-deal-result"
+                        >
+                          <Share2 className="w-4 h-4" />
+                          Share Your Deal
+                        </button>
+                      )}
                       <Button
                         onClick={onClose}
                         className="w-full py-5 text-lg font-bold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500"

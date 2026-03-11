@@ -39,6 +39,7 @@ import { GoldTreasureModal } from '@/components/game/GoldTreasureModal';
 import { OperatingExpensesPopup } from '@/components/game/OperatingExpensesPopup';
 import { DealCongratulations } from '@/components/game/DealCongratulations';
 import { PropertySoldAnimation } from '@/components/game/PropertySoldAnimation';
+import { DealShareCard } from '@/components/game/DealShareCard';
 import { useTutorial } from '@/contexts/TutorialContext';
 import { GameHomeScreen } from '@/components/game/GameHomeScreen';
 import {
@@ -885,6 +886,20 @@ export default function Game() {
       netProceeds: number;
       saleProfit: number;
       isRental: boolean;
+      rehabCost?: number;
+    } | null;
+  }>({ isOpen: false, data: null });
+
+  const [shareCardData, setShareCardData] = useState<{
+    isOpen: boolean;
+    data: {
+      propertyName: string;
+      salePrice: number;
+      purchasePrice: number;
+      rehabCost: number;
+      saleProfit: number;
+      strategy: 'flip' | 'rental';
+      roi: number;
     } | null;
   }>({ isOpen: false, data: null });
 
@@ -1322,6 +1337,7 @@ export default function Game() {
       const property = properties.find(p => p.id === deal?.propertyId);
       
       // Show cool sold animation
+      const rentalRehab = deal?.proFormaInputs ? (typeof deal.proFormaInputs === 'object' ? (deal.proFormaInputs as any).rehabBudget || 0 : 0) : 0;
       setPropertySoldAnim({
         isOpen: true,
         data: {
@@ -1332,6 +1348,7 @@ export default function Game() {
           netProceeds: result.netProceeds,
           saleProfit: result.saleProfit,
           isRental: true,
+          rehabCost: rentalRehab,
         }
       });
       
@@ -1348,14 +1365,12 @@ export default function Game() {
     try {
       const result = await api.sellFlip(dealId, gameRun.id);
       
-      // Update game state with new cash and weeks
       setGameRun(result.gameRun);
       
-      // Find property name for animation
       const deal = deals.find(d => d.id === dealId);
       const property = properties.find(p => p.id === deal?.propertyId);
+      const flipRehab = deal?.proFormaInputs ? (typeof deal.proFormaInputs === 'object' ? (deal.proFormaInputs as any).rehabBudget || 0 : 0) : 0;
       
-      // Show cool sold animation
       setPropertySoldAnim({
         isOpen: true,
         data: {
@@ -1366,6 +1381,7 @@ export default function Game() {
           netProceeds: result.netProceeds || result.salePrice,
           saleProfit: result.saleProfit,
           isRental: false,
+          rehabCost: flipRehab,
         }
       });
       
@@ -2089,8 +2105,35 @@ export default function Game() {
         <PropertySoldAnimation
           isOpen={propertySoldAnim.isOpen}
           onClose={() => setPropertySoldAnim({ isOpen: false, data: null })}
+          onShareCard={() => {
+            if (propertySoldAnim.data) {
+              const d = propertySoldAnim.data;
+              const roi = d.purchasePrice > 0 ? (d.saleProfit / d.purchasePrice) * 100 : 0;
+              setShareCardData({
+                isOpen: true,
+                data: {
+                  propertyName: d.propertyName,
+                  salePrice: d.salePrice,
+                  purchasePrice: d.purchasePrice,
+                  rehabCost: d.rehabCost || 0,
+                  saleProfit: d.saleProfit,
+                  strategy: d.isRental ? 'rental' : 'flip',
+                  roi,
+                },
+              });
+            }
+          }}
           saleData={propertySoldAnim.data}
         />
+
+        {/* Deal Share Card */}
+        {shareCardData.data && (
+          <DealShareCard
+            isOpen={shareCardData.isOpen}
+            onClose={() => setShareCardData({ isOpen: false, data: null })}
+            data={shareCardData.data}
+          />
+        )}
 
         {/* Ledger Panel Modal */}
         {showLedger && (

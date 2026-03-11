@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, DollarSign, TrendingUp, Banknote, PartyPopper, Sparkles, BadgeDollarSign, ArrowRight, Share2 } from 'lucide-react';
+import { Home, DollarSign, TrendingUp, Banknote, PartyPopper, Sparkles, BadgeDollarSign, ArrowRight, Share2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { playSaleCompleteSound } from '@/hooks/useClickSound';
@@ -17,6 +17,10 @@ interface PropertySoldAnimationProps {
     saleProfit: number;
     isRental: boolean;
     rehabCost?: number;
+    sellingCosts?: number;
+    closingCosts?: number;
+    holdingCosts?: number;
+    loanFees?: number;
   } | null;
 }
 
@@ -89,11 +93,13 @@ function MoneyRain() {
 
 export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData }: PropertySoldAnimationProps) {
   const [showDetails, setShowDetails] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       playSaleCompleteSound();
       setShowDetails(false);
+      setShowBreakdown(false);
       const timer = setTimeout(() => setShowDetails(true), 800);
       return () => clearTimeout(timer);
     }
@@ -105,6 +111,16 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData }
   const profitPercent = saleData.purchasePrice > 0 
     ? ((saleData.saleProfit / saleData.purchasePrice) * 100).toFixed(1)
     : '0';
+
+  const breakdownItems = [
+    { label: 'Purchase Price', amount: saleData.purchasePrice, color: 'text-blue-300' },
+    ...(saleData.rehabCost && saleData.rehabCost > 0 ? [{ label: 'Rehab / Renovation', amount: saleData.rehabCost, color: 'text-orange-300' }] : []),
+    ...(saleData.closingCosts && saleData.closingCosts > 0 ? [{ label: 'Closing Costs', amount: saleData.closingCosts, color: 'text-slate-300' }] : []),
+    ...(saleData.loanFees && saleData.loanFees > 0 ? [{ label: 'Loan Fees', amount: saleData.loanFees, color: 'text-slate-300' }] : []),
+    ...(saleData.holdingCosts && saleData.holdingCosts > 0 ? [{ label: 'Holding Costs', amount: saleData.holdingCosts, color: 'text-amber-300' }] : []),
+    ...(saleData.sellingCosts && saleData.sellingCosts > 0 ? [{ label: 'Selling Costs', amount: saleData.sellingCosts, color: 'text-red-300' }] : []),
+  ];
+  const totalCosts = breakdownItems.reduce((sum, item) => sum + item.amount, 0);
 
   return (
     <AnimatePresence>
@@ -196,35 +212,60 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData }
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <motion.div
-                        className="bg-slate-800/60 rounded-xl p-3 border border-slate-700"
-                        initial={{ x: -20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.2 }}
+                    <motion.div
+                      className="bg-slate-800/40 rounded-xl border border-slate-700/50 overflow-hidden"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <button
+                        onClick={() => setShowBreakdown(!showBreakdown)}
+                        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-700/20 transition-colors"
+                        data-testid="button-toggle-deal-breakdown"
                       >
-                        <div className="flex items-center gap-2 mb-1">
-                          <Home className="w-4 h-4 text-blue-400" />
-                          <span className="text-xs text-gray-400">Purchase Price</span>
-                        </div>
-                        <p className="text-lg font-bold text-blue-300">${saleData.purchasePrice.toLocaleString()}</p>
-                      </motion.div>
-
-                      {saleData.mortgagePayoff > 0 && (
-                        <motion.div
-                          className="bg-slate-800/60 rounded-xl p-3 border border-slate-700"
-                          initial={{ x: 20, opacity: 0 }}
-                          animate={{ x: 0, opacity: 1 }}
-                          transition={{ delay: 0.3 }}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <Banknote className="w-4 h-4 text-amber-400" />
-                            <span className="text-xs text-gray-400">Mortgage Paid Off</span>
-                          </div>
-                          <p className="text-lg font-bold text-amber-300">${saleData.mortgagePayoff.toLocaleString()}</p>
-                        </motion.div>
-                      )}
-                    </div>
+                        <span className="text-sm font-semibold text-gray-300">Deal Breakdown</span>
+                        {showBreakdown ? (
+                          <ChevronUp className="w-4 h-4 text-gray-500" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-gray-500" />
+                        )}
+                      </button>
+                      <AnimatePresence>
+                        {showBreakdown && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-4 pb-3 space-y-1.5">
+                              <div className="flex items-center justify-between py-1.5 border-b border-slate-700/50">
+                                <span className="text-xs font-medium text-green-400">Sale Price</span>
+                                <span className="text-sm font-bold text-green-400">+${saleData.salePrice.toLocaleString()}</span>
+                              </div>
+                              <div className="text-[10px] uppercase tracking-wider text-gray-500 pt-1">Costs</div>
+                              {breakdownItems.map((item, i) => (
+                                <div key={i} className="flex items-center justify-between">
+                                  <span className="text-xs text-gray-400">{item.label}</span>
+                                  <span className={`text-xs font-medium ${item.color}`}>-${item.amount.toLocaleString()}</span>
+                                </div>
+                              ))}
+                              <div className="flex items-center justify-between pt-1.5 border-t border-slate-700/50">
+                                <span className="text-xs font-medium text-gray-300">Total Costs</span>
+                                <span className="text-xs font-bold text-gray-300">-${totalCosts.toLocaleString()}</span>
+                              </div>
+                              {saleData.mortgagePayoff > 0 && (
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-gray-500 italic">Mortgage payoff (from proceeds)</span>
+                                  <span className="text-gray-500">-${saleData.mortgagePayoff.toLocaleString()}</span>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
 
                     <motion.div
                       className={`rounded-xl p-4 border-2 ${

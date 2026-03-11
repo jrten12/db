@@ -887,6 +887,10 @@ export default function Game() {
       saleProfit: number;
       isRental: boolean;
       rehabCost?: number;
+      sellingCosts?: number;
+      closingCosts?: number;
+      holdingCosts?: number;
+      loanFees?: number;
     } | null;
   }>({ isOpen: false, data: null });
 
@@ -1355,19 +1359,31 @@ export default function Game() {
       const deal = deals.find(d => d.id === dealId);
       const property = properties.find(p => p.id === deal?.propertyId);
       
-      // Show cool sold animation
-      const rentalRehab = deal?.proFormaInputs ? (typeof deal.proFormaInputs === 'object' ? (deal.proFormaInputs as any).rehabBudget || 0 : 0) : 0;
+      const pfi = deal?.proFormaInputs && typeof deal.proFormaInputs === 'object' ? deal.proFormaInputs as any : {};
+      const pfo = deal?.proFormaOutputs && typeof deal.proFormaOutputs === 'object' ? deal.proFormaOutputs as any : {};
+      const rentalRehab = pfi.rehabBudget || 0;
+      const rPurchasePrice = deal?.purchasePrice || property?.price || 0;
+      const rClosingCosts = Math.round(rPurchasePrice * 0.025);
+      const rLoanAmount = pfo.loanAmount || 0;
+      const rLoanOriginationPct = pfi.loanOriginationPct ?? 2;
+      const rLoanFees = Math.round(rLoanAmount * (rLoanOriginationPct / 100));
+      const rSellingCostsPct = pfi.sellingCostsPct || 5;
+      const rSellingCosts = Math.round(result.salePrice * (rSellingCostsPct / 100));
+
       setPropertySoldAnim({
         isOpen: true,
         data: {
           propertyName: property?.name || 'Property',
           salePrice: result.salePrice,
-          purchasePrice: deal?.purchasePrice || property?.price || 0,
+          purchasePrice: rPurchasePrice,
           mortgagePayoff: result.mortgagePayoff,
           netProceeds: result.netProceeds,
           saleProfit: result.saleProfit,
           isRental: true,
           rehabCost: rentalRehab,
+          sellingCosts: rSellingCosts,
+          closingCosts: rClosingCosts,
+          loanFees: rLoanFees,
         }
       });
       
@@ -1388,19 +1404,42 @@ export default function Game() {
       
       const deal = deals.find(d => d.id === dealId);
       const property = properties.find(p => p.id === deal?.propertyId);
-      const flipRehab = deal?.proFormaInputs ? (typeof deal.proFormaInputs === 'object' ? (deal.proFormaInputs as any).rehabBudget || 0 : 0) : 0;
+      const fpfi = deal?.proFormaInputs && typeof deal.proFormaInputs === 'object' ? deal.proFormaInputs as any : {};
+      const fpfo = deal?.proFormaOutputs && typeof deal.proFormaOutputs === 'object' ? deal.proFormaOutputs as any : {};
+      const flipPurchasePrice = deal?.purchasePrice || property?.price || 0;
+      const flipRehabBudget = fpfi.rehabBudget || 0;
+      const flipClosingCosts = Math.round(flipPurchasePrice * 0.025);
+      const flipLoanAmount = fpfo.loanAmount || 0;
+      const flipLoanOriginationPct = fpfi.loanOriginationPct ?? 2;
+      const flipLoanFees = Math.round(flipLoanAmount * (flipLoanOriginationPct / 100));
+      const flipSellingCostsPct = fpfi.sellingCostsPct || 5;
+      const flipSellingCosts = Math.round(result.salePrice * (flipSellingCostsPct / 100));
+      const flipInterestRate = fpfo.interestRate || fpfi.interestRate || 0;
+      const flipTaxesAnnual = fpfi.taxesAnnual || 0;
+      const flipInsuranceAnnual = fpfi.insuranceAnnual || 0;
+      const flipRehabWeeks = deal?.weeksUntilCompletion || fpfi.rehabWeeks || 0;
+      const flipHoldingPerWeek = Math.round(
+        (flipLoanAmount * (flipInterestRate / 100) / 52) +
+        (flipTaxesAnnual / 52) +
+        (flipInsuranceAnnual / 52)
+      );
+      const flipHoldingCosts = flipHoldingPerWeek * flipRehabWeeks;
       
       setPropertySoldAnim({
         isOpen: true,
         data: {
           propertyName: property?.name || 'Property',
           salePrice: result.salePrice,
-          purchasePrice: deal?.purchasePrice || property?.price || 0,
+          purchasePrice: flipPurchasePrice,
           mortgagePayoff: result.mortgagePayoff || 0,
           netProceeds: result.netProceeds || result.salePrice,
           saleProfit: result.saleProfit,
           isRental: false,
-          rehabCost: flipRehab,
+          rehabCost: flipRehabBudget,
+          sellingCosts: flipSellingCosts,
+          closingCosts: flipClosingCosts,
+          holdingCosts: flipHoldingCosts,
+          loanFees: flipLoanFees,
         }
       });
       

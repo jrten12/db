@@ -780,19 +780,50 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     </div>
                   </div>
 
-                  {/* Rental Rehab Budget - optional renovation for rental properties */}
+                  {/* Rental Renovation - itemized when diligence done, slider fallback */}
                   <div className="col-span-full">
-                    <RehabBudgetSlider
-                      property={property}
-                      value={inputs.rehabBudget ?? 0}
-                      onChange={(val) => onInputsChange({ ...inputs, rehabBudget: val })}
-                      onFocus={() => onFieldTouch?.('rehabBudget')}
-                      hasDiligence={hasContractorWalkthrough || hasInspection}
-                      label="Renovation Budget (optional)"
-                      description="Fix up the property before renting to increase rent and reduce maintenance costs."
-                      zeroBadge="No Renovation"
-                      testId="slider-rental-rehab-budget"
-                    />
+                    {hasDiligenceForIssues && revealedIssues.length > 0 ? (
+                      <>
+                        <ItemizedRepairsPanel
+                          issues={revealedIssues}
+                          selectedIssueIds={inputs.fixedIssueIds || []}
+                          onSelectionChange={handleSelectedIssuesChange}
+                          contractorType={inputs.contractorType}
+                        />
+                        {(inputs.rehabBudget ?? 0) > 0 && (
+                          <div className="mt-3 p-3 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <span className="text-cyan-300 text-sm">Total Renovation Budget:</span>
+                              <span className="text-cyan-100 text-xl font-mono font-bold">${(inputs.rehabBudget ?? 0).toLocaleString()}</span>
+                            </div>
+                            <p className="text-gray-500 text-xs mt-1">Selected repairs will increase rent potential and reduce maintenance costs.</p>
+                          </div>
+                        )}
+                        {revealedIssues.length > 0 && (inputs.fixedIssueIds || []).length === 0 && (
+                          <div className="mt-2 p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                            <p className="text-emerald-400/80 text-xs">No repairs selected — you can rent as-is, but unfixed issues may reduce rent and increase maintenance costs.</p>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <RehabBudgetSlider
+                        property={property}
+                        value={inputs.rehabBudget ?? 0}
+                        onChange={(val) => onInputsChange({ ...inputs, rehabBudget: val })}
+                        onFocus={() => onFieldTouch?.('rehabBudget')}
+                        hasDiligence={hasContractorWalkthrough || hasInspection}
+                        label="Renovation Budget (optional)"
+                        description={
+                          hasContractorWalkthrough && hasInspection
+                            ? "No issues found — this property is in good shape. Optional renovation can still boost rent."
+                            : hasDiligenceForIssues
+                              ? "No issues found so far. Complete both Inspection and Contractor Walkthrough for a full picture."
+                              : "Do an Inspection or Contractor Walkthrough to see specific repair items and costs."
+                        }
+                        zeroBadge="No Renovation"
+                        testId="slider-rental-rehab-budget"
+                      />
+                    )}
                   </div>
                 </>
               ) : (
@@ -825,6 +856,13 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         onFocus={() => onFieldTouch?.('rehabBudget')}
                         hasDiligence={hasContractorWalkthrough || hasInspection}
                         label="Rehab Budget"
+                        description={
+                          hasContractorWalkthrough && hasInspection
+                            ? "No issues found — this property is in good shape. Optional rehab can still boost sale value."
+                            : hasDiligenceForIssues
+                              ? "No issues found so far. Complete both Inspection and Contractor Walkthrough for a full picture."
+                              : "Do an Inspection or Contractor Walkthrough to see specific repair items and costs."
+                        }
                         zeroBadge="No Rehab"
                         testId="slider-rehab-budget"
                       />

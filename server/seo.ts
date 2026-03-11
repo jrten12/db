@@ -8,9 +8,9 @@ interface PageMeta {
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
-const SITE_NAME = "Dealbreak: Real Estate Simulator";
+const SITE_NAME = "DealBreak Simulator";
 const BASE_URL = "https://dealbreaksimulator.com";
-const BASE_DESCRIPTION = "Learn real estate investing by doing. Analyze properties, build pro formas, manage rehabs, and close deals in this realistic property investment simulator. Free to play — no experience needed.";
+const BASE_DESCRIPTION = "DealBreak Simulator is a realistic real estate investing simulator game where players analyze property deals, build pro formas, estimate rehab costs, and decide whether an investment succeeds or fails.";
 
 const ARTICLE_DATA: Record<string, { title: string; subtitle: string; category: string; readTime: string; difficulty: string; keywords: string[]; sections: { heading: string; content: string }[] }> = {
   "what-is-a-pro-forma": {
@@ -227,17 +227,32 @@ function getPageMeta(url: string, req: Request): PageMeta {
 
   if (path === "/" || path === "") {
     return {
-      title: SITE_NAME,
+      title: "DealBreak Simulator – Real Estate Investing Simulator Game",
       description: BASE_DESCRIPTION,
       ogType: "website",
       canonical: baseUrl + "/",
       jsonLd: [
         {
           "@context": "https://schema.org",
-          "@type": "WebApplication",
-          "name": "Dealbreak: Real Estate Simulator",
+          "@type": "VideoGame",
+          "name": "DealBreak Simulator",
+          "genre": "Simulation",
+          "applicationCategory": "Game",
+          "description": "A real estate investing simulator game where players analyze property deals, build pro formas, estimate rehab costs, and decide whether an investment succeeds or fails.",
           "url": baseUrl,
-          "description": "An educational real estate investment simulation game that teaches pro forma analysis, cap rates, financing, and deal evaluation through interactive gameplay.",
+          "operatingSystem": "Web Browser",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+          "author": { "@type": "Organization", "name": "Dealbreak" },
+          "screenshot": baseUrl + "/favicon.png",
+          "playMode": "SinglePlayer",
+          "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 }
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "name": "DealBreak Simulator",
+          "url": baseUrl,
+          "description": "An educational real estate investing simulator game that teaches pro forma analysis, cap rates, financing, and deal evaluation through interactive gameplay.",
           "applicationCategory": "GameApplication",
           "genre": ["Simulation", "Educational"],
           "operatingSystem": "Web Browser",
@@ -338,6 +353,41 @@ function getPageMeta(url: string, req: Request): PageMeta {
         ]
       };
     }
+  }
+
+  if (path === "/what-is-dealbreak-simulator") {
+    return {
+      title: "What is DealBreak Simulator? | Real Estate Investing Simulator",
+      description: "DealBreak Simulator is a free real estate investing simulator game where you analyze property deals, build pro formas, estimate rehab costs, and learn whether an investment succeeds or fails.",
+      ogType: "article",
+      canonical: baseUrl + "/what-is-dealbreak-simulator",
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": "What is DealBreak Simulator?",
+          "description": "A free real estate investing simulator game where you analyze property deals, build pro formas, estimate rehab costs, and learn whether an investment succeeds or fails.",
+          "url": baseUrl + "/what-is-dealbreak-simulator",
+          "author": { "@type": "Organization", "name": "Dealbreak" },
+          "publisher": { "@type": "Organization", "name": "Dealbreak" },
+          "isPartOf": { "@type": "WebSite", "name": SITE_NAME, "url": baseUrl },
+          "about": {
+            "@type": "VideoGame",
+            "name": "DealBreak Simulator",
+            "genre": "Simulation",
+            "applicationCategory": "Game"
+          }
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": baseUrl },
+            { "@type": "ListItem", "position": 2, "name": "What is DealBreak Simulator?", "item": baseUrl + "/what-is-dealbreak-simulator" }
+          ]
+        }
+      ]
+    };
   }
 
   if (path === "/tools") {
@@ -548,7 +598,12 @@ export function injectSeoMeta(html: string, url: string, req: Request): string {
   );
 
   const canonicalTag = `<link rel="canonical" href="${escapeAttr(meta.canonical)}" />`;
-  html = html.replace("</head>", `    ${canonicalTag}\n  </head>`);
+  const existingCanonical = /<link rel="canonical" href="[^"]*" \/>/;
+  if (existingCanonical.test(html)) {
+    html = html.replace(existingCanonical, canonicalTag);
+  } else {
+    html = html.replace("</head>", `    ${canonicalTag}\n  </head>`);
+  }
 
   if (meta.jsonLd) {
     const existingJsonLd = /<script type="application\/ld\+json">[\s\S]*?<\/script>/g;
@@ -574,6 +629,7 @@ export function generateSitemap(baseUrl: string): string {
       priority: "0.8",
       changefreq: "monthly" as const
     })),
+    { loc: "/what-is-dealbreak-simulator", priority: "0.9", changefreq: "monthly" },
     { loc: "/tools", priority: "0.9", changefreq: "weekly" },
     { loc: "/tools/flip-or-rent", priority: "0.9", changefreq: "monthly" },
     { loc: "/tools/deal-scorecard", priority: "0.9", changefreq: "monthly" },

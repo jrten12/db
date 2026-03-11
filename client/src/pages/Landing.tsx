@@ -114,25 +114,33 @@ export default function Landing() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:gap-12 xl:gap-16">
             <div className="flex-1 text-center lg:text-left mb-6 lg:mb-0">
               <h1
-                className="text-[2.2rem] sm:text-[2.8rem] lg:text-5xl xl:text-[3.5rem] leading-[1.08] font-bold tracking-tight mb-4"
+                className="text-[2.2rem] sm:text-[2.8rem] lg:text-5xl xl:text-[3.5rem] leading-[1.08] font-bold tracking-tight mb-2"
                 style={{
                   color: '#f5f0e0',
                   textShadow: '0 2px 20px rgba(0,0,0,0.5)',
                 }}
               >
-                Can You Spot the
-                <br />
-                Deal That Breaks?
+                DealBreak Simulator
               </h1>
 
               <p
-                className="text-lg sm:text-xl leading-relaxed max-w-[480px] mx-auto lg:mx-0 mb-6"
+                className="text-lg sm:text-xl lg:text-2xl font-medium leading-snug max-w-[480px] mx-auto lg:mx-0 mb-3"
                 style={{
-                  color: 'rgba(225,220,205,0.8)',
+                  color: 'rgba(225,220,205,0.7)',
                   textShadow: '0 1px 8px rgba(0,0,0,0.4)',
                 }}
               >
-                Analyze risk, maximize reward, and build your empire.
+                A Real Estate Investing Simulator Game
+              </p>
+
+              <p
+                className="text-[15px] sm:text-base leading-relaxed max-w-[520px] mx-auto lg:mx-0 mb-6"
+                style={{
+                  color: 'rgba(225,220,205,0.55)',
+                  textShadow: '0 1px 8px rgba(0,0,0,0.3)',
+                }}
+              >
+                DealBreak Simulator is a realistic real estate investing simulator game where you analyze properties, run pro formas, estimate renovation costs, and decide whether an investment deal succeeds or fails.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
@@ -326,17 +334,17 @@ export default function Landing() {
             <FeatureColumn
               imageSrc={iconAnalyzeMarket}
               title="Analyze the Market"
-              description="Study properties, compare locations, and spot the deals others miss. Every market has hidden opportunities and traps."
+              description="Use the real estate deal analyzer to study properties, compare locations, and spot the deals others miss. Every market has hidden opportunities and traps."
             />
             <FeatureColumn
               imageSrc={iconBuildWealth}
               title="Build Your Wealth"
-              description="Flip houses for quick cash or hold rentals for steady income. Balance risk and reward to grow your portfolio."
+              description="Flip houses for quick cash or hold rentals for steady income. This property investment simulator lets you balance risk and reward to grow your portfolio."
             />
             <FeatureColumn
               imageSrc={iconMasterGame}
               title="Master the Game"
-              description="Learn real underwriting skills, manage contractors and tenants, and navigate shifting market conditions."
+              description="Learn real underwriting skills in this real estate simulator game. Manage contractors and tenants, and navigate shifting market conditions."
             />
           </div>
         </div>
@@ -419,7 +427,7 @@ export default function Landing() {
             Real Skills, Real Knowledge
           </h2>
           <p className="text-center text-sm sm:text-base max-w-2xl mx-auto mb-6 lg:mb-8" style={{ color: 'rgba(225,220,205,0.65)' }}>
-            Dealbreak teaches the same financial analysis skills used by professional real estate investors. Every concept in the game mirrors how real deals are evaluated.
+            This real estate investing simulator teaches the same financial analysis skills used by professional investors. Every concept in the game mirrors how real deals are evaluated.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

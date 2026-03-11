@@ -19,6 +19,7 @@ const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const Methodology = lazy(() => import("@/pages/Methodology"));
 const AppStoreScreenshots = lazy(() => import("@/pages/AppStoreScreenshots"));
+const WhatIsDealbreak = lazy(() => import("@/pages/WhatIsDealbreak"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 function Router() {
@@ -36,6 +37,7 @@ function Router() {
         <Route path="/privacy" component={PrivacyPolicy} />
         <Route path="/methodology" component={Methodology} />
         <Route path="/screenshots" component={AppStoreScreenshots} />
+        <Route path="/what-is-dealbreak-simulator" component={WhatIsDealbreak} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

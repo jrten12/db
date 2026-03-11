@@ -46,11 +46,18 @@ Preferred communication style: Simple, everyday language.
 - **App Store Checklist**: `mobile/APP_STORE_CHECKLIST.md`
 
 ### Content & SEO (AdSense Compliance)
+- **Branding**: "DealBreak Simulator" (capitalized B) — used consistently in titles, meta, OG tags, JSON-LD
+- **Homepage Title**: "DealBreak Simulator – Real Estate Investing Simulator Game" (keyword-optimized)
+- **Homepage H1**: "DealBreak Simulator" with subheadline "A Real Estate Investing Simulator Game" and key description paragraph
+- **Structured Data**: VideoGame + WebApplication + FAQPage JSON-LD schemas on homepage; Article schemas on content pages
+- **Canonical Tags**: Server-side injection replaces existing canonical (not duplicate append) via `injectSeoMeta()` in `server/seo.ts`
+- **Explainer Page**: `/what-is-dealbreak-simulator` — SEO-focused content page with Article + BreadcrumbList JSON-LD, priority 0.9 in sitemap
 - **Learning Center**: `/learn` hub page with 13 educational articles about real estate investing concepts
 - **Article Pages**: `/learn/:slug` individual article pages with engaging content, hero images, CSS infographics, callout/warning/tip sections
 - **Article Data**: `client/src/lib/learnArticles.ts` — structured article content with sections (text/callout/warning/tip/infographic types), InfographicData (comparison/scale/breakdown/steps/spectrum), difficulty levels, seoKeywords, heroImage references
 - **Article Images**: AI-generated hero images in `attached_assets/generated_images/learn_*.png`, imported via `@assets` alias in LearnArticle.tsx and Learn.tsx
 - **SEO Server Module**: `server/seo.ts` — duplicate ARTICLE_DATA for server-side meta injection, per-article keywords, difficulty levels, JSON-LD Article/BreadcrumbList schemas
+- **Target Keywords**: "real estate investing simulator", "real estate simulator game", "property investment simulator", "real estate deal analyzer" — used naturally in homepage and explainer page copy
 - **Ad Placement**: Ads only on content-rich pages (Landing page, Learn hub, article pages). Removed from game UI screens (PropertySelector, ResultsPanel) per AdSense policy.
 - **Structured Data**: JSON-LD schema markup via server/seo.ts for WebApplication, FAQPage, Article, BreadcrumbList, CollectionPage types
 

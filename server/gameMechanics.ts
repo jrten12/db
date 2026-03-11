@@ -246,7 +246,7 @@ export function calculateWeeklyPrincipalPayment(
   };
 }
 
-import { rollForEnhancedMaintenance, updateRecentCurveballIds } from './maintenanceMechanics';
+import { rollForEnhancedMaintenance, updateRecentCurveballIds, ENHANCED_MAINTENANCE_EVENTS } from './maintenanceMechanics';
 
 /**
  * Title Issue Types that can occur when skipping title search
@@ -1231,6 +1231,14 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   // Get all property investigations for this game to check undiscovered issues
   const investigations = await storage.getPropertyInvestigations(gameRunId);
 
+  // Pre-fetch tenants for all active rentals (used for tenant text messages)
+  let allTenants: any[] = [];
+  try {
+    allTenants = await storage.getTenantsByGameRun(gameRunId);
+  } catch (err) {
+    // Non-critical
+  }
+
   // Process active rental deals - pay weekly income
   // Skip rentals under rehab - no income when tenant is displaced
   for (const deal of deals) {
@@ -1243,6 +1251,20 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         const curveball = property
           ? rollForEnhancedMaintenance(property, deal, recentCurveballIds)
           : rollForCurveball('rental_monthly', undefined, recentCurveballIds);
+
+        if (curveball && curveball.tenantIssue && !curveball.tenantMessage) {
+          const eventDef = ENHANCED_MAINTENANCE_EVENTS.find(e => e.id === curveball.id);
+          if (eventDef?.tenantMessages) {
+            const tenant = allTenants.find((t: any) => t.dealId === deal.id);
+            if (tenant) {
+              const personality = (tenant.personalityType || 'generic') as keyof typeof eventDef.tenantMessages;
+              const messages = eventDef.tenantMessages[personality] || eventDef.tenantMessages.generic;
+              if (messages && messages.length > 0) {
+                curveball.tenantMessage = messages[Math.floor(Math.random() * messages.length)];
+              }
+            }
+          }
+        }
 
         const result = await processRentalIncome(deal, gameRun, curveball, runningCash);
         runningCash = result.newCash;

@@ -325,6 +325,15 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     description: 'Significant plumbing issue requiring extensive repair work.',
     emoji: '🚿',
     relatedIssueIds: ['plumbing_galvanized', 'plumbing_stack', 'plumbing_replacement'],
+    tenantMessages: {
+      corporate_brain: ["major plumbing situation. water pressure near zero, pipes groaning. need a licensed plumber asap"],
+      retired_micromanager: ["Water shut off at 8:15 AM due to pipe failure. Damage spreading to subfloor. Photos and video documented."],
+      anxious_professional: ["theres water EVERYWHERE. like actually flooding. is this going to damage the foundation?? should i leave??"],
+      chaos_magnet: ["pipes decided today was the day to give up on life. kitchen looks like a swimming pool now"],
+      passive_aggressive: ["so the pipes burst. been mopping for a while. getting really good at it actually. no worries"],
+      law_curious: ["documenting extensive water damage from plumbing failure. will need to discuss remediation timeline and liability"],
+      generic: ["hey major plumbing problem. water everywhere. had to shut off the main. need emergency plumber"],
+    },
   },
 
   // ELECTRICAL ISSUES
@@ -339,6 +348,14 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     description: 'An electrical outlet or circuit issue needs repair.',
     emoji: '⚡',
     relatedIssueIds: ['electrical_outdated', 'electrical_upgrade', 'knob_tube'],
+    tenantMessages: {
+      corporate_brain: ["outlet in home office dead. tripping breaker when reset. need electrician before i lose a workday"],
+      retired_micromanager: ["Outlet in bedroom sparked at 7:02 PM. Breaker tripped twice. Circuit 14 on panel. Fire risk concern."],
+      anxious_professional: ["outlet sparked!! is that dangerous?? like fire dangerous?? should i turn off the breaker??"],
+      chaos_magnet: ["half the outlets in the kitchen stopped working. microwave and fridge on the same one now. fun"],
+      passive_aggressive: ["few outlets stopped working. been running extension cords everywhere. very cozy industrial look"],
+      generic: ["hey couple outlets stopped working. tried resetting breaker but they keep tripping. need electrician"],
+    },
   },
   {
     id: 'electrical_panel',
@@ -365,6 +382,15 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     description: 'There\'s a roof leak after the heavy rain that needs immediate repair.',
     emoji: '☔',
     relatedIssueIds: ['roof_wear', 'roof_replacement', 'roof_shared', 'roof_historic'],
+    tenantMessages: {
+      corporate_brain: ["ceiling leak in bedroom. water stain expanding. placing bucket. need roofer scheduled urgently"],
+      retired_micromanager: ["Leak started 11:30 PM during rain. Drip rate: every 2 seconds. Bucket filling every 6 hours. Ceiling paint bubbling."],
+      anxious_professional: ["theres water dripping from the CEILING. is the roof going to collapse?? this feels really bad??"],
+      chaos_magnet: ["woke up to rain. inside the house. ceiling is crying. this is fine"],
+      passive_aggressive: ["lovely indoor waterfall in the bedroom now. very zen. bucket is getting full tho. whenever ur free"],
+      new_money: ["ceiling leak is unacceptable. water damaged my nightstand. need immediate repair and damage assessment"],
+      generic: ["hey roof is leaking. water coming through the bedroom ceiling. needs repair before it gets worse"],
+    },
   },
   {
     id: 'foundation_concern',
@@ -433,6 +459,14 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     emoji: '⚠️',
     requiresSeptic: true,
     relatedIssueIds: ['septic_issues'],
+    tenantMessages: {
+      corporate_brain: ["septic situation escalating. drains backing up across the unit. need emergency service today"],
+      retired_micromanager: ["Septic backup started 9:45 AM. Shower, sinks, and toilets all draining slow. Smell noticeable in yard."],
+      anxious_professional: ["something is seriously wrong with the septic?? theres a smell and the drains are backing up. is this hazardous??"],
+      chaos_magnet: ["so the yard smells like a swamp and the toilets arent flushing. septic tank said no more. love it"],
+      passive_aggressive: ["interesting aroma from the yard lately. drains backing up too. sure its nothing. whenever u have a sec"],
+      generic: ["hey septic system is backing up. drains not working and bad smell outside. need someone out here asap"],
+    },
   },
 
   // WELL WATER
@@ -448,6 +482,14 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     emoji: '💦',
     requiresWell: true,
     relatedIssueIds: ['well_water', 'well_pump'],
+    tenantMessages: {
+      corporate_brain: ["water pressure dropped to zero. well pump cycling on/off. cant work from home without running water"],
+      retired_micromanager: ["Well pump cutting out every 15 minutes. Pressure drops from 40 to 12 PSI. Started yesterday 3 PM. Log attached."],
+      anxious_professional: ["no water pressure?? the pump keeps making clicking sounds. is it going to burn out?? should i turn it off??"],
+      chaos_magnet: ["well pump is doing its dying whale impression again. water comes out in sad little spurts. vibes are off"],
+      passive_aggressive: ["water pressure is... artistic. sometimes strong, sometimes a trickle. keeps things exciting. whenever"],
+      generic: ["hey well pump isnt working right. water pressure really low and pump keeps cycling. need someone to check it"],
+    },
   },
 
   // LANDSCAPING/EXTERIOR

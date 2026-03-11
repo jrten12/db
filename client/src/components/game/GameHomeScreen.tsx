@@ -46,10 +46,10 @@ export function GameHomeScreen({
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-start px-4 py-4 md:py-8">
-      <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-5">
+    <div className="flex flex-col items-center justify-start px-4 py-3 md:py-8">
+      <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-3 md:gap-5">
         <div
-          className="relative flex flex-col items-center gap-3 pt-2 pb-1 transition-all duration-700"
+          className="relative flex flex-col items-center gap-2 md:gap-3 pt-1 md:pt-2 pb-1 transition-all duration-700"
           style={{ opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(-12px)' }}
         >
           <div className="absolute -inset-10 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.04) 60%, transparent 100%)' }} />
@@ -118,10 +118,10 @@ export function GameHomeScreen({
           </div>
         )}
 
-        <div className="w-full space-y-2.5">
+        <div className="w-full space-y-2">
           <button
             onClick={onPlayGame}
-            className="w-full relative overflow-hidden flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-bold text-lg transition-all duration-150 ios-spring tap-scale touch-target"
+            className="w-full relative overflow-hidden flex items-center justify-center gap-3 px-6 py-3 md:py-4 rounded-xl font-bold text-lg transition-all duration-150 ios-spring tap-scale touch-target"
             style={{
               background: 'linear-gradient(135deg, rgba(16,185,129,0.35) 0%, rgba(5,150,105,0.45) 100%)',
               border: '2px solid rgba(16,185,129,0.5)',
@@ -138,7 +138,7 @@ export function GameHomeScreen({
           {!hasActiveGame && (
             <button
               onClick={onTutorial}
-              className="w-full relative overflow-hidden flex items-center justify-center gap-3 px-6 py-3.5 rounded-xl font-bold transition-all duration-150 ios-spring tap-scale touch-target animate-pulse"
+              className="w-full relative overflow-hidden flex items-center justify-center gap-3 px-6 py-2.5 md:py-3.5 rounded-xl font-bold transition-all duration-150 ios-spring tap-scale touch-target animate-pulse"
               style={{
                 animationDuration: '2.5s',
                 background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(37,99,235,0.4) 100%)',
@@ -169,7 +169,7 @@ export function GameHomeScreen({
 
           <Link
             href="/learn"
-            className="w-full relative overflow-hidden flex items-center gap-4 px-5 py-3.5 rounded-xl font-semibold transition-all duration-150 ios-spring tap-scale touch-target group"
+            className="w-full relative overflow-hidden flex items-center gap-4 px-5 py-2.5 md:py-3.5 rounded-xl font-semibold transition-all duration-150 ios-spring tap-scale touch-target group"
             style={{
               background: 'linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(245,158,11,0.2) 50%, rgba(217,119,6,0.15) 100%)',
               border: '1.5px solid rgba(251,191,36,0.35)',

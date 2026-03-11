@@ -68,22 +68,31 @@ const RESULT_CONFIG: Record<RuleResult, { icon: typeof CheckCircle; color: strin
   fail: { icon: XCircle, color: '#ef4444', bg: 'rgba(239,68,68,0.1)', label: 'Fail' },
 };
 
+function formatWithCommas(val: string): string {
+  const parts = val.split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
+}
+
 function InputField({ label, value, onChange, prefix, suffix, placeholder, tooltip, optional }: {
   label: string; value: string; onChange: (v: string) => void; prefix?: string; suffix?: string; placeholder?: string; tooltip?: string; optional?: boolean;
 }) {
   const [showTip, setShowTip] = useState(false);
+  const displayValue = value ? formatWithCommas(value) : '';
+  const isDollar = prefix === '$';
+
   return (
     <div>
-      <div className="flex items-center gap-1.5 mb-1.5">
-        <label className="text-sm text-white/60 font-medium">{label}</label>
-        {optional && <span className="text-[10px] text-white/25">(optional)</span>}
+      <div className="flex items-center gap-1.5 mb-1">
+        <label className="text-xs text-white/50 font-medium uppercase tracking-wider">{label}</label>
+        {optional && <span className="text-[10px] text-white/20 italic">optional</span>}
         {tooltip && (
           <button
             onClick={() => setShowTip(!showTip)}
-            className="text-white/30 hover:text-white/60 transition-colors"
+            className="text-white/25 hover:text-white/50 transition-colors"
             data-testid={`tip-${label.toLowerCase().replace(/\s+/g, '-')}`}
           >
-            <Info className="w-3.5 h-3.5" />
+            <Info className="w-3 h-3" />
           </button>
         )}
       </div>
@@ -91,21 +100,21 @@ function InputField({ label, value, onChange, prefix, suffix, placeholder, toolt
         <p className="text-xs text-white/40 mb-1.5 leading-relaxed">{tooltip}</p>
       )}
       <div className="relative">
-        {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 text-sm pointer-events-none">{prefix}</span>}
+        {prefix && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-sm font-mono pointer-events-none">{prefix}</span>}
         <input
           type="text"
           inputMode="decimal"
-          value={value}
+          value={displayValue}
           onChange={(e) => {
             const raw = e.target.value.replace(/[^0-9.]/g, '');
             onChange(raw);
           }}
           placeholder={placeholder}
-          className="w-full bg-white/[0.04] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20 transition-all font-mono"
+          className={`w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-amber-500/40 focus:bg-white/[0.05] transition-all font-mono ${isDollar ? 'text-amber-300/90' : ''}`}
           style={{ paddingLeft: prefix ? '1.75rem' : undefined, paddingRight: suffix ? '2.5rem' : undefined }}
           data-testid={`input-${label.toLowerCase().replace(/\s+/g, '-')}`}
         />
-        {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-sm pointer-events-none">{suffix}</span>}
+        {suffix && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 text-sm font-mono pointer-events-none">{suffix}</span>}
       </div>
     </div>
   );

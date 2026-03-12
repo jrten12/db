@@ -243,7 +243,7 @@ function getPageMeta(url: string, req: Request): PageMeta {
           "operatingSystem": "Web Browser",
           "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
           "author": { "@type": "Organization", "name": "Dealbreak" },
-          "screenshot": baseUrl + "/favicon.png",
+          "screenshot": baseUrl + "/opengraph.jpg",
           "playMode": "SinglePlayer",
           "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 }
         },
@@ -258,7 +258,7 @@ function getPageMeta(url: string, req: Request): PageMeta {
           "operatingSystem": "Web Browser",
           "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
           "author": { "@type": "Organization", "name": "Dealbreak" },
-          "screenshot": baseUrl + "/favicon.png",
+          "screenshot": baseUrl + "/opengraph.jpg",
           "featureList": ["Pro Forma Financial Analysis", "Cap Rate & Cash-on-Cash Calculations", "Flip vs Rent Strategy", "Due Diligence Simulation", "Market Conditions Modeling", "Rehab Budget Planning", "Tenant Management"]
         },
         {

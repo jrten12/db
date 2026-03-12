@@ -48,8 +48,6 @@ export function AdBanner({ slot, format = 'horizontal', className = '' }: AdBann
     return null;
   }
 
-  const heightClass = format === 'rectangle' ? 'min-h-[250px]' : 'max-h-[90px]';
-
   const adProps: Record<string, string> = {
     'data-ad-client': pubId,
     'data-ad-format': format === 'auto' ? 'auto' : format === 'rectangle' ? 'rectangle' : 'horizontal',
@@ -63,13 +61,14 @@ export function AdBanner({ slot, format = 'horizontal', className = '' }: AdBann
   return (
     <div 
       className={`w-full flex items-center justify-center ${className}`}
+      style={{ minHeight: 0 }}
       data-testid="ad-banner"
     >
-      <div className={`w-full ${heightClass} overflow-hidden rounded-lg opacity-80`}>
+      <div className="w-full overflow-hidden rounded-lg opacity-80">
         <ins
           ref={adRef}
           className="adsbygoogle"
-          style={{ display: 'block', width: '100%', height: '100%' }}
+          style={{ display: 'block', width: '100%' }}
           {...adProps}
         />
       </div>

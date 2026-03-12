@@ -110,7 +110,7 @@ export default function Landing() {
           }}
         />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-5 py-8 lg:py-16">
+        <div className="relative z-10 max-w-6xl mx-auto px-5 py-5 lg:py-16">
           <div className="flex flex-col lg:flex-row lg:items-center lg:gap-12 xl:gap-16">
             <div className="flex-1 text-center lg:text-left mb-6 lg:mb-0">
               <h1
@@ -196,7 +196,7 @@ export default function Landing() {
       </section>
 
       {/* === STRATEGY INTEL PROMO === */}
-      <section className="py-4 lg:py-10 px-5">
+      <section className="py-2 lg:py-10 px-5">
         <div className="max-w-5xl mx-auto">
           <Link href="/learn">
             <div
@@ -304,11 +304,11 @@ export default function Landing() {
       </section>
 
       {/* === AD SLOT 1 === */}
-      <AdBanner className="px-5 py-1" />
+      <AdBanner className="px-5 py-0.5" />
 
       {/* === EVERY DEAL HAS A STORY === */}
       <section
-        className="relative py-6 lg:py-16"
+        className="relative py-3 lg:py-16"
         style={{
           background: 'linear-gradient(180deg, #151518 0%, #131316 100%)',
         }}
@@ -321,7 +321,7 @@ export default function Landing() {
         />
         <div className="max-w-5xl mx-auto px-5">
           <h2
-            className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 lg:mb-12"
+            className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 lg:mb-12"
             style={{
               color: '#f0e6d0',
               fontStyle: 'italic',
@@ -330,7 +330,7 @@ export default function Landing() {
             Every Deal Has a Story
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-6 lg:gap-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 lg:gap-12">
             <FeatureColumn
               imageSrc={iconAnalyzeMarket}
               title="Analyze the Market"
@@ -351,10 +351,10 @@ export default function Landing() {
       </section>
 
       {/* === YOUR PATH TO VICTORY === */}
-      <section className="px-5 py-6 lg:py-16">
+      <section className="px-5 py-3 lg:py-16">
         <div className="max-w-4xl mx-auto">
           <h2
-            className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-6 lg:mb-8"
+            className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 lg:mb-8"
             style={{ color: '#f0e6d0' }}
           >
             Your Path to Victory
@@ -383,7 +383,7 @@ export default function Landing() {
             />
           </div>
 
-          <div className="text-center mt-6 lg:mt-8">
+          <div className="text-center mt-4 lg:mt-8">
             <Link href="/game">
               <button
                 className="group py-3.5 px-8 rounded-lg font-bold text-lg transition-all hover:brightness-110 active:scale-[0.98] inline-flex items-center gap-2"
@@ -404,11 +404,11 @@ export default function Landing() {
       </section>
 
       {/* === AD SLOT 2 === */}
-      <AdBanner className="px-5 py-1" />
+      <AdBanner className="px-5 py-0.5" />
 
       {/* === WHAT YOU'LL LEARN === */}
       <section
-        className="relative py-6 lg:py-14"
+        className="relative py-3 lg:py-14"
         style={{
           background: 'linear-gradient(180deg, #131316 0%, #151518 100%)',
         }}
@@ -460,7 +460,7 @@ export default function Landing() {
       </section>
 
       {/* === FAQ === */}
-      <section className="py-6 lg:py-14 px-5">
+      <section className="py-3 lg:py-14 px-5">
         <div className="max-w-3xl mx-auto">
           <h2
             className="text-center text-2xl sm:text-3xl font-bold mb-5 lg:mb-6"
@@ -491,7 +491,7 @@ export default function Landing() {
       </section>
 
       {/* Disclaimer */}
-      <div className="px-5 py-4 text-center">
+      <div className="px-5 py-2 text-center">
         <p className="text-sm" style={{ color: 'rgba(200,195,180,0.35)' }}>
           A real estate strategy game. Not financial advice.{' '}
           <Link href="/methodology" className="underline hover:no-underline" style={{ color: 'rgba(200,195,180,0.45)' }}>
@@ -506,7 +506,7 @@ export default function Landing() {
       </div>
 
       {/* === AD SLOT 3 === */}
-      <AdBanner className="px-5 pb-3" />
+      <AdBanner className="px-5 pb-1" />
 
       <Footer />
       <div className="pb-[max(0.5rem,env(safe-area-inset-bottom))]" />
@@ -525,7 +525,7 @@ function FeatureColumn({
 }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <div className="w-24 h-24 sm:w-20 sm:h-20 lg:w-28 lg:h-28 mb-4 flex-shrink-0 rounded-2xl overflow-hidden"
+      <div className="w-20 h-20 sm:w-20 sm:h-20 lg:w-28 lg:h-28 mb-2 flex-shrink-0 rounded-2xl overflow-hidden"
         style={{
           background: 'radial-gradient(circle at center, rgba(34,34,40,0.8), rgba(20,20,24,0.9))',
           padding: '10px',

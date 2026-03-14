@@ -893,7 +893,20 @@ export default function Game() {
       holdingCosts?: number;
       loanFees?: number;
     } | null;
-  }>({ isOpen: false, data: null });
+    proFormaProjections?: {
+      projectedProfit?: number;
+      projectedROI?: number;
+      projectedMonthlyCashFlow?: number;
+      projectedCashOnCash?: number;
+      projectedSalePrice?: number;
+      projectedRent?: number;
+      projectedTotalExpenses?: number;
+      totalRentalIncome?: number;
+      totalExpensesPaid?: number;
+      monthsHeld?: number;
+      strategy: 'rent' | 'flip';
+    } | null;
+  }>({ isOpen: false, data: null, proFormaProjections: null });
 
   const [shareCardData, setShareCardData] = useState<{
     isOpen: boolean;
@@ -1368,6 +1381,11 @@ export default function Game() {
       const rSellingCostsPct = pfi.sellingCostsPct || 5;
       const rSellingCosts = Math.round(result.salePrice * (rSellingCostsPct / 100));
 
+      const rentalMonthsHeld = deal?.weeksUntilCompletion || (gameRun ? Math.max(1, gameRun.currentWeek - (deal?.lastIncomePaymentWeek || 0)) : 1);
+      const projectedMonthlyCashFlow = pfo.cashFlowMonthly || 0;
+      const projectedCashOnCash = pfo.cashOnCash || 0;
+      const projectedRent = pfi.expectedRent || pfi.monthlyRent || 0;
+
       setPropertySoldAnim({
         isOpen: true,
         data: {
@@ -1382,7 +1400,15 @@ export default function Game() {
           sellingCosts: rSellingCosts,
           closingCosts: rClosingCosts,
           loanFees: rLoanFees,
-        }
+        },
+        proFormaProjections: {
+          strategy: 'rent',
+          projectedProfit: projectedMonthlyCashFlow * rentalMonthsHeld,
+          projectedMonthlyCashFlow,
+          projectedCashOnCash,
+          projectedRent,
+          monthsHeld: rentalMonthsHeld,
+        },
       });
       
       queryClient.invalidateQueries({ queryKey: ['deals'] });
@@ -1423,6 +1449,10 @@ export default function Game() {
       );
       const flipHoldingCosts = flipHoldingPerWeek * flipRehabWeeks;
       
+      const flipProjectedProfit = fpfo.flipProfit || 0;
+      const flipProjectedROI = fpfo.flipROI || 0;
+      const flipProjectedSalePrice = fpfo.arvWithFinishBoost || fpfo.arv || fpfi.arv || 0;
+
       setPropertySoldAnim({
         isOpen: true,
         data: {
@@ -1438,7 +1468,15 @@ export default function Game() {
           closingCosts: flipClosingCosts,
           holdingCosts: flipHoldingCosts,
           loanFees: flipLoanFees,
-        }
+        },
+        proFormaProjections: {
+          strategy: 'flip',
+          projectedProfit: flipProjectedProfit,
+          projectedROI: flipProjectedROI,
+          projectedSalePrice: flipProjectedSalePrice,
+          projectedTotalExpenses: flipRehabBudget + flipClosingCosts + flipLoanFees,
+          monthsHeld: flipRehabWeeks,
+        },
       });
       
       // Show trophy notifications if any were awarded
@@ -2170,7 +2208,8 @@ export default function Game() {
         {/* Property Sold Animation */}
         <PropertySoldAnimation
           isOpen={propertySoldAnim.isOpen}
-          onClose={() => setPropertySoldAnim({ isOpen: false, data: null })}
+          onClose={() => setPropertySoldAnim({ isOpen: false, data: null, proFormaProjections: null })}
+          proFormaProjections={propertySoldAnim.proFormaProjections}
           onShareCard={() => {
             if (propertySoldAnim.data) {
               const d = propertySoldAnim.data;

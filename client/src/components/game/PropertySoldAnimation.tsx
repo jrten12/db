@@ -1,13 +1,28 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, DollarSign, TrendingUp, Banknote, PartyPopper, Sparkles, BadgeDollarSign, ArrowRight, Share2, ChevronDown, ChevronUp } from 'lucide-react';
+import { DollarSign, PartyPopper, Sparkles, BadgeDollarSign, ArrowRight, Share2, ChevronDown, ChevronUp, Target, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { playSaleCompleteSound } from '@/hooks/useClickSound';
+
+interface ProFormaProjection {
+  projectedProfit?: number;
+  projectedROI?: number;
+  projectedMonthlyCashFlow?: number;
+  projectedCashOnCash?: number;
+  projectedSalePrice?: number;
+  projectedRent?: number;
+  projectedTotalExpenses?: number;
+  totalRentalIncome?: number;
+  totalExpensesPaid?: number;
+  monthsHeld?: number;
+  strategy: 'rent' | 'flip';
+}
 
 interface PropertySoldAnimationProps {
   isOpen: boolean;
   onClose: () => void;
   onShareCard?: () => void;
+  proFormaProjections?: ProFormaProjection | null;
   saleData: {
     propertyName: string;
     salePrice: number;
@@ -91,15 +106,116 @@ function MoneyRain() {
   );
 }
 
-export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData }: PropertySoldAnimationProps) {
+function ComparisonRow({ label, projected, actual, format = 'currency', higherIsBetter = true }: {
+  label: string;
+  projected: number;
+  actual: number;
+  format?: 'currency' | 'percent' | 'currencyPerMonth';
+  higherIsBetter?: boolean;
+}) {
+  const diff = actual - projected;
+  const isGood = higherIsBetter ? diff >= 0 : diff <= 0;
+  const isClose = Math.abs(diff) < Math.abs(projected) * 0.05;
+
+  const fmt = (v: number) => {
+    if (format === 'percent') return `${v.toFixed(1)}%`;
+    if (format === 'currencyPerMonth') return `${v < 0 ? '-' : ''}$${Math.abs(Math.round(v)).toLocaleString()}/mo`;
+    return `${v < 0 ? '-' : ''}$${Math.abs(Math.round(v)).toLocaleString()}`;
+  };
+
+  const diffFmt = (v: number) => {
+    const sign = v > 0 ? '+' : v < 0 ? '-' : '';
+    if (format === 'percent') return `${sign}${Math.abs(v).toFixed(1)}%`;
+    if (format === 'currencyPerMonth') return `${sign}$${Math.abs(Math.round(v)).toLocaleString()}/mo`;
+    return `${sign}$${Math.abs(Math.round(v)).toLocaleString()}`;
+  };
+
+  return (
+    <div className="grid grid-cols-[1fr,auto,auto,auto] gap-2 items-center py-1.5 text-xs">
+      <span className="text-gray-400">{label}</span>
+      <span className="text-gray-300 font-mono text-right w-20">{fmt(projected)}</span>
+      <span className="text-white font-mono font-semibold text-right w-20">{fmt(actual)}</span>
+      <span className={`font-mono text-right w-20 font-semibold ${
+        isClose ? 'text-gray-400' : isGood ? 'text-emerald-400' : 'text-red-400'
+      }`}>
+        {isClose ? '~' : diffFmt(diff)}
+      </span>
+    </div>
+  );
+}
+
+const GRADE_RANK: Record<string, number> = { 'A+': 1, 'A': 2, 'B': 3, 'C': 4, 'D': 5, 'F': 6, '-': 7 };
+
+function isGoodGrade(grade: string): boolean {
+  return (GRADE_RANK[grade] || 7) <= 3;
+}
+
+function getAccuracyGrade(projectedProfit: number, actualProfit: number): { grade: string; color: string; message: string } {
+  if (projectedProfit === 0 && actualProfit === 0) return { grade: '-', color: 'text-gray-400', message: 'No projection available' };
+
+  const diff = Math.abs(actualProfit - projectedProfit);
+  const base = Math.max(Math.abs(projectedProfit), 1000);
+  const pctOff = (diff / base) * 100;
+
+  if (pctOff <= 5) return { grade: 'A+', color: 'text-emerald-400', message: 'Spot-on underwriting! Your projections were nearly perfect.' };
+  if (pctOff <= 15) return { grade: 'A', color: 'text-emerald-400', message: 'Strong analysis. Your estimates were close to reality.' };
+  if (pctOff <= 25) return { grade: 'B', color: 'text-blue-400', message: 'Decent projections. Some assumptions were off but close enough.' };
+  if (pctOff <= 40) return { grade: 'C', color: 'text-amber-400', message: 'Projections had notable gaps. Review your assumptions for next time.' };
+  if (pctOff <= 60) return { grade: 'D', color: 'text-orange-400', message: 'Significant gap between prediction and reality. Diligence matters.' };
+  return { grade: 'F', color: 'text-red-400', message: 'Your projections were way off. Focus on better market research and conservative estimates.' };
+}
+
+function getWhyDifferent(proj: ProFormaProjection, saleData: NonNullable<PropertySoldAnimationProps['saleData']>): string[] {
+  const reasons: string[] = [];
+
+  const actualProfit = saleData.saleProfit;
+  const projectedProfit = proj.projectedProfit || 0;
+  const profitDiff = actualProfit - projectedProfit;
+
+  if (proj.strategy === 'flip') {
+    if (proj.projectedSalePrice && Math.abs(saleData.salePrice - proj.projectedSalePrice) > proj.projectedSalePrice * 0.03) {
+      if (saleData.salePrice > proj.projectedSalePrice) {
+        reasons.push('Market conditions pushed the sale price above your ARV estimate — good news for your bottom line.');
+      } else {
+        reasons.push('The actual sale price came in below your projected ARV — market shifts or property condition may have played a role.');
+      }
+    }
+    if (profitDiff < -5000 && !reasons.length) {
+      reasons.push('Unexpected costs during the hold period — curveballs, longer timelines, or higher carrying costs reduced your profit.');
+    }
+  } else {
+    if (profitDiff > 5000) {
+      reasons.push('Your rental performed better than projected — possibly from higher rent, fewer vacancies, or fewer surprise costs.');
+    } else if (profitDiff < -5000) {
+      reasons.push('Curveballs, vacancies, or unfixed property issues likely reduced your rental income below projections.');
+    }
+    if (Math.abs(profitDiff) > 10000) {
+      reasons.push('Market conditions and random events like surprise repairs can significantly shift actual results from projections — this is why conservative estimates matter.');
+    }
+  }
+
+  if (reasons.length === 0) {
+    if (Math.abs(profitDiff) < 2000) {
+      reasons.push('Your projections were quite accurate! Good underwriting translates to predictable outcomes.');
+    } else {
+      reasons.push('Several small factors — market shifts, timing, and random events — combined to create the gap between projection and reality.');
+    }
+  }
+
+  return reasons;
+}
+
+export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, proFormaProjections }: PropertySoldAnimationProps) {
   const [showDetails, setShowDetails] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [showComparison, setShowComparison] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
       playSaleCompleteSound();
       setShowDetails(false);
       setShowBreakdown(false);
+      setShowComparison(true);
       const timer = setTimeout(() => setShowDetails(true), 800);
       return () => clearTimeout(timer);
     }
@@ -121,6 +237,12 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData }
     ...(saleData.sellingCosts && saleData.sellingCosts > 0 ? [{ label: 'Selling Costs', amount: saleData.sellingCosts, color: 'text-red-300' }] : []),
   ];
   const totalCosts = breakdownItems.reduce((sum, item) => sum + item.amount, 0);
+
+  const hasProjections = proFormaProjections && (proFormaProjections.projectedProfit !== undefined || proFormaProjections.projectedMonthlyCashFlow !== undefined);
+  const accuracyGrade = hasProjections && proFormaProjections.projectedProfit !== undefined
+    ? getAccuracyGrade(proFormaProjections.projectedProfit, saleData.saleProfit)
+    : null;
+  const whyReasons = hasProjections ? getWhyDifferent(proFormaProjections!, saleData) : [];
 
   return (
     <AnimatePresence>
@@ -213,10 +335,169 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData }
                     </div>
 
                     <motion.div
+                      className={`rounded-xl p-4 border-2 ${
+                        isProfitable 
+                          ? 'bg-gradient-to-r from-emerald-900/50 to-green-900/50 border-green-400/50' 
+                          : 'bg-gradient-to-r from-red-900/50 to-orange-900/50 border-red-400/50'
+                      }`}
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.2, type: 'spring' }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-400 mb-1">Net Proceeds</p>
+                          <p className="text-xl font-bold text-white">${saleData.netProceeds.toLocaleString()}</p>
+                        </div>
+                        <ArrowRight className={`w-6 h-6 ${isProfitable ? 'text-green-400' : 'text-red-400'}`} />
+                        <div className="text-right">
+                          <p className="text-xs text-gray-400 mb-1">{isProfitable ? 'Profit' : 'Loss'}</p>
+                          <p className={`text-2xl font-black ${isProfitable ? 'text-green-400' : 'text-red-400'}`}>
+                            {isProfitable ? '+' : ''}${saleData.saleProfit.toLocaleString()}
+                          </p>
+                          <p className={`text-sm ${isProfitable ? 'text-green-300/70' : 'text-red-300/70'}`}>
+                            {isProfitable ? '+' : ''}{profitPercent}% ROI
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {hasProjections && (
+                      <motion.div
+                        className="bg-slate-800/60 rounded-xl border border-cyan-500/30 overflow-hidden"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <button
+                          onClick={() => setShowComparison(!showComparison)}
+                          className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-700/20 transition-colors"
+                          data-testid="button-toggle-proforma-comparison"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Target className="w-4 h-4 text-cyan-400" />
+                            <span className="text-sm font-semibold text-cyan-300">Your Prediction vs Reality</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {accuracyGrade && (
+                              <span className={`text-lg font-black ${accuracyGrade.color}`}>{accuracyGrade.grade}</span>
+                            )}
+                            {showComparison ? (
+                              <ChevronUp className="w-4 h-4 text-gray-500" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-gray-500" />
+                            )}
+                          </div>
+                        </button>
+                        <AnimatePresence>
+                          {showComparison && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-4 pb-4 space-y-3">
+                                <div className="grid grid-cols-[1fr,auto,auto,auto] gap-2 items-center pb-1.5 border-b border-slate-700/50">
+                                  <span className="text-[10px] uppercase tracking-wider text-gray-500"></span>
+                                  <span className="text-[10px] uppercase tracking-wider text-gray-500 text-right w-20">Projected</span>
+                                  <span className="text-[10px] uppercase tracking-wider text-cyan-400 text-right w-20">Actual</span>
+                                  <span className="text-[10px] uppercase tracking-wider text-gray-500 text-right w-20">Diff</span>
+                                </div>
+
+                                {proFormaProjections!.strategy === 'flip' ? (
+                                  <>
+                                    {proFormaProjections!.projectedSalePrice !== undefined && proFormaProjections!.projectedSalePrice > 0 && (
+                                      <ComparisonRow
+                                        label="Sale Price"
+                                        projected={proFormaProjections!.projectedSalePrice}
+                                        actual={saleData.salePrice}
+                                      />
+                                    )}
+                                    {proFormaProjections!.projectedProfit !== undefined && (
+                                      <ComparisonRow
+                                        label="Profit"
+                                        projected={proFormaProjections!.projectedProfit}
+                                        actual={saleData.saleProfit}
+                                      />
+                                    )}
+                                    {proFormaProjections!.projectedROI !== undefined && proFormaProjections!.projectedROI !== 0 && (
+                                      <ComparisonRow
+                                        label="ROI"
+                                        projected={proFormaProjections!.projectedROI}
+                                        actual={parseFloat(profitPercent)}
+                                        format="percent"
+                                      />
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    {proFormaProjections!.projectedMonthlyCashFlow !== undefined && (
+                                      <ComparisonRow
+                                        label="Projected Cash Flow"
+                                        projected={proFormaProjections!.projectedMonthlyCashFlow}
+                                        actual={proFormaProjections!.monthsHeld && proFormaProjections!.monthsHeld > 0
+                                          ? saleData.saleProfit / proFormaProjections!.monthsHeld
+                                          : saleData.saleProfit}
+                                        format="currencyPerMonth"
+                                      />
+                                    )}
+                                    {proFormaProjections!.projectedProfit !== undefined && (
+                                      <ComparisonRow
+                                        label="Total Profit (Sale)"
+                                        projected={proFormaProjections!.projectedProfit}
+                                        actual={saleData.saleProfit}
+                                      />
+                                    )}
+                                  </>
+                                )}
+
+                                {accuracyGrade && (
+                                  <div className={`mt-2 rounded-lg p-3 border ${
+                                    isGoodGrade(accuracyGrade.grade)
+                                      ? 'bg-emerald-900/20 border-emerald-500/20' 
+                                      : (GRADE_RANK[accuracyGrade.grade] || 7) <= 4
+                                        ? 'bg-amber-900/20 border-amber-500/20'
+                                        : 'bg-red-900/20 border-red-500/20'
+                                  }`}>
+                                    <div className="flex items-start gap-2">
+                                      {isGoodGrade(accuracyGrade.grade) ? (
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                                      ) : (
+                                        <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                                      )}
+                                      <div>
+                                        <p className="text-xs text-gray-300 leading-relaxed">
+                                          {accuracyGrade.message}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {whyReasons.length > 0 && (
+                                  <div className="space-y-1.5 pt-1">
+                                    <p className="text-[10px] uppercase tracking-wider text-gray-500">Why the difference?</p>
+                                    {whyReasons.map((reason, i) => (
+                                      <p key={i} className="text-xs text-gray-400 leading-relaxed pl-3 border-l-2 border-cyan-500/30">
+                                        {reason}
+                                      </p>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    )}
+
+                    <motion.div
                       className="bg-slate-800/40 rounded-xl border border-slate-700/50 overflow-hidden"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
+                      transition={{ delay: 0.35 }}
                     >
                       <button
                         onClick={() => setShowBreakdown(!showBreakdown)}
@@ -265,34 +546,6 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData }
                           </motion.div>
                         )}
                       </AnimatePresence>
-                    </motion.div>
-
-                    <motion.div
-                      className={`rounded-xl p-4 border-2 ${
-                        isProfitable 
-                          ? 'bg-gradient-to-r from-emerald-900/50 to-green-900/50 border-green-400/50' 
-                          : 'bg-gradient-to-r from-red-900/50 to-orange-900/50 border-red-400/50'
-                      }`}
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 0.4, type: 'spring' }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs text-gray-400 mb-1">Net Proceeds</p>
-                          <p className="text-xl font-bold text-white">${saleData.netProceeds.toLocaleString()}</p>
-                        </div>
-                        <ArrowRight className={`w-6 h-6 ${isProfitable ? 'text-green-400' : 'text-red-400'}`} />
-                        <div className="text-right">
-                          <p className="text-xs text-gray-400 mb-1">{isProfitable ? 'Profit' : 'Loss'}</p>
-                          <p className={`text-2xl font-black ${isProfitable ? 'text-green-400' : 'text-red-400'}`}>
-                            {isProfitable ? '+' : ''}${saleData.saleProfit.toLocaleString()}
-                          </p>
-                          <p className={`text-sm ${isProfitable ? 'text-green-300/70' : 'text-red-300/70'}`}>
-                            {isProfitable ? '+' : ''}{profitPercent}% ROI
-                          </p>
-                        </div>
-                      </div>
                     </motion.div>
 
                     <motion.p

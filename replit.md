@@ -28,7 +28,7 @@ Preferred communication style: Simple, everyday language.
 - **Advanced Game Mechanics**: Incorporates surprise repair costs, reality checks for rental income, dynamic investor profiles, tenant text messages, and an "Overtime Mode."
 - **Monetization**: Hidden in-game purchases via Stripe Checkout for boosts, gated by an environment variable.
 - **Tutorial System**: A 17-step, 7-phase interactive tutorial with UI spotlighting and state persistence.
-- **Post-Deal Analysis**: Features dynamic notifications comparing pro forma to actual outcomes and a shareable deal card for social media.
+- **Post-Deal Analysis**: Features dynamic notifications comparing pro forma to actual outcomes, a shareable deal card for social media, and a "Your Prediction vs Reality" postmortem on the Property Sold screen with accuracy grades (A+ through F), side-by-side metric comparisons, and explanatory reasons for any gaps between projections and actual outcomes.
 - **Balance Tuning**: Continuous adjustments to game parameters (e.g., maintenance frequency, curveball probabilities, selling costs, diligence bonuses) to refine gameplay and educational value.
 
 ## External Dependencies

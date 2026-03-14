@@ -165,8 +165,6 @@ export default function Learn() {
               })}
             </div>
           </section>
-          {catIndex === 1 && (
-          )}
         </div>
       ))}
 

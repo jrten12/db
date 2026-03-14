@@ -358,8 +358,6 @@ export default function LearnArticle() {
             return (
               <div key={i}>
                 <SectionBlock section={section} />
-                {i === midPoint && article.sections.length > 3 && (
-                )}
               </div>
             );
           })}

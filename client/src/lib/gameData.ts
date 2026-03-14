@@ -60,13 +60,13 @@ export const INTEREST_MAX = 9.5; // At 100% LTV - high but not devastating for m
 export const MARKET_RATE_SWING = 0.75; // +/- 0.75% market fluctuation
 
 // Property Management Settings
-export const PROPERTY_MANAGEMENT_FEE_PCT = 5; // Fixed 5% of rent revenue when hired
+export const PROPERTY_MANAGEMENT_FEE_PCT = 10; // 10% of rent revenue when hired
+export const PROPERTY_MANAGEMENT_REPAIR_DISCOUNT = 0.10; // PM saves 10% on each repair cost
 
 // Rehab budget cap when diligence hasn't been performed (wider range to account for unknowns)
 export const UNKNOWN_REHAB_BUDGET_MULTIPLIER = 1.5;
 
 // Time Penalties (in weeks)
-export const TIME_PENALTY_SELF_MANAGED = 1; // 1 week penalty if self-managing (no property manager)
 export const TIME_PENALTY_TENANT_PAYS_UTILITIES = 2; // 2 weeks to set up tenant-paid utilities
 
 // Calculate total time penalty for a rental deal based on management choices
@@ -74,11 +74,6 @@ export const calculateTimePenalty = (inputs: ProFormaInputs): number => {
   if (inputs.strategy !== 'rent') return 0;
   
   let penalty = 0;
-  
-  // Self-managed (no property manager) = 1 week penalty
-  if (!inputs.propertyManagement) {
-    penalty += TIME_PENALTY_SELF_MANAGED;
-  }
   
   // Tenant pays utilities (landlord NOT paying) = 2 week penalty to set up
   if (!inputs.utilities) {
@@ -378,8 +373,7 @@ export const calculateProForma = (
   const maintenanceCost = expectedRent * (maintenancePct / 100);
   const capExCost = expectedRent * (capExPct / 100);
   const utilitiesCost = inputs.utilities ? utilitiesMonthly : 0;
-  const FIXED_PM_FEE_PCT = 5; // Property management is always 5% of rent when hired
-  const mgmtCost = inputs.propertyManagement ? expectedRent * (FIXED_PM_FEE_PCT / 100) : 0;
+  const mgmtCost = inputs.propertyManagement ? expectedRent * (PROPERTY_MANAGEMENT_FEE_PCT / 100) : 0;
 
   const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
   const noiMonthly = effectiveRent - monthlyOpEx;

@@ -247,6 +247,36 @@ function RehabBudgetSlider({
   );
 }
 
+function getPropertyRanges(price: number, conditionTag?: string) {
+  const condition = conditionTag || 'Fair';
+  let maintenanceRange: [number, number];
+  let capExRange: [number, number];
+  
+  if (price < 200000) {
+    maintenanceRange = [5, 10];
+    capExRange = [5, 8];
+  } else if (price < 350000) {
+    maintenanceRange = [3, 7];
+    capExRange = [3, 6];
+  } else if (price < 550000) {
+    maintenanceRange = [2, 5];
+    capExRange = [2, 4];
+  } else {
+    maintenanceRange = [1, 3];
+    capExRange = [1, 3];
+  }
+  
+  if (condition === 'Fixer-Upper') {
+    maintenanceRange = [maintenanceRange[0] + 2, Math.min(maintenanceRange[1] + 3, 12)];
+    capExRange = [capExRange[0] + 1, Math.min(capExRange[1] + 2, 10)];
+  } else if (condition === 'Excellent') {
+    maintenanceRange = [Math.max(maintenanceRange[0] - 1, 1), maintenanceRange[1] - 1];
+    capExRange = [Math.max(capExRange[0] - 1, 1), Math.max(capExRange[1] - 1, 1)];
+  }
+  
+  return { maintenanceRange, capExRange };
+}
+
 interface ProFormaPanelProps {
   property: Property & { rentRange: [number, number] };
   inputs: ProFormaInputs;
@@ -265,6 +295,8 @@ interface ProFormaPanelProps {
 }
 
 export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 100000, playerFinancials, weekNumber = 1, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false, touchedFields = new Set(), onFieldTouch, gameRunId }: ProFormaPanelProps) {
+  const propertyRanges = useMemo(() => getPropertyRanges(property.price, property.conditionTag), [property.price, property.conditionTag]);
+  
   const effectiveRanges = useMemo(() => getEffectiveRanges(
     {
       rentMin: property.rentRange?.[0] ?? property.rentMin ?? 1000,
@@ -381,8 +413,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const riskyAssumptions = useMemo(() => {
     const risks = [];
     if (isFilled(inputs.vacancyRate) && n(inputs.vacancyRate) < 5) risks.push({ field: 'vacancy', message: 'Vacancy rate under 5% is optimistic', severity: 'high' });
-    if (isFilled(inputs.maintenancePct) && n(inputs.maintenancePct) < 5) risks.push({ field: 'maintenance', message: 'Maintenance under 5% is dangerously low', severity: 'high' });
-    if (isFilled(inputs.capExPct) && n(inputs.capExPct) < 8) risks.push({ field: 'capex', message: 'CapEx under 8% leaves no buffer for big replacements', severity: 'high' });
+    if (isFilled(inputs.maintenancePct) && n(inputs.maintenancePct) < propertyRanges.maintenanceRange[0]) risks.push({ field: 'maintenance', message: `Maintenance under ${propertyRanges.maintenanceRange[0]}% is low for this property`, severity: 'high' });
+    if (isFilled(inputs.capExPct) && n(inputs.capExPct) < propertyRanges.capExRange[0]) risks.push({ field: 'capex', message: `CapEx under ${propertyRanges.capExRange[0]}% leaves no buffer for big replacements`, severity: 'high' });
     if (isFilled(inputs.contingencyPct) && n(inputs.contingencyPct) < 10) risks.push({ field: 'contingency', message: 'Contingency under 10% leaves no buffer', severity: 'medium' });
     if (isFilled(inputs.sellingCostsPct) && n(inputs.sellingCostsPct) < 7.5 && inputs.strategy === 'flip') risks.push({ field: 'selling', message: 'Selling costs under 7.5% is optimistic', severity: 'medium' });
     // Only warn about rent if player is guessing without market study
@@ -393,7 +425,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
       risks.push({ field: 'rehab', message: 'Rehab budget at minimum - likely underestimated', severity: 'medium' });
     }
     return risks;
-  }, [inputs, effectiveRanges]);
+  }, [inputs, effectiveRanges, propertyRanges]);
 
   const closingCosts = Math.round(property.price * 0.025);
   const allInBasis = property.price + closingCosts + n(inputs.rehabBudget) * (1 + n(inputs.contingencyPct) / 100);
@@ -1201,8 +1233,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                             data-testid="slider-maintenance"
                           />
                           <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
-                            <span>3%</span>
-                            <span className="text-cyan-300">Based on condition</span>
+                            <span>0%</span>
+                            <span className="text-cyan-300">Typical: {propertyRanges.maintenanceRange[0]}-{propertyRanges.maintenanceRange[1]}%</span>
                             <span>12%</span>
                           </div>
                         </>
@@ -1248,8 +1280,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         data-testid="slider-capex"
                       />
                       <div className="flex justify-between text-xs text-cyan-400/60 mt-1">
-                        <span>3%</span>
-                        <span className="text-cyan-300">Major repairs fund</span>
+                        <span>0%</span>
+                        <span className="text-cyan-300">Typical: {propertyRanges.capExRange[0]}-{propertyRanges.capExRange[1]}%</span>
                         <span>15%</span>
                       </div>
                     </div>
@@ -1279,7 +1311,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       <div className={`font-semibold ${inputs.propertyManagement ? 'text-emerald-300' : 'text-gray-300'}`}>
                         Property Manager
                       </div>
-                      <div className="text-xs text-gray-500">10% of rent - handles everything</div>
+                      <div className="text-xs text-gray-500">10% of rent — saves 10% on repairs</div>
                     </div>
                   </div>
                   <div className={`w-12 h-7 rounded-full p-1 transition-all ${
@@ -1290,12 +1322,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     }`} />
                   </div>
                 </div>
-                {!inputs.propertyManagement && (
-                  <div className="mt-2 pt-2 border-t border-slate-600/30 flex items-center gap-2 text-amber-400/80">
-                    <Clock className="w-4 h-4" />
-                    <span className="text-xs">Self-managing costs 1 month of your time</span>
-                  </div>
-                )}
+                <div className={`mt-2 pt-2 border-t border-slate-600/30 text-xs ${inputs.propertyManagement ? 'text-emerald-400/80' : 'text-gray-500'}`}>
+                  {inputs.propertyManagement 
+                    ? `Cost: ${PROPERTY_MANAGEMENT_FEE_PCT}% of rent · Benefit: 10% discount on all repair costs`
+                    : 'Self-managing saves the fee but repairs cost full price'}
+                </div>
               </button>
             </div>
           )}
@@ -1330,7 +1361,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             {inputs.strategy === 'rent' && (
               <div className="space-y-3">
                 {/* Step 1A: Gross Monthly Rent */}
-                <div className={`bg-slate-800/50 rounded-xl p-3 border transition-all ${highlightField === 'effectiveRent' ? 'border-emerald-500 shadow-lg shadow-emerald-500/20' : 'border-slate-700'}`}>
+                <div className={`bg-slate-800/50 rounded-xl p-3 border-2 transition-colors ${highlightField === 'effectiveRent' ? 'border-emerald-500 shadow-lg shadow-emerald-500/20' : 'border-transparent'}`}>
                   <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Step 1A: Gross Monthly Rent</div>
                   <div className="text-2xl font-bold font-mono text-emerald-400">
                     {formatCurrency(n(inputs.expectedRent))}<span className="text-sm text-gray-500">/mo</span>
@@ -1344,7 +1375,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
 
                 {/* Step 1B: Vacancy Reserve */}
-                <div className={`bg-slate-800/50 rounded-xl p-3 border transition-all ${highlightField === 'effectiveRent' ? 'border-red-500 shadow-lg shadow-red-500/20' : 'border-slate-700'}`}>
+                <div className={`bg-slate-800/50 rounded-xl p-3 border-2 transition-colors ${highlightField === 'effectiveRent' ? 'border-red-500 shadow-lg shadow-red-500/20' : 'border-transparent'}`}>
                   <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Step 1B: Vacancy Reserve ({n(inputs.vacancyRate)}%)</div>
                   {showFormulas && (
                     <div className="text-xs font-mono text-gray-500 mb-2">
@@ -1382,7 +1413,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 </div>
 
                 {/* Step 2: Operating Expenses */}
-                <div className={`bg-slate-800/50 rounded-xl p-3 border transition-all ${highlightField === 'opex' ? 'border-amber-500 shadow-lg shadow-amber-500/20' : 'border-slate-700'}`}>
+                <div className={`bg-slate-800/50 rounded-xl p-3 border-2 transition-colors ${highlightField === 'opex' ? 'border-amber-500 shadow-lg shadow-amber-500/20' : 'border-transparent'}`}>
                   <div className="text-gray-400 text-xs uppercase tracking-wider mb-1">Step 2: Operating Expenses</div>
                   {showFormulas && (
                     <div className="text-xs font-mono text-gray-500 space-y-0.5 mb-2">
@@ -1391,7 +1422,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       <div>Maintenance: ${(n(inputs.expectedRent) * n(inputs.maintenancePct)/100).toFixed(0)}/mo ({n(inputs.maintenancePct)}%)</div>
                       <div>CapEx: ${(n(inputs.expectedRent) * n(inputs.capExPct)/100).toFixed(0)}/mo ({n(inputs.capExPct)}%)</div>
                       {inputs.utilities && <div>Utilities: ${n(inputs.utilitiesMonthly)}/mo</div>}
-                      {inputs.propertyManagement && <div>Mgmt: ${(n(inputs.expectedRent) * PROPERTY_MANAGEMENT_FEE_PCT / 100).toFixed(0)}/mo ({PROPERTY_MANAGEMENT_FEE_PCT}%)</div>}
+                      {inputs.propertyManagement && <div>Property Mgmt: ${(n(inputs.expectedRent) * PROPERTY_MANAGEMENT_FEE_PCT / 100).toFixed(0)}/mo ({PROPERTY_MANAGEMENT_FEE_PCT}%)</div>}
                     </div>
                   )}
                   <div className="text-2xl font-bold font-mono text-red-400">

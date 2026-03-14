@@ -884,6 +884,12 @@ export async function processRentalIncome(
   let cashImpact = curveball?.cashImpact || 0;
   const rentMultiplier = curveball?.rentMultiplier ?? 1;
   
+  // Property manager discount: PM saves 10% on repair costs (negative cashImpact = repair cost)
+  const hasPropertyMgmtForDiscount = proFormaInputs?.propertyManagement || false;
+  if (hasPropertyMgmtForDiscount && cashImpact < 0) {
+    cashImpact = Math.round(cashImpact * 0.9);
+  }
+  
   // Apply rent multiplier to rent-related components only
   // This is economically correct: rent curveballs affect rent collection, not fixed costs
   const scaledGrossRent = Math.round(weeklyGrossRent * rentMultiplier);
@@ -910,7 +916,7 @@ export async function processRentalIncome(
   // Calculate total expenses for display
   const totalWeeklyExpenses = scaledVacancyLoss + fixedOperatingExpenses + fixedDebtService;
 
-  // Record curveball event if one occurred
+  // Record curveball event if one occurred (using discounted cashImpact if PM applied)
   if (curveball) {
     await db.insert(schema.curveballEvents).values({
       gameRunId: gameRun.id,
@@ -919,7 +925,7 @@ export async function processRentalIncome(
       name: curveball.name,
       type: curveball.type,
       description: curveball.description,
-      cashImpact: curveball.cashImpact || 0,
+      cashImpact: cashImpact,
       timeImpact: curveball.timeImpact || 0,
       emoji: curveball.emoji,
       gameWeek: gameRun.currentWeek,
@@ -1157,7 +1163,7 @@ export async function processRentalIncome(
       id: curveball.id,
       name: curveball.name,
       description: curveball.description,
-      cashImpact: curveball.cashImpact || 0,
+      cashImpact: cashImpact,
       emoji: curveball.emoji,
       tenantMessage: curveball.tenantMessage,
       fromIssue: curveball.fromIssue,

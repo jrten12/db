@@ -52,7 +52,6 @@ import {
   getInterestRateFromLTV,
   getLoanFeesFromLTV,
   calculateTimePenalty,
-  TIME_PENALTY_SELF_MANAGED,
   TIME_PENALTY_TENANT_PAYS_UTILITIES,
   PlayerFinancials
 } from '@/lib/gameData';
@@ -950,14 +949,11 @@ export default function Game() {
       toast.warning('Cheap contractor: -2 months while they get started on the job.', { duration: 4000 });
     }
     
-    // Apply rental management time penalties (self-managed and/or tenant-pays-utilities)
+    // Apply rental management time penalties (tenant-pays-utilities setup)
     if (proFormaInputs.strategy === 'rent') {
       const timePenalty = calculateTimePenalty(proFormaInputs);
       if (timePenalty > 0) {
         const penalties: string[] = [];
-        if (!proFormaInputs.propertyManagement) {
-          penalties.push(`Self-managing: -${TIME_PENALTY_SELF_MANAGED} month`);
-        }
         if (!proFormaInputs.utilities) {
           penalties.push(`Setting up tenant utilities: -${TIME_PENALTY_TENANT_PAYS_UTILITIES} months`);
         }

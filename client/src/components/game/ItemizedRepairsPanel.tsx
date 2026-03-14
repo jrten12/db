@@ -127,7 +127,7 @@ export function ItemizedRepairsPanel({
             <p className="text-slate-400 text-sm">
               {totals.count === 0 
                 ? 'Select issues to fix'
-                : `${totals.count} selected - $${totals.costMin.toLocaleString()}-$${totals.costMax.toLocaleString()}`}
+                : `${totals.count} selected — $${Math.round((totals.costMin + totals.costMax) / 2).toLocaleString()}`}
             </p>
           </div>
         </div>
@@ -235,7 +235,7 @@ export function ItemizedRepairsPanel({
                     
                     <div className="flex items-center gap-4 mt-2 text-xs">
                       <span className="flex items-center gap-1 text-red-400">
-                        Estimated repair: <span className="font-mono">${cost.min.toLocaleString()}</span> - <span className="font-mono">${cost.max.toLocaleString()}</span>
+                        Repair cost: <span className="font-mono font-bold">${Math.round((cost.min + cost.max) / 2).toLocaleString()}</span>
                       </span>
                     </div>
                     <div className="flex items-center gap-4 mt-1 text-xs">
@@ -252,10 +252,10 @@ export function ItemizedRepairsPanel({
           {totals.count > 0 && (
             <div className="mt-4 pt-4 border-t border-slate-700/50">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-400">Total Selected:</span>
+                <span className="text-slate-400">Total Repair Cost:</span>
                 <div className="text-right">
-                  <div className="text-cyan-100 font-semibold">
-                    ${totals.costMin.toLocaleString()}-${totals.costMax.toLocaleString()}
+                  <div className="text-cyan-100 font-semibold font-mono">
+                    ${Math.round((totals.costMin + totals.costMax) / 2).toLocaleString()}
                   </div>
                   <div className="text-amber-400 text-xs">
                     ~{totals.weeks} month{totals.weeks !== 1 ? 's' : ''}

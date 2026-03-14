@@ -46,7 +46,6 @@ export function AchievementPopup({ achievementId, onClose }: AchievementPopupPro
       setIsVisible(true);
       const achievement = ACHIEVEMENT_DEFINITIONS[achievementId];
       
-      // Delay sound slightly to avoid overlap with week advance sound
       const soundTimer = setTimeout(() => {
         if (achievement) {
           if (achievement.tier === 'diamond' || achievement.tier === 'platinum') {
@@ -55,13 +54,12 @@ export function AchievementPopup({ achievementId, onClose }: AchievementPopupPro
             playAchievement();
           }
         }
-      }, 300);
+      }, 200);
       
-      // Show for just a beat (2.5 seconds) then fade out
       const hideTimer = setTimeout(() => {
         setIsVisible(false);
-        setTimeout(onClose, 400);
-      }, 2500);
+        setTimeout(onClose, 300);
+      }, 2200);
       
       return () => {
         clearTimeout(soundTimer);
@@ -82,98 +80,62 @@ export function AchievementPopup({ achievementId, onClose }: AchievementPopupPro
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ opacity: 0, y: -100, scale: 0.8 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -50, scale: 0.9 }}
-          transition={{ type: 'spring', damping: 15, stiffness: 300 }}
-          className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] pointer-events-auto"
+          initial={{ opacity: 0, y: -40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -30 }}
+          transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+          className="fixed top-3 left-1/2 -translate-x-1/2 z-[60] pointer-events-auto"
         >
           <div 
             className={`
-              relative overflow-hidden rounded-2xl border-2 ${colors.border} ${colors.bg}
-              backdrop-blur-xl shadow-2xl ${colors.glow} shadow-lg
-              min-w-[320px] max-w-[400px]
+              relative overflow-hidden rounded-xl border ${colors.border} ${colors.bg}
+              backdrop-blur-md shadow-lg
+              max-w-[340px]
             `}
+            onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }}
           >
-            <div className="absolute inset-0 overflow-hidden">
-              <motion.div
-                className={`absolute inset-0 ${colors.bg} opacity-50`}
-                animate={{
-                  background: [
-                    'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 50%)',
-                    'radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)',
-                    'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 50%)',
-                  ],
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-            </div>
-            
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-            
-            <div className="relative p-5">
+            <div className="relative px-4 py-3">
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   setIsVisible(false);
                   setTimeout(onClose, 300);
                 }}
-                className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors"
+                className="absolute top-2 right-2 p-1 rounded-full hover:bg-black/20 transition-colors"
                 data-testid="button-close-achievement"
                 data-sound="close"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 text-white/50" />
               </button>
 
-              <div className="flex items-center gap-4">
-                <motion.div
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 0.2, type: 'spring', damping: 10 }}
+              <div className="flex items-center gap-3 pr-6">
+                <div
                   className={`
-                    w-16 h-16 rounded-xl ${colors.bg} border ${colors.border}
-                    flex items-center justify-center relative
+                    w-10 h-10 rounded-lg ${colors.bg} border ${colors.border}
+                    flex items-center justify-center flex-shrink-0
                   `}
                 >
-                  <motion.div
-                    animate={{ 
-                      boxShadow: [
-                        `0 0 20px 5px ${colors.glow.replace('shadow-', '').replace('/30', '').replace('/40', '').replace('/50', '').replace('/60', '')}40`,
-                        `0 0 40px 10px ${colors.glow.replace('shadow-', '').replace('/30', '').replace('/40', '').replace('/50', '').replace('/60', '')}60`,
-                        `0 0 20px 5px ${colors.glow.replace('shadow-', '').replace('/30', '').replace('/40', '').replace('/50', '').replace('/60', '')}40`,
-                      ]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="absolute inset-0 rounded-xl"
-                  />
-                  <IconComponent className={`w-8 h-8 ${colors.text} relative z-10`} />
-                </motion.div>
+                  <IconComponent className={`w-5 h-5 ${colors.text}`} />
+                </div>
 
-                <div className="flex-1">
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs font-bold uppercase tracking-wider ${colors.text}`}>
-                        {achievement.tier} Achievement
-                      </span>
-                    </div>
-                    <h3 className="text-white font-bold text-lg mb-0.5">
-                      {achievement.name}
-                    </h3>
-                    <p className="text-gray-400 text-sm">
-                      {achievement.description}
-                    </p>
-                  </motion.div>
+                <div className="flex-1 min-w-0">
+                  <div className={`text-[10px] font-bold uppercase tracking-wider ${colors.text} leading-none mb-0.5`}>
+                    {achievement.tier} Achievement
+                  </div>
+                  <div className="text-white font-semibold text-sm leading-tight truncate">
+                    {achievement.name}
+                  </div>
+                  <div className="text-gray-400 text-xs leading-tight truncate">
+                    {achievement.description}
+                  </div>
                 </div>
               </div>
 
               <motion.div
                 initial={{ scaleX: 1 }}
                 animate={{ scaleX: 0 }}
-                transition={{ duration: 4, ease: 'linear' }}
-                className={`absolute bottom-0 left-0 right-0 h-1 ${colors.text.replace('text-', 'bg-')} origin-left`}
+                transition={{ duration: 2.2, ease: 'linear' }}
+                className={`absolute bottom-0 left-0 right-0 h-0.5 ${colors.text.replace('text-', 'bg-')} origin-left`}
               />
             </div>
           </div>

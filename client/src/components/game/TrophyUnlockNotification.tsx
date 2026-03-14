@@ -7,24 +7,24 @@ interface TrophyUnlockNotificationProps {
   onDismiss: () => void;
 }
 
-const tierColors: Record<string, { bg: string; border: string; text: string; glow: string }> = {
+const tierColors: Record<string, { bg: string; border: string; text: string; icon: string }> = {
   bronze: {
-    bg: 'bg-gradient-to-br from-amber-900 to-amber-700',
-    border: 'border-amber-500',
+    bg: 'from-amber-900/95 to-amber-800/95',
+    border: 'border-amber-500/60',
     text: 'text-amber-300',
-    glow: 'shadow-amber-500/50',
+    icon: 'text-amber-400',
   },
   silver: {
-    bg: 'bg-gradient-to-br from-gray-500 to-gray-400',
-    border: 'border-gray-300',
-    text: 'text-gray-100',
-    glow: 'shadow-gray-300/50',
+    bg: 'from-gray-600/95 to-gray-500/95',
+    border: 'border-gray-300/60',
+    text: 'text-gray-200',
+    icon: 'text-gray-300',
   },
   gold: {
-    bg: 'bg-gradient-to-br from-yellow-500 to-amber-400',
-    border: 'border-yellow-300',
-    text: 'text-yellow-100',
-    glow: 'shadow-yellow-400/60',
+    bg: 'from-yellow-600/95 to-amber-500/95',
+    border: 'border-yellow-300/60',
+    text: 'text-yellow-200',
+    icon: 'text-yellow-300',
   },
 };
 
@@ -69,14 +69,14 @@ function playTrophySound(tier: string) {
       osc.frequency.value = freq;
       
       gain.gain.setValueAtTime(0, now + i * 0.1);
-      gain.gain.linearRampToValueAtTime(0.3, now + i * 0.1 + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.4);
+      gain.gain.linearRampToValueAtTime(0.15, now + i * 0.1 + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
       
       osc.connect(gain);
       gain.connect(ctx.destination);
       
       osc.start(now + i * 0.1);
-      osc.stop(now + i * 0.1 + 0.5);
+      osc.stop(now + i * 0.1 + 0.4);
     });
   } catch {}
 }
@@ -95,7 +95,7 @@ export function TrophyUnlockNotification({ trophyId, onDismiss }: TrophyUnlockNo
 
     const timer = setTimeout(() => {
       handleDismiss();
-    }, 3000);
+    }, 2200);
 
     return () => {
       clearTimeout(timer);
@@ -106,7 +106,7 @@ export function TrophyUnlockNotification({ trophyId, onDismiss }: TrophyUnlockNo
     setIsExiting(true);
     setTimeout(() => {
       onDismiss();
-    }, 400);
+    }, 300);
   }, [onDismiss]);
 
   if (!trophy) return null;
@@ -115,51 +115,40 @@ export function TrophyUnlockNotification({ trophyId, onDismiss }: TrophyUnlockNo
 
   return (
     <div
-      className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[100] transition-all duration-500 ${
+      className={`fixed top-3 left-1/2 -translate-x-1/2 z-[60] transition-all duration-300 pointer-events-auto ${
         isVisible && !isExiting
-          ? 'opacity-100 scale-100'
-          : 'opacity-0 scale-50'
+          ? 'opacity-100 translate-y-0'
+          : 'opacity-0 -translate-y-4'
       }`}
       data-testid="trophy-unlock-notification"
     >
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm -z-10 fixed" onClick={handleDismiss} />
-      
       <div
-        className={`relative p-8 rounded-2xl ${colors.bg} ${colors.border} border-2 shadow-2xl ${colors.glow} min-w-[320px] max-w-[400px]`}
+        className={`relative flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r ${colors.bg} ${colors.border} border backdrop-blur-md shadow-lg max-w-[340px]`}
+        onClick={handleDismiss}
       >
-        <button
-          onClick={handleDismiss}
-          className="absolute top-3 right-3 p-1 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
-          data-testid="button-dismiss-trophy"
-          data-sound="close"
-        >
-          <X className="w-5 h-5 text-white/80" />
-        </button>
-
-        <div className="flex flex-col items-center text-center">
-          <div className="relative mb-4">
-            <div
-              className={`w-24 h-24 rounded-full ${colors.bg} border-4 ${colors.border} flex items-center justify-center shadow-lg ${colors.glow} trophy-unlock-bounce`}
-            >
-              <Trophy className="w-12 h-12 text-white drop-shadow-lg trophy-unlock-shine" />
-            </div>
-            <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md trophy-unlock-sparkle">
-              <span className="text-lg">✨</span>
-            </div>
-          </div>
-
-          <div className={`text-sm uppercase tracking-wider font-bold mb-1 ${colors.text}`}>
-            {trophy.tier} Trophy Unlocked!
-          </div>
-
-          <h2 className="text-2xl font-bold text-white mb-2 drop-shadow-md">
-            {trophy.name}
-          </h2>
-
-          <p className="text-white/80 text-sm">
-            {trophy.description}
-          </p>
+        <div className={`w-10 h-10 rounded-full bg-black/20 flex items-center justify-center flex-shrink-0`}>
+          <Trophy className={`w-5 h-5 ${colors.icon}`} />
         </div>
+
+        <div className="flex-1 min-w-0">
+          <div className={`text-[10px] uppercase tracking-wider font-bold ${colors.text} leading-none mb-0.5`}>
+            {trophy.tier} Achievement
+          </div>
+          <div className="text-white font-semibold text-sm leading-tight truncate">
+            {trophy.name}
+          </div>
+          <div className="text-white/60 text-xs leading-tight truncate">
+            {trophy.description}
+          </div>
+        </div>
+
+        <button
+          onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
+          className="p-1 rounded-full hover:bg-black/20 transition-colors flex-shrink-0"
+          data-testid="button-dismiss-trophy"
+        >
+          <X className="w-4 h-4 text-white/50" />
+        </button>
       </div>
     </div>
   );

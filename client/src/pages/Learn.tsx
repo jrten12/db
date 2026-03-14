@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Link } from 'wouter';
 import { ArrowRight, BookOpen, ArrowLeft } from 'lucide-react';
 import { LEARN_ARTICLES } from '@/lib/learnArticles';
-import { AdBanner } from '@/components/game/AdBanner';
 import Footer from '@/components/Footer';
 import dbLogoImage from '@assets/new_icon_db_1772940176909.webp';
 
@@ -167,7 +166,6 @@ export default function Learn() {
             </div>
           </section>
           {catIndex === 1 && (
-            <AdBanner className="max-w-5xl mx-auto px-5 pb-10" />
           )}
         </div>
       ))}
@@ -196,7 +194,6 @@ export default function Learn() {
         </div>
       </section>
 
-      <AdBanner className="max-w-5xl mx-auto px-5 pb-6" />
 
       <Footer />
       <div className="pb-[max(0.5rem,env(safe-area-inset-bottom))]" />

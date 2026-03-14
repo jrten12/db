@@ -7,7 +7,6 @@ import iconAnalyzeMarket from '@assets/Gemini_hero.webp';
 import iconBuildWealth from '@assets/Gemini_feature1.webp';
 import iconMasterGame from '@assets/Gemini_feature3.webp';
 import Footer from '@/components/Footer';
-import { AdBanner } from '@/components/game/AdBanner';
 import { useMusic } from '@/hooks/useMusicPlayer';
 
 export default function Landing() {
@@ -303,9 +302,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* === AD SLOT 1 === */}
-      <AdBanner className="px-5 py-0.5" />
-
       {/* === EVERY DEAL HAS A STORY === */}
       <section
         className="relative py-3 lg:py-16"
@@ -402,9 +398,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
-      {/* === AD SLOT 2 === */}
-      <AdBanner className="px-5 py-0.5" />
 
       {/* === WHAT YOU'LL LEARN === */}
       <section
@@ -504,9 +497,6 @@ export default function Landing() {
           </p>
         </div>
       </div>
-
-      {/* === AD SLOT 3 === */}
-      <AdBanner className="px-5 pb-1" />
 
       <Footer />
       <div className="pb-[max(0.5rem,env(safe-area-inset-bottom))]" />

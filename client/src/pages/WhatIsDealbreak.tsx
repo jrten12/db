@@ -1,7 +1,6 @@
 import { Link } from 'wouter';
 import { ArrowRight, Target, TrendingUp, Calculator, Shield, BarChart3, Building2 } from 'lucide-react';
 import Footer from '@/components/Footer';
-import { AdBanner } from '@/components/game/AdBanner';
 
 export default function WhatIsDealbreak() {
   return (
@@ -65,7 +64,6 @@ export default function WhatIsDealbreak() {
           DealBreak Simulator is a realistic real estate investing simulator game where you analyze properties, run pro formas, estimate renovation costs, and decide whether an investment deal succeeds or fails. It's free to play, requires no signup, and teaches the same analytical skills used by professional real estate investors.
         </p>
 
-        <AdBanner className="mb-8" />
 
         <section className="mb-10">
           <h2 className="text-2xl font-bold mb-4" style={{ color: '#f0e6d0' }} data-testid="heading-how-it-works">
@@ -117,7 +115,6 @@ export default function WhatIsDealbreak() {
           </div>
         </section>
 
-        <AdBanner className="mb-8" />
 
         <section className="mb-10">
           <h2 className="text-2xl font-bold mb-4" style={{ color: '#f0e6d0' }} data-testid="heading-who-is-it-for">

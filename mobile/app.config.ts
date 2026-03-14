@@ -21,11 +21,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         NSAllowsArbitraryLoads: false,
       },
       ITSAppUsesNonExemptEncryption: false,
-      GADApplicationIdentifier: 'ca-app-pub-2744316013184797~5324139821',
-      SKAdNetworkItems: [
-        { SKAdNetworkIdentifier: 'cstr6suwn9.skadnetwork' },
-      ],
-      NSUserTrackingUsageDescription: 'This allows us to show you relevant ads.',
     },
     privacyManifests: {
       NSPrivacyAccessedAPITypes: [
@@ -56,15 +51,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     [
-      'react-native-google-mobile-ads',
-      {
-        iosAppId: 'ca-app-pub-2744316013184797~5324139821',
-      },
-    ],
-    [
       'expo-tracking-transparency',
       {
-        userTrackingPermission: 'This allows us to show you relevant ads.',
+        userTrackingPermission: 'This identifier helps us provide a better experience.',
       },
     ],
   ],

@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'wouter';
 import { ArrowLeft, Scale, TrendingUp, Home, DollarSign, Clock, ChevronDown, ChevronUp, Copy, Check, Info, ArrowRight } from 'lucide-react';
 import Footer from '@/components/Footer';
-import { AdBanner } from '@/components/game/AdBanner';
 import dbLogoImage from '@assets/new_icon_db_1772940176909.webp';
 
 interface Inputs {
@@ -548,7 +547,6 @@ export default function FlipOrRentTool() {
           </Link>
         </div>
 
-        <AdBanner slot="flip-or-rent-bottom" className="mt-10" />
       </div>
 
       <Footer />

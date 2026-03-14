@@ -45,7 +45,7 @@ Preferred communication style: Simple, everyday language.
 - **EAS Submit**: `eas.json` — ascAppId `6760164395`, Apple Team `9G2NL8NSRT`, uses `eas submit --platform ios --latest` for TestFlight
 - **App Store Checklist**: `mobile/APP_STORE_CHECKLIST.md`
 
-### Content & SEO (AdSense Compliance)
+### Content & SEO
 - **Branding**: "DealBreak Simulator" (capitalized B) — used consistently in titles, meta, OG tags, JSON-LD
 - **Homepage Title**: "DealBreak Simulator – Real Estate Investing Simulator Game" (keyword-optimized)
 - **Homepage H1**: "DealBreak Simulator" with subheadline "A Real Estate Investing Simulator Game" and key description paragraph
@@ -58,7 +58,6 @@ Preferred communication style: Simple, everyday language.
 - **Article Images**: AI-generated hero images in `attached_assets/generated_images/learn_*.png`, imported via `@assets` alias in LearnArticle.tsx and Learn.tsx
 - **SEO Server Module**: `server/seo.ts` — duplicate ARTICLE_DATA for server-side meta injection, per-article keywords, difficulty levels, JSON-LD Article/BreadcrumbList schemas
 - **Target Keywords**: "real estate investing simulator", "real estate simulator game", "property investment simulator", "real estate deal analyzer" — used naturally in homepage and explainer page copy
-- **Ad Placement**: Ads only on content-rich pages (Landing page, Learn hub, article pages). Removed from game UI screens (PropertySelector, ResultsPanel) per AdSense policy.
 - **Structured Data**: JSON-LD schema markup via server/seo.ts for WebApplication, FAQPage, Article, BreadcrumbList, CollectionPage types
 
 ### SEO Tools (Backlink Assets)
@@ -70,8 +69,7 @@ Preferred communication style: Simple, everyday language.
 - Files: `client/src/pages/Tools.tsx`, `client/src/pages/FlipOrRentTool.tsx`, `client/src/pages/DealScorecardTool.tsx`
 
 ### Monetization
-- **Web**: Google AdSense on content pages only (Landing, Learn hub, articles, Tools pages). Not on game screens.
-- **Mobile**: Google AdMob (Banner, Interstitial, Rewarded ads).
+- **Ads**: Removed. No Google AdSense (web) or Google AdMob (mobile).
 - **Premium Boosts (Stripe)**: In-game purchases via Stripe Checkout for cash/time boosts. Currently hidden from all game UI (home screen and in-game menu). Server routes remain but are gated by ENABLE_PREMIUM_PURCHASES env var.
   - `server/stripeClient.ts` - Stripe client using Replit connector credentials
   - `server/webhookHandlers.ts` - Processes Stripe webhooks via stripe-replit-sync

@@ -3,7 +3,6 @@ import { Link, useParams } from 'wouter';
 import { ArrowLeft, ArrowRight, Gamepad2, AlertTriangle, Lightbulb, Info } from 'lucide-react';
 import { getArticleBySlug, LEARN_ARTICLES } from '@/lib/learnArticles';
 import type { ArticleSection, InfographicData } from '@/lib/learnArticles';
-import { AdBanner } from '@/components/game/AdBanner';
 import Footer from '@/components/Footer';
 import dbLogoImage from '@assets/new_icon_db_1772940176909.webp';
 
@@ -360,7 +359,6 @@ export default function LearnArticle() {
               <div key={i}>
                 <SectionBlock section={section} />
                 {i === midPoint && article.sections.length > 3 && (
-                  <AdBanner className="mt-8" />
                 )}
               </div>
             );
@@ -387,7 +385,6 @@ export default function LearnArticle() {
           </div>
         </div>
 
-        <AdBanner className="mt-10" />
 
         {relatedArticles.length > 0 && (
           <div className="mt-12">

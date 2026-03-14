@@ -5,8 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { api, GameRun, Property, Deal, formatCurrency, formatCompactCurrency, MARKET_LABELS } from '../src/lib/api';
-import { useInterstitialAd } from '../src/hooks/useAdMob';
-
 type Tab = 'market' | 'portfolio';
 
 function getPropertyTypeConfig(name: string, propertyType: string): { icon: string; label: string; color: string; bgColor: string; borderColor: string } {
@@ -38,8 +36,6 @@ export default function Game() {
   const [refreshing, setRefreshing] = useState(false);
   const [advancing, setAdvancing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { showAfterWeekAdvance, showOnGameOver } = useInterstitialAd();
-
   const loadData = useCallback(async () => {
     try {
       const id = parseInt(gameId || '0');
@@ -86,10 +82,7 @@ export default function Game() {
       await loadData();
 
       if (result.gameRun?.status === 'won' || result.gameRun?.status === 'lost') {
-        showOnGameOver();
         router.push({ pathname: '/results', params: { gameId: gameState.id.toString() } });
-      } else {
-        showAfterWeekAdvance();
       }
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Failed to advance week.');

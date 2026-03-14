@@ -4,15 +4,8 @@ import { WebView as RNWebView } from 'react-native-webview';
 const WebView = RNWebView as any;
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { InterstitialAd, AdEventType, TestIds } from 'react-native-google-mobile-ads';
 
 const WEB_APP_URL = 'https://dealbreaksimulator.com';
-const AD_UNIT_ID = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-2744316013184797/4011058152';
-const AD_WEEK_INTERVAL = 6;
-
-const interstitial = InterstitialAd.createForAdRequest(AD_UNIT_ID, {
-  requestNonPersonalizedAdsOnly: true,
-});
 
 export default function App() {
   const webViewRef = useRef<any>(null);
@@ -20,25 +13,8 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [canGoBack, setCanGoBack] = useState(false);
-  const [adLoaded, setAdLoaded] = useState(false);
-  const lastAdWeek = useRef(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const hasFinishedFirstLoad = useRef(false);
-
-  useEffect(() => {
-    const unsubLoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
-      setAdLoaded(true);
-    });
-    const unsubClosed = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
-      setAdLoaded(false);
-      interstitial.load();
-    });
-    interstitial.load();
-    return () => {
-      unsubLoaded();
-      unsubClosed();
-    };
-  }, []);
 
   useEffect(() => {
     if (Platform.OS === 'android') {
@@ -53,26 +29,10 @@ export default function App() {
     }
   }, [canGoBack]);
 
-  const showAdIfNeeded = useCallback((currentWeek: number) => {
-    if (currentWeek > 0 && currentWeek % AD_WEEK_INTERVAL === 0 && currentWeek !== lastAdWeek.current) {
-      lastAdWeek.current = currentWeek;
-      if (adLoaded) {
-        interstitial.show();
-      }
-    }
-  }, [adLoaded]);
-
-  const showGameOverAd = useCallback(() => {
-    if (adLoaded) {
-      interstitial.show();
-    }
-  }, [adLoaded]);
-
   const injectedJS = `
     (function() {
       var style = document.createElement('style');
       style.textContent = [
-        '.adsbygoogle, [data-ad-slot], ins.adsbygoogle { display: none !important; }',
         '* { -webkit-touch-callout: none !important; -webkit-user-select: none !important; user-select: none !important; -webkit-tap-highlight-color: transparent !important; }',
         'input, textarea, [contenteditable="true"] { -webkit-user-select: text !important; user-select: text !important; }',
         'body { overscroll-behavior: none !important; -webkit-overflow-scrolling: touch; }',
@@ -82,43 +42,11 @@ export default function App() {
       ].join(' ');
       document.head.appendChild(style);
 
-      var lastWeek = 0;
-      var observer = new MutationObserver(function() {
-        var weekEl = document.querySelector('[data-testid="status-time"], [data-testid="text-weeks-remaining"], [data-testid="status-week"]');
-        if (weekEl) {
-          var text = weekEl.textContent || '';
-          var match = text.match(/(\\d+)/);
-          if (match) {
-            var week = parseInt(match[1]);
-            if (week !== lastWeek) {
-              lastWeek = week;
-              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'week', week: week }));
-            }
-          }
-        }
-        var resultEl = document.querySelector('[data-testid="text-game-result"], [data-testid="results-panel"]');
-        if (resultEl) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'gameOver' }));
-        }
-      });
-      observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-
       document.addEventListener('contextmenu', function(e) { e.preventDefault(); }, false);
 
       true;
     })();
   `;
-
-  const handleMessage = useCallback((event: any) => {
-    try {
-      const data = JSON.parse(event.nativeEvent.data);
-      if (data.type === 'week') {
-        showAdIfNeeded(data.week);
-      } else if (data.type === 'gameOver') {
-        showGameOverAd();
-      }
-    } catch {}
-  }, [showAdIfNeeded, showGameOverAd]);
 
   const handleLoadEnd = useCallback(() => {
     if (!hasFinishedFirstLoad.current) {
@@ -185,7 +113,6 @@ export default function App() {
         source={{ uri: WEB_APP_URL }}
         style={{ flex: 1, backgroundColor: '#0f172a' }}
         injectedJavaScript={injectedJS}
-        onMessage={handleMessage}
         onLoadStart={() => {
           if (!hasFinishedFirstLoad.current) {
             setLoading(true);

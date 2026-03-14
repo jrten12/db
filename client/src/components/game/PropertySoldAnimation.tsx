@@ -238,11 +238,19 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
   ];
   const totalCosts = breakdownItems.reduce((sum, item) => sum + item.amount, 0);
 
-  const hasProjections = proFormaProjections && (proFormaProjections.projectedProfit !== undefined || proFormaProjections.projectedMonthlyCashFlow !== undefined);
-  const accuracyGrade = hasProjections && proFormaProjections.projectedProfit !== undefined
-    ? getAccuracyGrade(proFormaProjections.projectedProfit, saleData.saleProfit)
+  const hasProjections = !!(proFormaProjections && proFormaProjections.strategy);
+  const projectedProfitValue = hasProjections
+    ? (proFormaProjections!.projectedProfit ?? (proFormaProjections!.projectedMonthlyCashFlow != null && proFormaProjections!.monthsHeld
+        ? proFormaProjections!.projectedMonthlyCashFlow * proFormaProjections!.monthsHeld
+        : undefined))
+    : undefined;
+  const accuracyGrade = hasProjections && projectedProfitValue !== undefined
+    ? getAccuracyGrade(projectedProfitValue, saleData.saleProfit)
     : null;
-  const whyReasons = hasProjections ? getWhyDifferent(proFormaProjections!, saleData) : [];
+  const effectiveProjections = hasProjections && projectedProfitValue !== undefined
+    ? { ...proFormaProjections!, projectedProfit: projectedProfitValue }
+    : proFormaProjections;
+  const whyReasons = hasProjections && effectiveProjections ? getWhyDifferent(effectiveProjections, saleData) : [];
 
   return (
     <AnimatePresence>

@@ -493,7 +493,7 @@ export default function Landing() {
         </p>
         <div className="mt-2 flex items-center justify-center">
           <p className="text-xs font-mono" style={{ color: 'rgba(200,195,180,0.2)' }}>
-            v1.89
+            v3.4
           </p>
         </div>
       </div>

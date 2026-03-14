@@ -9,6 +9,7 @@
  */
 
 import type { Property, Deal } from '@shared/schema';
+import { getRandomizedPropertyIssues } from '@shared/propertyIssues';
 
 export type PropertyQualityTier = 'budget' | 'mid-range' | 'high-end' | 'luxury';
 export type MaintenanceCategory =
@@ -37,12 +38,26 @@ const QUALITY_TIER_MULTIPLIERS: Record<PropertyQualityTier, number> = {
 };
 
 /**
- * Get unfixed issues that should resurface as maintenance problems
+ * Get ALL unfixed issues that should resurface as maintenance problems
+ * Includes both undiscovered issues AND discovered-but-not-fixed issues
+ * This reflects reality: unfixed problems cause related maintenance regardless of whether the owner knows about them
  */
-export function getUnfixedIssues(deal: Deal): string[] {
+export function getUnfixedIssues(deal: Deal, property?: Property | null): string[] {
   const proFormaInputs = deal.proFormaInputs as any;
-  const discovered = proFormaInputs?.discoveredIssueIds || [];
   const fixed = proFormaInputs?.fixedIssueIds || [];
+  
+  if (property) {
+    const gameRunId = deal.gameRunId;
+    const allIssues = getRandomizedPropertyIssues(
+      gameRunId, deal.propertyId,
+      property.propertyType || 'house',
+      property.conditionTag || 'Fair',
+      (property as any).waterSource || 'public'
+    );
+    return allIssues.map(i => i.id).filter((id: string) => !fixed.includes(id));
+  }
+
+  const discovered = proFormaInputs?.discoveredIssueIds || [];
   return discovered.filter((id: string) => !fixed.includes(id));
 }
 
@@ -111,6 +126,7 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     tenantIssue: true,
     description: 'The dishwasher stopped working and needs replacement.',
     emoji: '🔧',
+    relatedIssueIds: ['cosmetic_updates'],
     tenantMessages: {
       corporate_brain: ["dishwasher is EOL. wont power on. can we expedite replacement"],
       retired_micromanager: ["Dishwasher stopped 2:47 PM. Made 3 clicking sounds then smoke smell. Video recorded."],
@@ -132,6 +148,7 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     tenantIssue: true,
     description: 'The refrigerator is making strange noises and not cooling properly.',
     emoji: '🧊',
+    relatedIssueIds: ['cosmetic_updates'],
     tenantMessages: {
       corporate_brain: ["fridge temp unstable. reading 48 degrees when set to 37. food safety concern"],
       chaos_magnet: ["fridge is making a sound like a dying whale. also my milk is warm. great"],
@@ -267,6 +284,7 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     costMin: 140,
     costMax: 360,
     tenantIssue: true,
+    relatedIssueIds: ['plumbing_galvanized', 'plumbing_stack', 'drainage_issues'],
     description: 'The bathroom drain is running really slow and needs attention.',
     emoji: '🧰',
     tenantMessages: {
@@ -504,6 +522,7 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     description: 'Storm damage to the fence/landscaping needs repair.',
     emoji: '🌪️',
     excludesHOA: true,
+    relatedIssueIds: ['siding_damage', 'roof_wear'],
   },
   {
     id: 'tree_maintenance',
@@ -548,6 +567,7 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     description: 'There are signs of mice in the property.',
     emoji: '🐭',
     requiresSuburban: true,
+    relatedIssueIds: ['termite_damage'],
     tenantMessages: {
       anxious_professional: ["heard scratching in the wall last night. probably just settling right?? RIGHT?? ok i saw a mouse"],
       chaos_magnet: ["somethings living in my walls. heard it sneeze. DO MICE SNEEZE. saw one run across kitchen at 2am"],
@@ -567,6 +587,7 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     description: 'Cockroaches have been spotted in the unit.',
     emoji: '🪳',
     requiresUrban: true,
+    relatedIssueIds: ['termite_damage'],
     tenantMessages: {
       new_money: ["saw a roach. this is unacceptable. need pest control immediately"],
       chaos_magnet: ["ROACH. saw a roach. it was HUGE. it looked at me. we made eye contact. help"],
@@ -586,6 +607,67 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     description: 'Signs of termite activity requiring treatment and inspection.',
     emoji: '🪲',
     relatedIssueIds: ['termite_damage'],
+  },
+
+  // MOISTURE/MOLD ISSUES (from unfixed property problems)
+  {
+    id: 'mold_discovery',
+    name: 'Mold Growth Found',
+    category: 'plumbing',
+    baseProbability: 0.3,
+    costMin: 800,
+    costMax: 3000,
+    tenantIssue: true,
+    description: 'Mold growth was discovered in a damp area, requiring professional remediation.',
+    emoji: '🦠',
+    relatedIssueIds: ['mold_remediation', 'drainage_issues', 'basement_moisture'],
+    tenantMessages: {
+      anxious_professional: ["found mold in the bathroom?? is it black mold?? should i leave?? this seems really bad??"],
+      law_curious: ["documenting mold in bathroom and closet. this is a health hazard. what is the remediation timeline"],
+      corporate_brain: ["mold identified in bathroom ceiling and bedroom closet wall. health concern. need remediation asap"],
+      chaos_magnet: ["found mold. in the walls. my walls have mold. the walls are alive. with mold. great"],
+      passive_aggressive: ["noticed some interesting wall art forming in the bathroom. fuzzy. green. probably fine. whenever"],
+      generic: ["hey found mold growing in the bathroom. spreading to the closet wall. need someone to look at it"],
+    },
+  },
+  {
+    id: 'window_draft_leak',
+    name: 'Window Leak/Draft',
+    category: 'structural',
+    baseProbability: 0.4,
+    costMin: 300,
+    costMax: 1200,
+    tenantIssue: true,
+    description: 'Windows are drafty or leaking during rain, causing discomfort and potential water damage.',
+    emoji: '🪟',
+    relatedIssueIds: ['window_seals', 'historic_windows', 'cosmetic_updates'],
+    tenantMessages: {
+      retired_micromanager: ["Window leak during rain. Water on sill measured 2 inches. Draft from bedroom window reads 15 degrees below room temp."],
+      anxious_professional: ["windows are leaking when it rains?? water is getting on the floor. is this going to damage the walls??"],
+      chaos_magnet: ["wind is literally coming through the closed windows. and rain. rain is also coming through. closed windows"],
+      new_money: ["drafts through the windows are unacceptable. heating bill doubled. need proper sealing or replacement"],
+      generic: ["hey windows are leaking when it rains and theres a bad draft. need them sealed or fixed"],
+    },
+  },
+  {
+    id: 'porch_deck_damage',
+    name: 'Porch/Deck Repair',
+    category: 'structural',
+    baseProbability: 0.3,
+    costMin: 400,
+    costMax: 1500,
+    tenantIssue: true,
+    description: 'The porch or deck has rotting boards that are becoming a safety hazard.',
+    emoji: '🪵',
+    excludesHOA: true,
+    relatedIssueIds: ['porch_rot', 'siding_damage'],
+    tenantMessages: {
+      retired_micromanager: ["Porch board broke through. 3rd board from left, front porch. Nearly fell through. Safety hazard. Photos attached."],
+      law_curious: ["porch board broke. this is a safety/liability issue. documenting the condition. need repair timeline"],
+      anxious_professional: ["porch board broke when i stepped on it!! is the whole porch going to collapse??"],
+      chaos_magnet: ["put my foot through the porch. literally. my foot. through the porch. classic"],
+      generic: ["hey porch has rotting boards. one broke through when i walked on it. safety issue"],
+    },
   },
 
   // URBAN-SPECIFIC ISSUES
@@ -706,6 +788,7 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     emoji: '🍂',
     requiresSuburban: true,
     excludesHOA: true,
+    relatedIssueIds: ['drainage_issues', 'roof_wear'],
   },
   {
     id: 'lawn_care_dispute',
@@ -833,8 +916,8 @@ export function getAdjustedProbability(
   if (event.requiresSeptic && !hasSeptic) return 0;
   if (event.requiresWell && !hasWell) return 0;
 
-  // 4. Check for unfixed rehab issues
-  const unfixedIssues = getUnfixedIssues(deal);
+  // 4. Check for ALL unfixed issues (undiscovered + discovered-but-not-fixed)
+  const unfixedIssues = getUnfixedIssues(deal, property);
 
   if (event.relatedIssueIds && event.relatedIssueIds.length > 0) {
     const hasRelatedUnfixedIssue = unfixedIssues.some(issueId =>
@@ -842,7 +925,6 @@ export function getAdjustedProbability(
     );
 
     if (hasRelatedUnfixedIssue) {
-      // Significantly increase probability (3x-5x) if related issue was ignored
       probability *= (3 + Math.random() * 2);
     }
   }

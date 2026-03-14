@@ -2,7 +2,7 @@ import { Link } from 'wouter';
 import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2 } from 'lucide-react';
 import heroHouseImage from '@assets/Gemini_hero.webp';
 import dbLogoImage from '@assets/db_logo_64.webp';
-import heroBgPattern from '@/assets/images/hero-bg-pattern.webp';
+const heroBgPattern = '/hero-bg-pattern.webp';
 import iconAnalyzeMarket from '@assets/Gemini_hero.webp';
 import iconBuildWealth from '@assets/Gemini_feature1.webp';
 import iconMasterGame from '@assets/Gemini_feature3.webp';

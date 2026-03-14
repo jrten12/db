@@ -605,6 +605,12 @@ export function injectSeoMeta(html: string, url: string, req: Request): string {
     html = html.replace("</head>", `    ${canonicalTag}\n  </head>`);
   }
 
+  const normalizedPath = url.split('?')[0].replace(/\/+$/, '') || '/';
+  if (normalizedPath === '/') {
+    const heroPreload = '<link rel="preload" as="image" type="image/webp" href="/hero-bg-pattern.webp" fetchpriority="high" />';
+    html = html.replace('</head>', `    ${heroPreload}\n  </head>`);
+  }
+
   if (meta.jsonLd) {
     const existingJsonLd = /<script type="application\/ld\+json">[\s\S]*?<\/script>/g;
     html = html.replace(existingJsonLd, '');

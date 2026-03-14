@@ -30,6 +30,7 @@ Preferred communication style: Simple, everyday language.
 - **Tutorial System**: A 17-step, 7-phase interactive tutorial with UI spotlighting and state persistence.
 - **Post-Deal Analysis**: Features dynamic notifications comparing pro forma to actual outcomes, a shareable deal card for social media, and a "Your Prediction vs Reality" postmortem on the Property Sold screen with accuracy grades (A+ through F), side-by-side metric comparisons, and explanatory reasons for any gaps between projections and actual outcomes.
 - **Balance Tuning**: Continuous adjustments to game parameters (e.g., maintenance frequency, curveball probabilities, selling costs, diligence bonuses) to refine gameplay and educational value.
+- **Performance Optimizations**: CSS code-splitting (game animations in `client/src/styles/game-animations.css` lazy-loaded with Game route), gzip compression via `compression` middleware, route-aware LCP image preload (landing page only via `server/seo.ts`), deferred Google Analytics loading.
 
 ## External Dependencies
 

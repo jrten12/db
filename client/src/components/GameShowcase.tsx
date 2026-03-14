@@ -55,9 +55,20 @@ function ProFormaCard() {
         </div>
 
         <div className="space-y-2">
+          <div className="flex gap-1 mb-1">
+            <span className="text-[9px] font-semibold px-2 py-0.5 rounded"
+              style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)' }}>
+              Rent
+            </span>
+            <span className="text-[9px] font-semibold px-2 py-0.5 rounded"
+              style={{ background: 'rgba(212,175,55,0.08)', color: 'rgba(212,175,55,0.5)', border: '1px solid rgba(212,175,55,0.12)' }}>
+              Flip
+            </span>
+          </div>
+
           <div className="flex items-center justify-between">
-            <span className="text-[10px]" style={{ color: 'rgba(148,163,184,0.7)' }}>Monthly Rent</span>
-            <span className="font-mono text-xs text-white font-semibold">$1,650</span>
+            <span className="text-[10px]" style={{ color: 'rgba(148,163,184,0.7)' }}>NOI (Net Operating Income)</span>
+            <span className="font-mono text-xs text-white font-semibold">$14,040/yr</span>
           </div>
           <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(30,41,59,0.8)' }}>
             <div className="h-full rounded-full" style={{ width: '72%', background: 'linear-gradient(90deg, #06b6d4, #22d3ee)' }} />
@@ -196,9 +207,9 @@ export function GameShowcase() {
           From scouting to settlement — experience every step of a real estate deal.
         </p>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4 lg:gap-5">
           {[PropertyBrowseCard, ProFormaCard, DealResultsCard, PortfolioCard].map((Card, i) => (
-            <div key={i} className="flex flex-col items-center">
+            <div key={i} className="flex flex-col items-center max-w-xs sm:max-w-none mx-auto sm:mx-0 w-full">
               <div className="flex items-center gap-2 mb-2">
                 <span
                   className="text-[10px] font-bold font-mono"

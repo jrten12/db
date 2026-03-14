@@ -1,4 +1,37 @@
 import type { Request } from "express";
+import fs from "fs";
+import path from "path";
+
+let hashedAssetCache: Record<string, string> = {};
+let assetCacheLoaded = false;
+
+function resolveHashedAsset(prefix: string, ext: string): string | null {
+  if (!assetCacheLoaded) {
+    const dir = typeof import.meta.dirname === 'string' ? import.meta.dirname : process.cwd();
+    const candidates = [
+      path.resolve(dir, "public", "assets"),
+      path.resolve(process.cwd(), "dist", "public", "assets"),
+    ];
+    try {
+      for (const assetsDir of candidates) {
+        if (fs.existsSync(assetsDir)) {
+          const files = fs.readdirSync(assetsDir);
+          for (const f of files) {
+            hashedAssetCache[f] = f;
+          }
+          break;
+        }
+      }
+    } catch {}
+    assetCacheLoaded = true;
+  }
+  for (const name of Object.keys(hashedAssetCache)) {
+    if (name.startsWith(prefix) && name.endsWith(ext)) {
+      return name;
+    }
+  }
+  return null;
+}
 
 interface PageMeta {
   title: string;
@@ -607,8 +640,14 @@ export function injectSeoMeta(html: string, url: string, req: Request): string {
 
   const normalizedPath = url.split('?')[0].replace(/\/+$/, '') || '/';
   if (normalizedPath === '/') {
-    const heroPreload = '<link rel="preload" as="image" type="image/webp" href="/hero-bg-pattern.webp" fetchpriority="high" />';
-    html = html.replace('</head>', `    ${heroPreload}\n  </head>`);
+    const preloads = [
+      '<link rel="preload" as="image" type="image/webp" href="/hero-bg-pattern.webp" fetchpriority="high" />',
+    ];
+    const heroAsset = resolveHashedAsset('Gemini_hero', '.webp');
+    if (heroAsset) {
+      preloads.push(`<link rel="preload" as="image" type="image/webp" href="/assets/${heroAsset}" fetchpriority="high" />`);
+    }
+    html = html.replace('</head>', `    ${preloads.join('\n    ')}\n  </head>`);
   }
 
   if (meta.jsonLd) {

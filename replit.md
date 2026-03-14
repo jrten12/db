@@ -31,7 +31,7 @@ Preferred communication style: Simple, everyday language.
 - **Tutorial System**: A 17-step, 7-phase interactive tutorial with UI spotlighting and state persistence.
 - **Post-Deal Analysis**: Features dynamic notifications comparing pro forma to actual outcomes, a shareable deal card for social media, and a "Your Prediction vs Reality" postmortem on the Property Sold screen with accuracy grades (A+ through F), side-by-side metric comparisons, and explanatory reasons for any gaps between projections and actual outcomes.
 - **Balance Tuning**: Continuous adjustments to game parameters (e.g., maintenance frequency, curveball probabilities, selling costs, diligence bonuses) to refine gameplay and educational value.
-- **Performance Optimizations**: CSS code-splitting (game animations in `client/src/styles/game-animations.css` lazy-loaded with Game route), gzip compression via `compression` middleware, route-aware LCP image preload (landing page only via `server/seo.ts`), deferred Google Analytics loading.
+- **Performance Optimizations**: CSS code-splitting (game animations in `client/src/styles/game-animations.css` lazy-loaded with Game route), gzip compression via `compression` middleware, route-aware LCP image preload (landing page hero images via `server/seo.ts` with hashed asset resolver), deferred Google Analytics loading (post-load + 2s delay), vendor chunk splitting (`vendor-query` for TanStack, `vendor-ui` for Radix/CVA), lazy-loaded below-fold landing components (GameShowcase, Footer), tiered static file caching (1yr immutable for hashed assets, 7d for images, 7d for media/fonts/icons, 1h for other static, no-cache for HTML), `index: false` on express.static to ensure all HTML routes flow through SEO injection.
 
 ## External Dependencies
 

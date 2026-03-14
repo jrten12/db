@@ -1,11 +1,13 @@
+import { lazy, Suspense } from 'react';
 import { Link } from 'wouter';
 import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2 } from 'lucide-react';
 import heroHouseImage from '@assets/Gemini_hero.webp';
 import dbLogoImage from '@assets/db_logo_64.webp';
 const heroBgPattern = '/hero-bg-pattern.webp';
-import Footer from '@/components/Footer';
 import { useMusic } from '@/hooks/useMusicPlayer';
-import { GameShowcase } from '@/components/GameShowcase';
+
+const GameShowcase = lazy(() => import('@/components/GameShowcase').then(m => ({ default: m.GameShowcase })));
+const Footer = lazy(() => import('@/components/Footer'));
 
 export default function Landing() {
   const { isPlaying: isMusicPlaying, toggleMusic } = useMusic();
@@ -301,7 +303,9 @@ export default function Landing() {
       </section>
 
       {/* === EVERY DEAL HAS A STORY === */}
-      <GameShowcase />
+      <Suspense fallback={<div className="py-16" />}>
+        <GameShowcase />
+      </Suspense>
 
       {/* === YOUR PATH TO VICTORY === */}
       <section className="px-5 py-3 lg:py-16">
@@ -455,7 +459,9 @@ export default function Landing() {
         </div>
       </div>
 
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
       <div className="pb-[max(0.5rem,env(safe-area-inset-bottom))]" />
     </div>
   );

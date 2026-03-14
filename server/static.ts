@@ -16,8 +16,19 @@ export function serveStatic(app: Express) {
     immutable: true,
   }));
 
+  app.use("/images", express.static(path.join(distPath, "images"), {
+    maxAge: "7d",
+  }));
+
+  const longCacheExts = /\.(mp3|wav|ogg|webp|png|jpg|jpeg|ico|svg|woff2?|ttf|eot)$/i;
   app.use(express.static(distPath, {
     maxAge: "1h",
+    index: false,
+    setHeaders(res, filePath) {
+      if (longCacheExts.test(filePath)) {
+        res.setHeader("Cache-Control", "public, max-age=604800");
+      }
+    },
   }));
 
   app.use("*", (req, res) => {

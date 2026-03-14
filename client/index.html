@@ -47,20 +47,28 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=5" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=5" />
 
-    <!-- Google tag (gtag.js) - deferred to not block rendering -->
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-TEZ9YJJ2SS');
-      (function(){var s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id=G-TEZ9YJJ2SS';document.head.appendChild(s);})();
-    </script>
-
     <!-- Fonts (non-render-blocking) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Mono:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"></noscript>
+
+    <!-- Google tag (gtag.js) - deferred to not block rendering -->
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          window.gtag = gtag;
+          gtag('js', new Date());
+          gtag('config', 'G-TEZ9YJJ2SS');
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=G-TEZ9YJJ2SS';
+          document.head.appendChild(s);
+        }, 2000);
+      });
+    </script>
 
     <title>DealBreak Simulator – Real Estate Investing Simulator Game</title>
   </head>

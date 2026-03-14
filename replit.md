@@ -18,6 +18,7 @@ Preferred communication style: Simple, everyday language.
 - **Pro Forma Editor UX**: Card-styled sections with ROI color highlighting, dual strategy display (Cash-on-Cash, Flip ROI), and mobile-optimized toggles. Sliders provide haptic feedback and enlarged touch targets for mobile.
 - **Content & SEO**: Consistent branding ("DealBreak Simulator"), keyword-optimized titles and content, structured data (JSON-LD schemas for VideoGame, WebApplication, FAQPage, Article, BreadcrumbList), and canonical tags.
 - **Interactive Tools**: Includes "Flip or Rent? Strategy Analyzer" and "Deal Scorecard" with interactive comparison and grading features.
+- **Landing Page Showcase**: `GameShowcase` component (`client/src/components/GameShowcase.tsx`) replaces the old "Every Deal Has a Story" section with styled gameplay preview cards showing property browsing, pro forma analysis, deal results, and portfolio views using the game's dark/gold/emerald theme.
 
 ### Technical Implementation
 - **Backend**: Node.js with Express, written in TypeScript with ESM modules, providing a RESTful JSON API.

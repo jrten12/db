@@ -3,11 +3,9 @@ import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Buildin
 import heroHouseImage from '@assets/Gemini_hero.webp';
 import dbLogoImage from '@assets/db_logo_64.webp';
 const heroBgPattern = '/hero-bg-pattern.webp';
-import iconAnalyzeMarket from '@assets/Gemini_hero.webp';
-import iconBuildWealth from '@assets/Gemini_feature1.webp';
-import iconMasterGame from '@assets/Gemini_feature3.webp';
 import Footer from '@/components/Footer';
 import { useMusic } from '@/hooks/useMusicPlayer';
+import { GameShowcase } from '@/components/GameShowcase';
 
 export default function Landing() {
   const { isPlaying: isMusicPlaying, toggleMusic } = useMusic();
@@ -303,48 +301,7 @@ export default function Landing() {
       </section>
 
       {/* === EVERY DEAL HAS A STORY === */}
-      <section
-        className="relative py-3 lg:py-16"
-        style={{
-          background: 'linear-gradient(180deg, #151518 0%, #131316 100%)',
-        }}
-      >
-        <div
-          className="absolute inset-x-0 top-0 h-[1px]"
-          style={{
-            background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent)',
-          }}
-        />
-        <div className="max-w-5xl mx-auto px-5">
-          <h2
-            className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 lg:mb-12"
-            style={{
-              color: '#f0e6d0',
-              fontStyle: 'italic',
-            }}
-          >
-            Every Deal Has a Story
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 lg:gap-12">
-            <FeatureColumn
-              imageSrc={iconAnalyzeMarket}
-              title="Analyze the Market"
-              description="Use the real estate deal analyzer to study properties, compare locations, and spot the deals others miss. Every market has hidden opportunities and traps."
-            />
-            <FeatureColumn
-              imageSrc={iconBuildWealth}
-              title="Build Your Wealth"
-              description="Flip houses for quick cash or hold rentals for steady income. This property investment simulator lets you balance risk and reward to grow your portfolio."
-            />
-            <FeatureColumn
-              imageSrc={iconMasterGame}
-              title="Master the Game"
-              description="Learn real underwriting skills in this real estate simulator game. Manage contractors and tenants, and navigate shifting market conditions."
-            />
-          </div>
-        </div>
-      </section>
+      <GameShowcase />
 
       {/* === YOUR PATH TO VICTORY === */}
       <section className="px-5 py-3 lg:py-16">
@@ -500,54 +457,6 @@ export default function Landing() {
 
       <Footer />
       <div className="pb-[max(0.5rem,env(safe-area-inset-bottom))]" />
-    </div>
-  );
-}
-
-function FeatureColumn({
-  imageSrc,
-  title,
-  description,
-}: {
-  imageSrc: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex flex-col items-center text-center">
-      <div className="w-20 h-20 sm:w-20 sm:h-20 lg:w-28 lg:h-28 mb-2 flex-shrink-0 rounded-2xl overflow-hidden"
-        style={{
-          background: 'radial-gradient(circle at center, rgba(34,34,40,0.8), rgba(20,20,24,0.9))',
-          padding: '10px',
-        }}
-      >
-        <img
-          src={imageSrc}
-          alt={title}
-          className="w-full h-full object-contain"
-          loading="lazy"
-          width={112}
-          height={112}
-          style={{
-            filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))',
-          }}
-        />
-      </div>
-      <h3
-        className="text-base lg:text-lg font-bold mb-1.5"
-        style={{
-          color: '#f0e6d0',
-          fontStyle: 'italic',
-        }}
-      >
-        {title}
-      </h3>
-      <p
-        className="text-[14px] leading-relaxed max-w-[280px]"
-        style={{ color: 'rgba(225,220,205,0.7)' }}
-      >
-        {description}
-      </p>
     </div>
   );
 }

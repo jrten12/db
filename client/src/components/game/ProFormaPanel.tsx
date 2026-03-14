@@ -3,7 +3,7 @@ import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isP
 
 type FinishLevelKey = keyof typeof FINISH_LEVEL_CONFIG;
 const FINISH_LEVELS = Object.keys(FINISH_LEVEL_CONFIG) as FinishLevelKey[];
-import { getEffectiveRanges, EffectiveRanges, getRevealedIssues, type PropertyIssue } from '@/lib/propertyIssues';
+import { getEffectiveRanges, EffectiveRanges, getRevealedIssues, getRevealedRandomizedIssues, type PropertyIssue } from '@/lib/propertyIssues';
 import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet, ArrowDown } from 'lucide-react';
 import { ItemizedRepairsPanel } from './ItemizedRepairsPanel';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -255,15 +255,16 @@ interface ProFormaPanelProps {
   completedDiligence?: string[];
   playerCash?: number;
   playerFinancials?: PlayerFinancials;
-  weekNumber?: number; // Current game week for market rate variability
+  weekNumber?: number;
   onReturnToProperty?: () => void;
   onProceedWithoutDiligence?: () => void;
   skippedDiligence?: boolean;
   touchedFields?: Set<keyof ProFormaInputs>;
   onFieldTouch?: (fieldKey: keyof ProFormaInputs) => void;
+  gameRunId?: number;
 }
 
-export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 100000, playerFinancials, weekNumber = 1, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false, touchedFields = new Set(), onFieldTouch }: ProFormaPanelProps) {
+export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 100000, playerFinancials, weekNumber = 1, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false, touchedFields = new Set(), onFieldTouch, gameRunId }: ProFormaPanelProps) {
   const effectiveRanges = useMemo(() => getEffectiveRanges(
     {
       rentMin: property.rentRange?.[0] ?? property.rentMin ?? 1000,
@@ -282,8 +283,18 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   ), [property, completedDiligence]);
 
   const revealedIssues = useMemo(() => {
+    if (gameRunId && gameRunId > 0) {
+      return getRevealedRandomizedIssues(
+        gameRunId,
+        property.id,
+        property.propertyType || 'house',
+        property.conditionTag || 'Fair',
+        completedDiligence,
+        (property as any).waterSource || 'public'
+      );
+    }
     return getRevealedIssues(property.name, completedDiligence);
-  }, [property.name, completedDiligence]);
+  }, [property.name, property.id, property.propertyType, property.conditionTag, completedDiligence, gameRunId]);
 
   const [expandedSections, setExpandedSections] = useState({
     foundation: true,
@@ -768,7 +779,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       min={0}
                       max={15}
                       step={1}
-                      value={inputs.vacancyRate ?? 7}
+                      value={inputs.vacancyRate ?? 0}
                       onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, vacancyRate: parseInt(e.target.value) }); }}
                       className="w-full h-3 rounded-lg appearance-none cursor-pointer"
                       data-testid="slider-vacancy-rate"
@@ -873,14 +884,14 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
                     <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Contingency</label>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-cyan-100 text-2xl font-mono font-bold">{inputs.contingencyPct ?? 10}%</span>
+                      <span className="text-cyan-100 text-2xl font-mono font-bold">{inputs.contingencyPct ?? 0}%</span>
                     </div>
                     <input
                       type="range"
-                      min={5}
+                      min={0}
                       max={25}
                       step={1}
-                      value={inputs.contingencyPct ?? 10}
+                      value={inputs.contingencyPct ?? 0}
                       onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, contingencyPct: parseInt(e.target.value) }); }}
                       className="w-full h-3 rounded-lg appearance-none cursor-pointer"
                       data-testid="slider-contingency"
@@ -1176,15 +1187,15 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       {hasContractorWalkthrough || hasInspection ? (
                         <>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-cyan-100 text-lg font-mono font-bold">{inputs.maintenancePct ?? 5}%</span>
-                            <span className="text-cyan-400/60 text-xs">${Math.round((inputs.expectedRent || 0) * (inputs.maintenancePct ?? 5) / 100)}/mo</span>
+                            <span className="text-cyan-100 text-lg font-mono font-bold">{inputs.maintenancePct ?? 0}%</span>
+                            <span className="text-cyan-400/60 text-xs">${Math.round((inputs.expectedRent || 0) * (inputs.maintenancePct ?? 0) / 100)}/mo</span>
                           </div>
                           <input
                             type="range"
-                            min={3}
+                            min={0}
                             max={12}
                             step={1}
-                            value={inputs.maintenancePct ?? 5}
+                            value={inputs.maintenancePct ?? 0}
                             onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, maintenancePct: parseInt(e.target.value) }); }}
                             className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                             data-testid="slider-maintenance"
@@ -1223,15 +1234,15 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         <InfoTooltip term="capExPct" />
                       </label>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-cyan-100 text-lg font-mono font-bold">{inputs.capExPct ?? 5}%</span>
-                        <span className="text-cyan-400/60 text-xs">${Math.round((inputs.expectedRent || 0) * (inputs.capExPct ?? 5) / 100)}/mo</span>
+                        <span className="text-cyan-100 text-lg font-mono font-bold">{inputs.capExPct ?? 0}%</span>
+                        <span className="text-cyan-400/60 text-xs">${Math.round((inputs.expectedRent || 0) * (inputs.capExPct ?? 0) / 100)}/mo</span>
                       </div>
                       <input
                         type="range"
-                        min={3}
+                        min={0}
                         max={15}
                         step={1}
-                        value={inputs.capExPct ?? 5}
+                        value={inputs.capExPct ?? 0}
                         onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, capExPct: parseInt(e.target.value) }); }}
                         className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                         data-testid="slider-capex"

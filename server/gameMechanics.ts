@@ -1113,15 +1113,38 @@ export async function processRentalIncome(
   if (realityCheckData?.explanation) {
     comparisonExplanation = realityCheckData.explanation;
   } else if (hasMeaningfulDelta) {
+    const reasons: string[] = [];
+    const fixedIds = proFormaInputs?.fixedIssueIds || [];
+    const discoveredIds = proFormaInputs?.discoveredIssueIds || [];
+    const skippedIssueCount = discoveredIds.filter((id: string) => !fixedIds.includes(id)).length;
+
     if (rentDelta < 0) {
-      comparisonExplanation = 'Actual rent is lower than your pro forma projection.';
+      if (skippedIssueCount > 0) {
+        reasons.push(`Unfixed issues (${skippedIssueCount}) are reducing what tenants will pay.`);
+      }
+      const market = (gameRun.marketCondition as string) || 'good';
+      if (market === 'terrible' || market === 'poor') {
+        reasons.push('Weak market conditions are pushing rents below expectations.');
+      } else if (reasons.length === 0) {
+        reasons.push('Market rents came in lower than your assumption.');
+      }
     } else if (rentDelta > 0) {
-      comparisonExplanation = 'Actual rent is exceeding your pro forma projection.';
+      reasons.push('Actual rent is exceeding your pro forma — nice conservative underwriting!');
     }
     if (expenseDelta > 0) {
-      comparisonExplanation += comparisonExplanation ? ' ' : '';
-      comparisonExplanation += 'Expenses are higher than projected.';
+      if (Math.abs(scaledVacancyLoss - playerProjectedVacancy) > playerProjectedVacancy * 0.1) {
+        reasons.push('Vacancy is higher than you projected.');
+      }
+      if (fixedOperatingExpenses > (playerProjectedOpEx * 1.1)) {
+        reasons.push('Operating expenses (maintenance, taxes, insurance) are running above your estimates.');
+      }
+      if (reasons.length === 0) {
+        reasons.push('Total expenses are higher than projected.');
+      }
+    } else if (expenseDelta < -playerProjectedExpenses * 0.05) {
+      reasons.push('Expenses are coming in below your estimates — good margin of safety.');
     }
+    comparisonExplanation = reasons.join(' ');
   }
 
   return {

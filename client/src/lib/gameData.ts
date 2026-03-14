@@ -211,25 +211,27 @@ export const MARKET_DEFAULTS = {
 // All required fields have market-based defaults to prevent silent zeros
 export const defaultProForma: ProFormaInputs = {
   strategy: 'rent',
-  expectedRent: null, // Must come from market study or player input
-  vacancyRate: MARKET_DEFAULTS.vacancyRate,
-  taxesAnnual: null, // Property-specific, calculated at ~1.5% of price
-  insuranceAnnual: null, // Property-specific, calculated at ~0.5% of price
-  maintenancePct: MARKET_DEFAULTS.maintenancePct,
-  capExPct: MARKET_DEFAULTS.capExPct,
+  expectedRent: null,
+  vacancyRate: null,
+  taxesAnnual: null,
+  insuranceAnnual: null,
+  maintenancePct: null,
+  capExPct: null,
   utilities: false,
-  utilitiesMonthly: MARKET_DEFAULTS.utilitiesMonthly,
+  utilitiesMonthly: null,
   propertyManagement: false,
-  propertyManagementPct: MARKET_DEFAULTS.propertyManagementPct,
-  rehabBudget: null, // Must come from contractor walkthrough
-  rehabWeeks: MARKET_DEFAULTS.rehabWeeks,
-  contingencyPct: MARKET_DEFAULTS.contingencyPct,
+  propertyManagementPct: null,
+  rehabBudget: null,
+  rehabWeeks: null,
+  contingencyPct: null,
   ltv: DEFAULT_LTV,
-  sellingCostsPct: MARKET_DEFAULTS.sellingCostsPct,
+  sellingCostsPct: null,
   contractorType: 'cheap',
   finishLevel: 'builder',
-  financeRehab: false, // Default to not financing rehab
-  arvEstimate: null, // Player's estimated sale price for flips
+  financeRehab: false,
+  arvEstimate: null,
+  fixedIssueIds: [],
+  discoveredIssueIds: [],
 };
 
 // Helper to get property-specific defaults based on price

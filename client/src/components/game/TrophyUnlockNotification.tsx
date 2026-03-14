@@ -95,7 +95,7 @@ export function TrophyUnlockNotification({ trophyId, onDismiss }: TrophyUnlockNo
 
     const timer = setTimeout(() => {
       handleDismiss();
-    }, 5000);
+    }, 3000);
 
     return () => {
       clearTimeout(timer);
@@ -168,11 +168,21 @@ export function TrophyUnlockNotification({ trophyId, onDismiss }: TrophyUnlockNo
 interface TrophyNotificationManagerProps {
   awardedTrophies: string[];
   onAllDismissed?: () => void;
+  paused?: boolean;
 }
 
-export function TrophyNotificationManager({ awardedTrophies, onAllDismissed }: TrophyNotificationManagerProps) {
+export function TrophyNotificationManager({ awardedTrophies, onAllDismissed, paused = false }: TrophyNotificationManagerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [prevLength, setPrevLength] = useState(0);
+
+  useEffect(() => {
+    if (awardedTrophies.length === 0 && prevLength > 0) {
+      setCurrentIndex(0);
+      setDismissed(new Set());
+    }
+    setPrevLength(awardedTrophies.length);
+  }, [awardedTrophies.length, prevLength]);
 
   const handleDismiss = useCallback(() => {
     if (currentIndex < awardedTrophies.length) {
@@ -185,7 +195,7 @@ export function TrophyNotificationManager({ awardedTrophies, onAllDismissed }: T
     }
   }, [currentIndex, awardedTrophies, onAllDismissed]);
 
-  if (awardedTrophies.length === 0 || currentIndex >= awardedTrophies.length) {
+  if (paused || awardedTrophies.length === 0 || currentIndex >= awardedTrophies.length) {
     return null;
   }
 

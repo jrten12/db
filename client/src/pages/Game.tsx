@@ -56,7 +56,7 @@ import {
   TIME_PENALTY_TENANT_PAYS_UTILITIES,
   PlayerFinancials
 } from '@/lib/gameData';
-import { getEffectiveRanges, getRevealedIssues } from '@/lib/propertyIssues';
+import { getEffectiveRanges, getRevealedIssues, getRevealedRandomizedIssues } from '@/lib/propertyIssues';
 import { type Curveball, getTenantMessageForCurveball, curveballHasTenantMessage, getCurveballById } from '@/lib/curveballs';
 import { api } from '@/lib/api';
 import { saveGame, loadGame, getSaveInfo, clearSave } from '@/lib/saveGame';
@@ -699,10 +699,10 @@ export default function Game() {
         [propertyId]: newCompletedDiligence,
       }));
       
-      // Update proFormaInputs with discovered issue IDs
-      // This enables the unfixed issues mechanic where discovered but unfixed issues cause more maintenance problems
       if (property) {
-        const revealedIssues = getRevealedIssues(property.name, newCompletedDiligence);
+        const revealedIssues = gameRun.id > 0
+          ? getRevealedRandomizedIssues(gameRun.id, property.id, property.propertyType || 'house', property.conditionTag || 'Fair', newCompletedDiligence, property.waterSource || 'public')
+          : getRevealedIssues(property.name, newCompletedDiligence);
         const revealedIssueIds = revealedIssues.map(issue => issue.id);
         
         if (revealedIssueIds.length > 0) {
@@ -785,15 +785,17 @@ export default function Game() {
   const currentWeek = gameRun?.weeksRemaining ? 52 - gameRun.weeksRemaining : 1;
 
   const handleInputsChange = useCallback((inputs: ProFormaInputs) => {
-    // Calculate fixedIssueIds based on rehab budget
     let updatedInputs = inputs;
     
-    const hasExplicitIssueSelection = inputs.discoveredIssueIds && inputs.discoveredIssueIds.length > 0 && inputs.fixedIssueIds !== undefined;
+    const hasExplicitIssueSelection = inputs.fixedIssueIds !== undefined && inputs.fixedIssueIds.length > 0;
     
     if (hasExplicitIssueSelection) {
       updatedInputs = inputs;
-    } else if (selectedProperty && inputs.rehabBudget !== undefined && inputs.rehabBudget > 0) {
-      const revealedIssues = getRevealedIssues(selectedProperty.name, completedDiligence[selectedProperty.id] || []);
+    } else if (selectedProperty && inputs.rehabBudget !== undefined && inputs.rehabBudget > 0 && (!inputs.fixedIssueIds || inputs.fixedIssueIds.length === 0)) {
+      const diligence = completedDiligence[selectedProperty.id] || [];
+      const revealedIssues = gameRun && gameRun.id > 0
+        ? getRevealedRandomizedIssues(gameRun.id, selectedProperty.id, selectedProperty.propertyType || 'house', selectedProperty.conditionTag || 'Fair', diligence, selectedProperty.waterSource || 'public')
+        : getRevealedIssues(selectedProperty.name, diligence);
       
       const sortedIssues = [...revealedIssues].sort((a, b) => a.costRangeMax - b.costRangeMax);
       
@@ -808,7 +810,7 @@ export default function Game() {
       }
       
       updatedInputs = { ...inputs, fixedIssueIds: fixedIds };
-    } else if (inputs.rehabBudget === 0 || inputs.rehabBudget === undefined) {
+    } else if (inputs.rehabBudget === 0 || inputs.rehabBudget === null || inputs.rehabBudget === undefined) {
       updatedInputs = { ...inputs, fixedIssueIds: [] };
     }
     
@@ -816,7 +818,7 @@ export default function Game() {
     if (isProFormaComplete && selectedProperty) {
       setProFormaOutputs(calculateProForma(updatedInputs, selectedProperty, playerFinancials, currentWeek));
     }
-  }, [isProFormaComplete, selectedProperty, playerFinancials, currentWeek, completedDiligence]);
+  }, [isProFormaComplete, selectedProperty, playerFinancials, currentWeek, completedDiligence, gameRun]);
 
   const handleFieldTouch = useCallback((fieldKey: keyof ProFormaInputs) => {
     setTouchedFields(prev => {
@@ -2020,6 +2022,7 @@ export default function Game() {
                     skippedDiligence={skippedDiligenceDeals.has(selectedProperty.id)}
                     touchedFields={touchedFields}
                     onFieldTouch={handleFieldTouch}
+                    gameRunId={gameRun?.id}
                   />
                 </div>
 
@@ -2340,10 +2343,11 @@ export default function Game() {
         {/* Construction Notifications */}
         <ConstructionNotification events={constructionEvents} onDismiss={dismissConstructionEvent} />
 
-        {/* Trophy Unlock Notifications */}
+        {/* Trophy Unlock Notifications - paused when sold animation is showing */}
         <TrophyNotificationManager 
           awardedTrophies={pendingTrophies} 
-          onAllDismissed={clearTrophies} 
+          onAllDismissed={clearTrophies}
+          paused={propertySoldAnim.isOpen}
         />
 
         {/* Achievement Popups */}

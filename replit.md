@@ -81,7 +81,9 @@ Preferred communication style: Simple, everyday language.
 
 ### Pro Forma Editor UX
 - Card-styled sections for financing, renovation, and income/expenses. Features ROI color highlighting, dual strategy display (Cash-on-Cash, Flip ROI), and mobile-optimized toggles.
-- Pro forma calculations are client-side. Inputs start empty to encourage manual entry, with validation and visual feedback.
+- Pro forma calculations are client-side. All sliders start at zero — player must manually set every assumption. Haptic feedback on all sliders.
+- Issue matching: ProFormaPanel receives `gameRunId` prop to use `getRevealedRandomizedIssues()` (same as PropertyDetail), ensuring consistent issues between pages.
+- Repair selection defaults to all unchecked (fixedIssueIds starts empty). Player explicitly opts in to each repair. Unselected repairs don't affect financing.
 
 ### Game Logic
 - **Time Unit**: Months (UI consistently uses "months" everywhere; internal code still uses `weeksRemaining` field names for backward compatibility)
@@ -89,7 +91,7 @@ Preferred communication style: Simple, everyday language.
 - Property issue system for due diligence reveals.
 - Surprise repair costs if due diligence is skipped.
 - Reality check system for rental income and vacancy assumptions.
-- **Pro Forma vs Actual Notifications**: First-time comparison toast when actual rental cash flow differs from pro forma projections by >5%. Server returns `proFormaComparison` in `RentalIncomeResult`.
+- **Pro Forma vs Actual Notifications**: First-time comparison toast when actual rental cash flow differs from pro forma projections by >5%. Server returns `proFormaComparison` in `RentalIncomeResult` with specific explanations (unfixed issues, market conditions, assumption gaps).
 - Dual-path due diligence gating with consequences.
 - Strategy options: Rent vs. Flip, each with distinct financial models.
 - **LTV-Based Financing**: Single LTV slider drives interest rates and loan fees, with exponential curves in "danger zones" (90-100% LTV) and player-state adjustments.
@@ -109,7 +111,8 @@ Preferred communication style: Simple, everyday language.
 - **Balance Tuning (BAL-006)**: Goal reduced from 3→2 profitable deals. Selling costs 6%→5%. Closing costs 3%→2.5%. Market crash probability reduced (good→poor 5%→2%, excellent→poor 3%→1%). Friendlier starting market (terrible 8%→5%, excellent 23%→25%). Market floor raised (terrible min 0.88→0.90, poor min 0.92→0.93). Maintenance multipliers reduced (budget 1.8→1.5, mid-range 1.2→1.0, high-end 0.8→0.7, luxury 0.5→0.4). Curveball condition multipliers reduced (fixer-upper 1.4→1.25, needs-work 1.3→1.15).
 - **Balance Tuning (BAL-008)**: Title issue costs reduced ~40% across all types (max was $40k, now $25k). Title issue probability reduced 20%→15%. Diligence bonus increased (full diligence 6%→8% sale price bonus). No-comps flip reality range narrowed (floor 0.70→0.75). Rental no-market-study penalties softened (worst-case 60-85%→68-88% rent, 50%→40% chance of underperformance, 25%→30% chance of lucky outcome). Rental blindness penalty reduced (80%→70% chance, 3-15%→2-12% range).
 - **Balance Tuning (BAL-007)**: Selective repair penalties and rewards. Discovered-but-skipped issues penalize flip sale price at 1.5% each (undiscovered still 2%). Fixed issues boost flip sale price +1% each (max +5%). Rental rent penalized 1% per known-unfixed issue, boosted 1.5% per fixed issue (max 8%). Rental rehab unfixed depression increased from 0.25% to 1% per item. Luxury finish boosts increased: ARV 8%→10%, rent 10%→12%.
-- **Pre-Purchase Repair Selection**: Players can cherry-pick which discovered issues to fix via ItemizedRepairsPanel in ProFormaPanel. Selected repairs populate fixedIssueIds in proFormaInputs. Unselected items tracked as known-but-skipped issues with proportional penalties on sale/rent.
+- **Balance Tuning (BAL-009)**: Repair timeline impacts capped — max 3 weeks per issue (was 6). With cheap contractor (1.5x), max is 5 months; fast contractor (0.7x), max is 3 months. Trophy popup reduced from 5s to 3s, paused during PropertySoldAnimation.
+- **Pre-Purchase Repair Selection**: Players can cherry-pick which discovered issues to fix via ItemizedRepairsPanel in ProFormaPanel. Selected repairs populate fixedIssueIds in proFormaInputs. Unselected items tracked as known-but-skipped issues with proportional penalties on sale/rent. All repairs default to unselected.
 - **Deal Share Card**: Shareable 1080x1080 PNG generated via HTML Canvas when a property is sold (flip or rental exit). Shows deal financials (purchase, renovation, sale price, profit/loss, ROI) with a viral headline like "I just made/lost $X flipping a house in a simulator." Players can download the image or share via Web Share API. Designed for Reddit, Twitter, and real estate forum distribution. Files: `DealShareCard.tsx`, triggered from `PropertySoldAnimation.tsx`.
 
 ## External Dependencies

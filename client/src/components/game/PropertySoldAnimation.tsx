@@ -15,6 +15,8 @@ interface ProFormaProjection {
   totalRentalIncome?: number;
   totalExpensesPaid?: number;
   monthsHeld?: number;
+  actualMonthlyCashFlow?: number;
+  totalRentalIncomeCollected?: number;
   strategy: 'rent' | 'flip';
 }
 
@@ -168,11 +170,11 @@ function getAccuracyGrade(projectedProfit: number, actualProfit: number): { grad
 function getWhyDifferent(proj: ProFormaProjection, saleData: NonNullable<PropertySoldAnimationProps['saleData']>): string[] {
   const reasons: string[] = [];
 
-  const actualProfit = saleData.saleProfit;
-  const projectedProfit = proj.projectedProfit || 0;
-  const profitDiff = actualProfit - projectedProfit;
-
   if (proj.strategy === 'flip') {
+    const actualProfit = saleData.saleProfit;
+    const projectedProfit = proj.projectedProfit || 0;
+    const profitDiff = actualProfit - projectedProfit;
+
     if (proj.projectedSalePrice && Math.abs(saleData.salePrice - proj.projectedSalePrice) > proj.projectedSalePrice * 0.03) {
       if (saleData.salePrice > proj.projectedSalePrice) {
         reasons.push('Market conditions pushed the sale price above your ARV estimate — good news for your bottom line.');
@@ -184,21 +186,37 @@ function getWhyDifferent(proj: ProFormaProjection, saleData: NonNullable<Propert
       reasons.push('Unexpected costs during the hold period — curveballs, longer timelines, or higher carrying costs reduced your profit.');
     }
   } else {
-    if (profitDiff > 5000) {
-      reasons.push('Your rental performed better than projected — possibly from higher rent, fewer vacancies, or fewer surprise costs.');
-    } else if (profitDiff < -5000) {
-      reasons.push('Curveballs, vacancies, or unfixed property issues likely reduced your rental income below projections.');
+    const projectedMonthly = proj.projectedMonthlyCashFlow ?? 0;
+    const actualMonthly = proj.actualMonthlyCashFlow ?? 0;
+    const cashFlowDiff = actualMonthly - projectedMonthly;
+
+    if (cashFlowDiff > 50) {
+      reasons.push('Your rental earned more cash flow than projected — possibly from higher actual rent, fewer vacancies, or lower operating expenses.');
+    } else if (cashFlowDiff < -50) {
+      reasons.push('Curveballs, maintenance events, or unfixed property issues reduced your actual cash flow below what you projected.');
     }
-    if (Math.abs(profitDiff) > 10000) {
-      reasons.push('Market conditions and random events like surprise repairs can significantly shift actual results from projections — this is why conservative estimates matter.');
+
+    if (Math.abs(cashFlowDiff) > 200) {
+      reasons.push('Random events like surprise repairs and vacancy gaps can significantly shift actual rental income from projections — conservative estimates help absorb these hits.');
     }
   }
 
   if (reasons.length === 0) {
-    if (Math.abs(profitDiff) < 2000) {
-      reasons.push('Your projections were quite accurate! Good underwriting translates to predictable outcomes.');
+    if (proj.strategy === 'rent') {
+      const projectedMonthly = proj.projectedMonthlyCashFlow ?? 0;
+      const actualMonthly = proj.actualMonthlyCashFlow ?? 0;
+      if (Math.abs(actualMonthly - projectedMonthly) < 50) {
+        reasons.push('Your cash flow projections were quite accurate! Good underwriting means predictable rental income.');
+      } else {
+        reasons.push('Several small factors — maintenance timing, vacancy gaps, and market shifts — combined to create the gap between projected and actual cash flow.');
+      }
     } else {
-      reasons.push('Several small factors — market shifts, timing, and random events — combined to create the gap between projection and reality.');
+      const profitDiff = Math.abs(saleData.saleProfit - (proj.projectedProfit || 0));
+      if (profitDiff < 2000) {
+        reasons.push('Your projections were quite accurate! Good underwriting translates to predictable outcomes.');
+      } else {
+        reasons.push('Several small factors — market shifts, timing, and random events — combined to create the gap between projection and reality.');
+      }
     }
   }
 
@@ -239,17 +257,25 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
   const totalCosts = breakdownItems.reduce((sum, item) => sum + item.amount, 0);
 
   const hasProjections = !!(proFormaProjections && proFormaProjections.strategy);
-  const projectedProfitValue = hasProjections
-    ? (proFormaProjections!.projectedProfit ?? (proFormaProjections!.projectedMonthlyCashFlow != null && proFormaProjections!.monthsHeld
-        ? proFormaProjections!.projectedMonthlyCashFlow * proFormaProjections!.monthsHeld
-        : undefined))
-    : undefined;
-  const accuracyGrade = hasProjections && projectedProfitValue !== undefined
-    ? getAccuracyGrade(projectedProfitValue, saleData.saleProfit)
-    : null;
-  const effectiveProjections = hasProjections && projectedProfitValue !== undefined
-    ? { ...proFormaProjections!, projectedProfit: projectedProfitValue }
-    : proFormaProjections;
+
+  const isRentalStrategy = hasProjections && proFormaProjections!.strategy === 'rent';
+
+  let accuracyGrade: ReturnType<typeof getAccuracyGrade> | null = null;
+  let effectiveProjections = proFormaProjections;
+
+  if (hasProjections && isRentalStrategy) {
+    const projectedMonthly = proFormaProjections!.projectedMonthlyCashFlow ?? 0;
+    const actualMonthly = proFormaProjections!.actualMonthlyCashFlow ?? 0;
+    const projectedTotal = projectedMonthly * (proFormaProjections!.monthsHeld || 1);
+    const actualTotal = proFormaProjections!.totalRentalIncomeCollected ?? (actualMonthly * (proFormaProjections!.monthsHeld || 1));
+    accuracyGrade = getAccuracyGrade(projectedTotal, actualTotal);
+    effectiveProjections = { ...proFormaProjections!, projectedProfit: projectedTotal };
+  } else if (hasProjections) {
+    const projectedProfitValue = proFormaProjections!.projectedProfit ?? 0;
+    accuracyGrade = getAccuracyGrade(projectedProfitValue, saleData.saleProfit);
+    effectiveProjections = { ...proFormaProjections!, projectedProfit: projectedProfitValue };
+  }
+
   const whyReasons = hasProjections && effectiveProjections ? getWhyDifferent(effectiveProjections, saleData) : [];
 
   return (
@@ -384,7 +410,9 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                         >
                           <div className="flex items-center gap-2">
                             <Target className="w-4 h-4 text-cyan-400" />
-                            <span className="text-sm font-semibold text-cyan-300">Your Prediction vs Reality</span>
+                            <span className="text-sm font-semibold text-cyan-300">
+                              {isRentalStrategy ? 'Pro Forma vs Actual Cash Flow' : 'Your Prediction vs Reality'}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2">
                             {accuracyGrade && (
@@ -443,21 +471,33 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                                   <>
                                     {proFormaProjections!.projectedMonthlyCashFlow !== undefined && (
                                       <ComparisonRow
-                                        label="Projected Cash Flow"
+                                        label="Monthly Cash Flow"
                                         projected={proFormaProjections!.projectedMonthlyCashFlow}
-                                        actual={proFormaProjections!.monthsHeld && proFormaProjections!.monthsHeld > 0
-                                          ? saleData.saleProfit / proFormaProjections!.monthsHeld
-                                          : saleData.saleProfit}
+                                        actual={proFormaProjections!.actualMonthlyCashFlow ?? 0}
                                         format="currencyPerMonth"
                                       />
                                     )}
-                                    {proFormaProjections!.projectedProfit !== undefined && (
-                                      <ComparisonRow
-                                        label="Total Profit (Sale)"
-                                        projected={proFormaProjections!.projectedProfit}
-                                        actual={saleData.saleProfit}
-                                      />
-                                    )}
+                                    {(() => {
+                                      const projTotal = (proFormaProjections!.projectedMonthlyCashFlow ?? 0) * (proFormaProjections!.monthsHeld || 1);
+                                      const actualTotal = proFormaProjections!.totalRentalIncomeCollected
+                                        ?? ((proFormaProjections!.actualMonthlyCashFlow ?? 0) * (proFormaProjections!.monthsHeld || 1));
+                                      return (
+                                        <ComparisonRow
+                                          label={`Total Rental Income (${proFormaProjections!.monthsHeld || 0}mo)`}
+                                          projected={projTotal}
+                                          actual={actualTotal}
+                                        />
+                                      );
+                                    })()}
+                                    <div className="pt-1 mt-1" style={{ borderTop: '1px solid rgba(100,116,139,0.2)' }}>
+                                      <div className="flex items-center justify-between text-xs">
+                                        <span className="text-gray-500">Exit Sale Profit</span>
+                                        <span className={`font-mono font-semibold ${saleData.saleProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                          {saleData.saleProfit >= 0 ? '+' : ''}${saleData.saleProfit.toLocaleString()}
+                                        </span>
+                                      </div>
+                                      <p className="text-[10px] text-gray-600 mt-0.5">Capital gain/loss from selling (separate from rental income)</p>
+                                    </div>
                                   </>
                                 )}
 

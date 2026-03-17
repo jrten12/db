@@ -1529,12 +1529,14 @@ export default function Game() {
       if (updatedRun) setGameRun(updatedRun);
 
       if (result.success) {
-        toast.success(`🎨 Cosmetic Upgrade — $${result.cost.toLocaleString()}`, {
+        toast.success(`🔨 Renovation — $${result.cost.toLocaleString()}`, {
           description: result.message,
+          duration: 6000,
         });
       } else {
-        toast(`🎨 Cosmetic Upgrade — $${result.cost.toLocaleString()}`, {
+        toast(`🔨 Renovation — $${result.cost.toLocaleString()}`, {
           description: result.message,
+          duration: 6000,
         });
       }
     } catch (error: any) {

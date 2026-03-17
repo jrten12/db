@@ -310,6 +310,7 @@ export const api = {
     rentBoostPct: number;
     saleBoostPct: number;
     message: string;
+    contractorDiscount: boolean;
   }> {
     const res = await fetch(`${API_BASE}/deals/${dealId}/cosmetic-upgrade`, {
       method: 'POST',

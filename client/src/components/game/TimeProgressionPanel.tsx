@@ -494,7 +494,7 @@ export function TimeProgressionPanel({
                         setUpgradingDealId(deal.id);
                         onCosmeticUpgrade(deal.id).finally(() => setUpgradingDealId(null));
                       }}
-                      data-testid={`button-cosmetic-upgrade-${deal.id}`}
+                      data-testid={`button-renovate-${deal.id}`}
                       data-no-click-sound
                     >
                       {upgradingDealId === deal.id ? (
@@ -502,7 +502,7 @@ export function TimeProgressionPanel({
                       ) : (
                         <>
                           <Paintbrush className="w-3 h-3" />
-                          <span className="hidden sm:inline">Upgrade</span>
+                          <span className="hidden sm:inline">Renovate</span>
                         </>
                       )}
                     </Button>
@@ -561,7 +561,7 @@ export function TimeProgressionPanel({
                               setUpgradingDealId(deal.id);
                               onCosmeticUpgrade(deal.id).finally(() => setUpgradingDealId(null));
                             }}
-                            data-testid={`button-cosmetic-upgrade-${deal.id}`}
+                            data-testid={`button-renovate-${deal.id}`}
                             data-no-click-sound
                           >
                             {upgradingDealId === deal.id ? (
@@ -615,7 +615,7 @@ export function TimeProgressionPanel({
                         setUpgradingDealId(deal.id);
                         onCosmeticUpgrade(deal.id).finally(() => setUpgradingDealId(null));
                       }}
-                      data-testid={`button-cosmetic-upgrade-${deal.id}`}
+                      data-testid={`button-renovate-${deal.id}`}
                       data-no-click-sound
                     >
                       {upgradingDealId === deal.id ? (
@@ -623,7 +623,7 @@ export function TimeProgressionPanel({
                       ) : (
                         <>
                           <Paintbrush className="w-3 h-3" />
-                          <span className="hidden sm:inline">Upgrade</span>
+                          <span className="hidden sm:inline">Renovate</span>
                         </>
                       )}
                     </Button>

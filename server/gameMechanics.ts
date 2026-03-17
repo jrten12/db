@@ -1772,7 +1772,7 @@ async function applyMarketRentAdjustment(deal: Deal, market: MarketCondition): P
 export async function applyCosmeticUpgrade(
   dealId: number,
   gameRunId: number
-): Promise<{ success: boolean; cost: number; rentBoostPct: number; saleBoostPct: number; message: string }> {
+): Promise<{ success: boolean; cost: number; rentBoostPct: number; saleBoostPct: number; message: string; contractorDiscount: boolean }> {
   const deal = await storage.getDeal(dealId);
   if (!deal) throw new Error('Deal not found');
 
@@ -1788,7 +1788,7 @@ export async function applyCosmeticUpgrade(
 
   const outputs = deal.proFormaOutputs as any;
   if (outputs?.cosmeticUpgradeApplied) {
-    throw new Error('Cosmetic upgrade already applied to this property');
+    throw new Error('Renovation upgrade already applied to this property');
   }
 
   const isRental = deal.status === 'active_rental';
@@ -1798,42 +1798,133 @@ export async function applyCosmeticUpgrade(
   }
 
   const market = (gameRun.marketCondition as MarketCondition) || 'neutral';
-  const priceScale = Math.max(1, (property.price || 200000) / 200000);
-  const baseCost = 2000 + Math.floor(Math.random() * 4000);
-  const cost = Math.round(baseCost * Math.min(priceScale, 2.5));
+  const condition = property.conditionTag || 'Fair';
 
-  if (gameRun.cash < cost) {
-    throw new Error('Not enough cash for cosmetic upgrade');
+  const conditionMultipliers: Record<string, number> = {
+    'Fixer-Upper': 1.6,
+    'Fair': 1.2,
+    'Good': 1.0,
+    'Excellent': 0.8,
+  };
+  const conditionCostMult = conditionMultipliers[condition] || 1.0;
+
+  const marketCostMultipliers: Record<MarketCondition, number> = {
+    terrible: 0.75,
+    poor: 0.85,
+    neutral: 1.0,
+    good: 1.15,
+    excellent: 1.35,
+  };
+  const marketCostMult = marketCostMultipliers[market];
+
+  const priceTier = property.price || 200000;
+  let baseCostMin: number, baseCostMax: number;
+  if (priceTier < 200000) {
+    baseCostMin = 2500; baseCostMax = 6000;
+  } else if (priceTier < 350000) {
+    baseCostMin = 4000; baseCostMax = 10000;
+  } else if (priceTier < 500000) {
+    baseCostMin = 6000; baseCostMax = 15000;
+  } else if (priceTier < 750000) {
+    baseCostMin = 8000; baseCostMax = 22000;
+  } else {
+    baseCostMin = 12000; baseCostMax = 35000;
   }
 
-  const successRates: Record<MarketCondition, number> = {
-    terrible: 0.45,
-    poor: 0.55,
-    neutral: 0.65,
-    good: 0.75,
-    excellent: 0.85,
+  let rawCost = Math.round((baseCostMin + Math.random() * (baseCostMax - baseCostMin)) * conditionCostMult * marketCostMult);
+
+  const allDeals = await storage.getDealsByGameRun(gameRunId);
+  const contractorUseCount = allDeals.filter(d =>
+    d.contractorWalkthroughCompleted === true
+  ).length;
+
+  let contractorDiscount = false;
+  let discountPct = 0;
+  let discountMessage = '';
+  if (contractorUseCount >= 3) {
+    const discountChance = contractorUseCount >= 5 ? 0.55 : 0.35;
+    if (Math.random() < discountChance) {
+      contractorDiscount = true;
+      discountPct = contractorUseCount >= 5
+        ? 8 + Math.floor(Math.random() * 8)
+        : 5 + Math.floor(Math.random() * 6);
+      rawCost = Math.round(rawCost * (1 - discountPct / 100));
+
+      const loyaltyMessages = [
+        `Your contractor knocked ${discountPct}% off — "You keep bringing me work, I keep the price right."`,
+        `Volume discount: −${discountPct}%. Contractor said "You're one of my best clients this year."`,
+        `Contractor cut you a deal — ${discountPct}% off. "Appreciate the repeat business."`,
+        `${discountPct}% discount. "I got my guys already in the area from your last project, saves me the drive."`,
+        `Your contractor took ${discountPct}% off. "Tell you what, since you've been keeping us busy, I'll eat the markup on materials."`,
+      ];
+      discountMessage = loyaltyMessages[Math.floor(Math.random() * loyaltyMessages.length)];
+    }
+  }
+
+  const cost = rawCost;
+
+  if (gameRun.cash < cost) {
+    throw new Error(`Not enough cash — renovation would cost ~$${cost.toLocaleString()}`);
+  }
+
+  const conditionBoostMultipliers: Record<string, number> = {
+    'Fixer-Upper': 1.5,
+    'Fair': 1.25,
+    'Good': 1.0,
+    'Excellent': 0.6,
   };
-  const successRate = successRates[market];
+  const conditionBoostMult = conditionBoostMultipliers[condition] || 1.0;
+
+  const costToValueRatio = cost / priceTier;
+  const investmentMult = Math.min(1.5, 0.7 + (costToValueRatio * 15));
+
+  const marketSuccessRates: Record<MarketCondition, number> = {
+    terrible: 0.40,
+    poor: 0.52,
+    neutral: 0.65,
+    good: 0.78,
+    excellent: 0.88,
+  };
+  let successRate = marketSuccessRates[market];
+  if (condition === 'Fixer-Upper' || condition === 'Fair') {
+    successRate = Math.min(0.95, successRate + 0.08);
+  } else if (condition === 'Excellent') {
+    successRate = Math.max(0.25, successRate - 0.12);
+  }
   const succeeded = Math.random() < successRate;
 
   let rentBoostPct = 0;
   let saleBoostPct = 0;
   let message: string;
 
+  const rentalRenovationDescriptions = [
+    { work: 'Updated kitchen countertops, backsplash, and cabinet hardware', lowPct: 2, highPct: 5 },
+    { work: 'New flooring throughout — LVP in living areas, tile in bathrooms', lowPct: 2.5, highPct: 6 },
+    { work: 'Full bathroom remodel — vanity, fixtures, tile surround', lowPct: 3, highPct: 7 },
+    { work: 'Interior repaint, new lighting fixtures, and updated outlets', lowPct: 1.5, highPct: 4 },
+    { work: 'Kitchen appliance upgrade and fresh interior paint throughout', lowPct: 2, highPct: 5.5 },
+    { work: 'New water heater, HVAC filter system, and thermostat upgrade', lowPct: 1.5, highPct: 4.5 },
+    { work: 'Refinished hardwood floors, crown molding, and fresh trim paint', lowPct: 2, highPct: 5 },
+    { work: 'Landscaping overhaul, new front door, exterior power wash', lowPct: 1, highPct: 3.5 },
+  ];
+
+  const flipRenovationDescriptions = [
+    { work: 'Curb appeal package — new siding accents, shutters, landscaping, and front door', lowPct: 1, highPct: 5 },
+    { work: 'Staged interior with modern finishes — quartz counters, brushed nickel fixtures', lowPct: 1.5, highPct: 5.5 },
+    { work: 'Open concept touch-up — removed non-load-bearing wall section, added recessed lighting', lowPct: 2, highPct: 6 },
+    { work: 'Bathroom and kitchen refresh — new tile, faucets, cabinet refacing', lowPct: 1.5, highPct: 5 },
+    { work: 'Energy efficiency upgrades — windows, insulation, smart thermostat', lowPct: 1, highPct: 4.5 },
+    { work: 'Full repaint interior/exterior, new garage door, updated hardware throughout', lowPct: 1.5, highPct: 5 },
+  ];
+
   if (succeeded) {
     if (isRental) {
-      const boostRanges: Record<MarketCondition, [number, number]> = {
-        terrible: [1, 3],
-        poor: [1.5, 3.5],
-        neutral: [2, 4.5],
-        good: [2.5, 5.5],
-        excellent: [3, 6],
-      };
-      const [min, max] = boostRanges[market];
-      rentBoostPct = Math.round((min + Math.random() * (max - min)) * 10) / 10;
+      const desc = rentalRenovationDescriptions[Math.floor(Math.random() * rentalRenovationDescriptions.length)];
+      const baseBoost = desc.lowPct + Math.random() * (desc.highPct - desc.lowPct);
+      rentBoostPct = Math.round(baseBoost * conditionBoostMult * investmentMult * 10) / 10;
+      rentBoostPct = Math.max(1, Math.min(15, rentBoostPct));
 
       const currentRent = outputs.monthlyGrossRent || 0;
-      const activationRent = outputs.activationMonthlyRent || currentRent;
       const newRent = Math.round(currentRent * (1 + rentBoostPct / 100));
 
       const inputs = deal.proFormaInputs as any;
@@ -1866,17 +1957,12 @@ export async function applyCosmeticUpgrade(
         weeklyIncome: calculateWeeklyIncome(newCashFlow),
         proFormaOutputs: updatedOutputs,
       });
-      message = `Fresh paint, new fixtures, and updated finishes boosted your rent by ${rentBoostPct}% to $${newRent.toLocaleString()}/mo.`;
+      message = `${desc.work}. Rent increased ${rentBoostPct}% → $${newRent.toLocaleString()}/mo.`;
     } else {
-      const flipBoostRanges: Record<MarketCondition, [number, number]> = {
-        terrible: [0.5, 1.5],
-        poor: [1, 2],
-        neutral: [1, 3],
-        good: [1.5, 3.5],
-        excellent: [2, 4],
-      };
-      const [min, max] = flipBoostRanges[market];
-      saleBoostPct = Math.round((min + Math.random() * (max - min)) * 10) / 10;
+      const desc = flipRenovationDescriptions[Math.floor(Math.random() * flipRenovationDescriptions.length)];
+      const baseBoost = desc.lowPct + Math.random() * (desc.highPct - desc.lowPct);
+      saleBoostPct = Math.round(baseBoost * conditionBoostMult * investmentMult * 10) / 10;
+      saleBoostPct = Math.max(0.5, Math.min(12, saleBoostPct));
 
       const updatedOutputs = {
         ...outputs,
@@ -1887,7 +1973,7 @@ export async function applyCosmeticUpgrade(
       await storage.updateDeal(deal.id, {
         proFormaOutputs: updatedOutputs,
       });
-      message = `Cosmetic refresh improved curb appeal. Estimated sale price boost: +${saleBoostPct}%.`;
+      message = `${desc.work}. Estimated sale value boost: +${saleBoostPct}%.`;
     }
   } else {
     const updatedOutputs = {
@@ -1901,30 +1987,39 @@ export async function applyCosmeticUpgrade(
       proFormaOutputs: updatedOutputs,
     });
     const failReasons = [
-      "The upgrades didn't move the needle — tenants and buyers weren't impressed.",
-      "Turns out the improvements were more cosmetic than impactful. No measurable change.",
-      "The style choices didn't match what the market wants. Money spent, no return.",
-      "Contractor did decent work, but it didn't translate to higher demand.",
+      `Renovation came out fine, but the comps in the area already have similar finishes. Didn't move the needle.`,
+      `Contractor finished the work, but the neighborhood just doesn't support the premium you were hoping for.`,
+      `The updates look good on paper, but tenants and buyers in this price range aren't paying extra for them.`,
+      `Work got done, but the material choices didn't match what this market wants. Wrong style for the area.`,
+      `Upgrades completed, but timing's off — with ${market === 'terrible' || market === 'poor' ? 'the market this soft' : 'demand the way it is'}, nobody's paying more right now.`,
+      `Renovation finished but there were some scope issues. End result is fine, just not the bump you were looking for.`,
     ];
     message = failReasons[Math.floor(Math.random() * failReasons.length)];
   }
 
+  if (contractorDiscount && discountMessage) {
+    message = discountMessage + ' ' + message;
+  }
+
   const currentGameRun = await storage.getGameRun(gameRunId);
   const currentCash = currentGameRun?.cash ?? gameRun.cash;
+  const ledgerDesc = succeeded
+    ? `🔨 Renovation${contractorDiscount ? ` (−${discountPct}% loyalty)` : ''}${rentBoostPct > 0 ? ` (+${rentBoostPct}% rent)` : ` (+${saleBoostPct}% value)`}`
+    : `🔨 Renovation${contractorDiscount ? ` (−${discountPct}% loyalty)` : ''} — no measurable impact`;
   await storage.createLedgerEntriesWithCashUpdate(
     gameRunId,
     [{
       direction: 'debit' as const,
       category: 'expense' as const,
       amount: cost,
-      description: `🎨 Cosmetic upgrade${succeeded ? (rentBoostPct > 0 ? ` (+${rentBoostPct}% rent)` : ` (+${saleBoostPct}% sale value)`) : ' (no impact)'}`,
+      description: ledgerDesc,
       propertyId: deal.propertyId,
       dealId: deal.id,
     }],
     currentCash
   );
 
-  return { success: succeeded, cost, rentBoostPct, saleBoostPct, message };
+  return { success: succeeded, cost, rentBoostPct, saleBoostPct, message, contractorDiscount };
 }
 
 /**

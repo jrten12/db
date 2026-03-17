@@ -1378,7 +1378,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           }
 
           if (!tenantLeavingEvent && monthsActive >= 3) {
-            const lifeLeaveChance = 1.2;
+            const lifeLeaveChance = 1.8;
             if (Math.random() * 100 < lifeLeaveChance) {
               const turnoverCost = 500 + Math.floor(Math.random() * 501);
               const lifeSituations = [

@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertGameRunSchema, insertDealSchema, insertPropertyInvestigationSchema, insertLedgerEntrySchema, insertTenantSchema, trophyTypes, type Deal, type GameRun, type Property } from "@shared/schema";
 import { z } from "zod";
 import * as gameMechanics from "./gameMechanics";
+import { getUnfixedIssues } from "./maintenanceMechanics";
 import { dealLimiter, ledgerLimiter, gameActionLimiter, authLimiter, purchaseLimiter } from "./rateLimiter";
 import OpenAI from "openai";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
@@ -1151,7 +1152,11 @@ export async function registerRoutes(
         return;
       }
 
-      const initialSatisfaction = 70 + Math.floor(Math.random() * 16);
+      const deal = await storage.getDeal(dealId);
+      const property = deal?.propertyId ? await storage.getProperty(deal.propertyId) : null;
+      const unfixedCount = property ? getUnfixedIssues(deal!, property).length : 0;
+      const conditionPenalty = Math.min(unfixedCount * 3, 15);
+      const initialSatisfaction = (70 + Math.floor(Math.random() * 16)) - conditionPenalty;
 
       const tenant = await storage.createTenant({
         dealId,
@@ -1159,7 +1164,7 @@ export async function registerRoutes(
         personalityType,
         speechPatterns,
         lastContactWeek: null,
-        satisfaction: initialSatisfaction,
+        satisfaction: Math.max(40, initialSatisfaction),
         weeksUnhappy: 0,
       });
       res.json(tenant);

@@ -1313,13 +1313,24 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         const currentTenant = allTenants.find((t: any) => t.dealId === deal.id);
         let tenantLeavingEvent: any = null;
         if (property && currentTenant) {
-          const unfixedIssues = getUnfixedIssues(deal, property);
+          const unfixedIssueIds = getUnfixedIssues(deal, property);
           const currentSatisfaction = currentTenant.satisfaction ?? 75;
 
+          const allPropertyIssues = getRandomizedPropertyIssues(
+            gameRun.id, deal.propertyId,
+            property.propertyType || 'house',
+            property.conditionTag || 'Fair',
+            (property as any).waterSource || 'public'
+          );
+          const severityWeight: Record<string, number> = { mild: 2, moderate: 4, severe: 7 };
           let newSatisfaction = currentSatisfaction;
-          if (unfixedIssues.length > 0) {
-            const drop = Math.min(unfixedIssues.length * 4, 15);
-            newSatisfaction = Math.max(0, newSatisfaction - drop);
+          if (unfixedIssueIds.length > 0) {
+            let drop = 0;
+            for (const issueId of unfixedIssueIds) {
+              const issue = allPropertyIssues.find(i => i.id === issueId);
+              drop += severityWeight[issue?.severity || 'moderate'] || 4;
+            }
+            newSatisfaction = Math.max(0, newSatisfaction - Math.min(drop, 20));
           } else {
             newSatisfaction = Math.min(100, newSatisfaction + 3);
           }
@@ -1331,14 +1342,14 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           await storage.updateTenant(currentTenant.id, {
             satisfaction: newSatisfaction,
             weeksUnhappy: newWeeksUnhappy,
-          } as any);
+          });
 
           currentTenant.satisfaction = newSatisfaction;
           currentTenant.weeksUnhappy = newWeeksUnhappy;
 
           if (newSatisfaction < 40 && monthsActive >= 2) {
             const baseLeaveChance = 5;
-            const unhappyBonus = Math.min(newWeeksUnhappy * 2, 20);
+            const unhappyBonus = Math.min(Math.max(0, newWeeksUnhappy - 1) * 2, 20);
             const totalLeaveChance = Math.min(baseLeaveChance + unhappyBonus, 25);
 
             if (Math.random() * 100 < totalLeaveChance) {

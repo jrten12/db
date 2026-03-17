@@ -875,6 +875,9 @@ export default function Game() {
       didDueDiligence?: boolean;
       propertyPrice: number;
       dealCount?: number;
+      hasUnfixedIssues?: boolean;
+      unfixedIssueCount?: number;
+      marketCondition?: string;
     } | null;
   }>({ isOpen: false, data: null });
 
@@ -2180,6 +2183,17 @@ export default function Game() {
             const didDueDiligence = selectedProperty ? 
               (completedDiligence[selectedProperty.id] || []).length >= 2 : false;
             
+            const fixedIds = proFormaInputs.fixedIssueIds || [];
+            let totalIssueCount = 0;
+            if (dealOutcome && gameRun) {
+              const diligence = completedDiligence[dealOutcome.property.id] || [];
+              const allIssues = gameRun.id > 0
+                ? getRevealedRandomizedIssues(gameRun.id, dealOutcome.property.id, dealOutcome.property.propertyType || 'house', dealOutcome.property.conditionTag || 'Fair', diligence, dealOutcome.property.waterSource || 'public')
+                : getRevealedIssues(dealOutcome.property.name, diligence);
+              totalIssueCount = allIssues.length;
+            }
+            const unfixedCount = Math.max(0, totalIssueCount - fixedIds.length);
+            
             setDealCongrats({
               isOpen: true,
               data: {
@@ -2194,6 +2208,9 @@ export default function Game() {
                 didDueDiligence,
                 propertyPrice: dealOutcome?.property.price || 0,
                 dealCount: deals.length + 1,
+                hasUnfixedIssues: unfixedCount > 0,
+                unfixedIssueCount: unfixedCount,
+                marketCondition: gameRun?.marketCondition || 'neutral',
               }
             });
             

@@ -2060,6 +2060,25 @@ export interface ContractorWalkthroughItem {
   description: string;
   markup: number;             // Percentage markup applied
   rentImpactPct: number;      // How much this repair boosts rent (e.g. 3 = +3%)
+  marketCostMultiplier?: number;   // Market condition cost adjustment (>1 = more expensive)
+  marketRentMultiplier?: number;   // Market condition rent boost adjustment (>1 = higher rent potential)
+}
+
+function getMarketRenovationMultipliers(condition: MarketCondition, random: () => number): { costMult: number; rentMult: number } {
+  switch (condition) {
+    case 'excellent':
+      return { costMult: 1.15 + random() * 0.20, rentMult: 1.10 + random() * 0.15 };
+    case 'good':
+      return { costMult: 1.05 + random() * 0.15, rentMult: 1.05 + random() * 0.10 };
+    case 'neutral':
+      return { costMult: 1.0, rentMult: 1.0 };
+    case 'poor':
+      return { costMult: 0.85 + random() * 0.10, rentMult: 0.90 + random() * 0.05 };
+    case 'terrible':
+      return { costMult: 0.75 + random() * 0.15, rentMult: 0.80 + random() * 0.10 };
+    default:
+      return { costMult: 1.0, rentMult: 1.0 };
+  }
 }
 
 const RENT_IMPACT_BY_REPAIR: Record<string, number> = {
@@ -2152,6 +2171,9 @@ export interface ContractorWalkthroughResult {
   averageMarkup: number;
   foundTreasure?: boolean;
   treasureAmount?: number;
+  marketCondition?: string;
+  marketCostMultiplier?: number;
+  marketRentMultiplier?: number;
 }
 
 function seededRandom(seed: number): () => number {
@@ -2209,6 +2231,11 @@ export async function performContractorWalkthrough(
     issue.discoveredBy.includes('contractor_walkthrough')
   );
 
+  // Market condition affects renovation costs and rent potential
+  const marketCondition = (gameRun.marketCondition || 'neutral') as MarketCondition;
+  const marketRandom = seededRandom(dealId * 3333 + gameRun.currentWeek);
+  const marketMults = getMarketRenovationMultipliers(marketCondition, marketRandom);
+
   // Generate repair items with markup (30-50% higher than original)
   const repairItems: ContractorWalkthroughItem[] = contractorIssues.map((issue, index) => {
     const itemRandom = seededRandom(dealId * 100 + index);
@@ -2220,19 +2247,19 @@ export async function performContractorWalkthrough(
     const markupChance = itemRandom();
     let markup: number;
     if (markupChance < 0.05) {
-      // 5% chance of NO markup (very lucky find)
       markup = 0;
     } else if (markupChance < 0.15) {
-      // 10% chance of small markup (15-25%)
       markup = 15 + itemRandom() * 10;
     } else {
-      // 85% chance of significant markup (30-50%) - the typical case
       markup = 30 + itemRandom() * 20;
     }
     
-    const contractorCost = Math.round(originalCost * (1 + markup / 100));
+    // Apply market cost multiplier (good/excellent markets = tighter labor = higher costs)
+    const contractorCost = Math.round(originalCost * (1 + markup / 100) * marketMults.costMult);
     
-    const rentImpactPct = getRentImpactForRepair(issue.id, issue.severity, itemRandom);
+    // Rent impact boosted by market rent multiplier (good/excellent = higher demand = rent upside)
+    const baseRentImpactPct = getRentImpactForRepair(issue.id, issue.severity, itemRandom);
+    const rentImpactPct = Math.round(baseRentImpactPct * marketMults.rentMult * 10) / 10;
     
     return {
       id: issue.id,
@@ -2244,6 +2271,8 @@ export async function performContractorWalkthrough(
       description: issue.description,
       markup: Math.round(markup),
       rentImpactPct,
+      marketCostMultiplier: Math.round(marketMults.costMult * 100) / 100,
+      marketRentMultiplier: Math.round(marketMults.rentMult * 100) / 100,
     };
   });
 
@@ -2267,6 +2296,9 @@ export async function performContractorWalkthrough(
     averageMarkup,
     foundTreasure,
     treasureAmount,
+    marketCondition,
+    marketCostMultiplier: Math.round(marketMults.costMult * 100) / 100,
+    marketRentMultiplier: Math.round(marketMults.rentMult * 100) / 100,
   };
 
   // Deduct walkthrough fee from cash, add treasure if found

@@ -19,6 +19,8 @@ interface ContractorWalkthroughItem {
   description: string;
   markup: number;
   rentImpactPct?: number;
+  marketCostMultiplier?: number;
+  marketRentMultiplier?: number;
 }
 
 interface WalkthroughQuote {
@@ -44,6 +46,9 @@ interface WalkthroughResult {
     averageMarkup: number;
     foundTreasure?: boolean;
     treasureAmount?: number;
+    marketCondition?: string;
+    marketCostMultiplier?: number;
+    marketRentMultiplier?: number;
   };
   error?: string;
 }
@@ -94,7 +99,7 @@ export function ContractorWalkthroughModal({
   }, [deal?.proFormaOutputs, property]);
 
   const selectedTotals = useMemo(() => {
-    if (!result?.repairItems) return { cost: 0, weeks: 0, count: 0, rentImpactPct: 0, netRentImpactPct: 0, rentIncrease: 0 };
+    if (!result?.repairItems) return { cost: 0, weeks: 0, count: 0, rentImpactPct: 0, netRentImpactPct: 0, rentIncrease: 0, annualYieldPct: 0, paybackMonths: 0 };
     const selected = result.repairItems.filter(item => selectedRepairIds.includes(item.id));
     const unselected = result.repairItems.filter(item => !selectedRepairIds.includes(item.id));
     const rentImpactPct = selected.reduce((sum, item) => sum + (item.rentImpactPct || 0), 0);
@@ -104,18 +109,24 @@ export function ContractorWalkthroughModal({
       return sum + Math.max(minBumpPerItem, pctBump);
     }, 0);
     const unfixedDepressionAmt = unselected.reduce((sum) => {
-      return sum + Math.round(baseMonthlyRent * 0.0025);
+      return sum + Math.round(baseMonthlyRent * 0.01);
     }, 0);
     const maxIncrease = Math.round(baseMonthlyRent * 0.25);
     const rentIncrease = Math.min(Math.max(0, totalFixedIncrease - unfixedDepressionAmt), maxIncrease);
     const netRentImpactPct = baseMonthlyRent > 0 ? Math.round((rentIncrease / baseMonthlyRent) * 100) : 0;
+    const totalCost = selected.reduce((sum, item) => sum + item.contractorCost, 0);
+    const annualRentGain = rentIncrease * 12;
+    const annualYieldPct = totalCost > 0 ? Math.round((annualRentGain / totalCost) * 1000) / 10 : 0;
+    const paybackMonths = rentIncrease > 0 ? Math.ceil(totalCost / rentIncrease) : 0;
     return {
-      cost: selected.reduce((sum, item) => sum + item.contractorCost, 0),
+      cost: totalCost,
       weeks: Math.max(...selected.map(item => item.timelineWeeks), 0),
       count: selected.length,
       rentImpactPct,
       netRentImpactPct,
       rentIncrease,
+      annualYieldPct,
+      paybackMonths,
     };
   }, [result?.repairItems, selectedRepairIds, baseMonthlyRent]);
 
@@ -182,7 +193,10 @@ export function ContractorWalkthroughModal({
           repairItems: data.data.repairItems,
           totalRepairCost: data.data.totalRepairCost,
           totalOriginalCost: data.data.repairItems.reduce((sum: number, item: any) => sum + item.originalCost, 0),
-          averageMarkup: 0,
+          averageMarkup: data.data.averageMarkup || 0,
+          marketCondition: data.data.marketCondition,
+          marketCostMultiplier: data.data.marketCostMultiplier,
+          marketRentMultiplier: data.data.marketRentMultiplier,
         });
       } else if (data.completed && !data.hasRemainingRepairs) {
         setError('All repairs have been completed for this property!');
@@ -461,6 +475,40 @@ export function ContractorWalkthroughModal({
                       </div>
                     </div>
 
+                    {result.marketCondition && (result.marketCondition === 'good' || result.marketCondition === 'excellent') && (
+                      <div className="bg-amber-900/20 border border-amber-500/30 rounded-lg p-3 mb-3">
+                        <div className="flex items-start gap-2">
+                          <TrendingUp className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm">
+                            <span className="text-amber-300 font-medium">
+                              {result.marketCondition === 'excellent' ? 'Hot' : 'Strong'} Market
+                            </span>
+                            <p className="text-amber-200/70 mt-1">
+                              {result.marketCondition === 'excellent' 
+                                ? 'Labor is tight so renovation costs are higher, but rental demand means you can charge more rent.'
+                                : 'Renovation costs are slightly elevated, but strong demand supports higher rents.'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {result.marketCondition && (result.marketCondition === 'poor' || result.marketCondition === 'terrible') && (
+                      <div className="bg-cyan-900/20 border border-cyan-500/30 rounded-lg p-3 mb-3">
+                        <div className="flex items-start gap-2">
+                          <Info className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm">
+                            <span className="text-cyan-300 font-medium">
+                              {result.marketCondition === 'terrible' ? 'Buyer\'s' : 'Soft'} Market
+                            </span>
+                            <p className="text-cyan-200/70 mt-1">
+                              Contractors are cheaper right now, but rental demand is lower — rent increases may be modest.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
                       {result.repairItems.map((item, index) => {
                         const isSelected = selectedRepairIds.includes(item.id);
@@ -528,12 +576,21 @@ export function ContractorWalkthroughModal({
                                   {item.timelineWeeks} month{item.timelineWeeks > 1 ? 's' : ''} to fix
                                 </span>
                               )}
-                              {(item.rentImpactPct || 0) > 0 && (
-                                <span className="flex items-center gap-1 text-emerald-400">
-                                  <TrendingUp className="w-3 h-3" />
-                                  +${Math.max(Math.max(25, Math.round(baseMonthlyRent * 0.02)), Math.round(baseMonthlyRent * ((item.rentImpactPct || 2) / 100)))}/mo rent
-                                </span>
-                              )}
+                              {(item.rentImpactPct || 0) > 0 && (() => {
+                                const rentBump = Math.max(Math.max(25, Math.round(baseMonthlyRent * 0.02)), Math.round(baseMonthlyRent * ((item.rentImpactPct || 2) / 100)));
+                                const itemYield = item.contractorCost > 0 ? Math.round((rentBump * 12 / item.contractorCost) * 100) / 10 : 0;
+                                return (
+                                  <>
+                                    <span className="flex items-center gap-1 text-emerald-400">
+                                      <TrendingUp className="w-3 h-3" />
+                                      +${rentBump}/mo rent
+                                    </span>
+                                    <span className={`font-mono ${itemYield >= 10 ? 'text-emerald-300' : itemYield >= 5 ? 'text-cyan-400' : 'text-amber-400'}`}>
+                                      {itemYield}% annual yield
+                                    </span>
+                                  </>
+                                );
+                              })()}
                             </div>
                           </motion.button>
                         );
@@ -585,6 +642,24 @@ export function ContractorWalkthroughModal({
                                 : 'Offset by unfixed issues'}
                             </span>
                           </div>
+                        )}
+
+                        {/* Annual yield & payback */}
+                        {selectedTotals.count > 0 && selectedTotals.rentIncrease > 0 && (
+                          <>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-slate-400">Annual Yield on Repairs</span>
+                              <span className={`font-mono font-semibold ${selectedTotals.annualYieldPct >= 10 ? 'text-emerald-300' : selectedTotals.annualYieldPct >= 5 ? 'text-cyan-400' : 'text-amber-400'}`}>
+                                {selectedTotals.annualYieldPct}%
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-slate-400">Payback Period</span>
+                              <span className="text-slate-300 font-mono">
+                                ~{selectedTotals.paybackMonths} month{selectedTotals.paybackMonths !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          </>
                         )}
                         
                         {/* Divider */}

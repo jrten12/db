@@ -26,7 +26,8 @@ Preferred communication style: Simple, everyday language.
 - **Routing**: Wouter for web, Expo Router for mobile.
 - **Data Storage**: PostgreSQL database managed via Drizzle ORM.
 - **Game Logic**: Implemented with a focus on realism, including time-based progression (months), starting cash ($100,000), property issue system with due diligence consequences, dynamic market conditions, LTV-based financing, contractor options, and strategy-specific financial models (Rent vs. Flip).
-- **Advanced Game Mechanics**: Incorporates surprise repair costs, reality checks for rental income, dynamic investor profiles, tenant text messages, and an "Overtime Mode."
+- **Advanced Game Mechanics**: Incorporates surprise repair costs, reality checks for rental income, dynamic investor profiles, tenant text messages, "Overtime Mode," and market-condition-dependent renovation yield system (renovation costs and rent impacts scale with market conditions — hot markets increase both costs and potential rent, soft markets offer cheaper labor but limited rent upside).
+- **Renovation Yield Display**: ContractorWalkthroughModal shows per-repair annual yield %, payback period, and market condition banners. ItemizedRepairsPanel shows approximate rent impact for rental strategy repairs. DealCongratulations shows renovation opportunity hints with market-aware messaging.
 - **Monetization**: Hidden in-game purchases via Stripe Checkout for boosts, gated by an environment variable.
 - **Tutorial System**: A 17-step, 7-phase interactive tutorial with UI spotlighting and state persistence.
 - **Post-Deal Analysis**: Features dynamic notifications comparing pro forma to actual outcomes, a shareable deal card for social media, and a "Your Prediction vs Reality" postmortem on the Property Sold screen with accuracy grades (A+ through F), side-by-side metric comparisons, and explanatory reasons for any gaps between projections and actual outcomes.

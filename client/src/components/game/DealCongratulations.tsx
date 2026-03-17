@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, TrendingUp, Home, DollarSign, Sparkles, Star, Zap, Target, Award, Crown } from 'lucide-react';
+import { Trophy, TrendingUp, Home, DollarSign, Sparkles, Star, Zap, Target, Award, Crown, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Confetti } from './Confetti';
 
@@ -18,6 +18,9 @@ interface DealCongratulationsProps {
     didDueDiligence?: boolean;
     propertyPrice: number;
     dealCount?: number;
+    hasUnfixedIssues?: boolean;
+    unfixedIssueCount?: number;
+    marketCondition?: string;
   } | null;
 }
 
@@ -155,9 +158,29 @@ function generateBonusInsight(data: DealCongratulationsProps['dealData']): strin
   return null;
 }
 
+function generateRenovationHint(data: DealCongratulationsProps['dealData']): string | null {
+  if (!data || data.strategy !== 'rent') return null;
+  
+  const { hasUnfixedIssues, unfixedIssueCount, marketCondition } = data;
+  
+  if (hasUnfixedIssues && (unfixedIssueCount || 0) > 0) {
+    const count = unfixedIssueCount || 0;
+    if (marketCondition === 'excellent' || marketCondition === 'good') {
+      return `This property has ${count} unfixed issue${count > 1 ? 's' : ''}. In this ${marketCondition === 'excellent' ? 'hot' : 'strong'} market, renovations cost more but can boost your rent significantly. Consider a contractor walkthrough to see the ROI.`;
+    }
+    if (marketCondition === 'poor' || marketCondition === 'terrible') {
+      return `This property has ${count} unfixed issue${count > 1 ? 's' : ''}. Contractors are cheaper in this market, so repairs are a bargain — but rent upside may be limited.`;
+    }
+    return `This property has ${count} unfixed issue${count > 1 ? 's' : ''}. A contractor walkthrough can reveal renovation opportunities that boost your monthly rent.`;
+  }
+  
+  return null;
+}
+
 export function DealCongratulations({ isOpen, onClose, dealData }: DealCongratulationsProps) {
   const message = generateDynamicMessage(dealData);
   const bonusInsight = generateBonusInsight(dealData);
+  const renovationHint = generateRenovationHint(dealData);
   const IconComponent = message.icon;
 
   return (
@@ -240,6 +263,26 @@ export function DealCongratulations({ isOpen, onClose, dealData }: DealCongratul
                       <DollarSign className="w-4 h-4 text-cyan-400" />
                     </div>
                     <p className="text-cyan-200 text-sm leading-relaxed">{bonusInsight}</p>
+                  </div>
+                </motion.div>
+              )}
+
+              {renovationHint && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 }}
+                  className="bg-slate-800/40 rounded-xl p-4 border border-emerald-500/30"
+                  data-testid="renovation-hint"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Wrench className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-emerald-300 text-sm font-medium mb-1">Renovation Opportunity</p>
+                      <p className="text-slate-400 text-sm leading-relaxed">{renovationHint}</p>
+                    </div>
                   </div>
                 </motion.div>
               )}

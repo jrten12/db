@@ -832,6 +832,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                           selectedIssueIds={inputs.fixedIssueIds || []}
                           onSelectionChange={handleSelectedIssuesChange}
                           contractorType={inputs.contractorType}
+                          strategy={inputs.strategy}
+                          baseMonthlyRent={n(inputs.expectedRent)}
                         />
                         {(inputs.rehabBudget ?? 0) > 0 && (
                           <div className="mt-3 p-3 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">
@@ -879,6 +881,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         selectedIssueIds={inputs.fixedIssueIds || []}
                         onSelectionChange={handleSelectedIssuesChange}
                         contractorType={inputs.contractorType}
+                        strategy={inputs.strategy}
+                        baseMonthlyRent={n(inputs.expectedRent)}
                       />
                       {(inputs.rehabBudget ?? 0) > 0 && (
                         <div className="mt-3 p-3 bg-cyan-900/20 border border-cyan-500/30 rounded-lg">

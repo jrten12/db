@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Wrench, Check, X, AlertTriangle, DollarSign, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Wrench, Check, X, AlertTriangle, DollarSign, Clock, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import type { PropertyIssue } from '@/lib/propertyIssues';
 import { getIssueImage } from '@/lib/propertyImages';
 
@@ -11,6 +11,8 @@ interface ItemizedRepairsPanelProps {
   costMultiplier?: number;
   showPostPurchaseMarkup?: boolean;
   disabled?: boolean;
+  strategy?: 'rent' | 'flip';
+  baseMonthlyRent?: number;
 }
 
 const SEVERITY_COLORS = {
@@ -25,6 +27,12 @@ const SEVERITY_LABELS = {
   severe: 'High Priority',
 };
 
+const SEVERITY_RENT_IMPACT: Record<string, number> = {
+  mild: 2,
+  moderate: 4,
+  severe: 3,
+};
+
 export function ItemizedRepairsPanel({
   issues,
   selectedIssueIds,
@@ -33,6 +41,8 @@ export function ItemizedRepairsPanel({
   costMultiplier = 1,
   showPostPurchaseMarkup = false,
   disabled = false,
+  strategy,
+  baseMonthlyRent,
 }: ItemizedRepairsPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -238,10 +248,16 @@ export function ItemizedRepairsPanel({
                         Repair cost: <span className="font-mono font-bold">${Math.round((cost.min + cost.max) / 2).toLocaleString()}</span>
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 mt-1 text-xs">
+                    <div className="flex items-center gap-4 mt-1 text-xs flex-wrap">
                       <span className="flex items-center gap-1 text-amber-400">
                         Timeline impact: <span className="font-mono">+{weeks} month{weeks !== 1 ? 's' : ''}</span>
                       </span>
+                      {strategy === 'rent' && baseMonthlyRent && baseMonthlyRent > 0 && (
+                        <span className="flex items-center gap-1 text-emerald-400">
+                          <TrendingUp className="w-3 h-3" />
+                          ~+${Math.max(25, Math.round(baseMonthlyRent * (SEVERITY_RENT_IMPACT[issue.severity] || 2) / 100))}/mo rent
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

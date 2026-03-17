@@ -392,6 +392,12 @@ export default function Game() {
     enabled: !!gameRun?.id,
   });
 
+  const { data: tenants = [] } = useQuery({
+    queryKey: ['tenants', gameRun?.id],
+    queryFn: () => api.getTenants(gameRun!.id),
+    enabled: !!gameRun?.id,
+  });
+
   // Calculate player financials for interest rate adjustments
   const playerFinancials = useMemo((): PlayerFinancials => {
     let totalMonthlyDebt = 0;
@@ -1201,6 +1207,7 @@ export default function Game() {
       setGameRun(updatedGameRun);
       queryClient.invalidateQueries({ queryKey: ['deals'] });
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
 
       // If player went bankrupt this week, stop processing immediately
       if (updatedGameRun.cash < 0) {
@@ -2008,6 +2015,7 @@ export default function Game() {
                   gameRun={gameRun}
                   deals={deals}
                   properties={properties}
+                  tenants={tenants}
                   onAdvanceWeek={handleAdvanceWeek}
                   onSellRental={handleSellRental}
                   onSellFlip={handleSellFlip}

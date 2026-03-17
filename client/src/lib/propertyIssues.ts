@@ -832,6 +832,17 @@ const ISSUE_POOLS: Record<string, PropertyIssue[]> = {
     { id: 'tree_root_damage', name: 'Tree Root Damage', severity: 'moderate', costRangeMin: 4000, costRangeMax: 12000, timelineImpactWeeks: 2, description: 'Tree roots damaging foundation or sewer lines', discoveredBy: ['inspection'] },
     { id: 'radon_mitigation', name: 'Radon Mitigation', severity: 'mild', costRangeMin: 1500, costRangeMax: 4000, timelineImpactWeeks: 1, description: 'Elevated radon levels require mitigation system', discoveredBy: ['inspection'] },
     { id: 'sump_pump', name: 'Sump Pump Replacement', severity: 'mild', costRangeMin: 1500, costRangeMax: 3500, timelineImpactWeeks: 1, description: 'Sump pump failing, needs replacement before next heavy rain', discoveredBy: ['inspection'] },
+    { id: 'pest_infestation', name: 'Pest Infestation', severity: 'moderate', costRangeMin: 2000, costRangeMax: 6000, timelineImpactWeeks: 1, description: 'Rodent or cockroach activity detected, professional extermination needed', discoveredBy: ['inspection'] },
+    { id: 'appliance_age', name: 'Aging Appliances', severity: 'mild', costRangeMin: 2000, costRangeMax: 6000, timelineImpactWeeks: 1, description: 'Kitchen appliances past useful life, replacements needed', discoveredBy: ['contractor_walkthrough'] },
+    { id: 'gutter_damage', name: 'Gutter & Downspout Damage', severity: 'mild', costRangeMin: 1000, costRangeMax: 3500, timelineImpactWeeks: 1, description: 'Gutters sagging and downspouts disconnected, causing water runoff issues', discoveredBy: ['contractor_walkthrough'] },
+    { id: 'smoke_co_detectors', name: 'Missing Safety Detectors', severity: 'mild', costRangeMin: 300, costRangeMax: 1200, timelineImpactWeeks: 0, description: 'Smoke and CO detectors missing or expired, code violation', discoveredBy: ['inspection'] },
+    { id: 'insulation_poor', name: 'Inadequate Insulation', severity: 'mild', costRangeMin: 2000, costRangeMax: 5000, timelineImpactWeeks: 1, description: 'Attic and wall insulation below standard, high energy bills', discoveredBy: ['inspection'] },
+    { id: 'water_heater_age', name: 'Water Heater End of Life', severity: 'mild', costRangeMin: 1500, costRangeMax: 4000, timelineImpactWeeks: 1, description: 'Water heater is 12+ years old, replacement recommended', discoveredBy: ['contractor_walkthrough'] },
+    { id: 'deck_rot', name: 'Deck Wood Rot', severity: 'moderate', costRangeMin: 3000, costRangeMax: 9000, timelineImpactWeeks: 2, description: 'Deck boards and railing rotting, safety concern', discoveredBy: ['contractor_walkthrough'] },
+    { id: 'garage_door', name: 'Garage Door Replacement', severity: 'mild', costRangeMin: 1500, costRangeMax: 4000, timelineImpactWeeks: 1, description: 'Garage door mechanism failing, opener outdated', discoveredBy: ['contractor_walkthrough'] },
+    { id: 'bathroom_outdated', name: 'Outdated Bathroom', severity: 'mild', costRangeMin: 4000, costRangeMax: 12000, timelineImpactWeeks: 2, description: 'Bathroom fixtures and finishes are dated', discoveredBy: ['contractor_walkthrough'] },
+    { id: 'grading_erosion', name: 'Yard Grading & Erosion', severity: 'mild', costRangeMin: 1500, costRangeMax: 4000, timelineImpactWeeks: 1, description: 'Soil erosion around foundation, regrading needed', discoveredBy: ['inspection'] },
+    { id: 'exterior_paint', name: 'Exterior Paint Peeling', severity: 'mild', costRangeMin: 2500, costRangeMax: 7000, timelineImpactWeeks: 1, description: 'Exterior paint peeling and flaking, exposing wood to weather', discoveredBy: ['contractor_walkthrough'] },
   ],
   condo: [
     { id: 'hoa_assessment', name: 'Pending HOA Assessment', severity: 'moderate', costRangeMin: 5000, costRangeMax: 15000, timelineImpactWeeks: 0, description: 'Building-wide assessment for major repairs announced', discoveredBy: ['title_search'] },
@@ -846,6 +857,9 @@ const ISSUE_POOLS: Record<string, PropertyIssue[]> = {
     { id: 'special_assessment_pending', name: 'Special Assessment Pending', severity: 'severe', costRangeMin: 8000, costRangeMax: 25000, timelineImpactWeeks: 0, description: 'Major building repair assessment pending approval', discoveredBy: ['title_search'] },
     { id: 'parking_issues', name: 'Parking Situation', severity: 'mild', costRangeMin: 0, costRangeMax: 0, timelineImpactWeeks: 0, description: 'Limited parking, may affect resale or rental', discoveredBy: ['contractor_walkthrough'] },
     { id: 'building_systems', name: 'Building Systems Age', severity: 'mild', costRangeMin: 0, costRangeMax: 0, timelineImpactWeeks: 0, description: 'Elevator and common area systems showing age', discoveredBy: ['inspection'] },
+    { id: 'pest_infestation', name: 'Pest Activity', severity: 'moderate', costRangeMin: 1500, costRangeMax: 4000, timelineImpactWeeks: 1, description: 'Signs of pest activity in unit, treatment needed', discoveredBy: ['inspection'] },
+    { id: 'smoke_co_detectors', name: 'Missing Safety Detectors', severity: 'mild', costRangeMin: 300, costRangeMax: 800, timelineImpactWeeks: 0, description: 'Smoke and CO detectors missing or expired', discoveredBy: ['inspection'] },
+    { id: 'water_heater_age', name: 'Water Heater End of Life', severity: 'mild', costRangeMin: 1200, costRangeMax: 3000, timelineImpactWeeks: 1, description: 'Unit water heater aging, replacement recommended', discoveredBy: ['contractor_walkthrough'] },
   ],
   townhouse: [
     { id: 'roof_shared', name: 'Shared Roof Concerns', severity: 'moderate', costRangeMin: 5000, costRangeMax: 12000, timelineImpactWeeks: 2, description: 'Roof shared with neighbors, coordination needed for repairs', discoveredBy: ['contractor_walkthrough'] },
@@ -860,6 +874,10 @@ const ISSUE_POOLS: Record<string, PropertyIssue[]> = {
     { id: 'structural_settling', name: 'Settling Issues', severity: 'moderate', costRangeMin: 4000, costRangeMax: 10000, timelineImpactWeeks: 2, description: 'Building shows settling, cracked plaster throughout', discoveredBy: ['contractor_walkthrough', 'inspection'] },
     { id: 'knob_tube_wiring', name: 'Knob & Tube Wiring', severity: 'severe', costRangeMin: 8000, costRangeMax: 18000, timelineImpactWeeks: 3, description: 'Old wiring present, full rewire recommended', discoveredBy: ['inspection'] },
     { id: 'lead_paint', name: 'Lead Paint Present', severity: 'moderate', costRangeMin: 4000, costRangeMax: 10000, timelineImpactWeeks: 2, description: 'Lead paint in older home requires abatement', discoveredBy: ['inspection'] },
+    { id: 'pest_infestation', name: 'Pest Infestation', severity: 'moderate', costRangeMin: 2000, costRangeMax: 5000, timelineImpactWeeks: 1, description: 'Evidence of mice or insects in walls, exterminator needed', discoveredBy: ['inspection'] },
+    { id: 'water_heater_age', name: 'Water Heater End of Life', severity: 'mild', costRangeMin: 1500, costRangeMax: 4000, timelineImpactWeeks: 1, description: 'Water heater past useful life', discoveredBy: ['contractor_walkthrough'] },
+    { id: 'exterior_paint', name: 'Exterior Paint Peeling', severity: 'mild', costRangeMin: 2000, costRangeMax: 5000, timelineImpactWeeks: 1, description: 'Exterior paint deteriorating, wood exposed to weather', discoveredBy: ['contractor_walkthrough'] },
+    { id: 'smoke_co_detectors', name: 'Missing Safety Detectors', severity: 'mild', costRangeMin: 300, costRangeMax: 1000, timelineImpactWeeks: 0, description: 'Safety detectors missing or non-functional', discoveredBy: ['inspection'] },
   ],
   duplex: [
     { id: 'dual_system_updates', name: 'Dual System Updates', severity: 'moderate', costRangeMin: 6000, costRangeMax: 14000, timelineImpactWeeks: 3, description: 'Both units need HVAC and plumbing updates', discoveredBy: ['contractor_walkthrough'] },
@@ -873,6 +891,10 @@ const ISSUE_POOLS: Record<string, PropertyIssue[]> = {
     { id: 'drainage_issues', name: 'Drainage Concerns', severity: 'mild', costRangeMin: 3000, costRangeMax: 7000, timelineImpactWeeks: 1, description: 'Poor grading causing water issues around foundation', discoveredBy: ['inspection'] },
     { id: 'lead_paint', name: 'Lead Paint (Both Units)', severity: 'moderate', costRangeMin: 8000, costRangeMax: 20000, timelineImpactWeeks: 3, description: 'Lead paint present in both units, abatement needed', discoveredBy: ['inspection'] },
     { id: 'separate_meters', name: 'Meter Separation Needed', severity: 'mild', costRangeMin: 1500, costRangeMax: 4000, timelineImpactWeeks: 1, description: 'Electric/gas meters not separate, complicates tenant billing', discoveredBy: ['inspection'] },
+    { id: 'pest_infestation', name: 'Pest Activity (Both Units)', severity: 'moderate', costRangeMin: 3000, costRangeMax: 7000, timelineImpactWeeks: 1, description: 'Pest activity in both units, coordinated treatment needed', discoveredBy: ['inspection'] },
+    { id: 'smoke_co_detectors', name: 'Missing Safety Detectors', severity: 'mild', costRangeMin: 500, costRangeMax: 1500, timelineImpactWeeks: 0, description: 'Safety detectors needed in both units', discoveredBy: ['inspection'] },
+    { id: 'water_heater_age', name: 'Water Heaters Aging', severity: 'mild', costRangeMin: 3000, costRangeMax: 7000, timelineImpactWeeks: 1, description: 'Both unit water heaters past useful life', discoveredBy: ['contractor_walkthrough'] },
+    { id: 'exterior_paint', name: 'Exterior Paint Peeling', severity: 'mild', costRangeMin: 3000, costRangeMax: 8000, timelineImpactWeeks: 1, description: 'Exterior paint deteriorating on multi-unit building', discoveredBy: ['contractor_walkthrough'] },
   ],
   loft: [
     { id: 'industrial_conversion', name: 'Industrial Conversion Issues', severity: 'moderate', costRangeMin: 5000, costRangeMax: 15000, timelineImpactWeeks: 3, description: 'Former industrial space has non-residential quirks', discoveredBy: ['contractor_walkthrough', 'inspection'] },
@@ -883,6 +905,8 @@ const ISSUE_POOLS: Record<string, PropertyIssue[]> = {
     { id: 'fire_suppression', name: 'Fire Suppression System', severity: 'mild', costRangeMin: 2000, costRangeMax: 5000, timelineImpactWeeks: 1, description: 'Fire suppression system needs inspection and updates', discoveredBy: ['inspection'] },
     { id: 'loading_dock', name: 'Loading Dock Area', severity: 'mild', costRangeMin: 0, costRangeMax: 0, timelineImpactWeeks: 0, description: 'Building access through former loading area, limited appeal', discoveredBy: ['contractor_walkthrough'] },
     { id: 'elevator_issues', name: 'Freight Elevator Age', severity: 'moderate', costRangeMin: 5000, costRangeMax: 15000, timelineImpactWeeks: 0, description: 'Building elevator is old freight system, expensive to maintain', discoveredBy: ['inspection'] },
+    { id: 'pest_infestation', name: 'Pest Activity', severity: 'moderate', costRangeMin: 1500, costRangeMax: 4000, timelineImpactWeeks: 1, description: 'Signs of pest activity in building, treatment needed', discoveredBy: ['inspection'] },
+    { id: 'smoke_co_detectors', name: 'Missing Safety Detectors', severity: 'mild', costRangeMin: 300, costRangeMax: 800, timelineImpactWeeks: 0, description: 'Safety detectors missing or non-functional', discoveredBy: ['inspection'] },
   ],
 };
 
@@ -895,10 +919,12 @@ const ISSUE_CONFLICT_GROUPS: string[][] = [
   ['utility_separation', 'separate_meters', 'separate_utilities'],
   ['septic_issues', 'septic_maintenance', 'well_water', 'well_system'],
   ['hoa_assessment', 'hoa_assessment_pending', 'hoa_reserve_low', 'special_assessment_pending'],
-  ['deferred_maintenance', 'cosmetic_updates', 'cosmetic_both_units'],
-  ['drainage_issues', 'tree_root_damage'],
+  ['deferred_maintenance', 'cosmetic_updates', 'cosmetic_both_units', 'exterior_paint'],
+  ['drainage_issues', 'tree_root_damage', 'grading_erosion'],
   ['party_wall', 'shared_wall_issues'],
   ['siding_damage', 'brick_repointing'],
+  ['porch_rot', 'deck_rot'],
+  ['appliance_age', 'bathroom_outdated'],
 ];
 
 const WELL_ONLY_ISSUE_IDS = new Set([

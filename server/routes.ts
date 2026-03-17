@@ -1151,12 +1151,16 @@ export async function registerRoutes(
         return;
       }
 
+      const initialSatisfaction = 70 + Math.floor(Math.random() * 16);
+
       const tenant = await storage.createTenant({
         dealId,
         name,
         personalityType,
         speechPatterns,
         lastContactWeek: null,
+        satisfaction: initialSatisfaction,
+        weeksUnhappy: 0,
       });
       res.json(tenant);
     } catch (error) {

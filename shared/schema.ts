@@ -266,10 +266,12 @@ export const tenants = pgTable("tenants", {
   id: serial("id").primaryKey(),
   dealId: integer("deal_id").notNull().references(() => deals.id),
   name: text("name").notNull(),
-  personalityType: text("personality_type").notNull(), // Internal type, not shown to player
-  portraitUrl: text("portrait_url"), // Generated via GPT image
-  speechPatterns: jsonb("speech_patterns").notNull(), // Array of possible messages
-  lastContactWeek: integer("last_contact_week"), // Prevent spam
+  personalityType: text("personality_type").notNull(),
+  portraitUrl: text("portrait_url"),
+  speechPatterns: jsonb("speech_patterns").notNull(),
+  lastContactWeek: integer("last_contact_week"),
+  satisfaction: integer("satisfaction").notNull().default(75),
+  weeksUnhappy: integer("weeks_unhappy").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

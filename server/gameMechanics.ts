@@ -912,9 +912,9 @@ export async function processRentalIncome(
   let cashImpact = curveball?.cashImpact || 0;
   const rentMultiplier = curveball?.rentMultiplier ?? 1;
   
-  // Property manager discount: PM saves 10% on repair costs (negative cashImpact = repair cost)
   const hasPropertyMgmtForDiscount = proFormaInputs?.propertyManagement || false;
-  if (hasPropertyMgmtForDiscount && cashImpact < 0) {
+  const isTenantDeparture = curveball?.id === 'tenant_departure_conditions' || curveball?.id === 'tenant_departure_life';
+  if (hasPropertyMgmtForDiscount && cashImpact < 0 && !isTenantDeparture) {
     cashImpact = Math.round(cashImpact * 0.9);
   }
   
@@ -1310,21 +1310,39 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         const firstPaymentWeek = deal.firstIncomePaymentWeek || deal.lastIncomePaymentWeek || gameRun.currentWeek;
         const monthsActive = Math.max(0, (gameRun.currentWeek + 1) - firstPaymentWeek);
 
-        // Check for tenant-leaving due to unfixed issues (separate from curveball system)
-        // Only trigger if a tenant actually exists (prevents chaining vacancy months)
         const currentTenant = allTenants.find((t: any) => t.dealId === deal.id);
         let tenantLeavingEvent: any = null;
         if (property && currentTenant) {
           const unfixedIssues = getUnfixedIssues(deal, property);
-          if (unfixedIssues.length > 0 && monthsActive >= 2) {
-            // Base 2% chance per month + 1.5% per unfixed issue + escalation over time
-            const baseLeaveChance = 2;
-            const issueLeaveChance = unfixedIssues.length * 1.5;
-            const timeLeaveBonus = Math.min(monthsActive * 0.3, 3); // Max +3% from time
-            const totalLeaveChance = baseLeaveChance + issueLeaveChance + timeLeaveBonus;
-            
+          const currentSatisfaction = currentTenant.satisfaction ?? 75;
+
+          let newSatisfaction = currentSatisfaction;
+          if (unfixedIssues.length > 0) {
+            const drop = Math.min(unfixedIssues.length * 4, 15);
+            newSatisfaction = Math.max(0, newSatisfaction - drop);
+          } else {
+            newSatisfaction = Math.min(100, newSatisfaction + 3);
+          }
+
+          const newWeeksUnhappy = newSatisfaction < 40
+            ? (currentTenant.weeksUnhappy ?? 0) + 1
+            : 0;
+
+          await storage.updateTenant(currentTenant.id, {
+            satisfaction: newSatisfaction,
+            weeksUnhappy: newWeeksUnhappy,
+          } as any);
+
+          currentTenant.satisfaction = newSatisfaction;
+          currentTenant.weeksUnhappy = newWeeksUnhappy;
+
+          if (newSatisfaction < 40 && monthsActive >= 2) {
+            const baseLeaveChance = 5;
+            const unhappyBonus = Math.min(newWeeksUnhappy * 2, 20);
+            const totalLeaveChance = Math.min(baseLeaveChance + unhappyBonus, 25);
+
             if (Math.random() * 100 < totalLeaveChance) {
-              // Tenant is leaving due to poor conditions!
+              const turnoverCost = 500 + Math.floor(Math.random() * 1001);
               const leaveReasons = [
                 'fed up with ongoing maintenance issues',
                 'found a better-maintained place nearby',
@@ -1338,20 +1356,20 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
                 name: 'Tenant Moving Out',
                 type: 'negative',
                 trigger: 'rental_monthly',
-                cashImpact: 0,
-                rentMultiplier: 0, // No rent this month (vacancy)
-                description: `Tenant ${reason}. Property vacant for 1 month.`,
+                cashImpact: -turnoverCost,
+                rentMultiplier: 0,
+                description: `Tenant ${reason}. Property vacant for 1 month. Turnover costs: $${turnoverCost.toLocaleString()}.`,
                 emoji: '🚚',
                 color: 'red',
                 tenantIssue: true,
               };
             }
           }
-          
-          // Life situation departures (independent of issues, lower chance)
-          if (!tenantLeavingEvent && currentTenant && monthsActive >= 3) {
-            const lifeLeaveChance = 1.2; // ~1.2% per month
+
+          if (!tenantLeavingEvent && monthsActive >= 3) {
+            const lifeLeaveChance = 1.2;
             if (Math.random() * 100 < lifeLeaveChance) {
+              const turnoverCost = 500 + Math.floor(Math.random() * 501);
               const lifeSituations = [
                 { reason: 'got a job transfer to another city', emoji: '✈️' },
                 { reason: 'is buying their own home', emoji: '🏡' },
@@ -1366,9 +1384,9 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
                 name: 'Tenant Moving Out',
                 type: 'negative',
                 trigger: 'rental_monthly',
-                cashImpact: 0,
+                cashImpact: -turnoverCost,
                 rentMultiplier: 0,
-                description: `Tenant ${situation.reason}. Property vacant for 1 month.`,
+                description: `Tenant ${situation.reason}. Property vacant for 1 month. Turnover costs: $${turnoverCost.toLocaleString()}.`,
                 emoji: situation.emoji,
                 color: 'orange',
                 tenantIssue: true,
@@ -2261,6 +2279,17 @@ const RENT_IMPACT_BY_REPAIR: Record<string, number> = {
   zoning_issues: 0,
   seawall_maintenance: 2,
   barn_roof: 1,
+  pest_infestation: 3,
+  appliance_age: 5,
+  gutter_damage: 1,
+  smoke_co_detectors: 0,
+  insulation_poor: 3,
+  water_heater_age: 2,
+  deck_rot: 3,
+  garage_door: 2,
+  bathroom_outdated: 6,
+  grading_erosion: 1,
+  exterior_paint: 3,
 };
 
 function getRentImpactForRepair(issueId: string, severity: 'mild' | 'moderate' | 'severe', random: () => number): number {

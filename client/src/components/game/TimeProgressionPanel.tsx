@@ -15,13 +15,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw } from 'lucide-react';
-import type { Deal, GameRun, Property } from '@shared/schema';
+import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw, Smile, Meh, Frown } from 'lucide-react';
+import type { Deal, GameRun, Property, Tenant } from '@shared/schema';
+
+function getTenantMood(satisfaction: number): { label: string; color: string; Icon: typeof Smile } {
+  if (satisfaction >= 65) return { label: 'Happy', color: 'text-green-400', Icon: Smile };
+  if (satisfaction >= 40) return { label: 'Concerned', color: 'text-yellow-400', Icon: Meh };
+  return { label: 'Unhappy', color: 'text-red-400', Icon: Frown };
+}
 
 interface TimeProgressionPanelProps {
   gameRun: GameRun;
   deals: Deal[];
   properties: Property[];
+  tenants?: Tenant[];
   onAdvanceWeek: () => Promise<void>;
   onSellRental?: (dealId: number) => Promise<void>;
   onSellFlip?: (dealId: number) => Promise<void>;
@@ -221,6 +228,7 @@ export function TimeProgressionPanel({
   gameRun,
   deals,
   properties,
+  tenants = [],
   onAdvanceWeek,
   onSellRental,
   onSellFlip,
@@ -400,6 +408,23 @@ export function TimeProgressionPanel({
                     <button className="flex items-center gap-2 min-w-0 hover:bg-white/10 rounded px-1 py-0.5 transition-colors cursor-pointer">
                       <Home className={`w-3 h-3 flex-shrink-0 ${(deal.weeklyIncome || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`} />
                       <span className="text-xs text-white truncate">{propertyName}</span>
+                      {(() => {
+                        const tenant = tenants.find(t => t.dealId === deal.id);
+                        if (tenant && tenant.satisfaction != null) {
+                          const mood = getTenantMood(tenant.satisfaction);
+                          const tip = tenant.satisfaction < 40
+                            ? `${mood.label} (${tenant.satisfaction}%) — At risk of leaving!`
+                            : tenant.satisfaction < 65
+                            ? `${mood.label} (${tenant.satisfaction}%) — Getting frustrated`
+                            : `${mood.label} (${tenant.satisfaction}%)`;
+                          return (
+                            <span className={`flex items-center ${mood.color}`} title={tip} data-testid={`tenant-mood-${deal.id}`}>
+                              <mood.Icon className="w-3 h-3" />
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
                       <span className={`text-xs font-medium ${(deal.weeklyIncome || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {(deal.weeklyIncome || 0) >= 0 ? '+' : ''}${(deal.weeklyIncome || 0).toLocaleString()}/mo
                       </span>

@@ -190,6 +190,12 @@ function getWhyDifferent(proj: ProFormaProjection, saleData: NonNullable<Propert
     const actualMonthly = proj.actualMonthlyCashFlow ?? 0;
     const cashFlowDiff = actualMonthly - projectedMonthly;
 
+    if (saleData.saleProfit < -2000) {
+      reasons.push(`Selling this rental resulted in a $${Math.abs(saleData.saleProfit).toLocaleString()} capital loss — selling costs, market conditions, and holding expenses ate into (or exceeded) your equity. This significantly impacts your overall deal return.`);
+    } else if (saleData.saleProfit > 5000) {
+      reasons.push(`You captured $${saleData.saleProfit.toLocaleString()} in appreciation when you sold — a nice bonus on top of your rental cash flow.`);
+    }
+
     if (cashFlowDiff > 50) {
       reasons.push('Your rental earned more cash flow than projected — possibly from higher actual rent, fewer vacancies, or lower operating expenses.');
     } else if (cashFlowDiff < -50) {
@@ -268,7 +274,8 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
     const actualMonthly = proFormaProjections!.actualMonthlyCashFlow ?? 0;
     const projectedTotal = projectedMonthly * (proFormaProjections!.monthsHeld || 1);
     const actualTotal = proFormaProjections!.totalRentalIncomeCollected ?? (actualMonthly * (proFormaProjections!.monthsHeld || 1));
-    accuracyGrade = getAccuracyGrade(projectedTotal, actualTotal);
+    const totalDealReturn = actualTotal + saleData.saleProfit;
+    accuracyGrade = getAccuracyGrade(projectedTotal, totalDealReturn);
     effectiveProjections = { ...proFormaProjections!, projectedProfit: projectedTotal };
   } else if (hasProjections) {
     const projectedProfitValue = proFormaProjections!.projectedProfit ?? 0;
@@ -411,7 +418,7 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                           <div className="flex items-center gap-2">
                             <Target className="w-4 h-4 text-cyan-400" />
                             <span className="text-sm font-semibold text-cyan-300">
-                              {isRentalStrategy ? 'Pro Forma vs Actual Cash Flow' : 'Your Prediction vs Reality'}
+                              {isRentalStrategy ? 'Pro Forma vs Actual Deal Return' : 'Your Prediction vs Reality'}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -496,8 +503,30 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                                           {saleData.saleProfit >= 0 ? '+' : ''}${saleData.saleProfit.toLocaleString()}
                                         </span>
                                       </div>
-                                      <p className="text-[10px] text-gray-600 mt-0.5">Capital gain/loss from selling (separate from rental income)</p>
+                                      <p className="text-[10px] text-gray-600 mt-0.5">Capital gain/loss from selling</p>
                                     </div>
+                                    {(() => {
+                                      const projTotal = (proFormaProjections!.projectedMonthlyCashFlow ?? 0) * (proFormaProjections!.monthsHeld || 1);
+                                      const actualRentalTotal = proFormaProjections!.totalRentalIncomeCollected
+                                        ?? ((proFormaProjections!.actualMonthlyCashFlow ?? 0) * (proFormaProjections!.monthsHeld || 1));
+                                      const totalReturn = actualRentalTotal + saleData.saleProfit;
+                                      return (
+                                        <div className="pt-1.5 mt-1.5" style={{ borderTop: '1px solid rgba(100,116,139,0.3)' }}>
+                                          <div className="flex items-center justify-between text-xs">
+                                            <span className="text-white font-medium">Total Deal Return</span>
+                                            <div className="text-right">
+                                              <span className={`font-mono font-bold ${totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                {totalReturn >= 0 ? '+' : ''}${totalReturn.toLocaleString()}
+                                              </span>
+                                              <span className="text-gray-500 text-[10px] ml-1">
+                                                vs ${projTotal.toLocaleString()} projected
+                                              </span>
+                                            </div>
+                                          </div>
+                                          <p className="text-[10px] text-gray-600 mt-0.5">Rental income + sale profit/loss = your grade</p>
+                                        </div>
+                                      );
+                                    })()}
                                   </>
                                 )}
 

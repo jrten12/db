@@ -1801,6 +1801,25 @@ export class DBStorage implements IStorage {
     const diligenceTypes = ['appraisal', 'contractor_walkthrough', 'inspection', 'title_search'];
     const diligenceCount = diligenceTypes.filter(d => completedDiligence.includes(d)).length;
     
+    // Calculate condition penalty from unfixed issues (same as completeFlipDeal)
+    const { getRandomizedPropertyIssues } = await import('@shared/propertyIssues');
+    const allIssues = getRandomizedPropertyIssues(
+      gameRunId, deal.propertyId,
+      property.propertyType, property.conditionTag,
+      property.waterSource || 'public'
+    );
+    const rawFixedIssueIds = proFormaInputs?.fixedIssueIds || [];
+    const fixedIssueIds = [...new Set(rawFixedIssueIds)].filter((id: string) => allIssues.some(i => i.id === id));
+    const undiscoveredIssues = allIssues.filter(issue =>
+      !issue.discoveredBy.some(method => completedDiligence.includes(method))
+    );
+    const discoveredButSkipped = allIssues.filter(issue =>
+      issue.discoveredBy.some(method => completedDiligence.includes(method)) &&
+      !fixedIssueIds.includes(issue.id)
+    );
+    const conditionPenalty = (undiscoveredIssues.length * 0.02) + (discoveredButSkipped.length * 0.015);
+    const fixedBonus = fixedIssueIds.length > 0 ? Math.min(fixedIssueIds.length * 0.01, 0.05) : 0;
+    
     const marketCondition = gameRun.marketCondition || 'good';
     const marketMult = getMarketMultipliers(marketCondition as MarketCondition);
     
@@ -1815,6 +1834,8 @@ export class DBStorage implements IStorage {
       playerArvEstimate: proFormaInputs?.arv,
       didComps,
       diligenceCount,
+      conditionPenalty,
+      fixedBonus,
       marketMult,
     });
     const saleMultiplier = salePrice / purchasePrice;

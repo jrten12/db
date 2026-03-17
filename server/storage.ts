@@ -1784,35 +1784,97 @@ export class DBStorage implements IStorage {
     // Get the CURRENT mortgage balance from the deal
     const mortgagePayoff = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
     
-    // Calculate sale price based on ARV and rehab investment (not just purchase price!)
-    // This mirrors the logic from completeFlipDeal in gameMechanics.ts
+    // Calculate sale price using unified flip rebalancing logic
+    // Must match completeFlipDeal in gameMechanics.ts
     const rehabBudget = proFormaInputs?.rehabBudget || 0;
+    const finishLevel = proFormaInputs?.finishLevel || 'builder';
+    const finishCostMult = finishLevel === 'luxury' ? 1.4 : 1.0;
+    const finishArvBoost = finishLevel === 'luxury' ? 0.10 : 0;
+    const adjustedRehabBudget = Math.round(rehabBudget * finishCostMult);
     const contingencyPct = proFormaInputs?.contingencyPct || 10;
-    const actualRehabSpend = rehabBudget * (1 + contingencyPct / 100);
+    const actualRehabSpend = adjustedRehabBudget * (1 + contingencyPct / 100);
     
-    // Calculate rehab completion factor (0 to 1) based on how much was invested
-    const rehabRange = property.rehabMax - property.rehabMin;
-    const completionFactor = rehabRange > 0 
-      ? Math.max(0, Math.min(1, (actualRehabSpend - property.rehabMin) / rehabRange))
-      : 0.5;
+    // Calculate rehab completion factor (0 to 1) based on full rehab range
+    const fullRehabCost = property.rehabMax;
+    const completionFactor = fullRehabCost > 0 
+      ? Math.max(0, Math.min(1, actualRehabSpend / fullRehabCost))
+      : 0;
     
-    // Base sale price scales with rehab completion within the ARV range
-    const arvRange = property.arvMax - property.arvMin;
-    const baseSalePrice = property.arvMin + (completionFactor * arvRange);
+    const maxArv = Math.round(property.arvMax * (1 + finishArvBoost));
     
-    // Apply market conditions to flip sale price (same logic as rental sales)
-    // This creates correlation between flip and rental markets
+    // Look up diligence for this deal
+    const investigations = await db
+      .select()
+      .from(schema.propertyInvestigations)
+      .where(eq(schema.propertyInvestigations.gameRunId, gameRunId));
+    const completedDiligence = investigations
+      .filter(inv => inv.propertyId === deal.propertyId)
+      .map(inv => inv.investigationType);
+    const didComps = completedDiligence.includes('appraisal');
+    
+    const diligenceTypes = ['appraisal', 'contractor_walkthrough', 'inspection', 'title_search'];
+    const diligenceCount = diligenceTypes.filter(d => completedDiligence.includes(d)).length;
+    const diligenceBonusPct = diligenceCount === 0 ? 0
+      : diligenceCount === 1 ? 0.02
+      : diligenceCount === 2 ? 0.04
+      : diligenceCount === 3 ? 0.06
+      : 0.08;
+    const diligenceBonusMultiplier = 1 + diligenceBonusPct;
+    
+    // Rare windfall: 3% chance for diligent rehabbers
+    const windfallEligible = completionFactor >= 0.3 && diligenceCount >= 2;
+    const windfallMultiplier = (windfallEligible && Math.random() < 0.03)
+      ? 1.08 + (Math.random() * 0.07)
+      : 1.0;
+    
+    // Apply market conditions
     const marketCondition = gameRun.marketCondition || 'good';
     const marketMult = getMarketMultipliers(marketCondition as MarketCondition);
     
-    // Base market variance: -5% to +10%
-    // Market condition shifts this range up or down
-    const baseMin = 0.95;
-    const baseMax = 1.10;
-    const adjustedMin = baseMin * marketMult.min; // In terrible market: 0.95 * 0.85 = 0.81
-    const adjustedMax = baseMax * marketMult.max; // In excellent market: 1.10 * 1.15 = 1.27
-    const marketVariance = adjustedMin + Math.random() * (adjustedMax - adjustedMin);
-    const salePrice = Math.round(baseSalePrice * marketVariance);
+    let salePrice: number;
+    if (didComps) {
+      const baseSpreadCapture = diligenceCount >= 3 ? 0.95 : 0.90;
+      const effectiveSpreadCapture = baseSpreadCapture * Math.pow(completionFactor, 0.7);
+      const priceSpread = maxArv - purchasePrice;
+      let baseSalePrice = purchasePrice + (effectiveSpreadCapture * priceSpread);
+      baseSalePrice = baseSalePrice * diligenceBonusMultiplier;
+      
+      const marketVariance = marketMult.min + (Math.random() * (marketMult.max - marketMult.min));
+      salePrice = Math.round(baseSalePrice * marketVariance * windfallMultiplier);
+      
+      // No-rehab absolute caps
+      if (rehabBudget === 0) {
+        const noRehabCap = diligenceCount >= 3
+          ? purchasePrice * 1.02
+          : purchasePrice * 0.97;
+        salePrice = Math.min(salePrice, Math.round(noRehabCap));
+      } else if (completionFactor < 0.25) {
+        const minRehabCap = purchasePrice * 1.05;
+        salePrice = Math.min(salePrice, Math.round(minRehabCap));
+      }
+    } else {
+      // Without comps: wider uncertainty
+      const playerEstimate = proFormaInputs?.arv || ((property.arvMin + property.arvMax) / 2);
+      const baseRealityMin = 0.72 * marketMult.min;
+      const baseRealityMax = 1.10 * marketMult.max;
+      const realityFactor = baseRealityMin + (Math.random() * (baseRealityMax - baseRealityMin));
+      
+      const priceSpread = maxArv - purchasePrice;
+      let actualValue = purchasePrice + (Math.pow(completionFactor, 0.7) * priceSpread * 0.82);
+      
+      const uncertainPrice = playerEstimate * realityFactor;
+      salePrice = Math.round((uncertainPrice * 0.35) + (actualValue * 0.65));
+      
+      // No-rehab absolute caps (harsher without comps)
+      if (rehabBudget === 0) {
+        salePrice = Math.min(salePrice, Math.round(purchasePrice * 0.94));
+      } else if (completionFactor < 0.25) {
+        salePrice = Math.min(salePrice, Math.round(purchasePrice * 1.02));
+      }
+    }
+    
+    // Absolute floor
+    salePrice = Math.max(salePrice, Math.round(purchasePrice * 0.55));
     const saleMultiplier = salePrice / purchasePrice;
     
     // Net proceeds = sale price minus mortgage payoff (this is what player receives in cash)

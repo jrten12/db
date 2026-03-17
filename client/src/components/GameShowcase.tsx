@@ -195,16 +195,16 @@ export function GameShowcase() {
 
       <div className="max-w-5xl mx-auto px-5">
         <h2
-          className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 lg:mb-4"
-          style={{ color: '#f0e6d0', fontStyle: 'italic' }}
+          className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 lg:mb-4 tracking-tight"
+          style={{ color: '#f0e6d0' }}
         >
-          Every Deal Has a Story
+          Four Phases. One Deal. Infinite Ways to Break It.
         </h2>
         <p
           className="text-center text-sm sm:text-base max-w-xl mx-auto mb-6 lg:mb-10"
           style={{ color: 'rgba(225,220,205,0.5)' }}
         >
-          From scouting to settlement — experience every step of a real estate deal.
+          Scout, analyze, commit, and live with the consequences. Every decision compounds — and the market doesn't wait.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-4 lg:gap-5">

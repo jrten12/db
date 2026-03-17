@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2 } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale } from 'lucide-react';
 import heroHouseImage from '@assets/Gemini_hero.webp';
 import dbLogoImage from '@assets/db_logo_64.webp';
 const heroBgPattern = '/hero-bg-pattern.webp';
@@ -129,7 +129,7 @@ export default function Landing() {
                   textShadow: '0 1px 8px rgba(0,0,0,0.4)',
                 }}
               >
-                A Real Estate Investing Simulator Game
+                The real estate game that plays back.
               </p>
 
               <p
@@ -139,7 +139,7 @@ export default function Landing() {
                   textShadow: '0 1px 8px rgba(0,0,0,0.3)',
                 }}
               >
-                DealBreak Simulator is a realistic real estate investing simulator game where you analyze properties, run pro formas, estimate renovation costs, and decide whether an investment deal succeeds or fails.
+                Analyze properties, build pro formas, negotiate financing, and manage tenants in a simulator with shifting markets, hidden risks, and deals that break in ways you won't see coming.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
@@ -302,114 +302,165 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* === EVERY DEAL HAS A STORY === */}
+      {/* === GAME SHOWCASE === */}
       <Suspense fallback={<div className="py-16" />}>
         <GameShowcase />
       </Suspense>
 
-      {/* === YOUR PATH TO VICTORY === */}
-      <section className="px-5 py-3 lg:py-16">
-        <div className="max-w-4xl mx-auto">
-          <h2
-            className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 lg:mb-8"
-            style={{ color: '#f0e6d0' }}
-          >
-            Your Path to Victory
-          </h2>
+      {/* === NOTHING IS STATIC === */}
+      <section
+        className="relative py-6 lg:py-16 overflow-hidden"
+        style={{ background: 'linear-gradient(180deg, #131316 0%, #15151a 50%, #131316 100%)' }}
+      >
+        <div
+          className="absolute inset-x-0 top-0 h-[1px]"
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent)' }}
+        />
+        <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(212,175,55,0.4) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
 
-          <div className="space-y-3">
-            <StepCard
-              number="1"
-              title="Scout the Deals"
-              description="Browse properties across different markets. Some look great on the surface but hide costly problems underneath."
-            />
-            <StepCard
-              number="2"
-              title="Investigate (or Gamble)"
-              description="Pay for inspections and market studies to uncover the truth, or trust your gut and save your cash."
-            />
-            <StepCard
-              number="3"
-              title="Run the Numbers"
-              description="Build your pro forma, set your financing, and decide: flip it fast or rent it out for monthly cash flow."
-            />
-            <StepCard
-              number="4"
-              title="Watch It Play Out"
-              description="Time moves forward. Markets shift. Tenants call. Contractors surprise you. Did you spot the deal that breaks?"
-            />
+        <div className="max-w-5xl mx-auto px-5">
+          <div className="text-center mb-8 lg:mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.12)' }}>
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#d4af37' }} />
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(212,175,55,0.7)' }}>Built Different</span>
+            </div>
+            <h2
+              className="text-2xl sm:text-3xl lg:text-[2.5rem] font-bold mb-3 tracking-tight leading-tight"
+              style={{ color: '#f0e6d0' }}
+            >
+              Nothing in This Game Is Static
+            </h2>
+            <p
+              className="text-sm sm:text-base max-w-2xl mx-auto leading-relaxed"
+              style={{ color: 'rgba(225,220,205,0.55)' }}
+            >
+              Markets shift mid-game. Tenants lose patience. Contractors surprise you. Every playthrough forces different decisions because the conditions that shape your deals are always moving.
+            </p>
           </div>
 
-          <div className="text-center mt-4 lg:mt-8">
-            <Link href="/game">
-              <button
-                className="group py-3.5 px-8 rounded-lg font-bold text-lg transition-all hover:brightness-110 active:scale-[0.98] inline-flex items-center gap-2"
-                style={{
-                  background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
-                  color: '#fff',
-                  boxShadow: '0 4px 24px rgba(16,185,129,0.35), 0 2px 0 #047857',
-                  border: '1px solid rgba(16,185,129,0.4)',
-                }}
-                data-testid="button-start-first-deal"
-              >
-                Start Your First Deal
-                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
-              </button>
-            </Link>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
+            <MechanicCard
+              Icon={LineChart}
+              accent="#06b6d4"
+              title="Dynamic Markets"
+              detail="Hot, balanced, or soft — market conditions shift during your game, changing property values, renovation costs, and rental demand. The same strategy won't work twice."
+            />
+            <MechanicCard
+              Icon={Users}
+              accent="#10b981"
+              title="Living Tenants"
+              detail="Tenants track satisfaction over time. Ignore maintenance and they leave — costing you turnover and vacancy. Keep them happy and your cash flow stays clean."
+            />
+            <MechanicCard
+              Icon={Wrench}
+              accent="#f59e0b"
+              title="Hidden Property Risk"
+              detail="Every property has issues you won't find without paying for due diligence. Skip the inspection and a foundation crack can turn your flip into a money pit."
+            />
+            <MechanicCard
+              Icon={Scale}
+              accent="#a78bfa"
+              title="Dual-Strategy Depth"
+              detail="Flip for fast profit or rent for monthly cash flow. Each path has its own financial model, risk profile, and set of things that can go wrong."
+            />
+            <MechanicCard
+              Icon={TrendingUp}
+              accent="#f87171"
+              title="Progressive Consequences"
+              detail="Deferred maintenance doesn't just sit there — it gets worse. A small leak in month two becomes a structural problem by month eight, with escalating repair costs."
+            />
+            <MechanicCard
+              Icon={Dice6}
+              accent="#22d3ee"
+              title="Procedural Complexity"
+              detail="Property issues, market events, tenant personalities, and renovation outcomes are all procedurally generated. No two games produce the same set of decisions."
+            />
           </div>
         </div>
       </section>
 
-      {/* === WHAT YOU'LL LEARN === */}
-      <section
-        className="relative py-3 lg:py-14"
-        style={{
-          background: 'linear-gradient(180deg, #131316 0%, #151518 100%)',
-        }}
-      >
-        <div
-          className="absolute inset-x-0 top-0 h-[1px]"
-          style={{
-            background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent)',
-          }}
-        />
-        <div className="max-w-4xl mx-auto px-5">
+      {/* === REAL SKILLS STRIP === */}
+      <section className="py-4 lg:py-10 px-5">
+        <div className="max-w-5xl mx-auto">
+          <div
+            className="relative rounded-2xl overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.04) 0%, rgba(19,19,22,0.95) 40%, rgba(212,175,55,0.03) 100%)',
+              border: '1px solid rgba(180,155,80,0.1)',
+            }}
+          >
+            <div className="absolute top-0 inset-x-0 h-[1px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.3), rgba(212,175,55,0.3), transparent)' }} />
+            <div className="p-5 sm:p-7 lg:p-9">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-12">
+                <div className="flex-1">
+                  <h2
+                    className="text-xl sm:text-2xl font-bold mb-2 tracking-tight"
+                    style={{ color: '#f0e6d0' }}
+                  >
+                    Every concept mirrors how real deals are evaluated.
+                  </h2>
+                  <p className="text-sm leading-relaxed max-w-lg" style={{ color: 'rgba(225,220,205,0.55)' }}>
+                    Pro forma modeling, cap rate analysis, LTV-based financing, due diligence trade-offs, market timing — you learn the same analytical framework professional investors use.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2 lg:gap-2.5 lg:max-w-[320px] flex-shrink-0">
+                  {[
+                    'Pro Forma Analysis',
+                    'Cap Rates',
+                    'Cash-on-Cash ROI',
+                    'LTV & Leverage',
+                    'Due Diligence',
+                    'Market Timing',
+                    'Risk Assessment',
+                    'Portfolio Strategy',
+                  ].map((skill) => (
+                    <span
+                      key={skill}
+                      className="text-[11px] font-medium px-3 py-1.5 rounded-lg"
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: 'rgba(225,220,205,0.6)',
+                      }}
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* === CTA === */}
+      <section className="py-4 lg:py-10 px-5">
+        <div className="max-w-3xl mx-auto text-center">
           <h2
-            className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-3"
+            className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 tracking-tight"
             style={{ color: '#f0e6d0' }}
           >
-            Real Skills, Real Knowledge
+            Ready to find out which deals break?
           </h2>
-          <p className="text-center text-sm sm:text-base max-w-2xl mx-auto mb-6 lg:mb-8" style={{ color: 'rgba(225,220,205,0.65)' }}>
-            This real estate investing simulator teaches the same financial analysis skills used by professional investors. Every concept in the game mirrors how real deals are evaluated.
+          <p className="text-sm sm:text-base mb-6 max-w-xl mx-auto" style={{ color: 'rgba(225,220,205,0.5)' }}>
+            $100,000 starting cash. 12 months on the clock. Dozens of properties, each with its own hidden story. How you play it is up to you.
           </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <SkillCard
-              title="Pro Forma Analysis"
-              description="Build financial models that project income, expenses, and returns — the foundation of every investment decision."
-            />
-            <SkillCard
-              title="Cap Rates & Cash-on-Cash"
-              description="Understand the key metrics investors use to compare properties and evaluate whether a deal meets their return targets."
-            />
-            <SkillCard
-              title="Leverage & Financing"
-              description="Learn how loan-to-value ratios, interest rates, and down payments affect your risk and return profile."
-            />
-            <SkillCard
-              title="Due Diligence"
-              description="Discover why inspections, title searches, and market studies are worth every dollar and week they cost."
-            />
-            <SkillCard
-              title="Market Timing"
-              description="Experience how shifting market conditions affect property values, sale prices, and investment strategy."
-            />
-            <SkillCard
-              title="Risk Management"
-              description="Learn to balance cash reserves, leverage, and deal selection to survive unexpected setbacks."
-            />
-          </div>
+          <Link href="/game">
+            <button
+              className="group py-3.5 px-10 rounded-lg font-bold text-lg transition-all hover:brightness-110 active:scale-[0.98] inline-flex items-center gap-2"
+              style={{
+                background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
+                color: '#fff',
+                boxShadow: '0 4px 24px rgba(16,185,129,0.35), 0 2px 0 #047857',
+                border: '1px solid rgba(16,185,129,0.4)',
+              }}
+              data-testid="button-start-first-deal"
+            >
+              Start Your First Deal
+              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          </Link>
         </div>
       </section>
 
@@ -434,11 +485,15 @@ export default function Landing() {
             />
             <FaqItem
               question="How long does a game take?"
-              answer="A typical game takes 20-40 minutes. You manage a 12-month timeline, evaluating properties, running numbers, and executing deals. Each playthrough is different thanks to randomized properties, market conditions, and events."
+              answer="A typical game takes 20-40 minutes. You manage a 12-month timeline, evaluating properties, running numbers, and executing deals. Each playthrough is different thanks to procedurally generated properties, dynamic market conditions, and randomized events."
             />
             <FaqItem
               question="What strategies can I use?"
-              answer="You can flip properties (buy, renovate, sell for profit) or rent them out (buy, hold, collect monthly income). Each strategy has different risk-reward profiles, and the best players learn to mix both depending on market conditions and their financial position."
+              answer="You can flip properties (buy, renovate, sell for profit) or rent them out (buy, hold, collect monthly income). Each strategy has its own financial model, risk profile, and failure modes. The best players read the market and adapt — sometimes mid-deal."
+            />
+            <FaqItem
+              question="Does the game play the same each time?"
+              answer="No. Market conditions shift during gameplay, properties have procedurally generated issues, tenant behavior responds to your management decisions, and renovation outcomes depend on contractor choice and market timing. The same property can play out completely differently between games."
             />
           </div>
         </div>
@@ -467,57 +522,38 @@ export default function Landing() {
   );
 }
 
-function StepCard({
-  number,
+function MechanicCard({
+  Icon,
+  accent,
   title,
-  description,
+  detail,
 }: {
-  number: string;
+  Icon: typeof LineChart;
+  accent: string;
   title: string;
-  description: string;
+  detail: string;
 }) {
   return (
     <div
-      className="flex items-start gap-3.5 p-4 rounded-xl border"
+      className="relative p-4 rounded-xl border transition-all hover:border-opacity-50 group"
       style={{
-        background: 'rgba(255,255,255,0.03)',
-        borderColor: 'rgba(180,155,80,0.12)',
+        background: 'rgba(255,255,255,0.02)',
+        borderColor: `${accent}18`,
       }}
     >
-      <div
-        className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-        style={{
-          background: 'rgba(212,175,55,0.1)',
-          border: '1px solid rgba(212,175,55,0.2)',
-        }}
-      >
-        <span className="font-bold text-sm" style={{ color: '#d4af37' }}>{number}</span>
+      <div className="absolute top-0 inset-x-4 h-[1px]" style={{ background: `linear-gradient(90deg, transparent, ${accent}30, transparent)` }} />
+      <div className="flex items-start gap-3">
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+          style={{ background: `${accent}10`, border: `1px solid ${accent}20` }}
+        >
+          <Icon className="w-4 h-4" style={{ color: accent }} />
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-semibold text-[15px] mb-1" style={{ color: '#e8dfc8' }}>{title}</h3>
+          <p className="text-[13px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>{detail}</p>
+        </div>
       </div>
-      <div>
-        <h3 className="font-semibold text-base mb-0.5" style={{ color: '#f0e6d0' }}>{title}</h3>
-        <p className="text-[14px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.65)' }}>{description}</p>
-      </div>
-    </div>
-  );
-}
-
-function SkillCard({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div
-      className="p-4 rounded-xl border"
-      style={{
-        background: 'rgba(255,255,255,0.03)',
-        borderColor: 'rgba(180,155,80,0.1)',
-      }}
-    >
-      <h3 className="font-semibold text-sm mb-1" style={{ color: '#e8dfc8' }}>{title}</h3>
-      <p className="text-[14px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.6)' }}>{description}</p>
     </div>
   );
 }

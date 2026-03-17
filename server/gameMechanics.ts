@@ -17,6 +17,103 @@ import { eq } from 'drizzle-orm';
 import { rollForCurveball, rollForCurveballWithIssues, type PropertyContext, type CurveballResult, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
 import { calculateSurpriseCosts, PropertyIssue, getRandomizedPropertyIssues } from '@shared/propertyIssues';
 
+export interface FlipPricingParams {
+  purchasePrice: number;
+  rehabBudget: number;
+  finishLevel: string;
+  contingencyPct: number;
+  arvMin: number;
+  arvMax: number;
+  rehabMax: number;
+  playerArvEstimate?: number;
+  didComps: boolean;
+  diligenceCount: number;
+  conditionPenalty?: number;
+  fixedBonus?: number;
+  marketMult: { min: number; max: number };
+}
+
+export function calculateFlipSalePrice(params: FlipPricingParams): number {
+  const {
+    purchasePrice, rehabBudget, finishLevel, contingencyPct,
+    arvMin, arvMax, rehabMax, playerArvEstimate,
+    didComps, diligenceCount, conditionPenalty = 0, fixedBonus = 0, marketMult
+  } = params;
+
+  const finishCostMult = finishLevel === 'luxury' ? 1.4 : 1.0;
+  const finishArvBoost = finishLevel === 'luxury' ? 0.10 : 0;
+  const adjustedRehabBudget = Math.round(rehabBudget * finishCostMult);
+  const actualRehabSpend = adjustedRehabBudget * (1 + contingencyPct / 100);
+
+  const fullRehabCost = rehabMax;
+  const completionFactor = fullRehabCost > 0
+    ? Math.max(0, Math.min(1, actualRehabSpend / fullRehabCost))
+    : 0;
+
+  const maxArv = Math.round(arvMax * (1 + finishArvBoost));
+
+  const diligenceBonusPct = diligenceCount === 0 ? 0
+    : diligenceCount === 1 ? 0.02
+    : diligenceCount === 2 ? 0.04
+    : diligenceCount === 3 ? 0.06
+    : 0.08;
+  const diligenceBonusMultiplier = 1 + diligenceBonusPct;
+
+  const conditionMultiplier = Math.max(0.80, 1 - conditionPenalty);
+
+  const windfallEligible = completionFactor >= 0.3 && diligenceCount >= 2;
+  const windfallMultiplier = (windfallEligible && Math.random() < 0.03)
+    ? 1.08 + (Math.random() * 0.07)
+    : 1.0;
+
+  let salePrice: number;
+
+  if (didComps) {
+    const baseSpreadCapture = diligenceCount >= 3 ? 0.95 : 0.90;
+    const effectiveSpreadCapture = baseSpreadCapture * Math.pow(completionFactor, 0.7);
+    const priceSpread = maxArv - purchasePrice;
+    let baseSalePrice = purchasePrice + (effectiveSpreadCapture * priceSpread);
+    baseSalePrice = baseSalePrice * (1 + fixedBonus);
+    baseSalePrice = baseSalePrice * conditionMultiplier;
+    baseSalePrice = baseSalePrice * diligenceBonusMultiplier;
+
+    const marketVariance = marketMult.min + (Math.random() * (marketMult.max - marketMult.min));
+    salePrice = Math.round(baseSalePrice * marketVariance * windfallMultiplier);
+
+    if (rehabBudget === 0) {
+      const noRehabCap = diligenceCount >= 3
+        ? purchasePrice * 1.02
+        : purchasePrice * 0.97;
+      salePrice = Math.min(salePrice, Math.round(noRehabCap));
+    } else if (completionFactor < 0.25) {
+      const minRehabCap = purchasePrice * 1.05;
+      salePrice = Math.min(salePrice, Math.round(minRehabCap));
+    }
+  } else {
+    const playerEstimate = playerArvEstimate || ((arvMin + arvMax) / 2);
+    const baseRealityMin = 0.72 * marketMult.min;
+    const baseRealityMax = 1.10 * marketMult.max;
+    const realityFactor = baseRealityMin + (Math.random() * (baseRealityMax - baseRealityMin));
+
+    const priceSpread = maxArv - purchasePrice;
+    let actualValue = purchasePrice + (Math.pow(completionFactor, 0.7) * priceSpread * 0.82);
+    actualValue = actualValue * (1 + fixedBonus);
+    actualValue = actualValue * conditionMultiplier;
+
+    const uncertainPrice = playerEstimate * realityFactor;
+    salePrice = Math.round((uncertainPrice * 0.35) + (actualValue * 0.65));
+
+    if (rehabBudget === 0) {
+      salePrice = Math.min(salePrice, Math.round(purchasePrice * 0.94));
+    } else if (completionFactor < 0.25) {
+      salePrice = Math.min(salePrice, Math.round(purchasePrice * 1.02));
+    }
+  }
+
+  salePrice = Math.max(salePrice, Math.round(purchasePrice * 0.55));
+  return salePrice;
+}
+
 /**
  * Market Conditions System
  * 
@@ -534,37 +631,13 @@ export async function completeFlipDeal(
     titleIssueName = titleIssue.issueName;
   }
   
-  // Calculate sale price based on due diligence, rehab investment, AND market conditions
-  // REALISTIC FLIP PRICING:
-  // - No rehab = you sell at roughly what you paid (distressed value)
-  // - Full rehab = you can achieve ARV (after-repair value)
-  // - Unfixed issues reduce sale price (buyers will see the problems)
+  // Calculate sale price using shared flip pricing function
   let salePrice: number;
   if (property && property.arvMin && property.arvMax && property.rehabMin && property.rehabMax) {
-    // Get player's actual rehab spend (budget + contingency)
-    // Apply finish level multiplier - luxury finishes cost more but boost ARV
-    const finishLevel = proFormaInputs?.finishLevel || 'builder';
-    const finishCostMult = finishLevel === 'luxury' ? 1.4 : 1.0;
-    const finishArvBoost = finishLevel === 'luxury' ? 0.10 : 0;
-    const rawRehabBudget = proFormaInputs?.rehabBudget || 0;
-    const rehabBudget = Math.round(rawRehabBudget * finishCostMult);
-    const contingencyPct = proFormaInputs?.contingencyPct || 10;
-    const actualRehabSpend = rehabBudget * (1 + contingencyPct / 100);
-    
-    // The "as-is" value is what you paid - the purchase price
-    // ARV is only achievable with FULL renovation
     const purchasePrice = deal.purchasePrice || proFormaInputs?.purchasePrice || property.arvMin * 0.7;
-    const maxArv = Math.round(property.arvMax * (1 + finishArvBoost));
-    
-    // Calculate rehab completion factor (0 to 1)
-    // Based on how much of the FULL rehab was done
-    const fullRehabCost = property.rehabMax;
-    const completionFactor = fullRehabCost > 0 
-      ? Math.max(0, Math.min(1, actualRehabSpend / fullRehabCost))
-      : 0;
-    
+    const rawRehabBudget = proFormaInputs?.rehabBudget || 0;
+
     // Calculate CONDITION PENALTY from ALL unfixed issues (both undiscovered AND known-but-skipped)
-    // Buyers WILL find these issues during their inspection!
     const rawFixedIssueIds = proFormaInputs?.fixedIssueIds || [];
     const fixedIssueIds = [...new Set(rawFixedIssueIds)].filter(id => allIssues.some(i => i.id === id));
     const discoveredButSkipped = allIssues.filter(issue =>
@@ -574,88 +647,25 @@ export async function completeFlipDeal(
     const undiscoveredCount = undiscoveredIssues.length;
     const skippedCount = discoveredButSkipped.length;
     const conditionPenalty = (undiscoveredCount * 0.02) + (skippedCount * 0.015);
-    const conditionMultiplier = Math.max(0.80, 1 - conditionPenalty); // Cap at 20% reduction
-
     const fixedCount = fixedIssueIds.length;
     const fixedBonus = fixedCount > 0 ? Math.min(fixedCount * 0.01, 0.05) : 0;
-    
-    // Rare windfall: 3% chance of a hot-market bidding war that lifts price 8-15%
-    // Only possible with at least some rehab AND good diligence (2+ types)
-    const windfallRoll = Math.random();
-    const windfallEligible = completionFactor >= 0.3 && diligenceCount >= 2;
-    const windfallMultiplier = (windfallEligible && windfallRoll < 0.03)
-      ? 1.08 + (Math.random() * 0.07)
-      : 1.0;
 
-    if (didComps) {
-      // WITH COMPS: Sale price scales from purchase price to ARV based on rehab
-      // Low rehab = minimal spread capture; full rehab = near ARV
-      // Spread capture scales with BOTH diligence AND rehab effort
-      const baseSpreadCapture = diligenceCount >= 3 ? 0.95 : 0.90;
-      // Low completion factor reduces how much of the spread you actually realize
-      // completionFactor^0.7 curve: doing 50% of rehab gets ~62% of spread, not 50%
-      const effectiveSpreadCapture = baseSpreadCapture * Math.pow(completionFactor, 0.7);
-      const priceSpread = maxArv - purchasePrice;
-      let baseSalePrice = purchasePrice + (effectiveSpreadCapture * priceSpread);
-
-      // Fixed issues boost: targeted repairs increase buyer confidence (+1% per fix, max +5%)
-      baseSalePrice = baseSalePrice * (1 + fixedBonus);
-
-      // Apply condition penalty for unfixed issues
-      baseSalePrice = baseSalePrice * conditionMultiplier;
-
-      // Apply diligence bonus: informed investors price, stage, and market more effectively
-      baseSalePrice = baseSalePrice * diligenceBonusMultiplier;
-
-      // Apply MARKET-BASED variance
-      const marketVariance = marketMult.min + (Math.random() * (marketMult.max - marketMult.min));
-      salePrice = Math.round(baseSalePrice * marketVariance * windfallMultiplier);
-
-      // If no rehab was done, ABSOLUTE cap below purchase price (not market-inflated)
-      // Flipping without renovation = wholesale deal, rarely profitable after costs
-      if (rehabBudget === 0) {
-        const noRehabCap = diligenceCount >= 3
-          ? purchasePrice * 1.02  // Expert wholesaler: up to 2% above purchase, period
-          : purchasePrice * 0.97; // Lazy flip: almost certainly lose money
-        salePrice = Math.min(salePrice, Math.round(noRehabCap));
-      } else if (completionFactor < 0.25) {
-        // Minimal rehab: absolute cap at 5% above purchase regardless of market
-        const minRehabCap = purchasePrice * 1.05;
-        salePrice = Math.min(salePrice, Math.round(minRehabCap));
-      }
-    } else {
-      // WITHOUT COMPS: Player is flying blind! Market reality may differ wildly
-      const playerEstimate = proFormaInputs?.arv || ((property.arvMin + property.arvMax) / 2);
-      
-      // Generate a "reality check" - wider uncertainty without comps
-      const baseRealityMin = 0.72 * marketMult.min;
-      const baseRealityMax = 1.10 * marketMult.max;
-      const realityFactor = baseRealityMin + (Math.random() * (baseRealityMax - baseRealityMin));
-      
-      // Calculate what the property is actually worth based on work done
-      const priceSpread = maxArv - purchasePrice;
-      let actualValue = purchasePrice + (Math.pow(completionFactor, 0.7) * priceSpread * 0.82);
-      actualValue = actualValue * (1 + fixedBonus);
-      actualValue = actualValue * conditionMultiplier;
-      
-      // Blend player estimate (with uncertainty) and actual value — heavier on actual
-      const uncertainPrice = playerEstimate * realityFactor;
-      salePrice = Math.round((uncertainPrice * 0.35) + (actualValue * 0.65));
-      
-      // No-rehab penalty is harsher without comps - ABSOLUTE caps
-      if (rehabBudget === 0) {
-        const noRehabMax = purchasePrice * 0.94; // Absolute cap: 6% below purchase
-        salePrice = Math.min(salePrice, Math.round(noRehabMax));
-      } else if (completionFactor < 0.25) {
-        const minRehabCap = purchasePrice * 1.02; // Minimal rehab: barely break even
-        salePrice = Math.min(salePrice, Math.round(minRehabCap));
-      }
-    }
-    
-    // Absolute floor: can't sell for less than 55% of purchase price
-    salePrice = Math.max(salePrice, Math.round(purchasePrice * 0.55));
+    salePrice = calculateFlipSalePrice({
+      purchasePrice,
+      rehabBudget: rawRehabBudget,
+      finishLevel: proFormaInputs?.finishLevel || 'builder',
+      contingencyPct: proFormaInputs?.contingencyPct || 10,
+      arvMin: property.arvMin,
+      arvMax: property.arvMax,
+      rehabMax: property.rehabMax,
+      playerArvEstimate: proFormaInputs?.arv,
+      didComps,
+      diligenceCount,
+      conditionPenalty,
+      fixedBonus,
+      marketMult,
+    });
   } else {
-    // Fallback to pro forma ARV if property not found
     salePrice = proFormaOutputs.arv || 0;
   }
   

@@ -93,6 +93,7 @@ export const deals = pgTable("deals", {
   weeksUntilCompletion: integer("weeks_until_completion"), // For flips in rehab
   weeklyIncome: integer("weekly_income"), // For active rentals (cash flow per week)
   lastIncomePaymentWeek: integer("last_income_payment_week"), // Track when last rent was paid
+  firstIncomePaymentWeek: integer("first_income_payment_week"), // Track rental start for progressive escalation
   purchasePrice: integer("purchase_price"), // Original purchase price (for calculating sale proceeds)
   salePrice: integer("sale_price"), // Final sale price when rental is sold
   saleMultiplier: real("sale_multiplier"), // The random multiplier used (0.90 to 1.15)

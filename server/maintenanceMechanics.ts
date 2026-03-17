@@ -883,12 +883,63 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
 ];
 
 /**
+ * Calculate progressive escalation multiplier for unfixed issues
+ * The longer an issue goes unfixed, the worse (and more expensive) it gets
+ * E.g., unfixed roof → water damage → mold → insurance hike
+ * 
+ * @param monthsActive - How many months the rental has been active
+ * @returns A multiplier that increases maintenance probability and cost over time
+ */
+export function getProgressiveEscalationMultiplier(
+  monthsActive: number,
+  unfixedCount: number
+): { probabilityMult: number; costMult: number } {
+  if (unfixedCount === 0) return { probabilityMult: 1, costMult: 1 };
+  
+  // Escalation tiers based on months with unfixed issues:
+  // Months 1-3: Normal (1x) - issues are latent
+  // Months 4-6: Building (1.3x prob, 1.15x cost) - problems starting to compound
+  // Months 7-9: Serious (1.6x prob, 1.35x cost) - secondary damage developing
+  // Months 10-12: Critical (2.0x prob, 1.6x cost) - cascading failures
+  // Months 13+: Severe (2.5x prob, 2.0x cost) - everything falling apart
+  const escalationPerIssue = Math.min(unfixedCount, 4); // Cap at 4 issues for scaling
+  const issueSeverityFactor = 1 + (escalationPerIssue - 1) * 0.15; // 1.0, 1.15, 1.30, 1.45
+  
+  let probabilityMult: number;
+  let costMult: number;
+  
+  if (monthsActive <= 3) {
+    probabilityMult = 1.0;
+    costMult = 1.0;
+  } else if (monthsActive <= 6) {
+    probabilityMult = 1.3;
+    costMult = 1.15;
+  } else if (monthsActive <= 9) {
+    probabilityMult = 1.6;
+    costMult = 1.35;
+  } else if (monthsActive <= 12) {
+    probabilityMult = 2.0;
+    costMult = 1.6;
+  } else {
+    probabilityMult = 2.5;
+    costMult = 2.0;
+  }
+  
+  return {
+    probabilityMult: probabilityMult * issueSeverityFactor,
+    costMult: costMult * issueSeverityFactor,
+  };
+}
+
+/**
  * Calculate adjusted probability for a maintenance event
+ * Now includes progressive escalation based on how long issues go unfixed
  */
 export function getAdjustedProbability(
   event: EnhancedMaintenanceEvent,
   property: Property,
-  deal: Deal
+  deal: Deal,
+  monthsActive?: number
 ): number {
   let probability = event.baseProbability;
 
@@ -928,6 +979,12 @@ export function getAdjustedProbability(
       probability *= (3 + Math.random() * 2);
     }
   }
+  
+  // 5. Progressive escalation: unfixed issues get worse over time
+  if (unfixedIssues.length > 0 && monthsActive !== undefined) {
+    const escalation = getProgressiveEscalationMultiplier(monthsActive, unfixedIssues.length);
+    probability *= escalation.probabilityMult;
+  }
 
   return probability;
 }
@@ -935,17 +992,24 @@ export function getAdjustedProbability(
 /**
  * Roll for a maintenance event using enhanced mechanics
  * Excludes recently-triggered events to prevent repetition
+ * Now supports progressive escalation based on rental duration
  */
 export function rollForEnhancedMaintenance(
   property: Property,
   deal: Deal,
-  excludeIds?: string[]
+  excludeIds?: string[],
+  monthsActive?: number
 ): any | null {
+  const unfixedIssues = getUnfixedIssues(deal, property);
+  const escalation = (monthsActive !== undefined && unfixedIssues.length > 0)
+    ? getProgressiveEscalationMultiplier(monthsActive, unfixedIssues.length)
+    : { probabilityMult: 1, costMult: 1 };
+
   // Filter out recently-triggered events to prevent repetition
   let applicableEvents = ENHANCED_MAINTENANCE_EVENTS
     .map(event => ({
       ...event,
-      adjustedProbability: getAdjustedProbability(event, property, deal),
+      adjustedProbability: getAdjustedProbability(event, property, deal, monthsActive),
     }))
     .filter(event => event.adjustedProbability > 0);
   
@@ -958,9 +1022,16 @@ export function rollForEnhancedMaintenance(
   for (const event of applicableEvents) {
     const roll = Math.random() * 100;
     if (roll < event.adjustedProbability) {
-      // Event triggered!
+      // Event triggered! Apply cost escalation for unfixed issues
       const range = event.costMax - event.costMin;
-      const cashImpact = -Math.floor(event.costMin + Math.random() * range);
+      const baseCost = Math.floor(event.costMin + Math.random() * range);
+      const escalatedCost = Math.round(baseCost * escalation.costMult);
+      const cashImpact = -escalatedCost;
+
+      // Add escalation note to description if costs were increased
+      const escalationNote = escalation.costMult > 1.1
+        ? ` (worsened by deferred maintenance)`
+        : '';
 
       return {
         id: event.id,
@@ -970,9 +1041,10 @@ export function rollForEnhancedMaintenance(
         probability: event.adjustedProbability,
         tenantIssue: event.tenantIssue,
         cashImpact,
-        description: event.description,
+        description: event.description + escalationNote,
         emoji: event.emoji,
         color: 'red',
+        escalated: escalation.costMult > 1.1,
       };
     }
   }

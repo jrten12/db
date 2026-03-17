@@ -488,6 +488,7 @@ export async function registerRoutes(
         weeksUntilCompletion: d.weeksUntilCompletion,
         weeklyIncome: d.weeklyIncome,
         lastIncomePaymentWeek: d.lastIncomePaymentWeek,
+        firstIncomePaymentWeek: d.firstIncomePaymentWeek,
       }));
 
       const cleanInvestigations = investigations.map(i => ({

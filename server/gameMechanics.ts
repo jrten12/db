@@ -246,7 +246,7 @@ export function calculateWeeklyPrincipalPayment(
   };
 }
 
-import { rollForEnhancedMaintenance, updateRecentCurveballIds, ENHANCED_MAINTENANCE_EVENTS } from './maintenanceMechanics';
+import { rollForEnhancedMaintenance, updateRecentCurveballIds, ENHANCED_MAINTENANCE_EVENTS, getUnfixedIssues, getProgressiveEscalationMultiplier } from './maintenanceMechanics';
 
 /**
  * Title Issue Types that can occur when skipping title search
@@ -579,16 +579,24 @@ export async function completeFlipDeal(
     const fixedCount = fixedIssueIds.length;
     const fixedBonus = fixedCount > 0 ? Math.min(fixedCount * 0.01, 0.05) : 0;
     
-    if (didComps) {
-      // WITH COMPS: Sale price scales predictably from purchase price to ARV
-      // 0% rehab = ~purchase price (maybe tiny premium for marketing)
-      // 100% rehab = near ARV (full value)
+    // Rare windfall: 3% chance of a hot-market bidding war that lifts price 8-15%
+    // Only possible with at least some rehab AND good diligence (2+ types)
+    const windfallRoll = Math.random();
+    const windfallEligible = completionFactor >= 0.3 && diligenceCount >= 2;
+    const windfallMultiplier = (windfallEligible && windfallRoll < 0.03)
+      ? 1.08 + (Math.random() * 0.07)
+      : 1.0;
 
-      // Base price scales linearly from purchase price to ARV based on rehab
-      // Diligent investors capture more of the spread (95% vs 90%) through better execution
-      const spreadCapture = diligenceCount >= 3 ? 0.95 : 0.90;
+    if (didComps) {
+      // WITH COMPS: Sale price scales from purchase price to ARV based on rehab
+      // Low rehab = minimal spread capture; full rehab = near ARV
+      // Spread capture scales with BOTH diligence AND rehab effort
+      const baseSpreadCapture = diligenceCount >= 3 ? 0.95 : 0.90;
+      // Low completion factor reduces how much of the spread you actually realize
+      // completionFactor^0.7 curve: doing 50% of rehab gets ~62% of spread, not 50%
+      const effectiveSpreadCapture = baseSpreadCapture * Math.pow(completionFactor, 0.7);
       const priceSpread = maxArv - purchasePrice;
-      let baseSalePrice = purchasePrice + (completionFactor * priceSpread * spreadCapture);
+      let baseSalePrice = purchasePrice + (effectiveSpreadCapture * priceSpread);
 
       // Fixed issues boost: targeted repairs increase buyer confidence (+1% per fix, max +5%)
       baseSalePrice = baseSalePrice * (1 + fixedBonus);
@@ -601,41 +609,51 @@ export async function completeFlipDeal(
 
       // Apply MARKET-BASED variance
       const marketVariance = marketMult.min + (Math.random() * (marketMult.max - marketMult.min));
-      salePrice = Math.round(baseSalePrice * marketVariance);
+      salePrice = Math.round(baseSalePrice * marketVariance * windfallMultiplier);
 
-      // If no rehab was done, cap sale price near purchase price (can't profit without work)
+      // If no rehab was done, ABSOLUTE cap below purchase price (not market-inflated)
+      // Flipping without renovation = wholesale deal, rarely profitable after costs
       if (rehabBudget === 0) {
-        const noRehabMax = purchasePrice * 1.05 * marketVariance; // Max 5% above purchase + market
-        salePrice = Math.min(salePrice, Math.round(noRehabMax));
+        const noRehabCap = diligenceCount >= 3
+          ? purchasePrice * 1.02  // Expert wholesaler: up to 2% above purchase, period
+          : purchasePrice * 0.97; // Lazy flip: almost certainly lose money
+        salePrice = Math.min(salePrice, Math.round(noRehabCap));
+      } else if (completionFactor < 0.25) {
+        // Minimal rehab: absolute cap at 5% above purchase regardless of market
+        const minRehabCap = purchasePrice * 1.05;
+        salePrice = Math.min(salePrice, Math.round(minRehabCap));
       }
     } else {
       // WITHOUT COMPS: Player is flying blind! Market reality may differ wildly
       const playerEstimate = proFormaInputs?.arv || ((property.arvMin + property.arvMax) / 2);
       
-      // Generate a "reality check" - actual market price varies without comps (BAL-008: narrowed range)
-      const baseRealityMin = 0.75 * marketMult.min;
-      const baseRealityMax = 1.15 * marketMult.max;
+      // Generate a "reality check" - wider uncertainty without comps
+      const baseRealityMin = 0.72 * marketMult.min;
+      const baseRealityMax = 1.10 * marketMult.max;
       const realityFactor = baseRealityMin + (Math.random() * (baseRealityMax - baseRealityMin));
       
       // Calculate what the property is actually worth based on work done
       const priceSpread = maxArv - purchasePrice;
-      let actualValue = purchasePrice + (completionFactor * priceSpread * 0.85);
+      let actualValue = purchasePrice + (Math.pow(completionFactor, 0.7) * priceSpread * 0.82);
       actualValue = actualValue * (1 + fixedBonus);
       actualValue = actualValue * conditionMultiplier;
       
-      // Blend player estimate (with uncertainty) and actual value
+      // Blend player estimate (with uncertainty) and actual value — heavier on actual
       const uncertainPrice = playerEstimate * realityFactor;
-      salePrice = Math.round((uncertainPrice * 0.4) + (actualValue * 0.6));
+      salePrice = Math.round((uncertainPrice * 0.35) + (actualValue * 0.65));
       
-      // If no rehab was done, sale price is very limited
+      // No-rehab penalty is harsher without comps - ABSOLUTE caps
       if (rehabBudget === 0) {
-        const noRehabMax = purchasePrice * 1.02 * realityFactor; // Only 2% above purchase
+        const noRehabMax = purchasePrice * 0.94; // Absolute cap: 6% below purchase
         salePrice = Math.min(salePrice, Math.round(noRehabMax));
+      } else if (completionFactor < 0.25) {
+        const minRehabCap = purchasePrice * 1.02; // Minimal rehab: barely break even
+        salePrice = Math.min(salePrice, Math.round(minRehabCap));
       }
     }
     
-    // Absolute floor: can't sell for less than 60% of purchase price
-    salePrice = Math.max(salePrice, Math.round(purchasePrice * 0.6));
+    // Absolute floor: can't sell for less than 55% of purchase price
+    salePrice = Math.max(salePrice, Math.round(purchasePrice * 0.55));
   } else {
     // Fallback to pro forma ARV if property not found
     salePrice = proFormaOutputs.arv || 0;
@@ -931,14 +949,14 @@ export async function processRentalIncome(
       gameWeek: gameRun.currentWeek,
     });
     
-    // Handle lease break - replace the tenant with a new one
-    if (curveball.id === 'early_lease_break') {
-      // Delete the old tenant
+    // Handle tenant departures - delete tenant so a new one is auto-created next month
+    if (curveball.id === 'early_lease_break' || 
+        curveball.id === 'tenant_departure_conditions' || 
+        curveball.id === 'tenant_departure_life') {
       const oldTenant = await storage.getTenantByDeal(deal.id);
       if (oldTenant) {
         await db.delete(schema.tenants).where(eq(schema.tenants.id, oldTenant.id));
       }
-      // New tenant will be auto-created on next rental payment when client detects missing tenant
     }
   }
 
@@ -1276,10 +1294,83 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         const property = await storage.getProperty(deal.propertyId);
 
         const recentCurveballIds = (deal.recentCurveballIds as string[] | null) || [];
+        
+        // Calculate months active for progressive escalation
+        // Each game turn = 1 month, so weeksActive ≈ monthsActive (turns held)
+        const firstPaymentWeek = deal.firstIncomePaymentWeek || deal.lastIncomePaymentWeek || gameRun.currentWeek;
+        const monthsActive = Math.max(0, (gameRun.currentWeek + 1) - firstPaymentWeek);
 
-        const curveball = property
-          ? rollForEnhancedMaintenance(property, deal, recentCurveballIds)
-          : rollForCurveball('rental_monthly', undefined, recentCurveballIds);
+        // Check for tenant-leaving due to unfixed issues (separate from curveball system)
+        // Only trigger if a tenant actually exists (prevents chaining vacancy months)
+        const currentTenant = allTenants.find((t: any) => t.dealId === deal.id);
+        let tenantLeavingEvent: any = null;
+        if (property && currentTenant) {
+          const unfixedIssues = getUnfixedIssues(deal, property);
+          if (unfixedIssues.length > 0 && monthsActive >= 2) {
+            // Base 2% chance per month + 1.5% per unfixed issue + escalation over time
+            const baseLeaveChance = 2;
+            const issueLeaveChance = unfixedIssues.length * 1.5;
+            const timeLeaveBonus = Math.min(monthsActive * 0.3, 3); // Max +3% from time
+            const totalLeaveChance = baseLeaveChance + issueLeaveChance + timeLeaveBonus;
+            
+            if (Math.random() * 100 < totalLeaveChance) {
+              // Tenant is leaving due to poor conditions!
+              const leaveReasons = [
+                'fed up with ongoing maintenance issues',
+                'found a better-maintained place nearby',
+                'tired of dealing with repairs',
+                'concerned about health risks from deferred maintenance',
+                'neighbor recommended a better property',
+              ];
+              const reason = leaveReasons[Math.floor(Math.random() * leaveReasons.length)];
+              tenantLeavingEvent = {
+                id: 'tenant_departure_conditions',
+                name: 'Tenant Moving Out',
+                type: 'negative',
+                trigger: 'rental_monthly',
+                cashImpact: 0,
+                rentMultiplier: 0, // No rent this month (vacancy)
+                description: `Tenant ${reason}. Property vacant for 1 month.`,
+                emoji: '🚚',
+                color: 'red',
+                tenantIssue: true,
+              };
+            }
+          }
+          
+          // Life situation departures (independent of issues, lower chance)
+          if (!tenantLeavingEvent && currentTenant && monthsActive >= 3) {
+            const lifeLeaveChance = 1.2; // ~1.2% per month
+            if (Math.random() * 100 < lifeLeaveChance) {
+              const lifeSituations = [
+                { reason: 'got a job transfer to another city', emoji: '✈️' },
+                { reason: 'is buying their own home', emoji: '🏡' },
+                { reason: 'is moving in with a partner', emoji: '💑' },
+                { reason: 'needs to relocate for family reasons', emoji: '👨‍👩‍👧' },
+                { reason: 'is moving closer to work', emoji: '🚗' },
+                { reason: 'got into grad school out of state', emoji: '🎓' },
+              ];
+              const situation = lifeSituations[Math.floor(Math.random() * lifeSituations.length)];
+              tenantLeavingEvent = {
+                id: 'tenant_departure_life',
+                name: 'Tenant Moving Out',
+                type: 'negative',
+                trigger: 'rental_monthly',
+                cashImpact: 0,
+                rentMultiplier: 0,
+                description: `Tenant ${situation.reason}. Property vacant for 1 month.`,
+                emoji: situation.emoji,
+                color: 'orange',
+                tenantIssue: true,
+              };
+            }
+          }
+        }
+
+        // Use tenant leaving event as the curveball if one triggered, otherwise roll normal maintenance
+        const curveball = tenantLeavingEvent || (property
+          ? rollForEnhancedMaintenance(property, deal, recentCurveballIds, monthsActive)
+          : rollForCurveball('rental_monthly', undefined, recentCurveballIds));
 
         if (curveball && curveball.tenantIssue && !curveball.tenantMessage) {
           const eventDef = ENHANCED_MAINTENANCE_EVENTS.find(e => e.id === curveball.id);
@@ -1805,6 +1896,16 @@ export async function activateRentalProperty(
     const rentBoostPct = Math.min(validFixedIds.length * 0.015, 0.08);
     actualRent = Math.round(actualRent * (1 + rentBoostPct));
   }
+  
+  // Diligence bonus for rentals: thorough investors negotiate better leases,
+  // screen tenants better, and reduce operating expense surprises
+  // 0-1 types = 0%, 2 = +1%, 3 = +2%, 4 = +3% rent premium
+  const rentalDiligenceTypes = ['market_study', 'contractor_walkthrough', 'inspection', 'title_search'];
+  const rentalDiligenceCount = rentalDiligenceTypes.filter(d => completedDiligence.includes(d)).length;
+  if (rentalDiligenceCount >= 2) {
+    const diligenceRentBonus = (rentalDiligenceCount - 1) * 0.01; // 2→1%, 3→2%, 4→3%
+    actualRent = Math.round(actualRent * (1 + diligenceRentBonus));
+  }
 
   // MINIMAL safety floor - allow true failure but prevent completely absurd values
   // Players CAN get underwater if they skip diligence and make wrong assumptions
@@ -1975,6 +2076,7 @@ export async function activateRentalProperty(
     status: 'active_rental',
     weeklyIncome,
     lastIncomePaymentWeek: gameRun.currentWeek,
+    firstIncomePaymentWeek: gameRun.currentWeek, // Track rental start for progressive escalation
     proFormaOutputs: updatedProFormaOutputs,
     purchasePrice: property?.price || 0,
     purchaseWeek: gameRun.currentWeek, // For seasoning period tracking

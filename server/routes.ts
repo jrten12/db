@@ -1125,6 +1125,19 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/deals/:id/cosmetic-upgrade", dealLimiter, async (req, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { gameRunId } = req.body as { gameRunId: number };
+
+      const result = await gameMechanics.applyCosmeticUpgrade(dealId, gameRunId);
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error applying cosmetic upgrade:", error);
+      res.status(400).json({ error: error.message || "Failed to apply cosmetic upgrade" });
+    }
+  });
+
   // === TENANT ROUTES ===
 
   // Get tenants for a game run

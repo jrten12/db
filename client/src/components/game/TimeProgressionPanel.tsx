@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw, Smile, Meh, Frown } from 'lucide-react';
+import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw, Smile, Meh, Frown, Paintbrush } from 'lucide-react';
 import type { Deal, GameRun, Property, Tenant } from '@shared/schema';
 
 function getTenantMood(satisfaction: number): { label: string; color: string; Icon: typeof Smile } {
@@ -34,6 +34,7 @@ interface TimeProgressionPanelProps {
   onSellFlip?: (dealId: number) => Promise<void>;
   onSellProperty?: (dealId: number, strategy: 'rent' | 'flip') => void;
   onRefinanceRental?: (dealId: number) => Promise<void>;
+  onCosmeticUpgrade?: (dealId: number) => Promise<void>;
 }
 
 function RentalFinancialDetails({ deal, propertyName, property }: { deal: Deal; propertyName: string; property?: any }) {
@@ -234,10 +235,12 @@ export function TimeProgressionPanel({
   onSellFlip,
   onSellProperty,
   onRefinanceRental,
+  onCosmeticUpgrade,
 }: TimeProgressionPanelProps) {
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [sellingDealId, setSellingDealId] = useState<number | null>(null);
   const [refinancingDealId, setRefinancingDealId] = useState<number | null>(null);
+  const [upgradingDealId, setUpgradingDealId] = useState<number | null>(null);
 
   const SEASONING_WEEKS = 8; // Must match server
 
@@ -481,6 +484,29 @@ export function TimeProgressionPanel({
                       </PopoverContent>
                     </Popover>
                   )}
+                  {onCosmeticUpgrade && !(deal.proFormaOutputs as any)?.cosmeticUpgradeApplied && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 h-6 px-1.5 text-xs gap-1"
+                      disabled={upgradingDealId === deal.id}
+                      onClick={() => {
+                        setUpgradingDealId(deal.id);
+                        onCosmeticUpgrade(deal.id).finally(() => setUpgradingDealId(null));
+                      }}
+                      data-testid={`button-cosmetic-upgrade-${deal.id}`}
+                      data-no-click-sound
+                    >
+                      {upgradingDealId === deal.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <>
+                          <Paintbrush className="w-3 h-3" />
+                          <span className="hidden sm:inline">Upgrade</span>
+                        </>
+                      )}
+                    </Button>
+                  )}
                   <span className="text-xs text-gray-500 hidden sm:inline">
                     ${estimatedSaleMin.toLocaleString()}-${estimatedSaleMax.toLocaleString()}
                   </span>
@@ -523,9 +549,32 @@ export function TimeProgressionPanel({
                         <span className="text-xs text-white">{propertyName}</span>
                         <Info className="w-3 h-3 text-gray-500" />
                       </div>
-                      <Badge variant="secondary" className="h-5 text-xs bg-amber-500/20 text-amber-300 border-amber-500/30">
-                        {weeksLeft}mo left
-                      </Badge>
+                      <div className="flex items-center gap-1">
+                        {onCosmeticUpgrade && !(deal.proFormaOutputs as any)?.cosmeticUpgradeApplied && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 h-5 px-1.5 text-xs gap-1"
+                            disabled={upgradingDealId === deal.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUpgradingDealId(deal.id);
+                              onCosmeticUpgrade(deal.id).finally(() => setUpgradingDealId(null));
+                            }}
+                            data-testid={`button-cosmetic-upgrade-${deal.id}`}
+                            data-no-click-sound
+                          >
+                            {upgradingDealId === deal.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Paintbrush className="w-3 h-3" />
+                            )}
+                          </Button>
+                        )}
+                        <Badge variant="secondary" className="h-5 text-xs bg-amber-500/20 text-amber-300 border-amber-500/30">
+                          {weeksLeft}mo left
+                        </Badge>
+                      </div>
                     </div>
                     <Progress value={progress} className="h-1.5" />
                   </div>
@@ -556,6 +605,29 @@ export function TimeProgressionPanel({
                   <Badge className="h-5 text-xs bg-emerald-500 text-white">READY</Badge>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  {onCosmeticUpgrade && !(deal.proFormaOutputs as any)?.cosmeticUpgradeApplied && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 h-6 px-1.5 text-xs gap-1"
+                      disabled={upgradingDealId === deal.id}
+                      onClick={() => {
+                        setUpgradingDealId(deal.id);
+                        onCosmeticUpgrade(deal.id).finally(() => setUpgradingDealId(null));
+                      }}
+                      data-testid={`button-cosmetic-upgrade-${deal.id}`}
+                      data-no-click-sound
+                    >
+                      {upgradingDealId === deal.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <>
+                          <Paintbrush className="w-3 h-3" />
+                          <span className="hidden sm:inline">Upgrade</span>
+                        </>
+                      )}
+                    </Button>
+                  )}
                   <span className="text-xs text-gray-400 hidden sm:inline">
                     ${estimatedSaleMin.toLocaleString()}-${estimatedSaleMax.toLocaleString()}
                   </span>

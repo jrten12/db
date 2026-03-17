@@ -669,9 +669,13 @@ export async function completeFlipDeal(
     salePrice = proFormaOutputs.arv || 0;
   }
   
+  const cosmeticSaleBoost = proFormaOutputs?.cosmeticUpgradeSaleBoost || 0;
+  if (cosmeticSaleBoost > 0) {
+    salePrice = Math.round(salePrice * (1 + cosmeticSaleBoost / 100));
+  }
+
   let cashImpact = curveball?.cashImpact || 0;
 
-  // Apply curveball bonus/penalty
   if (curveball) {
     salePrice += cashImpact;
 
@@ -1588,6 +1592,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           proFormaOutputs: {
             ...proFormaOutputs,
             monthlyGrossRent: newMonthlyRent,
+            activationMonthlyRent: newMonthlyRent,
             monthlyVacancyLoss: newMonthlyVacancyLoss,
             monthlyOperatingExpenses: newMonthlyOperatingExpenses,
             postRehabCompleted: true,
@@ -1661,7 +1666,6 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
       currentMarket = newMarket;
       marketChanged = true;
     }
-    // Single atomic cash + state update at end of week (BUG-007 fix)
     await storage.updateGameRun(gameRunId, {
       cash: runningCash,
       currentWeek: newWeek,
@@ -1670,12 +1674,18 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
       lastMarketChangeWeek: newWeek,
     });
   } else {
-    // Single atomic cash + state update at end of week (BUG-007 fix)
     await storage.updateGameRun(gameRunId, {
       cash: runningCash,
       currentWeek: newWeek,
       weeksRemaining: newWeeksRemaining,
     });
+  }
+
+  if (marketChanged) {
+    const activeRentals = deals.filter(d => d.status === 'active_rental');
+    for (const deal of activeRentals) {
+      await applyMarketRentAdjustment(deal, currentMarket);
+    }
   }
 
   return {
@@ -1696,6 +1706,225 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
  */
 export function calculateWeeklyIncome(monthlyCashFlow: number): number {
   return Math.floor(monthlyCashFlow / 4.33);
+}
+
+function getMarketRentMultiplier(market: MarketCondition): number {
+  const multipliers: Record<MarketCondition, [number, number]> = {
+    terrible: [-0.08, -0.04],
+    poor: [-0.04, -0.01],
+    neutral: [0, 0],
+    good: [0.01, 0.04],
+    excellent: [0.04, 0.08],
+  };
+  const [min, max] = multipliers[market];
+  if (min === 0 && max === 0) return 1;
+  return 1 + min + Math.random() * (max - min);
+}
+
+async function applyMarketRentAdjustment(deal: Deal, market: MarketCondition): Promise<void> {
+  const outputs = deal.proFormaOutputs as any;
+  if (!outputs?.monthlyGrossRent) return;
+
+  const activationRent = outputs.activationMonthlyRent || outputs.monthlyGrossRent;
+  const currentRent = outputs.monthlyGrossRent;
+  const multiplier = getMarketRentMultiplier(market);
+  let newRent = Math.round(activationRent * multiplier);
+
+  const floor = Math.round(activationRent * 0.70);
+  const ceiling = Math.round(activationRent * 1.35);
+  newRent = Math.max(floor, Math.min(ceiling, newRent));
+
+  if (newRent === currentRent) return;
+
+  const inputs = deal.proFormaInputs as any;
+  const vacancyRate = inputs?.vacancyRate || 5;
+  const tenantUtilityPenalty = inputs?.utilities ? 0 : 1.92;
+  const effectiveVacancyRate = vacancyRate + tenantUtilityPenalty;
+  const effectiveRent = newRent * (1 - effectiveVacancyRate / 100);
+
+  const monthlyTaxes = (inputs?.taxesAnnual || 0) / 12;
+  const monthlyInsurance = (inputs?.insuranceAnnual || 0) / 12;
+  const maintenanceCost = newRent * ((inputs?.maintenancePct || 8) / 100);
+  const capExCost = newRent * ((inputs?.capExPct || 10) / 100);
+  const utilitiesCost = inputs?.utilities ? (inputs?.utilitiesMonthly || 150) : 0;
+  const mgmtCost = inputs?.propertyManagement ? newRent * ((inputs?.propertyManagementPct || 10) / 100) : 0;
+  const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
+  const debtService = outputs.monthlyDebtService || 0;
+  const newCashFlow = effectiveRent - monthlyOpEx - debtService;
+  const newWeeklyIncome = calculateWeeklyIncome(newCashFlow);
+
+  const updatedOutputs = {
+    ...outputs,
+    monthlyGrossRent: newRent,
+    activationMonthlyRent: activationRent,
+    monthlyVacancyLoss: newRent * (effectiveVacancyRate / 100),
+    monthlyOperatingExpenses: monthlyOpEx,
+    cashFlowMonthly: newCashFlow,
+    lastMarketRentAdjustment: market,
+  };
+
+  await storage.updateDeal(deal.id, {
+    weeklyIncome: newWeeklyIncome,
+    proFormaOutputs: updatedOutputs,
+  });
+}
+
+export async function applyCosmeticUpgrade(
+  dealId: number,
+  gameRunId: number
+): Promise<{ success: boolean; cost: number; rentBoostPct: number; saleBoostPct: number; message: string }> {
+  const deal = await storage.getDeal(dealId);
+  if (!deal) throw new Error('Deal not found');
+
+  const gameRun = await storage.getGameRun(gameRunId);
+  if (!gameRun) throw new Error('Game run not found');
+
+  const property = await storage.getProperty(deal.propertyId);
+  if (!property) throw new Error('Property not found');
+
+  if (deal.gameRunId !== gameRunId) {
+    throw new Error('Deal does not belong to this game run');
+  }
+
+  const outputs = deal.proFormaOutputs as any;
+  if (outputs?.cosmeticUpgradeApplied) {
+    throw new Error('Cosmetic upgrade already applied to this property');
+  }
+
+  const isRental = deal.status === 'active_rental';
+  const isFlip = deal.status === 'in_rehab' || deal.status === 'ready_to_list';
+  if (!isRental && !isFlip) {
+    throw new Error('Property must be an active rental or flip to upgrade');
+  }
+
+  const market = (gameRun.marketCondition as MarketCondition) || 'neutral';
+  const priceScale = Math.max(1, (property.price || 200000) / 200000);
+  const baseCost = 2000 + Math.floor(Math.random() * 4000);
+  const cost = Math.round(baseCost * Math.min(priceScale, 2.5));
+
+  if (gameRun.cash < cost) {
+    throw new Error('Not enough cash for cosmetic upgrade');
+  }
+
+  const successRates: Record<MarketCondition, number> = {
+    terrible: 0.45,
+    poor: 0.55,
+    neutral: 0.65,
+    good: 0.75,
+    excellent: 0.85,
+  };
+  const successRate = successRates[market];
+  const succeeded = Math.random() < successRate;
+
+  let rentBoostPct = 0;
+  let saleBoostPct = 0;
+  let message: string;
+
+  if (succeeded) {
+    if (isRental) {
+      const boostRanges: Record<MarketCondition, [number, number]> = {
+        terrible: [1, 3],
+        poor: [1.5, 3.5],
+        neutral: [2, 4.5],
+        good: [2.5, 5.5],
+        excellent: [3, 6],
+      };
+      const [min, max] = boostRanges[market];
+      rentBoostPct = Math.round((min + Math.random() * (max - min)) * 10) / 10;
+
+      const currentRent = outputs.monthlyGrossRent || 0;
+      const activationRent = outputs.activationMonthlyRent || currentRent;
+      const newRent = Math.round(currentRent * (1 + rentBoostPct / 100));
+
+      const inputs = deal.proFormaInputs as any;
+      const vacancyRate = inputs?.vacancyRate || 5;
+      const tenantUtilityPenalty = inputs?.utilities ? 0 : 1.92;
+      const effectiveVacancyRate = vacancyRate + tenantUtilityPenalty;
+      const effectiveRent = newRent * (1 - effectiveVacancyRate / 100);
+      const monthlyTaxes = (inputs?.taxesAnnual || 0) / 12;
+      const monthlyInsurance = (inputs?.insuranceAnnual || 0) / 12;
+      const maintenanceCost = newRent * ((inputs?.maintenancePct || 8) / 100);
+      const capExCost = newRent * ((inputs?.capExPct || 10) / 100);
+      const utilitiesCost = inputs?.utilities ? (inputs?.utilitiesMonthly || 150) : 0;
+      const mgmtCost = inputs?.propertyManagement ? newRent * ((inputs?.propertyManagementPct || 10) / 100) : 0;
+      const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
+      const debtService = outputs.monthlyDebtService || 0;
+      const newCashFlow = effectiveRent - monthlyOpEx - debtService;
+
+      const updatedOutputs = {
+        ...outputs,
+        monthlyGrossRent: newRent,
+        activationMonthlyRent: newRent,
+        monthlyVacancyLoss: newRent * (effectiveVacancyRate / 100),
+        monthlyOperatingExpenses: monthlyOpEx,
+        cashFlowMonthly: newCashFlow,
+        cosmeticUpgradeApplied: true,
+        cosmeticUpgradeCost: cost,
+        cosmeticUpgradeRentBoost: rentBoostPct,
+      };
+      await storage.updateDeal(deal.id, {
+        weeklyIncome: calculateWeeklyIncome(newCashFlow),
+        proFormaOutputs: updatedOutputs,
+      });
+      message = `Fresh paint, new fixtures, and updated finishes boosted your rent by ${rentBoostPct}% to $${newRent.toLocaleString()}/mo.`;
+    } else {
+      const flipBoostRanges: Record<MarketCondition, [number, number]> = {
+        terrible: [0.5, 1.5],
+        poor: [1, 2],
+        neutral: [1, 3],
+        good: [1.5, 3.5],
+        excellent: [2, 4],
+      };
+      const [min, max] = flipBoostRanges[market];
+      saleBoostPct = Math.round((min + Math.random() * (max - min)) * 10) / 10;
+
+      const updatedOutputs = {
+        ...outputs,
+        cosmeticUpgradeApplied: true,
+        cosmeticUpgradeCost: cost,
+        cosmeticUpgradeSaleBoost: saleBoostPct,
+      };
+      await storage.updateDeal(deal.id, {
+        proFormaOutputs: updatedOutputs,
+      });
+      message = `Cosmetic refresh improved curb appeal. Estimated sale price boost: +${saleBoostPct}%.`;
+    }
+  } else {
+    const updatedOutputs = {
+      ...outputs,
+      cosmeticUpgradeApplied: true,
+      cosmeticUpgradeCost: cost,
+      cosmeticUpgradeRentBoost: 0,
+      cosmeticUpgradeSaleBoost: 0,
+    };
+    await storage.updateDeal(deal.id, {
+      proFormaOutputs: updatedOutputs,
+    });
+    const failReasons = [
+      "The upgrades didn't move the needle — tenants and buyers weren't impressed.",
+      "Turns out the improvements were more cosmetic than impactful. No measurable change.",
+      "The style choices didn't match what the market wants. Money spent, no return.",
+      "Contractor did decent work, but it didn't translate to higher demand.",
+    ];
+    message = failReasons[Math.floor(Math.random() * failReasons.length)];
+  }
+
+  const currentGameRun = await storage.getGameRun(gameRunId);
+  const currentCash = currentGameRun?.cash ?? gameRun.cash;
+  await storage.createLedgerEntriesWithCashUpdate(
+    gameRunId,
+    [{
+      direction: 'debit' as const,
+      category: 'expense' as const,
+      amount: cost,
+      description: `🎨 Cosmetic upgrade${succeeded ? (rentBoostPct > 0 ? ` (+${rentBoostPct}% rent)` : ` (+${saleBoostPct}% sale value)`) : ' (no impact)'}`,
+      propertyId: deal.propertyId,
+      dealId: deal.id,
+    }],
+    currentCash
+  );
+
+  return { success: succeeded, cost, rentBoostPct, saleBoostPct, message };
 }
 
 /**
@@ -2100,9 +2329,9 @@ export async function activateRentalProperty(
       explanation: realityCheck.explanation,
       wasOptimistic: realityCheck.wasOptimistic,
     } : null,
-    // Store ACTUAL values for weekly processing (reality-checked)
     monthlyGrossRent,
-    cashFlowMonthly: actualCashFlowMonthly, // Store actual cash flow for display
+    activationMonthlyRent: monthlyGrossRent,
+    cashFlowMonthly: actualCashFlowMonthly,
     realityAdjustmentMonthly,
   };
 

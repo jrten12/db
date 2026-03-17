@@ -1202,7 +1202,20 @@ export default function Game() {
         });
       }
 
-      // Refresh game run state and other data
+      if (result.marketChanged && result.marketCondition) {
+        const marketLabels: Record<string, string> = {
+          terrible: 'Terrible',
+          poor: 'Poor',
+          neutral: 'Neutral',
+          good: 'Good',
+          excellent: 'Excellent',
+        };
+        const label = marketLabels[result.marketCondition] || result.marketCondition;
+        const hasRentals = deals.some(d => d.status === 'active_rental');
+        const rentNote = hasRentals ? ' Rental income has been adjusted.' : '';
+        toast(`📊 Market shifted to ${label}.${rentNote}`, { duration: 4000 });
+      }
+
       const updatedGameRun = await api.getGameRun(gameRun.id);
       setGameRun(updatedGameRun);
       queryClient.invalidateQueries({ queryKey: ['deals'] });
@@ -1506,7 +1519,29 @@ export default function Game() {
     }
   }, [gameRun, deals, properties, queryClient, addTrophies]);
 
-  // Open refinance modal instead of directly refinancing
+  const handleCosmeticUpgrade = useCallback(async (dealId: number) => {
+    if (!gameRun) return;
+    try {
+      const result = await api.cosmeticUpgrade(dealId, gameRun.id);
+      queryClient.invalidateQueries({ queryKey: ['deals'] });
+      queryClient.invalidateQueries({ queryKey: ['ledger'] });
+      const updatedRun = await api.getGameRun(gameRun.id);
+      if (updatedRun) setGameRun(updatedRun);
+
+      if (result.success) {
+        toast.success(`🎨 Cosmetic Upgrade — $${result.cost.toLocaleString()}`, {
+          description: result.message,
+        });
+      } else {
+        toast(`🎨 Cosmetic Upgrade — $${result.cost.toLocaleString()}`, {
+          description: result.message,
+        });
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to apply cosmetic upgrade');
+    }
+  }, [gameRun, queryClient]);
+
   const handleOpenRefinanceModal = useCallback(async (dealId: number) => {
     const deal = deals.find(d => d.id === dealId);
     if (!deal) return;
@@ -2021,6 +2056,7 @@ export default function Game() {
                   onSellFlip={handleSellFlip}
                   onSellProperty={handleSellProperty}
                   onRefinanceRental={handleOpenRefinanceModal}
+                  onCosmeticUpgrade={handleCosmeticUpgrade}
                 />
                 <DebtPanelTrigger
                   deals={deals}

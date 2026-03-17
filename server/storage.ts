@@ -1823,7 +1823,7 @@ export class DBStorage implements IStorage {
     const marketCondition = gameRun.marketCondition || 'good';
     const marketMult = getMarketMultipliers(marketCondition as MarketCondition);
     
-    const salePrice = calculateFlipSalePrice({
+    let salePrice = calculateFlipSalePrice({
       purchasePrice,
       rehabBudget,
       finishLevel: proFormaInputs?.finishLevel || 'builder',
@@ -1838,6 +1838,10 @@ export class DBStorage implements IStorage {
       fixedBonus,
       marketMult,
     });
+    const cosmeticSaleBoost = proFormaOutputs?.cosmeticUpgradeSaleBoost || 0;
+    if (cosmeticSaleBoost > 0) {
+      salePrice = Math.round(salePrice * (1 + cosmeticSaleBoost / 100));
+    }
     const saleMultiplier = salePrice / purchasePrice;
     
     // Net proceeds = sale price minus mortgage payoff (this is what player receives in cash)

@@ -304,6 +304,25 @@ export const api = {
     return res.json();
   },
 
+  async cosmeticUpgrade(dealId: number, gameRunId: number): Promise<{
+    success: boolean;
+    cost: number;
+    rentBoostPct: number;
+    saleBoostPct: number;
+    message: string;
+  }> {
+    const res = await fetch(`${API_BASE}/deals/${dealId}/cosmetic-upgrade`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gameRunId }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to apply cosmetic upgrade');
+    }
+    return res.json();
+  },
+
   // Premium Purchases (SKU-based, server-defined amounts)
   async purchaseSku(gameRunId: number, sku: string): Promise<GameRun> {
     const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/purchase`, {

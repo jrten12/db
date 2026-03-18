@@ -1326,22 +1326,22 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
             property.conditionTag || 'Fair',
             (property as any).waterSource || 'public'
           );
-          const severityWeight: Record<string, number> = { mild: 2, moderate: 4, severe: 7 };
+          const severityWeight: Record<string, number> = { mild: 1, moderate: 2, severe: 4 };
           let newSatisfaction = currentSatisfaction;
           if (unfixedIssueIds.length > 0) {
             let drop = 0;
             for (const issueId of unfixedIssueIds) {
               const issue = allPropertyIssues.find(i => i.id === issueId);
-              drop += severityWeight[issue?.severity || 'moderate'] || 4;
+              drop += severityWeight[issue?.severity || 'moderate'] || 2;
             }
-            newSatisfaction = Math.max(0, newSatisfaction - Math.min(drop, 20));
+            newSatisfaction = Math.max(0, newSatisfaction - Math.min(drop, 12));
           } else {
-            newSatisfaction = Math.min(100, newSatisfaction + 3);
+            newSatisfaction = Math.min(100, newSatisfaction + 5);
           }
 
-          const newWeeksUnhappy = newSatisfaction < 40
+          const newWeeksUnhappy = newSatisfaction < 30
             ? (currentTenant.weeksUnhappy ?? 0) + 1
-            : 0;
+            : Math.max(0, (currentTenant.weeksUnhappy ?? 0) - 1);
 
           await storage.updateTenant(currentTenant.id, {
             satisfaction: newSatisfaction,
@@ -1351,10 +1351,10 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           currentTenant.satisfaction = newSatisfaction;
           currentTenant.weeksUnhappy = newWeeksUnhappy;
 
-          if (newSatisfaction < 40 && monthsActive >= 2) {
-            const baseLeaveChance = 5;
-            const unhappyBonus = Math.min(Math.max(0, newWeeksUnhappy - 1) * 2, 20);
-            const totalLeaveChance = Math.min(baseLeaveChance + unhappyBonus, 25);
+          if (newSatisfaction < 30 && newWeeksUnhappy >= 3 && monthsActive >= 4) {
+            const baseLeaveChance = 4;
+            const unhappyBonus = Math.min(Math.max(0, newWeeksUnhappy - 3) * 3, 18);
+            const totalLeaveChance = Math.min(baseLeaveChance + unhappyBonus, 22);
 
             if (Math.random() * 100 < totalLeaveChance) {
               const turnoverCost = 500 + Math.floor(Math.random() * 1001);
@@ -1381,8 +1381,8 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
             }
           }
 
-          if (!tenantLeavingEvent && monthsActive >= 3) {
-            const lifeLeaveChance = 1.8;
+          if (!tenantLeavingEvent && monthsActive >= 6) {
+            const lifeLeaveChance = 0.8;
             if (Math.random() * 100 < lifeLeaveChance) {
               const turnoverCost = 500 + Math.floor(Math.random() * 501);
               const lifeSituations = [

@@ -20,7 +20,7 @@ import type { Deal, GameRun, Property, Tenant } from '@shared/schema';
 
 function getTenantMood(satisfaction: number): { label: string; color: string; Icon: typeof Smile } {
   if (satisfaction >= 65) return { label: 'Happy', color: 'text-green-400', Icon: Smile };
-  if (satisfaction >= 40) return { label: 'Concerned', color: 'text-yellow-400', Icon: Meh };
+  if (satisfaction >= 30) return { label: 'Concerned', color: 'text-yellow-400', Icon: Meh };
   return { label: 'Unhappy', color: 'text-red-400', Icon: Frown };
 }
 
@@ -571,7 +571,7 @@ export function TimeProgressionPanel({
                         const tenant = tenants.find(t => t.dealId === deal.id);
                         if (tenant && tenant.satisfaction != null) {
                           const mood = getTenantMood(tenant.satisfaction);
-                          const tip = tenant.satisfaction < 40
+                          const tip = tenant.satisfaction < 30
                             ? `${mood.label} (${tenant.satisfaction}%) — At risk of leaving!`
                             : tenant.satisfaction < 65
                             ? `${mood.label} (${tenant.satisfaction}%) — Getting frustrated`

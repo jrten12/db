@@ -1,0 +1,134 @@
+# DealBreak Simulator — Complete Reference
+
+> A free, browser-based real estate investing simulator game that teaches property deal analysis through interactive gameplay. No signup required.
+
+## What Is DealBreak Simulator?
+
+DealBreak Simulator is a turn-based educational game that teaches real estate underwriting — the analytical process investors use to evaluate whether a property deal will make or lose money. Players start with $100,000 in virtual cash and navigate a 12-month timeline, evaluating properties, building financial models, conducting due diligence, managing renovations and tenants, and experiencing realistic market events.
+
+The game emphasizes the cause-and-effect relationships between assumptions (rent estimates, vacancy rates, repair budgets) and outcomes (cash flow, ROI, deal success or failure). Every playthrough is different thanks to randomized properties, market conditions, and events.
+
+## Game Mechanics
+
+### Property Analysis
+Players browse randomized investment properties with realistic attributes: purchase price, estimated rent, square footage, condition (Excellent/Good/Fair/Fixer-Upper), property type (house/condo/apartment/townhouse), and location. Each property has hidden issues that can be discovered through due diligence.
+
+### Pro Forma Financial Modeling
+The core educational mechanic. Players build a pro forma spreadsheet for each deal:
+- Gross rental income and vacancy assumptions
+- Operating expenses (taxes, insurance, maintenance, management)
+- Financing terms (down payment, interest rate, LTV)
+- Net Operating Income (NOI) and cash flow projections
+- Cap Rate and Cash-on-Cash return calculations
+- For flips: purchase price + renovation costs vs. projected sale price
+
+### Strategy Selection
+- **Rent Strategy**: Buy a property, find tenants, collect monthly income, manage maintenance. Success measured by Cash-on-Cash return and total deal return over the holding period.
+- **Flip Strategy**: Buy a property, renovate it, sell for profit. Success depends on purchase price discipline, renovation budget accuracy, and market timing. Players choose a Rehab Finish Quality (Builder Grade to Luxury) that affects both costs and potential sale price.
+
+### Due Diligence System
+Four types of due diligence, each revealing different property information:
+- **Inspection**: Reveals structural, mechanical, and cosmetic issues
+- **Appraisal**: Confirms or adjusts the property's market value
+- **Comps Analysis**: Shows comparable sales data for pricing accuracy
+- **Title Search**: Uncovers liens, easements, or title defects
+
+More due diligence reduces risk and can earn rent premiums (better tenant screening, lease negotiation).
+
+### Execution Phase
+After committing to a deal, players experience a month-by-month timeline with:
+- Maintenance events (appliance failures, plumbing leaks, HVAC issues, storm damage)
+- Tenant satisfaction tracking and potential turnover
+- Market condition shifts affecting rent and property values
+- Renovation opportunities with contractor options
+- Progressive expense escalation for unfixed issues
+- Surprise events and curveballs
+
+### Post-Deal Analysis
+Every completed deal includes a detailed postmortem:
+- Side-by-side comparison of pro forma projections vs. actual outcomes
+- Letter grades (A+ through F) for prediction accuracy
+- Explanatory reasons for gaps between projections and reality
+- Shareable deal summary card
+
+## Free Interactive Tools
+
+### Flip or Rent Strategy Analyzer
+URL: https://dealbreaksimulator.com/tools/flip-or-rent
+
+An interactive calculator that compares flipping vs. renting the same property. Users input purchase price, estimated rent, renovation costs, and market assumptions. The tool calculates ROI, cash flow, and total returns for both strategies at 1, 3, and 5-year horizons.
+
+### Deal Scorecard
+URL: https://dealbreaksimulator.com/tools/deal-scorecard
+
+Tests any investment property against 7 established rules of thumb simultaneously:
+- 1% Rule (monthly rent ≥ 1% of purchase price)
+- 2% Rule (aggressive cash flow threshold)
+- 50% Rule (operating expenses ≈ 50% of gross income)
+- 70% Rule (maximum purchase price for flips)
+- Cap Rate analysis (NOI / property value)
+- Gross Rent Multiplier (price / annual rent)
+- Cash-on-Cash Return (annual cash flow / total cash invested)
+
+Returns an instant letter grade (A through F) with detailed breakdown.
+
+## Educational Articles (Learning Center)
+
+### What Is a Pro Forma in Real Estate?
+URL: https://dealbreaksimulator.com/learn/what-is-a-pro-forma
+Difficulty: Beginner | Read time: 5 min
+Covers the anatomy of a pro forma, why assumptions matter, rental vs. flip pro formas, and break-even occupancy rates. The pro forma is called "your deal's truth serum" — it strips away emotional appeal and reveals whether a property actually makes money.
+
+### Cap Rates & Cash-on-Cash Returns: The Real Story
+URL: https://dealbreaksimulator.com/learn/cap-rates-cash-on-cash
+Difficulty: Beginner | Read time: 6 min
+Explains two metrics that tell completely different things about the same deal. Cap rate ignores financing (NOI / Property Value). Cash-on-Cash measures what YOUR money earns. Covers the cap rate spectrum (3-4% premium areas to 11%+ distressed), the inverse dance of prices and cap rates, and yield on cost for value-add investors.
+
+### Flip vs. Rent: The Strategy Decision That Changes Everything
+URL: https://dealbreaksimulator.com/learn/flip-vs-rent
+Difficulty: Beginner | Read time: 5 min
+Compares the two fundamental real estate strategies. Flipping = active income (like a job). Renting = passive income (like a business). Covers holding costs that eat flip profits, the rental cash flow flywheel, and market condition timing for each strategy.
+
+### Due Diligence: What You Don't Know Will Cost You
+URL: https://dealbreaksimulator.com/learn/due-diligence
+Difficulty: Intermediate | Read time: 7 min
+The four pillars of due diligence: inspection, appraisal, comps analysis, and title search. Each reveals different risks. Covers common inspection red flags ($500 inspection vs. $50,000 surprise), and why skipping any step is gambling.
+
+### Understanding LTV & Real Estate Financing
+URL: https://dealbreaksimulator.com/learn/ltv-financing
+Difficulty: Intermediate | Read time: 7 min
+Loan-to-Value ratio fundamentals, how down payments create leverage, the double-edged sword of high LTV (amplifies both gains and losses), and why lenders care about LTV thresholds (80%, 75%, 70%).
+
+### Market Conditions & Timing
+URL: https://dealbreaksimulator.com/learn/market-conditions
+Difficulty: Intermediate | Read time: 6 min
+How market cycles (terrible through excellent) affect every part of a deal: purchase prices, rents, renovation costs, days on market, and exit strategy viability. The five market phases and what each means for investors.
+
+### The Hidden Costs of Real Estate Investing
+URL: https://dealbreaksimulator.com/learn/hidden-costs
+Difficulty: Intermediate | Read time: 6 min
+14 expenses that don't show up in the listing: maintenance, CapEx, property management, vacancy loss, closing costs, legal/accounting, pest control, landscaping, holding costs for flippers, and the self-management illusion. Also covers tax implications (rental depreciation vs. flip ordinary income).
+
+### Building a Real Estate Portfolio: From One Property to Ten
+URL: https://dealbreaksimulator.com/learn/portfolio-strategy
+Difficulty: Advanced | Read time: 8 min
+The compounding cycle (Acquire → Improve → Refinance → Repeat), diversification across property types and locations, the cash flow tipping point (3-4 stabilized rentals), and capital recycling.
+
+### Tenant Management: The Human Side of Real Estate
+URL: https://dealbreaksimulator.com/learn/tenant-management
+Difficulty: Intermediate | Read time: 6 min
+Screening (a bad tenant costs 10x more than vacancy), communication playbook, maintenance balance, and when to raise rent (keep good tenants at slightly below-market, turnover costs 1-2 months vacancy plus $500-2,000).
+
+## Technical Details
+
+- Platform: Web browser (desktop and mobile responsive)
+- Mobile app: iOS (React Native with Expo, WebView wrapper)
+- Cost: Free to play, no signup required
+- Optional: In-game boosts available for purchase (never required)
+- Technology: React, TypeScript, Node.js, PostgreSQL
+
+## Contact & Legal
+
+- Website: https://dealbreaksimulator.com
+- Terms of Service: https://dealbreaksimulator.com/terms
+- Privacy Policy: https://dealbreaksimulator.com/privacy

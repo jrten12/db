@@ -31,11 +31,15 @@ export function serveStatic(app: Express) {
     },
   }));
 
+  const htmlTemplate = fs.readFileSync(path.resolve(distPath, "index.html"), "utf-8");
+
   app.use("*", (req, res) => {
-    let html = fs.readFileSync(path.resolve(distPath, "index.html"), "utf-8");
-    html = injectSeoMeta(html, req.originalUrl, req);
+    let html = injectSeoMeta(htmlTemplate, req.originalUrl, req);
     res.set("Content-Type", "text/html");
     res.set("Cache-Control", "no-cache");
+    res.set("X-Content-Type-Options", "nosniff");
+    res.set("X-Frame-Options", "SAMEORIGIN");
+    res.set("Referrer-Policy", "strict-origin-when-cross-origin");
     res.send(html);
   });
 }

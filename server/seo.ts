@@ -267,6 +267,22 @@ function getPageMeta(url: string, req: Request): PageMeta {
       jsonLd: [
         {
           "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": SITE_NAME,
+          "url": baseUrl,
+          "description": BASE_DESCRIPTION,
+          "inLanguage": "en-US",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": baseUrl + "/learn?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@context": "https://schema.org",
           "@type": "VideoGame",
           "name": "DealBreak Simulator",
           "genre": "Simulation",
@@ -274,11 +290,15 @@ function getPageMeta(url: string, req: Request): PageMeta {
           "description": "A real estate investing simulator game where players analyze property deals, build pro formas, estimate rehab costs, and decide whether an investment succeeds or fails.",
           "url": baseUrl,
           "operatingSystem": "Web Browser",
-          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-          "author": { "@type": "Organization", "name": "Dealbreak" },
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+          "author": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl },
+          "publisher": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl },
           "screenshot": baseUrl + "/opengraph.jpg",
           "playMode": "SinglePlayer",
-          "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 }
+          "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
+          "gamePlatform": ["Web Browser", "iOS"],
+          "inLanguage": "en-US",
+          "keywords": "real estate investing simulator, pro forma analysis, cap rate calculator, house flipping game, rental property game, real estate education"
         },
         {
           "@context": "https://schema.org",
@@ -289,10 +309,12 @@ function getPageMeta(url: string, req: Request): PageMeta {
           "applicationCategory": "GameApplication",
           "genre": ["Simulation", "Educational"],
           "operatingSystem": "Web Browser",
-          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-          "author": { "@type": "Organization", "name": "Dealbreak" },
+          "browserRequirements": "Requires JavaScript. Works on all modern browsers.",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+          "author": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl },
           "screenshot": baseUrl + "/opengraph.jpg",
-          "featureList": ["Pro Forma Financial Analysis", "Cap Rate & Cash-on-Cash Calculations", "Flip vs Rent Strategy", "Due Diligence Simulation", "Market Conditions Modeling", "Rehab Budget Planning", "Tenant Management"]
+          "featureList": ["Pro Forma Financial Analysis", "Cap Rate & Cash-on-Cash Calculations", "Flip vs Rent Strategy", "Due Diligence Simulation", "Market Conditions Modeling", "Rehab Budget Planning", "Tenant Management"],
+          "softwareHelp": { "@type": "CreativeWork", "url": baseUrl + "/learn" }
         },
         {
           "@context": "https://schema.org",
@@ -360,12 +382,17 @@ function getPageMeta(url: string, req: Request): PageMeta {
             "headline": article.title,
             "description": article.subtitle,
             "url": baseUrl + "/learn/" + slug,
-            "author": { "@type": "Organization", "name": "Dealbreak" },
-            "publisher": { "@type": "Organization", "name": "Dealbreak" },
+            "author": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl },
+            "publisher": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl },
             "isPartOf": { "@type": "WebSite", "name": SITE_NAME, "url": baseUrl },
+            "inLanguage": "en-US",
             "articleSection": article.category,
             "timeRequired": "PT" + parseInt(article.readTime) + "M",
             "educationalLevel": article.difficulty,
+            "speakable": {
+              "@type": "SpeakableSpecification",
+              "cssSelector": ["h1", ".article-subtitle", ".article-content p:first-of-type"]
+            },
             "keywords": article.keywords.join(", "),
             "about": {
               "@type": "Thing",
@@ -401,14 +428,22 @@ function getPageMeta(url: string, req: Request): PageMeta {
           "headline": "What is DealBreak Simulator?",
           "description": "A free real estate investing simulator game where you analyze property deals, build pro formas, estimate rehab costs, and learn whether an investment succeeds or fails.",
           "url": baseUrl + "/what-is-dealbreak-simulator",
-          "author": { "@type": "Organization", "name": "Dealbreak" },
-          "publisher": { "@type": "Organization", "name": "Dealbreak" },
+          "author": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl },
+          "publisher": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl },
           "isPartOf": { "@type": "WebSite", "name": SITE_NAME, "url": baseUrl },
+          "inLanguage": "en-US",
+          "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": ["h1", "h2", ".about-intro"]
+          },
           "about": {
             "@type": "VideoGame",
             "name": "DealBreak Simulator",
             "genre": "Simulation",
-            "applicationCategory": "Game"
+            "applicationCategory": "Game",
+            "gamePlatform": ["Web Browser", "iOS"],
+            "url": baseUrl,
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
           }
         },
         {

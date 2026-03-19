@@ -1,0 +1,40 @@
+# DealBreak Simulator
+
+> A free, browser-based real estate investing simulator game that teaches property deal analysis through interactive gameplay.
+
+DealBreak Simulator is an educational game where players learn real estate underwriting by analyzing properties, building pro formas, managing tenants, and deciding whether to flip or rent investment properties. No signup required.
+
+## Core Game Features
+
+- Analyze randomized investment properties with realistic financials
+- Build pro forma financial models (income, expenses, cash flow)
+- Choose between Flip (buy-renovate-sell) and Rent (buy-hold-collect) strategies
+- Conduct due diligence (inspections, appraisals, comps, title search)
+- Manage contractors, tenants, and market conditions over a 12-month timeline
+- Experience realistic events: maintenance issues, market shifts, tenant turnover
+- Post-deal analysis comparing your projections to actual outcomes
+
+## Free Interactive Tools
+
+- [Flip or Rent Strategy Analyzer](https://dealbreaksimulator.com/tools/flip-or-rent): Compare flipping vs renting ROI side-by-side
+- [Deal Scorecard](https://dealbreaksimulator.com/tools/deal-scorecard): Grade any property against 7 investment rules of thumb (1% Rule, Cap Rate, GRM, etc.)
+
+## Educational Content
+
+- [What Is a Pro Forma in Real Estate?](https://dealbreaksimulator.com/learn/what-is-a-pro-forma)
+- [Cap Rates & Cash-on-Cash Returns](https://dealbreaksimulator.com/learn/cap-rates-cash-on-cash)
+- [Flip vs Rent Strategy](https://dealbreaksimulator.com/learn/flip-vs-rent)
+- [Due Diligence Guide](https://dealbreaksimulator.com/learn/due-diligence)
+- [Understanding LTV & Financing](https://dealbreaksimulator.com/learn/ltv-financing)
+- [Market Conditions & Timing](https://dealbreaksimulator.com/learn/market-conditions)
+- [Hidden Costs of Real Estate](https://dealbreaksimulator.com/learn/hidden-costs)
+- [Portfolio Strategy](https://dealbreaksimulator.com/learn/portfolio-strategy)
+- [Tenant Management](https://dealbreaksimulator.com/learn/tenant-management)
+
+## Key Links
+
+- Play the game: https://dealbreaksimulator.com/game
+- Homepage: https://dealbreaksimulator.com
+- About: https://dealbreaksimulator.com/what-is-dealbreak-simulator
+- Tools: https://dealbreaksimulator.com/tools
+- Learning Center: https://dealbreaksimulator.com/learn

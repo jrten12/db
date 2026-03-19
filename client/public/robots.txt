@@ -3,9 +3,40 @@ Allow: /
 Allow: /game
 Allow: /learn
 Allow: /learn/
+Allow: /tools
+Allow: /tools/
+Allow: /what-is-dealbreak-simulator
 Allow: /terms
 Allow: /privacy
 
 Disallow: /api/
 
 Sitemap: https://dealbreaksimulator.com/sitemap.xml
+
+User-agent: GPTBot
+Allow: /
+Allow: /learn/
+Allow: /tools/
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /

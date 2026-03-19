@@ -15,8 +15,53 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw, Smile, Meh, Frown, Paintbrush } from 'lucide-react';
+import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw, Smile, Meh, Frown, Paintbrush, ShieldAlert } from 'lucide-react';
 import type { Deal, GameRun, Property, Tenant } from '@shared/schema';
+import { formatCurrency } from '@/lib/gameData';
+
+function estimateMonthlyExpenses(deals: Deal[], properties: Property[]): { totalExpenses: number; totalIncome: number; netCashFlow: number; breakdown: { name: string; amount: number }[] } {
+  const breakdown: { name: string; amount: number }[] = [];
+  let totalExpenses = 0;
+  let totalIncome = 0;
+
+  for (const deal of deals) {
+    const property = properties.find(p => p.id === deal.propertyId);
+    const propertyName = property?.name || `Property #${deal.propertyId}`;
+    const proFormaOutputs = deal.proFormaOutputs as any;
+
+    if (deal.status === 'active_rental' && !deal.rentalRehabActive) {
+      const netIncome = deal.weeklyIncome || 0;
+      if (netIncome >= 0) {
+        totalIncome += netIncome;
+      } else {
+        totalExpenses += Math.abs(netIncome);
+      }
+      breakdown.push({ name: `${propertyName} (rental)`, amount: netIncome });
+    }
+
+    if (deal.status === 'active_rental' && deal.rentalRehabActive) {
+      const monthlyDebtService = proFormaOutputs?.monthlyDebtService || proFormaOutputs?.debtServiceMonthly || 0;
+      const monthlyOpEx = proFormaOutputs?.monthlyOperatingExpenses || proFormaOutputs?.monthlyOpEx || 0;
+      const carryingCost = Math.round(monthlyDebtService + monthlyOpEx);
+      totalExpenses += carryingCost;
+      breakdown.push({ name: `${propertyName} (rehab - no income)`, amount: -carryingCost });
+    }
+
+    if (deal.status === 'in_rehab' || deal.status === 'ready_to_list') {
+      const loanAmount = proFormaOutputs?.loanAmount || deal.originalLoanAmount || 0;
+      const interestRate = deal.loanInterestRate ?? proFormaOutputs?.interestRate ?? 7.0;
+      const purchasePrice = property?.price || 200000;
+      const weeklyInterest = Math.round((loanAmount * (interestRate / 100)) / 52);
+      const weeklyTaxesIns = Math.round((purchasePrice * 0.02) / 52);
+      const carryingCost = weeklyInterest + weeklyTaxesIns;
+      totalExpenses += carryingCost;
+      const label = deal.status === 'in_rehab' ? 'flip - in rehab' : 'flip - listed';
+      breakdown.push({ name: `${propertyName} (${label})`, amount: -carryingCost });
+    }
+  }
+
+  return { totalExpenses, totalIncome, netCashFlow: totalIncome - totalExpenses, breakdown };
+}
 
 function getTenantMood(satisfaction: number): { label: string; color: string; Icon: typeof Smile } {
   if (satisfaction >= 65) return { label: 'Happy', color: 'text-green-400', Icon: Smile };
@@ -397,6 +442,7 @@ export function TimeProgressionPanel({
   const [sellingDealId, setSellingDealId] = useState<number | null>(null);
   const [refinancingDealId, setRefinancingDealId] = useState<number | null>(null);
   const [upgradingDealId, setUpgradingDealId] = useState<number | null>(null);
+  const [showBankruptcyWarning, setShowBankruptcyWarning] = useState(false);
 
   const SEASONING_WEEKS = 8; // Must match server
 
@@ -448,13 +494,30 @@ export function TimeProgressionPanel({
   // Calculate total monthly income (stored in weeklyIncome field for historical reasons)
   const totalMonthlyIncome = activeRentals.reduce((sum, deal) => sum + (deal.weeklyIncome || 0), 0);
 
+  const expenseEstimate = estimateMonthlyExpenses(
+    [...activeRentals, ...flipsInRehab, ...flipsReadyToList],
+    properties
+  );
+  const cashAfterExpenses = gameRun.cash + expenseEstimate.netCashFlow;
+  const bankruptcyRisk = cashAfterExpenses < 0;
+  const lowCashWarning = !bankruptcyRisk && cashAfterExpenses < 2000 && expenseEstimate.totalExpenses > 0;
+
   const handleAdvanceWeek = async () => {
+    if (bankruptcyRisk && !showBankruptcyWarning) {
+      setShowBankruptcyWarning(true);
+      return;
+    }
+    setShowBankruptcyWarning(false);
     setIsAdvancing(true);
     try {
       await onAdvanceWeek();
     } finally {
       setIsAdvancing(false);
     }
+  };
+
+  const handleDismissWarning = () => {
+    setShowBankruptcyWarning(false);
   };
 
   const getPropertyName = (propertyId: number | null) => {
@@ -496,6 +559,71 @@ export function TimeProgressionPanel({
           )}
         </Button>
       </div>
+
+      {showBankruptcyWarning && bankruptcyRisk && (
+        <div className="bg-red-950/80 border border-red-500/50 rounded-lg p-3 mb-3 animate-in fade-in duration-200" data-testid="bankruptcy-warning-dialog">
+          <div className="flex items-start gap-2 mb-2">
+            <ShieldAlert className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-red-300">Bankruptcy Risk</p>
+              <p className="text-xs text-red-200/80 mt-1">
+                Your estimated expenses ({formatCurrency(expenseEstimate.totalExpenses)}/mo) exceed your income ({formatCurrency(expenseEstimate.totalIncome)}/mo). With {formatCurrency(gameRun.cash)} cash, you could go bankrupt next month.
+              </p>
+              {expenseEstimate.breakdown.length > 0 && (
+                <div className="mt-2 space-y-0.5">
+                  {expenseEstimate.breakdown.map((item, i) => (
+                    <div key={i} className="flex justify-between text-xs">
+                      <span className="text-gray-400 truncate mr-2">{item.name}</span>
+                      <span className={item.amount >= 0 ? 'text-green-400' : 'text-red-400'}>
+                        {item.amount >= 0 ? '+' : ''}{formatCurrency(item.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-yellow-300/80 mt-2">
+                Consider selling a property or waiting for rental income before continuing.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-2">
+            <Button
+              onClick={handleDismissWarning}
+              size="sm"
+              variant="outline"
+              className="flex-1 h-7 text-xs border-gray-600 text-gray-300 hover:bg-gray-800"
+              data-testid="button-dismiss-bankruptcy-warning"
+            >
+              Go Back
+            </Button>
+            <Button
+              onClick={handleAdvanceWeek}
+              disabled={isAdvancing}
+              size="sm"
+              className="flex-1 h-7 text-xs bg-red-700 hover:bg-red-600 text-white"
+              data-testid="button-proceed-despite-warning"
+            >
+              {isAdvancing ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Proceed Anyway'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!showBankruptcyWarning && (bankruptcyRisk || lowCashWarning) && (
+        <div className={`flex items-center gap-2 rounded px-3 py-2 mb-3 ${
+          bankruptcyRisk 
+            ? 'bg-red-950/60 border border-red-500/40' 
+            : 'bg-yellow-950/40 border border-yellow-600/30'
+        }`} data-testid="low-cash-warning-banner">
+          <AlertTriangle className={`w-3.5 h-3.5 flex-shrink-0 ${bankruptcyRisk ? 'text-red-400' : 'text-yellow-400'}`} />
+          <span className={`text-xs ${bankruptcyRisk ? 'text-red-300' : 'text-yellow-300'}`}>
+            {bankruptcyRisk 
+              ? `Cash too low — expenses could bankrupt you (${formatCurrency(gameRun.cash)} cash vs ${formatCurrency(expenseEstimate.totalExpenses)}/mo costs)`
+              : `Low reserves — only ${formatCurrency(cashAfterExpenses)} left after expenses`
+            }
+          </span>
+        </div>
+      )}
 
       {/* Monthly Income Summary - Compact */}
       {totalMonthlyIncome !== 0 && (

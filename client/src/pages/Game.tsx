@@ -956,6 +956,11 @@ export default function Game() {
       return;
     }
     
+    const remainingAfterPurchase = gameRun.cash - totalCashRequired;
+    if (remainingAfterPurchase < 3000) {
+      toast.warning(`After this purchase you'll only have $${remainingAfterPurchase.toLocaleString()} left. Monthly expenses could push you into bankruptcy — proceed carefully!`, { duration: 6000 });
+    }
+    
     setIsCommittingDeal(true);
     
     // Check contractor type for penalties

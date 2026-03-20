@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/popover';
 import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw, Smile, Meh, Frown, Paintbrush, ShieldAlert } from 'lucide-react';
 import type { Deal, GameRun, Property, Tenant } from '@shared/schema';
-import { formatCurrency } from '@/lib/gameData';
+import { formatCurrency, getSaleEstimateRange } from '@/lib/gameData';
 
 function estimateMonthlyExpenses(deals: Deal[], properties: Property[]): { totalExpenses: number; totalIncome: number; netCashFlow: number; breakdown: { name: string; amount: number }[] } {
   const breakdown: { name: string; amount: number }[] = [];
@@ -539,21 +539,21 @@ export function TimeProgressionPanel({
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-medium text-white">Month {gameRun.currentWeek}</span>
-          <span className="text-xs text-gray-400">• {gameRun.weeksRemaining} months left</span>
+          <span className="text-sm md:text-base font-medium text-white">Month {gameRun.currentWeek}</span>
+          <span className="text-xs md:text-sm text-gray-400">• {gameRun.weeksRemaining} months left</span>
         </div>
         <Button
           onClick={handleAdvanceWeek}
           disabled={isAdvancing || gameRun.weeksRemaining <= 0}
           size="sm"
-          className="bg-blue-600 hover:bg-blue-700 h-8"
+          className="bg-blue-600 hover:bg-blue-700 h-9 px-3 text-sm"
           data-no-click-sound
         >
           {isAdvancing ? (
-            <Loader2 className="w-3 h-3 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <>
-              <Play className="w-3 h-3 mr-1" />
+              <Play className="w-3.5 h-3.5 mr-1" />
               Next Month
             </>
           )}
@@ -632,10 +632,10 @@ export function TimeProgressionPanel({
             ? 'bg-green-900/30 border border-green-500/30' 
             : 'bg-red-900/30 border border-red-500/30'
         }`}>
-          <span className={`text-xs ${totalMonthlyIncome >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+          <span className={`text-xs md:text-sm ${totalMonthlyIncome >= 0 ? 'text-green-300' : 'text-red-300'}`}>
             Monthly {totalMonthlyIncome >= 0 ? 'Income' : 'Loss'}
           </span>
-          <span className={`text-sm font-bold ${totalMonthlyIncome >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <span className={`text-sm md:text-base font-bold ${totalMonthlyIncome >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {totalMonthlyIncome >= 0 ? '+' : ''}${totalMonthlyIncome.toLocaleString()}/mo
           </span>
         </div>
@@ -663,8 +663,8 @@ export function TimeProgressionPanel({
           {/* Active Rentals */}
           {activeRentals.map((deal) => {
             const purchasePrice = deal.purchasePrice || 0;
-            const estimatedSaleMin = Math.round(purchasePrice * 0.85);
-            const estimatedSaleMax = Math.round(purchasePrice * 1.10);
+            const marketCondition = (gameRun as any).marketCondition || 'neutral';
+            const { min: estimatedSaleMin, max: estimatedSaleMax } = getSaleEstimateRange(purchasePrice, marketCondition);
             const canSell = !!onSellRental;
             const propertyName = getPropertyName(deal.propertyId);
             
@@ -694,7 +694,7 @@ export function TimeProgressionPanel({
                   <PopoverTrigger asChild>
                     <button className="flex items-center gap-2 min-w-0 hover:bg-white/10 rounded px-1 py-0.5 transition-colors cursor-pointer">
                       <Home className={`w-3 h-3 flex-shrink-0 ${(deal.weeklyIncome || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`} />
-                      <span className="text-xs text-white truncate">{propertyName}</span>
+                      <span className="text-xs md:text-sm text-white truncate">{propertyName}</span>
                       {(() => {
                         const tenant = tenants.find(t => t.dealId === deal.id);
                         if (tenant && tenant.satisfaction != null) {
@@ -706,13 +706,13 @@ export function TimeProgressionPanel({
                             : `${mood.label} (${tenant.satisfaction}%)`;
                           return (
                             <span className={`flex items-center ${mood.color}`} title={tip} data-testid={`tenant-mood-${deal.id}`}>
-                              <mood.Icon className="w-3 h-3" />
+                              <mood.Icon className="w-3.5 h-3.5" />
                             </span>
                           );
                         }
                         return null;
                       })()}
-                      <span className={`text-xs font-medium ${(deal.weeklyIncome || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      <span className={`text-xs md:text-sm font-medium ${(deal.weeklyIncome || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {(deal.weeklyIncome || 0) >= 0 ? '+' : ''}${(deal.weeklyIncome || 0).toLocaleString()}/mo
                       </span>
                       <Info className="w-3 h-3 text-gray-500" />
@@ -733,6 +733,27 @@ export function TimeProgressionPanel({
                   </PopoverContent>
                 </Popover>
                 <div className="flex items-center gap-1 flex-shrink-0">
+                  {onCosmeticUpgrade && !(deal.proFormaOutputs as any)?.cosmeticUpgradeApplied && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-1.5 text-violet-400 hover:text-violet-300 hover:bg-violet-500/20"
+                      disabled={upgradingDealId === deal.id}
+                      onClick={() => {
+                        setUpgradingDealId(deal.id);
+                        onCosmeticUpgrade(deal.id).finally(() => setUpgradingDealId(null));
+                      }}
+                      data-testid={`button-renovate-inline-${deal.id}`}
+                      data-no-click-sound
+                      title="Renovate property"
+                    >
+                      {upgradingDealId === deal.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Paintbrush className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
+                  )}
                   {onRefinanceRental && (
                     <Popover>
                       <PopoverTrigger asChild>
@@ -782,7 +803,7 @@ export function TimeProgressionPanel({
                   </span>
                   <Button
                     size="sm"
-                    className="bg-orange-500 hover:bg-orange-600 text-white h-6 px-2 text-xs"
+                    className="bg-orange-500 hover:bg-orange-600 text-white h-7 px-2.5 text-xs"
                     disabled={!canSell || sellingDealId === deal.id}
                     onClick={() => handleSellRental(deal.id)}
                     data-testid={`button-sell-rental-${deal.id}`}
@@ -846,8 +867,8 @@ export function TimeProgressionPanel({
           {/* Flips Ready to Sell */}
           {flipsReadyToList.map((deal) => {
             const purchasePrice = deal.purchasePrice || 0;
-            const estimatedSaleMin = Math.round(purchasePrice * 0.90);
-            const estimatedSaleMax = Math.round(purchasePrice * 1.15);
+            const marketCondition = (gameRun as any).marketCondition || 'neutral';
+            const { min: estimatedSaleMin, max: estimatedSaleMax } = getSaleEstimateRange(purchasePrice, marketCondition);
             const canSell = !!onSellFlip;
             
             return (
@@ -860,7 +881,7 @@ export function TimeProgressionPanel({
                   <PopoverTrigger asChild>
                     <button className="flex items-center gap-2 min-w-0 hover:bg-white/10 rounded px-1 py-0.5 transition-colors cursor-pointer">
                       <DollarSign className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                      <span className="text-xs text-white truncate">{getPropertyName(deal.propertyId)}</span>
+                      <span className="text-xs md:text-sm text-white truncate">{getPropertyName(deal.propertyId)}</span>
                       <Badge className="h-5 text-xs bg-emerald-500 text-white">READY</Badge>
                       <Info className="w-3 h-3 text-gray-500" />
                     </button>
@@ -880,12 +901,33 @@ export function TimeProgressionPanel({
                   </PopoverContent>
                 </Popover>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {onCosmeticUpgrade && !(deal.proFormaOutputs as any)?.cosmeticUpgradeApplied && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-1.5 text-violet-400 hover:text-violet-300 hover:bg-violet-500/20"
+                      disabled={upgradingDealId === deal.id}
+                      onClick={() => {
+                        setUpgradingDealId(deal.id);
+                        onCosmeticUpgrade!(deal.id).finally(() => setUpgradingDealId(null));
+                      }}
+                      data-testid={`button-renovate-flip-inline-${deal.id}`}
+                      data-no-click-sound
+                      title="Renovate before selling"
+                    >
+                      {upgradingDealId === deal.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Paintbrush className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
+                  )}
                   <span className="text-xs text-gray-400 hidden sm:inline">
                     ${estimatedSaleMin.toLocaleString()}-${estimatedSaleMax.toLocaleString()}
                   </span>
                   <Button
                     size="sm"
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white h-6 px-2 text-xs font-semibold"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white h-7 px-2.5 text-xs font-semibold"
                     disabled={!canSell || sellingDealId === deal.id}
                     onClick={() => handleSellFlip(deal.id)}
                     data-testid={`button-sell-flip-${deal.id}`}

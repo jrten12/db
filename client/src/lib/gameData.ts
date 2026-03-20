@@ -148,6 +148,22 @@ export const getInterestRateWithPlayerState = (ltv: number, playerFinancials: Pl
   return Math.max(3.5, Math.min(15, baseRate + dtiAdjustment + reserveAdjustment + assetAdjustment));
 };
 
+export const SALE_MARKET_RANGES: Record<string, { min: number; max: number }> = {
+  terrible: { min: 0.78, max: 0.95 },
+  poor: { min: 0.85, max: 1.02 },
+  neutral: { min: 0.90, max: 1.10 },
+  good: { min: 0.95, max: 1.18 },
+  excellent: { min: 1.00, max: 1.28 },
+};
+
+export const getSaleEstimateRange = (purchasePrice: number, marketCondition: string): { min: number; max: number } => {
+  const range = SALE_MARKET_RANGES[marketCondition] || SALE_MARKET_RANGES.neutral;
+  return {
+    min: Math.round(purchasePrice * range.min),
+    max: Math.round(purchasePrice * range.max),
+  };
+};
+
 // Loan origination fees: 1% at 50% LTV, scaling up to 4% at 100% LTV
 // Fees climb above 90% LTV as lenders charge premium for risky loans
 export const getLoanFeesFromLTV = (ltv: number): number => {

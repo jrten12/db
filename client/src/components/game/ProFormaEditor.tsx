@@ -432,21 +432,24 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
             {/* Derived values display */}
             <div className="px-4 py-3 grid grid-cols-3 gap-3 bg-slate-900/50">
               <div className="text-center">
-                <div className="text-gray-500 text-xs">Down Payment</div>
-                <div className="text-white font-mono text-sm font-semibold">{getDownPaymentFromLTV(inputs.ltv)}%</div>
+                <div className="text-gray-500 text-xs md:text-sm">Down Payment</div>
+                <div className="text-white font-mono text-sm md:text-base font-semibold">{getDownPaymentFromLTV(inputs.ltv)}%</div>
               </div>
               <div className="text-center">
-                <div className="text-gray-500 text-xs">Interest Rate</div>
-                <div className={`font-mono text-sm font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>
-                  {getInterestRateFromLTV(inputs.ltv).toFixed(1)}%
+                <div className="text-gray-500 text-xs md:text-sm" title="Based on LTV, market conditions, cash reserves, and debt-to-income ratio">Interest Rate*</div>
+                <div className={`font-mono text-sm md:text-base font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>
+                  {(playerFinancials ? getInterestRateWithPlayerState(inputs.ltv, playerFinancials, weekNumber) : getInterestRateFromLTV(inputs.ltv, weekNumber)).toFixed(1)}%
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-gray-500 text-xs">Loan Fees</div>
-                <div className={`font-mono text-sm font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>
+                <div className="text-gray-500 text-xs md:text-sm">Loan Fees</div>
+                <div className={`font-mono text-sm md:text-base font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>
                   {getLoanFeesFromLTV(inputs.ltv).toFixed(1)}%
                 </div>
               </div>
+            </div>
+            <div className="px-4 pb-2 bg-slate-900/50">
+              <p className="text-[11px] md:text-xs text-gray-600">*Rate adjusts based on leverage, market conditions, your cash reserves, and income</p>
             </div>
           </div>
 

@@ -263,17 +263,17 @@ export function HallOfFameModal({ isOpen, onClose }: HallOfFameModalProps) {
   const hasAnyActivity = topPlayers.length > 0;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 z-[70] bg-black/95 backdrop-blur-md animate-in fade-in duration-300 overflow-y-auto overflow-x-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-yellow-900/10 via-transparent to-purple-900/10 pointer-events-none" />
       
       <div className="flex flex-col items-center py-8 px-4 min-h-full overflow-x-hidden relative">
         <button
           onClick={onClose}
-          className="fixed top-[calc(env(safe-area-inset-top,0px)+16px)] right-4 p-3 bg-slate-800/80 hover:bg-slate-700 rounded-full text-white transition-all z-10 min-w-[48px] min-h-[48px] flex items-center justify-center"
+          className="fixed top-[calc(env(safe-area-inset-top,0px)+16px)] right-4 p-3 bg-slate-800 hover:bg-slate-700 rounded-full text-white transition-all z-[80] min-w-[52px] min-h-[52px] flex items-center justify-center shadow-lg border border-white/20"
           data-testid="button-close-hall-of-fame"
           data-sound="close"
         >
-          <X className="w-6 h-6" />
+          <X className="w-7 h-7" />
         </button>
 
         <div className="w-full max-w-3xl">

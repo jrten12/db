@@ -187,9 +187,8 @@ export default function Methodology() {
             <SubSection title="Exit Strategy Integrity">
               <p>
                 The engine tests the viability of a property sale under compressed
-                conditions. Each flip receives a randomized sale multiplier (0.90–1.15)
-                influenced by the current market state. A deal underwritten at a
-                $200,000 ARV may realize only $170,000 in a "terrible" market — after
+                conditions. Each property receives a sale multiplier based on market conditions (terrible: 0.78–0.95, poor: 0.85–1.02, neutral: 0.90–1.10, good: 0.95–1.18, excellent: 1.00–1.28), along with property condition, diligence depth, and rehab quality. A deal underwritten at a
+                $200,000 ARV may realize only $156,000 in a "terrible" market — after
                 deducting 6% agent commission, 2% seller closing costs, and full
                 loan payoff with accrued interest.
               </p>

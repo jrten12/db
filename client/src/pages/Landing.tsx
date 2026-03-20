@@ -277,31 +277,28 @@ export default function Landing() {
               }}
               data-testid="dopamine-step-evaluate"
             >
-              <div className="relative h-20 overflow-hidden rounded-t-xl">
-                <img
-                  src="/images/properties/craftsman_bungalow_home_exterior.jpg"
-                  alt="Property listing preview"
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#131316] via-[#131316]/40 to-transparent" />
-                <div className="absolute bottom-2 left-3 flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-white">$185,000</span>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)' }}>Fair</span>
-                </div>
-              </div>
-              <div className="p-5 pt-3">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="p-4">
+                <div className="flex items-center gap-2 mb-2">
                   <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(6,182,212,0.12)', color: '#22d3ee', border: '1px solid rgba(6,182,212,0.25)' }}>01</span>
                   <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#22d3ee' }}>You Evaluate</span>
                 </div>
-                <p className="text-[15px] font-semibold mb-2" style={{ color: '#f0e6d0' }}>
+                <p className="text-[15px] font-semibold mb-1.5" style={{ color: '#f0e6d0' }}>
                   "This looks like an 8% return..."
                 </p>
+                <div className="rounded-lg p-2 mb-2" style={{ background: 'rgba(6,182,212,0.05)', border: '1px solid rgba(6,182,212,0.1)' }}>
+                  <div className="flex items-center justify-between text-[10px] mb-1">
+                    <span style={{ color: 'rgba(148,163,184,0.7)' }}>Est. Rent</span>
+                    <span className="font-mono text-cyan-400">$1,400 - $1,800/mo</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span style={{ color: 'rgba(148,163,184,0.7)' }}>Condition</span>
+                    <span style={{ color: '#fbbf24' }}>Fair — needs work</span>
+                  </div>
+                </div>
                 <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
-                  You find a property. The numbers look right. The rent covers the mortgage. You run a pro forma and feel confident. Maybe too confident.
+                  The numbers look right. The rent covers the mortgage. You feel confident. Maybe too confident.
                 </p>
-                <div className="mt-3 flex items-center gap-1.5">
+                <div className="mt-2 flex items-center gap-1.5">
                   <Eye className="w-3 h-3" style={{ color: 'rgba(6,182,212,0.5)' }} />
                   <span className="text-[10px]" style={{ color: 'rgba(6,182,212,0.5)' }}>But what aren't you seeing?</span>
                 </div>
@@ -317,18 +314,18 @@ export default function Landing() {
               }}
               data-testid="dopamine-step-commit"
             >
-              <div className="p-5">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="p-4">
+                <div className="flex items-center gap-2 mb-2">
                   <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(212,175,55,0.12)', color: '#d4af37', border: '1px solid rgba(212,175,55,0.25)' }}>02</span>
                   <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#d4af37' }}>You Commit</span>
                 </div>
-                <p className="text-[15px] font-semibold mb-2" style={{ color: '#f0e6d0' }}>
+                <p className="text-[15px] font-semibold mb-1.5" style={{ color: '#f0e6d0' }}>
                   "I'm going in at 80% LTV."
                 </p>
                 <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
-                  Down payment. Financing. Strategy locked. You've chosen rent or flip, set your assumptions, and signed the deal. No going back. Now you wait.
+                  Down payment. Financing. Strategy locked. Rent or flip, assumptions set, deal signed. No going back.
                 </p>
-                <div className="mt-3 flex items-center gap-1.5">
+                <div className="mt-2 flex items-center gap-1.5">
                   <Clock className="w-3 h-3" style={{ color: 'rgba(212,175,55,0.5)' }} />
                   <span className="text-[10px]" style={{ color: 'rgba(212,175,55,0.5)' }}>The market doesn't care about your spreadsheet.</span>
                 </div>
@@ -344,19 +341,19 @@ export default function Landing() {
               }}
               data-testid="dopamine-step-outcome"
             >
-              <div className="p-5">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="p-4">
+                <div className="flex items-center gap-2 mb-2">
                   <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)' }}>03</span>
                   <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#10b981' }}>The Verdict</span>
                 </div>
-                <p className="text-[15px] font-semibold mb-2" style={{ color: '#f0e6d0' }}>
+                <p className="text-[15px] font-semibold mb-1.5" style={{ color: '#f0e6d0' }}>
                   "+$24,300 profit. Grade: A."
                 </p>
-                <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
-                  Or: "−$12,000. You missed the foundation issue and the market shifted." The postmortem shows exactly what went wrong — and what you should've caught.
+                <p className="text-xs leading-relaxed mb-2" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                  Or: "−$12,000. You missed the foundation issue." The postmortem shows exactly what went wrong.
                 </p>
 
-                <div className="mt-3 rounded-lg p-2.5" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.12)' }}>
+                <div className="rounded-lg p-2" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.12)' }}>
                   <div className="grid grid-cols-3 gap-1 text-[9px]">
                     <span style={{ color: 'rgba(148,163,184,0.5)' }}></span>
                     <span className="text-center" style={{ color: 'rgba(148,163,184,0.5)' }}>Projected</span>
@@ -364,9 +361,6 @@ export default function Landing() {
                     <span style={{ color: 'rgba(148,163,184,0.6)' }}>Profit</span>
                     <span className="text-center font-mono text-gray-500">$22k</span>
                     <span className="text-center font-mono text-white font-semibold">$24.3k</span>
-                    <span style={{ color: 'rgba(148,163,184,0.6)' }}>Cash Flow</span>
-                    <span className="text-center font-mono text-gray-500">$280/mo</span>
-                    <span className="text-center font-mono text-white font-semibold">$312/mo</span>
                   </div>
                 </div>
               </div>

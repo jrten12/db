@@ -1,0 +1,183 @@
+You are a senior product designer, conversion copywriter, and frontend engineer working on an existing live product: DealBreak Simulator.
+
+Your job is NOT to redesign from scratch.  
+Your job is to surgically upgrade the landing page to dramatically increase dopamine, clarity, and conversion while preserving all existing assets, screenshots, and structure wherever possible.
+
+---
+
+## CORE OBJECTIVE
+
+Transform the landing page from:
+- “real estate learning tool”
+
+Into:
+- “high-stakes deal simulation game that teaches you by making you win or lose”
+
+WITHOUT removing:
+- existing screenshots
+- current sections (they can be enhanced/reordered)
+- current product positioning as BOTH game + resource
+
+---
+
+## PRIMARY PROBLEM TO FIX
+
+The page currently explains what the user DOES (analyze, build, learn)  
+but does NOT show what HAPPENS (win, lose, profit, fail)
+
+We must:
+- inject tension
+- create curiosity loops
+- emphasize outcomes
+- make users want to “try one deal”
+
+---
+
+## HARD CONSTRAINTS
+
+- DO NOT delete screenshots → instead add captions, overlays, or framing text
+- DO NOT remove educational positioning → layer it under gameplay
+- DO NOT add fluff or generic marketing language
+- DO NOT make it feel like a course or SaaS tool
+- DO NOT slow page load with heavy assets
+
+---
+
+## HERO SECTION (CRITICAL)
+
+Replace current hero messaging with something that creates immediate stakes.
+
+Requirements:
+- One bold headline focused on outcome (profit/loss)
+- One subheadline that explains the mechanic (hidden info, decision, consequence)
+- One primary CTA: “Run Your First Deal” or similar
+- Optional micro-copy showing consequence (ex: “Most users lose their first deal”)
+
+Example direction (DO NOT copy exactly, but use tone):
+“You have one deal. It might make $80K — or lose everything.”
+
+---
+
+## DOPAMINE LAYER (NEW SECTION NEAR TOP)
+
+Add a section immediately below hero:
+
+Title: “What Happens When You Play”
+
+Include:
+- Step 1: You evaluate a deal (with screenshot)
+- Step 2: You commit to a decision
+- Step 3: The outcome is revealed
+
+CRITICAL:
+- Show a sample outcome card
+    - Profit / Loss
+    - Mistakes made
+    - What you missed
+
+This is the most important addition on the page.
+
+---
+
+## SCREENSHOT ENHANCEMENT (DO NOT REMOVE)
+
+For EVERY existing screenshot:
+- Add a bold caption above it that frames it as gameplay
+    - “You think this deal works…”
+    - “But you missed this…”
+- Add a sub-caption explaining consequence or insight
+
+Goal:
+Turn static UI into a story with tension
+
+---
+
+## GAME CLARITY SECTION
+
+Add or rewrite a section clearly stating:
+
+“This is not a calculator. It’s a simulation.”
+
+Include:
+- Hidden variables
+- Market changes
+- Imperfect information
+- Real consequences
+
+Make it feel closer to:
+- poker
+- trading
+- decision-making under uncertainty
+
+---
+
+## EDUCATION (KEEP, BUT REPOSITION)
+
+Keep learning content, but move it BELOW gameplay framing.
+
+Reframe as:
+“Learn because you lost money — not before”
+
+---
+
+## MICRO-DOPAMINE ELEMENTS (LIGHTWEIGHT)
+
+Add small UI elements:
+- “Most users overestimate profit”
+- “Top mistake: ignoring holding costs”
+- “Only X% of deals are actually good”
+
+These should be subtle but psychologically triggering.
+
+---
+
+## CTA STRATEGY
+
+Primary CTA (top + repeated):
+- “Run a Deal”
+- “Try a Deal”
+- “Analyze Your First Deal”
+
+Secondary CTA:
+- “Learn How It Works”
+
+---
+
+## TONE
+
+- Confident
+- Slightly provocative
+- No corporate tone
+- No fluff
+- No “best-in-class” language
+
+It should feel like:
+- a challenge
+- a test
+- a game you want to beat
+
+---
+
+## OUTPUT FORMAT
+
+Provide:
+1. Updated landing page copy (section by section)
+2. Suggested placement of new sections
+3. Inline notes on where to reuse existing screenshots
+4. Minimal frontend changes (HTML/CSS tweaks if needed)
+
+---
+
+## SUCCESS CRITERIA
+
+After changes, a user should instantly understand:
+- This is a GAME
+- There is RISK
+- There is OUTCOME
+- I want to try one deal immediately
+
+If it still feels like a tool, you failed.
+
+---
+
+Now execute.

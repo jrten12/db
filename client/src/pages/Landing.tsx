@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, AlertTriangle, Eye, EyeOff, Skull, Clock } from 'lucide-react';
 import heroHouseImage from '@assets/Gemini_hero.webp';
 import dbLogoImage from '@assets/db_logo_64.webp';
 const heroBgPattern = '/hero-bg-pattern.webp';
@@ -8,6 +8,60 @@ import { useMusic } from '@/hooks/useMusicPlayer';
 
 const GameShowcase = lazy(() => import('@/components/GameShowcase').then(m => ({ default: m.GameShowcase })));
 const Footer = lazy(() => import('@/components/Footer'));
+
+function MechanicCard({ Icon, accent, title, detail }: { Icon: any; accent: string; title: string; detail: string }) {
+  return (
+    <div
+      className="group rounded-xl p-4 lg:p-5 transition-all"
+      style={{
+        background: `linear-gradient(160deg, ${accent}06, rgba(19,19,22,0.9))`,
+        border: `1px solid ${accent}15`,
+      }}
+      data-testid={`mechanic-card-${title.toLowerCase().replace(/\s+/g, '-')}`}
+    >
+      <div className="flex items-center gap-2.5 mb-2.5">
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center"
+          style={{ background: `${accent}12`, border: `1px solid ${accent}25` }}
+        >
+          <Icon className="w-4 h-4" style={{ color: accent }} />
+        </div>
+        <h3 className="font-bold text-sm" style={{ color: '#f0e6d0' }}>{title}</h3>
+      </div>
+      <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.55)' }}>{detail}</p>
+    </div>
+  );
+}
+
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  return (
+    <details
+      className="group rounded-xl overflow-hidden"
+      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(180,155,80,0.1)' }}
+      data-testid={`faq-${question.slice(0, 20).toLowerCase().replace(/\s+/g, '-')}`}
+    >
+      <summary
+        className="cursor-pointer p-4 text-sm font-semibold list-none flex items-center justify-between"
+        style={{ color: '#e8dfc8' }}
+      >
+        {question}
+        <ArrowRight className="w-4 h-4 transition-transform group-open:rotate-90 flex-shrink-0 ml-2" style={{ color: 'rgba(212,175,55,0.5)' }} />
+      </summary>
+      <div className="px-4 pb-4 text-sm leading-relaxed" style={{ color: 'rgba(225,220,205,0.55)' }}>
+        {answer}
+      </div>
+    </details>
+  );
+}
+
+function StatCallout({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="text-center px-3">
+      <div className="font-mono font-black text-lg sm:text-xl" style={{ color: '#d4af37' }}>{value}</div>
+      <div className="text-[10px] sm:text-[11px] leading-tight mt-0.5" style={{ color: 'rgba(225,220,205,0.45)' }}>{label}</div>
+    </div>
+  );
+}
 
 export default function Landing() {
   const { isPlaying: isMusicPlaying, toggleMusic } = useMusic();
@@ -71,7 +125,7 @@ export default function Landing() {
                 }}
                 data-testid="button-play-free-header"
               >
-                Play Now
+                Run a Deal
               </button>
             </Link>
           </div>
@@ -113,33 +167,33 @@ export default function Landing() {
           <div className="flex flex-col lg:flex-row lg:items-center lg:gap-12 xl:gap-16">
             <div className="flex-1 text-center lg:text-left mb-6 lg:mb-0">
               <h1
-                className="text-[2.2rem] sm:text-[2.8rem] lg:text-5xl xl:text-[3.5rem] leading-[1.08] font-bold tracking-tight mb-2"
+                className="text-[2.2rem] sm:text-[2.8rem] lg:text-5xl xl:text-[3.5rem] leading-[1.08] font-bold tracking-tight mb-3"
                 style={{
                   color: '#f5f0e0',
                   textShadow: '0 2px 20px rgba(0,0,0,0.5)',
                 }}
               >
-                DealBreak Simulator
+                You have $100K and<br className="hidden sm:inline" /> 12 months. Don't blow it.
               </h1>
 
               <p
-                className="text-lg sm:text-xl lg:text-2xl font-medium leading-snug max-w-[480px] mx-auto lg:mx-0 mb-3"
+                className="text-lg sm:text-xl lg:text-2xl font-medium leading-snug max-w-[520px] mx-auto lg:mx-0 mb-3"
                 style={{
                   color: 'rgba(225,220,205,0.7)',
                   textShadow: '0 1px 8px rgba(0,0,0,0.4)',
                 }}
               >
-                The real estate game that plays back.
+                Every property hides something. Every number lies a little. Find the deal — or find out why you shouldn't have taken it.
               </p>
 
               <p
                 className="text-[15px] sm:text-base leading-relaxed max-w-[520px] mx-auto lg:mx-0 mb-6"
                 style={{
-                  color: 'rgba(225,220,205,0.55)',
+                  color: 'rgba(225,220,205,0.45)',
                   textShadow: '0 1px 8px rgba(0,0,0,0.3)',
                 }}
               >
-                Analyze properties, build pro formas, negotiate financing, and manage tenants in a simulator with shifting markets, hidden risks, and deals that break in ways you won't see coming.
+                A real estate simulation where markets shift, tenants leave, and deals break in ways you won't see coming. No signup. No fluff. Just you and the numbers.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
@@ -147,20 +201,24 @@ export default function Landing() {
                   <button
                     className="group w-full sm:w-auto min-w-[220px] py-3.5 px-10 rounded-lg font-bold text-[17px] tracking-wide transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center gap-2"
                     style={{
-                      background: 'rgba(16,185,129,0.12)',
-                      color: '#4ade80',
-                      boxShadow: '0 0 20px rgba(16,185,129,0.15), inset 0 0 20px rgba(16,185,129,0.05)',
-                      border: '2px solid rgba(16,185,129,0.5)',
+                      background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
+                      color: '#fff',
+                      boxShadow: '0 4px 24px rgba(16,185,129,0.35), 0 2px 0 #047857',
+                      border: '1px solid rgba(16,185,129,0.4)',
                     }}
                     data-testid="button-play-simulator"
                   >
-                    Start Playing
+                    Run Your First Deal
                     <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
                   </button>
                 </Link>
               </div>
 
-              <div className="flex items-center justify-center lg:justify-start gap-5 mt-4 text-sm" style={{ color: 'rgba(225,220,205,0.45)' }}>
+              <p className="mt-3 text-[13px] italic" style={{ color: 'rgba(248,113,113,0.6)' }}>
+                Most players lose money on their first deal.
+              </p>
+
+              <div className="flex items-center justify-center lg:justify-start gap-5 mt-3 text-sm" style={{ color: 'rgba(225,220,205,0.45)' }}>
                 <span className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#10b981' }} />
                   No signup required
@@ -194,7 +252,283 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* === STRATEGY INTEL PROMO === */}
+      {/* === WHAT HAPPENS WHEN YOU PLAY (DOPAMINE LAYER) === */}
+      <section className="py-6 lg:py-14 px-5">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-6 lg:mb-10">
+            <h2
+              className="text-2xl sm:text-3xl lg:text-[2.5rem] font-bold mb-2 tracking-tight leading-tight"
+              style={{ color: '#f0e6d0' }}
+            >
+              What Happens When You Play
+            </h2>
+            <p className="text-sm sm:text-base max-w-xl mx-auto" style={{ color: 'rgba(225,220,205,0.5)' }}>
+              Three decisions. One outcome you can't take back.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
+            {/* Step 1: Evaluate */}
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              style={{
+                background: 'linear-gradient(160deg, rgba(6,182,212,0.06), rgba(19,19,22,0.95))',
+                border: '1px solid rgba(6,182,212,0.15)',
+              }}
+              data-testid="dopamine-step-evaluate"
+            >
+              <div className="relative h-20 overflow-hidden rounded-t-xl">
+                <img
+                  src="/images/properties/craftsman_bungalow_home_exterior.jpg"
+                  alt="Property listing preview"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#131316] via-[#131316]/40 to-transparent" />
+                <div className="absolute bottom-2 left-3 flex items-center gap-2">
+                  <span className="font-mono text-xs font-bold text-white">$185,000</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)' }}>Fair</span>
+                </div>
+              </div>
+              <div className="p-5 pt-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(6,182,212,0.12)', color: '#22d3ee', border: '1px solid rgba(6,182,212,0.25)' }}>01</span>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#22d3ee' }}>You Evaluate</span>
+                </div>
+                <p className="text-[15px] font-semibold mb-2" style={{ color: '#f0e6d0' }}>
+                  "This looks like an 8% return..."
+                </p>
+                <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                  You find a property. The numbers look right. The rent covers the mortgage. You run a pro forma and feel confident. Maybe too confident.
+                </p>
+                <div className="mt-3 flex items-center gap-1.5">
+                  <Eye className="w-3 h-3" style={{ color: 'rgba(6,182,212,0.5)' }} />
+                  <span className="text-[10px]" style={{ color: 'rgba(6,182,212,0.5)' }}>But what aren't you seeing?</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2: Commit */}
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              style={{
+                background: 'linear-gradient(160deg, rgba(212,175,55,0.06), rgba(19,19,22,0.95))',
+                border: '1px solid rgba(212,175,55,0.15)',
+              }}
+              data-testid="dopamine-step-commit"
+            >
+              <div className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(212,175,55,0.12)', color: '#d4af37', border: '1px solid rgba(212,175,55,0.25)' }}>02</span>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#d4af37' }}>You Commit</span>
+                </div>
+                <p className="text-[15px] font-semibold mb-2" style={{ color: '#f0e6d0' }}>
+                  "I'm going in at 80% LTV."
+                </p>
+                <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                  Down payment. Financing. Strategy locked. You've chosen rent or flip, set your assumptions, and signed the deal. No going back. Now you wait.
+                </p>
+                <div className="mt-3 flex items-center gap-1.5">
+                  <Clock className="w-3 h-3" style={{ color: 'rgba(212,175,55,0.5)' }} />
+                  <span className="text-[10px]" style={{ color: 'rgba(212,175,55,0.5)' }}>The market doesn't care about your spreadsheet.</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3: Outcome */}
+            <div
+              className="relative rounded-2xl overflow-hidden"
+              style={{
+                background: 'linear-gradient(160deg, rgba(16,185,129,0.06), rgba(19,19,22,0.95))',
+                border: '1px solid rgba(16,185,129,0.15)',
+              }}
+              data-testid="dopamine-step-outcome"
+            >
+              <div className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)' }}>03</span>
+                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#10b981' }}>The Verdict</span>
+                </div>
+                <p className="text-[15px] font-semibold mb-2" style={{ color: '#f0e6d0' }}>
+                  "+$24,300 profit. Grade: A."
+                </p>
+                <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                  Or: "−$12,000. You missed the foundation issue and the market shifted." The postmortem shows exactly what went wrong — and what you should've caught.
+                </p>
+
+                <div className="mt-3 rounded-lg p-2.5" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.12)' }}>
+                  <div className="grid grid-cols-3 gap-1 text-[9px]">
+                    <span style={{ color: 'rgba(148,163,184,0.5)' }}></span>
+                    <span className="text-center" style={{ color: 'rgba(148,163,184,0.5)' }}>Projected</span>
+                    <span className="text-center" style={{ color: '#10b981' }}>Actual</span>
+                    <span style={{ color: 'rgba(148,163,184,0.6)' }}>Profit</span>
+                    <span className="text-center font-mono text-gray-500">$22k</span>
+                    <span className="text-center font-mono text-white font-semibold">$24.3k</span>
+                    <span style={{ color: 'rgba(148,163,184,0.6)' }}>Cash Flow</span>
+                    <span className="text-center font-mono text-gray-500">$280/mo</span>
+                    <span className="text-center font-mono text-white font-semibold">$312/mo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Micro-dopamine stat bar */}
+          <div
+            className="mt-6 lg:mt-8 rounded-xl py-4 px-3 flex items-center justify-around"
+            style={{
+              background: 'linear-gradient(135deg, rgba(212,175,55,0.04), rgba(19,19,22,0.95), rgba(16,185,129,0.04))',
+              border: '1px solid rgba(180,155,80,0.1)',
+            }}
+            data-testid="stat-bar"
+          >
+            <StatCallout value="67%" label="of deals are traps" />
+            <div className="w-px h-8" style={{ background: 'rgba(180,155,80,0.15)' }} />
+            <StatCallout value="#1" label="mistake: ignoring holding costs" />
+            <div className="w-px h-8 hidden sm:block" style={{ background: 'rgba(180,155,80,0.15)' }} />
+            <div className="hidden sm:block">
+              <StatCallout value="3.2x" label="avg. overestimate on first flip" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* === GAME SHOWCASE (GAMEPLAY FIRST) === */}
+      <Suspense fallback={<div className="py-16" />}>
+        <GameShowcase />
+      </Suspense>
+
+      {/* === THIS IS NOT A CALCULATOR === */}
+      <section
+        className="relative py-6 lg:py-16 overflow-hidden"
+        style={{ background: 'linear-gradient(180deg, #131316 0%, #15151a 50%, #131316 100%)' }}
+      >
+        <div
+          className="absolute inset-x-0 top-0 h-[1px]"
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent)' }}
+        />
+        <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(212,175,55,0.4) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+
+        <div className="max-w-5xl mx-auto px-5">
+          <div className="text-center mb-8 lg:mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.15)' }}>
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#f87171' }} />
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(248,113,113,0.8)' }}>Not a Calculator</span>
+            </div>
+            <h2
+              className="text-2xl sm:text-3xl lg:text-[2.5rem] font-bold mb-3 tracking-tight leading-tight"
+              style={{ color: '#f0e6d0' }}
+            >
+              This Is a Simulation. Things Go Wrong.
+            </h2>
+            <p
+              className="text-sm sm:text-base max-w-2xl mx-auto leading-relaxed"
+              style={{ color: 'rgba(225,220,205,0.55)' }}
+            >
+              You're not filling in a spreadsheet. You're making decisions with incomplete information, shifting conditions, and real consequences. Closer to poker than Excel.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
+            <MechanicCard
+              Icon={EyeOff}
+              accent="#f87171"
+              title="Hidden Variables"
+              detail="Every property has problems you can't see from the listing. Pay for inspections or gamble. Skip due diligence and a termite infestation turns your flip into a teardown."
+            />
+            <MechanicCard
+              Icon={LineChart}
+              accent="#06b6d4"
+              title="Markets That Move"
+              detail="Hot, balanced, or crashing — market conditions shift during your game. Renovation costs spike. Rent demand drops. The same deal plays differently every time."
+            />
+            <MechanicCard
+              Icon={Users}
+              accent="#10b981"
+              title="Tenants With Opinions"
+              detail="Your tenants track satisfaction over time. Ignore a leak long enough and they leave — costing you turnover, vacancy, and months of lost income."
+            />
+            <MechanicCard
+              Icon={Skull}
+              accent="#f59e0b"
+              title="Deferred Consequences"
+              detail="That small issue you skipped in month two? By month eight it's a structural problem costing 2.5x to fix. Problems don't wait for you to notice them."
+            />
+            <MechanicCard
+              Icon={Scale}
+              accent="#a78bfa"
+              title="Two Paths, Two Ways to Fail"
+              detail="Flip for fast profit or rent for cash flow. Each strategy has its own financial model, timeline, and set of things that can quietly go wrong."
+            />
+            <MechanicCard
+              Icon={Dice6}
+              accent="#22d3ee"
+              title="No Two Games Alike"
+              detail="Property issues, market events, tenant behavior, and renovation outcomes are all procedurally generated. Your strategy has to adapt, not memorize."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* === REAL SKILLS STRIP (EDUCATION REPOSITIONED) === */}
+      <section className="py-4 lg:py-10 px-5">
+        <div className="max-w-5xl mx-auto">
+          <div
+            className="relative rounded-2xl overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.04) 0%, rgba(19,19,22,0.95) 40%, rgba(212,175,55,0.03) 100%)',
+              border: '1px solid rgba(180,155,80,0.1)',
+            }}
+          >
+            <div className="absolute top-0 inset-x-0 h-[1px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.3), rgba(212,175,55,0.3), transparent)' }} />
+            <div className="p-5 sm:p-7 lg:p-9">
+              <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-12">
+                <div className="flex-1">
+                  <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'rgba(16,185,129,0.6)' }}>
+                    You learn because you lost money — not before
+                  </p>
+                  <h2
+                    className="text-xl sm:text-2xl font-bold mb-2 tracking-tight"
+                    style={{ color: '#f0e6d0' }}
+                  >
+                    Every concept mirrors how real deals work.
+                  </h2>
+                  <p className="text-sm leading-relaxed max-w-lg" style={{ color: 'rgba(225,220,205,0.55)' }}>
+                    Pro forma modeling, cap rate analysis, LTV-based financing, due diligence trade-offs, market timing — the same framework professional investors use, taught through the deals you play.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2 lg:gap-2.5 lg:max-w-[320px] flex-shrink-0">
+                  {[
+                    'Pro Forma Analysis',
+                    'Cap Rates',
+                    'Cash-on-Cash ROI',
+                    'LTV & Leverage',
+                    'Due Diligence',
+                    'Market Timing',
+                    'Risk Assessment',
+                    'Portfolio Strategy',
+                  ].map((skill) => (
+                    <span
+                      key={skill}
+                      className="text-[11px] font-medium px-3 py-1.5 rounded-lg"
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: 'rgba(225,220,205,0.6)',
+                      }}
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* === STRATEGY INTEL (EDUCATION BELOW GAMEPLAY) === */}
       <section className="py-2 lg:py-10 px-5">
         <div className="max-w-5xl mx-auto">
           <Link href="/learn">
@@ -226,10 +560,10 @@ export default function Landing() {
                     </div>
 
                     <h2 className="text-xl sm:text-2xl font-bold mb-2 tracking-tight group-hover:text-amber-300 transition-colors" style={{ color: '#f0e6d0' }}>
-                      Know the Game Before You Play It
+                      Lost Money? Now Read Why.
                     </h2>
                     <p className="text-sm leading-relaxed mb-4 max-w-lg" style={{ color: 'rgba(225,220,205,0.65)' }}>
-                      The deals that break look exactly like the ones that don't. These field guides teach you how to tell the difference.
+                      The deals that break look exactly like the ones that don't. These field guides teach you how to tell the difference — after you've felt it firsthand.
                     </p>
 
                     <div className="flex flex-wrap gap-2 mb-5">
@@ -302,149 +636,20 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* === GAME SHOWCASE === */}
-      <Suspense fallback={<div className="py-16" />}>
-        <GameShowcase />
-      </Suspense>
-
-      {/* === NOTHING IS STATIC === */}
-      <section
-        className="relative py-6 lg:py-16 overflow-hidden"
-        style={{ background: 'linear-gradient(180deg, #131316 0%, #15151a 50%, #131316 100%)' }}
-      >
-        <div
-          className="absolute inset-x-0 top-0 h-[1px]"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent)' }}
-        />
-        <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(212,175,55,0.4) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
-
-        <div className="max-w-5xl mx-auto px-5">
-          <div className="text-center mb-8 lg:mb-12">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.12)' }}>
-              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#d4af37' }} />
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(212,175,55,0.7)' }}>Built Different</span>
-            </div>
-            <h2
-              className="text-2xl sm:text-3xl lg:text-[2.5rem] font-bold mb-3 tracking-tight leading-tight"
-              style={{ color: '#f0e6d0' }}
-            >
-              Nothing in This Game Is Static
-            </h2>
-            <p
-              className="text-sm sm:text-base max-w-2xl mx-auto leading-relaxed"
-              style={{ color: 'rgba(225,220,205,0.55)' }}
-            >
-              Markets shift mid-game. Tenants lose patience. Contractors surprise you. Every playthrough forces different decisions because the conditions that shape your deals are always moving.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
-            <MechanicCard
-              Icon={LineChart}
-              accent="#06b6d4"
-              title="Dynamic Markets"
-              detail="Hot, balanced, or soft — market conditions shift during your game, changing property values, renovation costs, and rental demand. The same strategy won't work twice."
-            />
-            <MechanicCard
-              Icon={Users}
-              accent="#10b981"
-              title="Living Tenants"
-              detail="Tenants track satisfaction over time. Ignore maintenance and they leave — costing you turnover and vacancy. Keep them happy and your cash flow stays clean."
-            />
-            <MechanicCard
-              Icon={Wrench}
-              accent="#f59e0b"
-              title="Hidden Property Risk"
-              detail="Every property has issues you won't find without paying for due diligence. Skip the inspection and a foundation crack can turn your flip into a money pit."
-            />
-            <MechanicCard
-              Icon={Scale}
-              accent="#a78bfa"
-              title="Dual-Strategy Depth"
-              detail="Flip for fast profit or rent for monthly cash flow. Each path has its own financial model, risk profile, and set of things that can go wrong."
-            />
-            <MechanicCard
-              Icon={TrendingUp}
-              accent="#f87171"
-              title="Progressive Consequences"
-              detail="Deferred maintenance doesn't just sit there — it gets worse. A small leak in month two becomes a structural problem by month eight, with escalating repair costs."
-            />
-            <MechanicCard
-              Icon={Dice6}
-              accent="#22d3ee"
-              title="Procedural Complexity"
-              detail="Property issues, market events, tenant personalities, and renovation outcomes are all procedurally generated. No two games produce the same set of decisions."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* === REAL SKILLS STRIP === */}
-      <section className="py-4 lg:py-10 px-5">
-        <div className="max-w-5xl mx-auto">
-          <div
-            className="relative rounded-2xl overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.04) 0%, rgba(19,19,22,0.95) 40%, rgba(212,175,55,0.03) 100%)',
-              border: '1px solid rgba(180,155,80,0.1)',
-            }}
-          >
-            <div className="absolute top-0 inset-x-0 h-[1px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.3), rgba(212,175,55,0.3), transparent)' }} />
-            <div className="p-5 sm:p-7 lg:p-9">
-              <div className="flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-12">
-                <div className="flex-1">
-                  <h2
-                    className="text-xl sm:text-2xl font-bold mb-2 tracking-tight"
-                    style={{ color: '#f0e6d0' }}
-                  >
-                    Every concept mirrors how real deals are evaluated.
-                  </h2>
-                  <p className="text-sm leading-relaxed max-w-lg" style={{ color: 'rgba(225,220,205,0.55)' }}>
-                    Pro forma modeling, cap rate analysis, LTV-based financing, due diligence trade-offs, market timing — you learn the same analytical framework professional investors use.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2 lg:gap-2.5 lg:max-w-[320px] flex-shrink-0">
-                  {[
-                    'Pro Forma Analysis',
-                    'Cap Rates',
-                    'Cash-on-Cash ROI',
-                    'LTV & Leverage',
-                    'Due Diligence',
-                    'Market Timing',
-                    'Risk Assessment',
-                    'Portfolio Strategy',
-                  ].map((skill) => (
-                    <span
-                      key={skill}
-                      className="text-[11px] font-medium px-3 py-1.5 rounded-lg"
-                      style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        color: 'rgba(225,220,205,0.6)',
-                      }}
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* === CTA === */}
-      <section className="py-4 lg:py-10 px-5">
+      {/* === FINAL CTA === */}
+      <section className="py-6 lg:py-14 px-5">
         <div className="max-w-3xl mx-auto text-center">
           <h2
             className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 tracking-tight"
             style={{ color: '#f0e6d0' }}
           >
-            Ready to find out which deals break?
+            Think you can spot a bad deal?
           </h2>
-          <p className="text-sm sm:text-base mb-6 max-w-xl mx-auto" style={{ color: 'rgba(225,220,205,0.5)' }}>
-            $100,000 starting cash. 12 months on the clock. Dozens of properties, each with its own hidden story. How you play it is up to you.
+          <p className="text-sm sm:text-base mb-2 max-w-xl mx-auto" style={{ color: 'rgba(225,220,205,0.5)' }}>
+            $100,000 starting cash. 12 months on the clock. Dozens of properties, each hiding something. One wrong assumption and the whole deal breaks.
+          </p>
+          <p className="text-xs mb-6" style={{ color: 'rgba(248,113,113,0.5)' }}>
+            Most players overestimate their first deal by 40%.
           </p>
           <Link href="/game">
             <button
@@ -457,7 +662,7 @@ export default function Landing() {
               }}
               data-testid="button-start-first-deal"
             >
-              Start Your First Deal
+              Run Your First Deal
               <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
             </button>
           </Link>
@@ -481,115 +686,40 @@ export default function Landing() {
             />
             <FaqItem
               question="Will this teach me real estate investing?"
-              answer="Dealbreak teaches the analytical framework that professional investors use — pro forma modeling, cap rate analysis, due diligence, and risk assessment. While it's a simulation and not financial advice, the skills transfer directly to evaluating real deals."
+              answer="Yes — by making you do it. You'll learn pro forma analysis, cap rate calculations, LTV-based financing, and risk evaluation by experiencing the consequences of your own decisions. The concepts mirror how real deals are evaluated by professional investors."
+            />
+            <FaqItem
+              question="Is it really a game, or is it just a calculator?"
+              answer="It's a full simulation. Markets shift mid-game. Tenants have satisfaction scores and can leave. Properties have hidden issues. Contractors give different prices. Your deals play out over months with events you can't predict. The financial models are real — the outcomes are earned."
             />
             <FaqItem
               question="How long does a game take?"
-              answer="A typical game takes 20-40 minutes. You manage a 12-month timeline, evaluating properties, running numbers, and executing deals. Each playthrough is different thanks to procedurally generated properties, dynamic market conditions, and randomized events."
+              answer="A single game runs 12 in-game months. Most players complete a game in 15-30 minutes, but you can save and come back anytime. Each deal within the game takes a few minutes to evaluate and commit to."
             />
             <FaqItem
-              question="What strategies can I use?"
-              answer="You can flip properties (buy, renovate, sell for profit) or rent them out (buy, hold, collect monthly income). Each strategy has its own financial model, risk profile, and failure modes. The best players read the market and adapt — sometimes mid-deal."
+              question="Can I play on my phone?"
+              answer="Yes. Dealbreak is designed for mobile play. There's also a native iOS app available. The interface is optimized for touch with large tap targets and mobile-friendly controls."
             />
             <FaqItem
-              question="Does the game play the same each time?"
-              answer="No. Market conditions shift during gameplay, properties have procedurally generated issues, tenant behavior responds to your management decisions, and renovation outcomes depend on contractor choice and market timing. The same property can play out completely differently between games."
+              question="What's the goal?"
+              answer="Make money. You start with $100,000 in cash and 12 months. Buy properties, rent them for cash flow or flip them for profit, and try to end with more money than you started. The Hall of Fame tracks the best performers."
             />
           </div>
         </div>
       </section>
 
-      {/* Disclaimer */}
-      <div className="px-5 py-2 text-center">
-        <p className="text-sm" style={{ color: 'rgba(200,195,180,0.35)' }}>
-          A real estate strategy game. Not financial advice.{' '}
-          <Link href="/methodology" className="underline hover:no-underline" style={{ color: 'rgba(200,195,180,0.45)' }}>
-            Read our methodology
-          </Link>.
+      {/* === DISCLAIMER === */}
+      <div className="px-5 pb-2 pt-4 max-w-3xl mx-auto text-center">
+        <p className="text-[11px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.25)' }}>
+          DealBreak Simulator is a game for educational purposes only. It does not constitute financial, investment, or legal advice. All scenarios, market conditions, and outcomes are simulated. Real estate investing involves substantial risk. Consult a qualified professional before making real investment decisions.
         </p>
-        <div className="mt-2 flex items-center justify-center">
-          <p className="text-xs font-mono" style={{ color: 'rgba(200,195,180,0.2)' }}>
-            v3.4
-          </p>
-        </div>
+        <p className="text-[10px] mt-2" style={{ color: 'rgba(225,220,205,0.15)' }}>v2.0</p>
       </div>
 
+      {/* === FOOTER === */}
       <Suspense fallback={null}>
         <Footer />
       </Suspense>
-      <div className="pb-[max(0.5rem,env(safe-area-inset-bottom))]" />
     </div>
-  );
-}
-
-function MechanicCard({
-  Icon,
-  accent,
-  title,
-  detail,
-}: {
-  Icon: typeof LineChart;
-  accent: string;
-  title: string;
-  detail: string;
-}) {
-  return (
-    <div
-      className="relative p-4 rounded-xl border transition-all hover:border-opacity-50 group"
-      style={{
-        background: 'rgba(255,255,255,0.02)',
-        borderColor: `${accent}18`,
-      }}
-    >
-      <div className="absolute top-0 inset-x-4 h-[1px]" style={{ background: `linear-gradient(90deg, transparent, ${accent}30, transparent)` }} />
-      <div className="flex items-start gap-3">
-        <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-          style={{ background: `${accent}10`, border: `1px solid ${accent}20` }}
-        >
-          <Icon className="w-4 h-4" style={{ color: accent }} />
-        </div>
-        <div className="min-w-0">
-          <h3 className="font-semibold text-[15px] mb-1" style={{ color: '#e8dfc8' }}>{title}</h3>
-          <p className="text-[13px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>{detail}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FaqItem({
-  question,
-  answer,
-}: {
-  question: string;
-  answer: string;
-}) {
-  return (
-    <details
-      className="group rounded-xl border overflow-hidden"
-      style={{
-        background: 'rgba(255,255,255,0.02)',
-        borderColor: 'rgba(180,155,80,0.08)',
-      }}
-    >
-      <summary
-        className="px-4 py-3.5 cursor-pointer select-none flex items-center justify-between"
-        style={{ color: '#e8dfc8' }}
-      >
-        <span className="font-semibold text-[15px] pr-4">{question}</span>
-        <span
-          className="text-sm font-bold transition-transform group-open:rotate-45 flex-shrink-0"
-          style={{ color: '#d4af37' }}
-        >
-          +
-        </span>
-      </summary>
-      <div className="px-4 pb-4">
-        <p className="text-[14px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.6)' }}>
-          {answer}
-        </p>
-      </div>
-    </details>
   );
 }

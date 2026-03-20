@@ -175,10 +175,34 @@ function PortfolioCard() {
 }
 
 const phases = [
-  { step: '01', label: 'Scout Properties', accent: '#d4af37' },
-  { step: '02', label: 'Run the Numbers', accent: '#06b6d4' },
-  { step: '03', label: 'Close the Deal', accent: '#10b981' },
-  { step: '04', label: 'Build a Portfolio', accent: '#f59e0b' },
+  {
+    step: '01',
+    label: 'Scout Properties',
+    accent: '#d4af37',
+    caption: 'You think this deal works...',
+    sub: 'The listing looks clean. The price fits your budget. But the numbers on the listing are never the whole story.',
+  },
+  {
+    step: '02',
+    label: 'Run the Numbers',
+    accent: '#06b6d4',
+    caption: 'The spreadsheet says yes.',
+    sub: 'Positive cash flow. Decent ROI. But did you account for vacancy? Maintenance? What happens when the market shifts?',
+  },
+  {
+    step: '03',
+    label: 'Close the Deal',
+    accent: '#10b981',
+    caption: 'The truth comes out.',
+    sub: 'Some deals beat your projections. Others expose every assumption you got wrong. The postmortem holds nothing back.',
+  },
+  {
+    step: '04',
+    label: 'Build a Portfolio',
+    accent: '#f59e0b',
+    caption: 'Survive long enough to compound.',
+    sub: 'One deal teaches a lesson. A portfolio proves you learned it. Balance risk across rentals and flips to grow your wealth.',
+  },
 ];
 
 export function GameShowcase() {
@@ -224,7 +248,13 @@ export function GameShowcase() {
                   {phases[i].label}
                 </span>
               </div>
+              <p className="text-[13px] font-semibold mb-1 text-center" style={{ color: '#f0e6d0' }}>
+                {phases[i].caption}
+              </p>
               <Card />
+              <p className="text-[10px] leading-relaxed text-center mt-2 px-1 max-w-[240px]" style={{ color: 'rgba(225,220,205,0.4)' }}>
+                {phases[i].sub}
+              </p>
             </div>
           ))}
         </div>

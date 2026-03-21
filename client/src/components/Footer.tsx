@@ -27,9 +27,7 @@ export default function Footer() {
             </Link>
           </div>
 
-          <span className="text-gray-600 text-xs sm:text-sm text-center">
-            © 2026 Dealbreak. All Rights Reserved.
-          </span>
+          <span className="text-gray-600 text-xs sm:text-sm text-center">© 2026 Infarill LLC. All Rights Reserved.</span>
         </div>
       </div>
     </footer>

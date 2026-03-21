@@ -630,7 +630,10 @@ export default function Landing() {
             Think you can spot a bad deal?
           </h2>
           <p className="text-sm sm:text-base mb-2 max-w-xl mx-auto" style={{ color: 'rgba(225,220,205,0.5)' }}>
-            $100,000 starting cash. 52 weeks on the clock. Dozens of properties, each hiding something. One wrong assumption and the whole deal breaks.
+            $100,000 starting cash. 12 months on the clock. Dozens of properties, each hiding something. One wrong assumption and the whole deal breaks.
+          </p>
+          <p className="text-xs mb-2 max-w-lg mx-auto" style={{ color: 'rgba(225,220,205,0.35)' }}>
+            Your pro forma won't match reality on day one — but each deal teaches you to refine your assumptions. Better diligence, sharper analysis, stronger results.
           </p>
           <p className="text-xs mb-6" style={{ color: 'rgba(248,113,113,0.5)' }}>
             Most players overestimate their first deal by 40%.
@@ -670,7 +673,7 @@ export default function Landing() {
             />
             <FaqItem
               question="Will this teach me real estate investing?"
-              answer="Yes — by making you do it. You'll learn pro forma analysis, cap rate calculations, LTV-based financing, and risk evaluation by experiencing the consequences of your own decisions. The concepts mirror how real deals are evaluated by professional investors."
+              answer="Yes — by making you do it. You'll learn pro forma analysis, cap rate calculations, LTV-based financing, and risk evaluation by experiencing the consequences of your own decisions. Your first pro forma probably won't match reality — but that's the point. Each deal sharpens your assumptions. Add more diligence, run better comps, and your projections get closer to what actually happens. The concepts mirror how real deals are evaluated by professional investors."
             />
             <FaqItem
               question="Is it really a game, or is it just a calculator?"
@@ -678,7 +681,7 @@ export default function Landing() {
             />
             <FaqItem
               question="How long does a game take?"
-              answer="A single game runs 52 in-game weeks. Most players complete a game in 15-30 minutes, but you can save and come back anytime. Each deal within the game takes a few minutes to evaluate and commit to."
+              answer="A single game runs 12 in-game months. Most players complete a game in 15-30 minutes, but you can save and come back anytime. Each deal within the game takes a few minutes to evaluate and commit to."
             />
             <FaqItem
               question="Can I play on my phone?"
@@ -686,7 +689,7 @@ export default function Landing() {
             />
             <FaqItem
               question="What's the goal?"
-              answer="Make money. You start with $100,000 in cash and 52 weeks. Buy properties, rent them for cash flow or flip them for profit, and try to end with more money than you started. The Hall of Fame tracks the best performers."
+              answer="Make money. You start with $100,000 in cash and 12 months. Buy properties, rent them for cash flow or flip them for profit, and try to end with more money than you started. The Hall of Fame tracks the best performers."
             />
           </div>
         </div>

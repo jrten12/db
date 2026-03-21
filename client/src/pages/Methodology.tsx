@@ -72,7 +72,7 @@ export default function Methodology() {
               the moment a seemingly profitable deal turns into a loss.
             </p>
             <p>
-              Players start with $75,000 in capital and 52 weeks to complete three
+              Players start with $75,000 in capital and 12 months to complete three
               profitable deals. Every decision — from property selection and due
               diligence to financing structure and exit strategy — feeds into the
               simulation engine, which stress-tests the deal against shifting market
@@ -171,7 +171,7 @@ export default function Methodology() {
               <p>
                 The simulator models a five-state market cycle — terrible, poor,
                 neutral, good, and excellent — with weighted probabilistic
-                transitions every four in-game weeks. Key behaviors include:
+                transitions every in-game month. Key behaviors include:
               </p>
               <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
                 <li>"Excellent" markets carry a 15% crash probability per cycle</li>

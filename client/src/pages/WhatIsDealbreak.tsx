@@ -70,7 +70,7 @@ export default function WhatIsDealbreak() {
             How the Real Estate Simulator Game Works
           </h2>
           <p className="leading-relaxed mb-4" style={{ color: 'rgba(225,220,205,0.65)' }}>
-            You start with $100,000 in cash and 12 months on the clock. Properties appear on the market with varying prices, conditions, and neighborhoods. Your job is to evaluate each deal like a real investor would — running the numbers, investigating potential problems, and deciding whether to commit your capital.
+            You start with $100,000 in cash and 52 months on the clock. Properties appear on the market with varying prices, conditions, and neighborhoods. Your job is to evaluate each deal like a real investor would — running the numbers, investigating potential problems, and deciding whether to commit your capital.
           </p>
           <p className="leading-relaxed" style={{ color: 'rgba(225,220,205,0.65)' }}>
             Every decision has consequences. Skip due diligence and you might miss a termite infestation. Over-leverage with a high LTV loan and one bad month could wipe you out. The property investment simulator rewards careful analysis and punishes reckless speculation — just like real markets do.

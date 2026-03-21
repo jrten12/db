@@ -1435,7 +1435,7 @@ export default function Game() {
           } else if (result.newWeek === 30) {
             message = "Past the halfway mark. Your scorecard is tracking your progress — review it in the menu.";
           } else if (result.newWeek === 40) {
-            message = "12 months to go. Time to review your benchmarks and make final moves. Check Performance Stats.";
+            message = "12 months left. Time to review your benchmarks and make final moves. Check Performance Stats.";
           }
           if (message) {
             toast(message, { duration: 5000 });

@@ -10,7 +10,7 @@ DealBreak Simulator is an educational game where players learn real estate under
 - Build pro forma financial models (income, expenses, cash flow)
 - Choose between Flip (buy-renovate-sell) and Rent (buy-hold-collect) strategies
 - Conduct due diligence (inspections, appraisals, comps, title search)
-- Manage contractors, tenants, and market conditions over a 12-month timeline
+- Manage contractors, tenants, and market conditions over a 52-month timeline
 - Experience realistic events: maintenance issues, market shifts, tenant turnover
 - Post-deal analysis comparing your projections to actual outcomes
 

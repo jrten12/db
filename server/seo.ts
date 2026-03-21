@@ -244,7 +244,7 @@ const ARTICLE_DATA: Record<string, { title: string; subtitle: string; category: 
 const FAQ_DATA = [
   { question: "Is Dealbreak free to play?", answer: "Yes. The full game is free to play with no signup required. Optional premium boosts are available for players who want extra cash or time, but they're never required to win." },
   { question: "Will this teach me real estate investing?", answer: "Dealbreak teaches the analytical framework that professional investors use — pro forma modeling, cap rate analysis, due diligence, and risk assessment. While it's a simulation and not financial advice, the skills transfer directly to evaluating real deals." },
-  { question: "How long does a game take?", answer: "A typical game takes 20-40 minutes. You manage a 12-month timeline, evaluating properties, running numbers, and executing deals. Each playthrough is different thanks to randomized properties, market conditions, and events." },
+  { question: "How long does a game take?", answer: "A typical game takes 20-40 minutes. You manage a 52-month timeline, evaluating properties, running numbers, and executing deals. Each playthrough is different thanks to randomized properties, market conditions, and events." },
   { question: "What strategies can I use?", answer: "You can flip properties (buy, renovate, sell for profit) or rent them out (buy, hold, collect monthly income). Each strategy has different risk-reward profiles, and the best players learn to mix both depending on market conditions and their financial position." }
 ];
 

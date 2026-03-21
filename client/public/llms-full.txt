@@ -4,7 +4,7 @@
 
 ## What Is DealBreak Simulator?
 
-DealBreak Simulator is a turn-based educational game that teaches real estate underwriting — the analytical process investors use to evaluate whether a property deal will make or lose money. Players start with $100,000 in virtual cash and navigate a 12-month timeline, evaluating properties, building financial models, conducting due diligence, managing renovations and tenants, and experiencing realistic market events.
+DealBreak Simulator is a turn-based educational game that teaches real estate underwriting — the analytical process investors use to evaluate whether a property deal will make or lose money. Players start with $100,000 in virtual cash and navigate a 52-month timeline, evaluating properties, building financial models, conducting due diligence, managing renovations and tenants, and experiencing realistic market events.
 
 The game emphasizes the cause-and-effect relationships between assumptions (rent estimates, vacancy rates, repair budgets) and outcomes (cash flow, ROI, deal success or failure). Every playthrough is different thanks to randomized properties, market conditions, and events.
 

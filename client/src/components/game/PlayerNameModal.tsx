@@ -34,7 +34,7 @@ const playUkuleleStrum = () => {
 };
 
 const HEADLINES = [
-  { icon: TrendingUp, text: '$100K starting cash. 12 months on the clock.' },
+  { icon: TrendingUp, text: '$100K starting cash. 52 months on the clock.' },
   { icon: DollarSign, text: 'Flip houses. Build rental income. Beat the market.' },
   { icon: Building2, text: 'Analyze deals. Manage risk. Close profitable exits.' },
   { icon: Briefcase, text: 'Due diligence matters. Skip it at your own risk.' },

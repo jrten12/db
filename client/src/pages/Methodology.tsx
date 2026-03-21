@@ -72,7 +72,7 @@ export default function Methodology() {
               the moment a seemingly profitable deal turns into a loss.
             </p>
             <p>
-              Players start with $75,000 in capital and 12 months to complete three
+              Players start with $100,000 in capital and 52 months to complete two
               profitable deals. Every decision — from property selection and due
               diligence to financing structure and exit strategy — feeds into the
               simulation engine, which stress-tests the deal against shifting market

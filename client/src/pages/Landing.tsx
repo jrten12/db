@@ -173,7 +173,7 @@ export default function Landing() {
                   textShadow: '0 2px 20px rgba(0,0,0,0.5)',
                 }}
               >
-                You have $100K and<br className="hidden sm:inline" /> 12 months. Don't blow it.
+                You have $100K and<br className="hidden sm:inline" /> 52 weeks. Don't blow it.
               </h1>
 
               <p
@@ -640,7 +640,7 @@ export default function Landing() {
             Think you can spot a bad deal?
           </h2>
           <p className="text-sm sm:text-base mb-2 max-w-xl mx-auto" style={{ color: 'rgba(225,220,205,0.5)' }}>
-            $100,000 starting cash. 12 months on the clock. Dozens of properties, each hiding something. One wrong assumption and the whole deal breaks.
+            $100,000 starting cash. 52 weeks on the clock. Dozens of properties, each hiding something. One wrong assumption and the whole deal breaks.
           </p>
           <p className="text-xs mb-6" style={{ color: 'rgba(248,113,113,0.5)' }}>
             Most players overestimate their first deal by 40%.
@@ -688,7 +688,7 @@ export default function Landing() {
             />
             <FaqItem
               question="How long does a game take?"
-              answer="A single game runs 12 in-game months. Most players complete a game in 15-30 minutes, but you can save and come back anytime. Each deal within the game takes a few minutes to evaluate and commit to."
+              answer="A single game runs 52 in-game weeks. Most players complete a game in 15-30 minutes, but you can save and come back anytime. Each deal within the game takes a few minutes to evaluate and commit to."
             />
             <FaqItem
               question="Can I play on my phone?"
@@ -696,7 +696,7 @@ export default function Landing() {
             />
             <FaqItem
               question="What's the goal?"
-              answer="Make money. You start with $100,000 in cash and 12 months. Buy properties, rent them for cash flow or flip them for profit, and try to end with more money than you started. The Hall of Fame tracks the best performers."
+              answer="Make money. You start with $100,000 in cash and 52 weeks. Buy properties, rent them for cash flow or flip them for profit, and try to end with more money than you started. The Hall of Fame tracks the best performers."
             />
           </div>
         </div>

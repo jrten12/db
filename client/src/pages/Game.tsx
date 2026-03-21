@@ -39,6 +39,7 @@ import { ContractorWalkthroughModal } from '@/components/game/ContractorWalkthro
 import { GoldTreasureModal } from '@/components/game/GoldTreasureModal';
 import { OperatingExpensesPopup } from '@/components/game/OperatingExpensesPopup';
 import { DealCongratulations } from '@/components/game/DealCongratulations';
+import { RentalRealityReveal } from '@/components/game/RentalRealityReveal';
 import { PropertySoldAnimation } from '@/components/game/PropertySoldAnimation';
 import { DealShareCard } from '@/components/game/DealShareCard';
 import { useTutorial } from '@/contexts/TutorialContext';
@@ -868,6 +869,26 @@ export default function Game() {
     strategy: 'rent' | 'flip';
   } | null>(null);
   
+  const [rentalReveal, setRentalReveal] = useState<{
+    isOpen: boolean;
+    data: {
+      propertyName: string;
+      projectedRent: number;
+      actualRent: number;
+      projectedCashFlow: number;
+      actualCashFlow: number;
+      projectedVacancy: number;
+      actualVacancy: number;
+      projectedExpenses: number;
+      actualExpenses: number;
+      debtService: number;
+      explanation: string;
+      wasOptimistic: boolean;
+      isInRehab: boolean;
+      rehabMonths?: number;
+    } | null;
+  }>({ isOpen: false, data: null });
+
   const [dealCongrats, setDealCongrats] = useState<{
     isOpen: boolean;
     data: {
@@ -1069,15 +1090,12 @@ export default function Game() {
           toast.success('Flip started! No renovations planned - ready to list immediately. Sale price will reflect property condition.');
         }
       } else {
-        // Activate rental property
         const rentalResult = await api.activateRental(newDeal.id, gameRun.id);
         
-        // Show title issue warning if skipped title search
         if (rentalResult.titleIssue) {
           toast.error(`📜 Title Issue: ${rentalResult.titleIssue.name} - $${rentalResult.titleIssue.cost.toLocaleString()} to resolve! Should have done the title search.`, { duration: 8000 });
         }
         
-        // Show surprise costs warning if any hidden issues were discovered
         const repairIssues = rentalResult.surpriseIssues.filter((i: string) => !i.startsWith('Title:'));
         if (repairIssues.length > 0) {
           const repairCost = rentalResult.surpriseCosts - (rentalResult.titleIssue?.cost || 0);
@@ -1086,18 +1104,57 @@ export default function Game() {
           }
         }
 
-        // Update game run with new cash balance after surprise costs
         const updatedGameRun = await api.getGameRun(gameRun.id);
         setGameRun(updatedGameRun);
 
-        if (rentalResult.deal.rentalRehabActive) {
-          const rehabMonths = (rentalResult.deal.proFormaInputs as any)?.rehabWeeks || 0;
-          toast.success(`Rehab started! Property will be tenant-ready in ${rehabMonths} month${rehabMonths !== 1 ? 's' : ''}. Carrying costs apply until then.`, { duration: 6000 });
+        const dealOutputs = rentalResult.deal.proFormaOutputs as any;
+        const dealInputs = rentalResult.deal.proFormaInputs as any;
+        const projectedRent = proFormaInputs.expectedRent || dealInputs?.expectedRent || 0;
+        const actualRent = dealOutputs?.monthlyGrossRent || 0;
+        const projectedVacancy = proFormaInputs.vacancyRate || dealInputs?.vacancyRate || 5;
+        const actualVacancy = dealOutputs?.effectiveVacancyRate || projectedVacancy;
+        const projectedDebtService = proFormaOutputs?.debtServiceMonthly || 0;
+        const actualDebtService = dealOutputs?.monthlyDebtService || projectedDebtService;
+        const projectedCF = proFormaOutputs?.cashFlowMonthly || 0;
+        const actualCF = dealOutputs?.cashFlowMonthly || 0;
+        const projectedEffRent = projectedRent * (1 - projectedVacancy / 100);
+        const projectedExpenses = Math.max(0, projectedEffRent - (proFormaOutputs?.noiMonthly || 0));
+        const actualExpenses = dealOutputs?.monthlyOperatingExpenses || projectedExpenses;
+        const isInRehab = !!rentalResult.deal.rentalRehabActive;
+        const rehabMonths = isInRehab ? (dealInputs?.rehabWeeks || 0) : undefined;
+
+        const rc = rentalResult.realityCheck;
+        let explanation = '';
+        if (rc) {
+          explanation = rc.explanation;
+        } else if (Math.abs(actualCF - projectedCF) < 50) {
+          explanation = 'Your projections were right on target. Good underwriting leads to predictable results.';
+        } else if (actualCF > projectedCF) {
+          explanation = 'The property is performing better than expected. Your conservative estimates gave you upside.';
         } else {
-          toast.success('Rental activated! You will receive monthly income.');
+          explanation = 'Reality came in below your projections. Market conditions, property condition, and diligence depth all play a role.';
         }
+
+        setRentalReveal({
+          isOpen: false,
+          data: {
+            propertyName: selectedProperty.name,
+            projectedRent,
+            actualRent,
+            projectedCashFlow: projectedCF,
+            actualCashFlow: actualCF,
+            projectedVacancy,
+            actualVacancy,
+            projectedExpenses,
+            actualExpenses,
+            debtService: actualDebtService,
+            explanation,
+            wasOptimistic: rc?.wasOptimistic ?? (actualCF < projectedCF),
+            isInRehab,
+            rehabMonths,
+          },
+        });
         
-        // Show trophy notifications if any were awarded
         if (rentalResult.awardedTrophies && rentalResult.awardedTrophies.length > 0) {
           addTrophies(rentalResult.awardedTrophies);
         }
@@ -2255,25 +2312,29 @@ export default function Game() {
             }
             const unfixedCount = Math.max(0, totalIssueCount - fixedIds.length);
             
-            setDealCongrats({
-              isOpen: true,
-              data: {
-                propertyName: dealOutcome?.property.name || '',
-                strategy: dealOutcome?.strategy || 'rent',
-                totalCashInvested: proFormaOutputs?.totalCashInvested || 0,
-                ltv: proFormaInputs.ltv,
-                cashFlow: dealOutcome?.strategy === 'rent' ? proFormaOutputs?.cashFlowMonthly : undefined,
-                profit: dealOutcome?.strategy === 'flip' ? flipMetrics.profit : undefined,
-                roi: dealOutcome?.strategy === 'flip' ? flipMetrics.roi : undefined,
-                isFirstDeal,
-                didDueDiligence,
-                propertyPrice: dealOutcome?.property.price || 0,
-                dealCount: deals.length + 1,
-                hasUnfixedIssues: unfixedCount > 0,
-                unfixedIssueCount: unfixedCount,
-                marketCondition: gameRun?.marketCondition || 'neutral',
-              }
-            });
+            const congratsData = {
+              propertyName: dealOutcome?.property.name || '',
+              strategy: dealOutcome?.strategy as 'rent' | 'flip' || 'rent',
+              totalCashInvested: proFormaOutputs?.totalCashInvested || 0,
+              ltv: proFormaInputs.ltv,
+              cashFlow: dealOutcome?.strategy === 'rent' ? proFormaOutputs?.cashFlowMonthly : undefined,
+              profit: dealOutcome?.strategy === 'flip' ? flipMetrics.profit : undefined,
+              roi: dealOutcome?.strategy === 'flip' ? flipMetrics.roi : undefined,
+              isFirstDeal,
+              didDueDiligence,
+              propertyPrice: dealOutcome?.property.price || 0,
+              dealCount: deals.length + 1,
+              hasUnfixedIssues: unfixedCount > 0,
+              unfixedIssueCount: unfixedCount,
+              marketCondition: gameRun?.marketCondition || 'neutral',
+            };
+
+            if (dealOutcome?.strategy === 'rent' && rentalReveal.data) {
+              setRentalReveal(prev => ({ ...prev, isOpen: true }));
+              setDealCongrats({ isOpen: false, data: congratsData });
+            } else {
+              setDealCongrats({ isOpen: true, data: congratsData });
+            }
             
             setCurrentScreen('results');
             setIsCommittingDeal(false);
@@ -2281,6 +2342,18 @@ export default function Game() {
           }}
         />
         
+        {/* Rental Reality Reveal */}
+        <RentalRealityReveal
+          isOpen={rentalReveal.isOpen}
+          onClose={() => {
+            setRentalReveal({ isOpen: false, data: null });
+            if (dealCongrats.data) {
+              setDealCongrats(prev => ({ ...prev, isOpen: true }));
+            }
+          }}
+          data={rentalReveal.data}
+        />
+
         {/* Deal Congratulations Popup */}
         <DealCongratulations
           isOpen={dealCongrats.isOpen}

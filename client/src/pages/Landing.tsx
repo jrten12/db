@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, AlertTriangle, Eye, EyeOff, Skull, Clock } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock } from 'lucide-react';
 import heroHouseImage from '@assets/Gemini_hero.webp';
 import dbLogoImage from '@assets/db_logo_64.webp';
 const heroBgPattern = '/hero-bg-pattern.webp';
@@ -267,109 +267,100 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
-            {/* Step 1: Evaluate */}
-            <div
-              className="relative rounded-2xl overflow-hidden"
-              style={{
-                background: 'linear-gradient(160deg, rgba(6,182,212,0.06), rgba(19,19,22,0.95))',
-                border: '1px solid rgba(6,182,212,0.15)',
-              }}
-              data-testid="dopamine-step-evaluate"
-            >
-              <div className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(6,182,212,0.12)', color: '#22d3ee', border: '1px solid rgba(6,182,212,0.25)' }}>01</span>
-                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#22d3ee' }}>You Evaluate</span>
+          {/* Visual story: Property vs Hidden Risk */}
+          <div
+            className="rounded-2xl overflow-hidden mb-6"
+            style={{ border: '1px solid rgba(180,155,80,0.15)' }}
+            data-testid="dopamine-visual-story"
+          >
+            <div className="grid grid-cols-2">
+              <div className="relative">
+                <img
+                  src="/images/properties/hillside_retreat_front.jpg"
+                  alt="Hillside Retreat - looks like a great deal"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  style={{ minHeight: '140px', maxHeight: '200px' }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3">
+                  <p className="text-white font-bold text-xs sm:text-sm">Hillside Retreat</p>
+                  <p className="text-emerald-400 font-mono text-[11px] sm:text-xs font-bold">$248,000</p>
                 </div>
-                <p className="text-[15px] font-semibold mb-1.5" style={{ color: '#f0e6d0' }}>
-                  "This looks like an 8% return..."
-                </p>
-                <div className="rounded-lg p-2 mb-2" style={{ background: 'rgba(6,182,212,0.05)', border: '1px solid rgba(6,182,212,0.1)' }}>
-                  <div className="flex items-center justify-between text-[10px] mb-1">
-                    <span style={{ color: 'rgba(148,163,184,0.7)' }}>Est. Rent</span>
-                    <span className="font-mono text-cyan-400">$1,400 - $1,800/mo</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px]">
-                    <span style={{ color: 'rgba(148,163,184,0.7)' }}>Condition</span>
-                    <span style={{ color: '#fbbf24' }}>Fair — needs work</span>
-                  </div>
+                <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold" style={{ background: 'rgba(16,185,129,0.25)', color: '#4ade80', border: '1px solid rgba(16,185,129,0.4)' }}>
+                  What you see
                 </div>
-                <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
-                  The numbers look right. The rent covers the mortgage. You feel confident. Maybe too confident.
-                </p>
-                <div className="mt-2 flex items-center gap-1.5">
-                  <Eye className="w-3 h-3" style={{ color: 'rgba(6,182,212,0.5)' }} />
-                  <span className="text-[10px]" style={{ color: 'rgba(6,182,212,0.5)' }}>But what aren't you seeing?</span>
+              </div>
+              <div className="relative">
+                <img
+                  src="/images/properties/issues_foundation_crack.jpg"
+                  alt="Foundation crack discovered during inspection"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  style={{ minHeight: '140px', maxHeight: '200px' }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 right-2 sm:right-3">
+                  <p className="text-red-400 font-bold text-[11px] sm:text-xs">Foundation Crack</p>
+                  <p className="text-red-300/70 font-mono text-[10px] sm:text-[11px]">−$18,000 repair</p>
+                </div>
+                <div className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold" style={{ background: 'rgba(248,113,113,0.25)', color: '#f87171', border: '1px solid rgba(248,113,113,0.4)' }}>
+                  What you missed
                 </div>
               </div>
             </div>
+            <div className="px-4 py-2.5 text-center" style={{ background: 'rgba(19,19,22,0.95)' }}>
+              <p className="text-[11px] sm:text-xs" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                Skip the inspection and you won't know until it's too late. <span style={{ color: '#f87171' }}>This is how deals break.</span>
+              </p>
+            </div>
+          </div>
 
-            {/* Step 2: Commit */}
-            <div
-              className="relative rounded-2xl overflow-hidden"
-              style={{
-                background: 'linear-gradient(160deg, rgba(212,175,55,0.06), rgba(19,19,22,0.95))',
-                border: '1px solid rgba(212,175,55,0.15)',
-              }}
-              data-testid="dopamine-step-commit"
-            >
-              <div className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(212,175,55,0.12)', color: '#d4af37', border: '1px solid rgba(212,175,55,0.25)' }}>02</span>
-                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#d4af37' }}>You Commit</span>
-                </div>
-                <p className="text-[15px] font-semibold mb-1.5" style={{ color: '#f0e6d0' }}>
-                  "I'm going in at 80% LTV."
-                </p>
-                <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
-                  Down payment. Financing. Strategy locked. Rent or flip, assumptions set, deal signed. No going back.
-                </p>
-                <div className="mt-2 flex items-center gap-1.5">
-                  <Clock className="w-3 h-3" style={{ color: 'rgba(212,175,55,0.5)' }} />
-                  <span className="text-[10px]" style={{ color: 'rgba(212,175,55,0.5)' }}>The market doesn't care about your spreadsheet.</span>
-                </div>
+          {/* Three steps — horizontal on desktop, compact on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-5">
+            <div className="rounded-xl p-4" style={{ background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.12)' }} data-testid="dopamine-step-evaluate">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(6,182,212,0.12)', color: '#22d3ee', border: '1px solid rgba(6,182,212,0.25)' }}>01</span>
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#22d3ee' }}>You Evaluate</span>
               </div>
+              <p className="text-sm font-semibold mb-1" style={{ color: '#f0e6d0' }}>
+                "Looks like 8% cash-on-cash."
+              </p>
+              <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                Rent estimate, comps, condition — it all checks out. But the listing never tells the whole story.
+              </p>
             </div>
 
-            {/* Step 3: Outcome */}
-            <div
-              className="relative rounded-2xl overflow-hidden"
-              style={{
-                background: 'linear-gradient(160deg, rgba(16,185,129,0.06), rgba(19,19,22,0.95))',
-                border: '1px solid rgba(16,185,129,0.15)',
-              }}
-              data-testid="dopamine-step-outcome"
-            >
-              <div className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)' }}>03</span>
-                  <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#10b981' }}>The Verdict</span>
-                </div>
-                <p className="text-[15px] font-semibold mb-1.5" style={{ color: '#f0e6d0' }}>
-                  "+$24,300 profit. Grade: A."
-                </p>
-                <p className="text-xs leading-relaxed mb-2" style={{ color: 'rgba(225,220,205,0.5)' }}>
-                  Or: "−$12,000. You missed the foundation issue." The postmortem shows exactly what went wrong.
-                </p>
-
-                <div className="rounded-lg p-2" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.12)' }}>
-                  <div className="grid grid-cols-3 gap-1 text-[9px]">
-                    <span style={{ color: 'rgba(148,163,184,0.5)' }}></span>
-                    <span className="text-center" style={{ color: 'rgba(148,163,184,0.5)' }}>Projected</span>
-                    <span className="text-center" style={{ color: '#10b981' }}>Actual</span>
-                    <span style={{ color: 'rgba(148,163,184,0.6)' }}>Profit</span>
-                    <span className="text-center font-mono text-gray-500">$22k</span>
-                    <span className="text-center font-mono text-white font-semibold">$24.3k</span>
-                  </div>
-                </div>
+            <div className="rounded-xl p-4" style={{ background: 'rgba(212,175,55,0.04)', border: '1px solid rgba(212,175,55,0.12)' }} data-testid="dopamine-step-commit">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(212,175,55,0.12)', color: '#d4af37', border: '1px solid rgba(212,175,55,0.25)' }}>02</span>
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#d4af37' }}>You Commit</span>
               </div>
+              <p className="text-sm font-semibold mb-1" style={{ color: '#f0e6d0' }}>
+                "Going in at 80% LTV."
+              </p>
+              <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                Down payment locked. Strategy chosen. Deal signed. The market doesn't care about your spreadsheet.
+              </p>
+            </div>
+
+            <div className="rounded-xl p-4" style={{ background: 'rgba(16,185,129,0.04)', border: '1px solid rgba(16,185,129,0.12)' }} data-testid="dopamine-step-outcome">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.25)' }}>03</span>
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#10b981' }}>The Verdict</span>
+              </div>
+              <p className="text-sm font-semibold mb-1" style={{ color: '#f0e6d0' }}>
+                "+$24,300. Grade: A."
+              </p>
+              <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                Or −$12,000. The postmortem shows what you got right, what you missed, and why.
+              </p>
             </div>
           </div>
 
           {/* Micro-dopamine stat bar */}
           <div
-            className="mt-6 lg:mt-8 rounded-xl py-4 px-3 flex items-center justify-around"
+            className="mt-5 lg:mt-8 rounded-xl py-3.5 px-3 flex items-center justify-around"
             style={{
               background: 'linear-gradient(135deg, rgba(212,175,55,0.04), rgba(19,19,22,0.95), rgba(16,185,129,0.04))',
               border: '1px solid rgba(180,155,80,0.1)',

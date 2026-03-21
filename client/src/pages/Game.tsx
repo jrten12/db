@@ -1090,7 +1090,12 @@ export default function Game() {
         const updatedGameRun = await api.getGameRun(gameRun.id);
         setGameRun(updatedGameRun);
 
-        toast.success('Rental activated! You will receive monthly income.');
+        if (rentalResult.deal.rentalRehabActive) {
+          const rehabMonths = (rentalResult.deal.proFormaInputs as any)?.rehabWeeks || 0;
+          toast.success(`Rehab started! Property will be tenant-ready in ${rehabMonths} month${rehabMonths !== 1 ? 's' : ''}. Carrying costs apply until then.`, { duration: 6000 });
+        } else {
+          toast.success('Rental activated! You will receive monthly income.');
+        }
         
         // Show trophy notifications if any were awarded
         if (rentalResult.awardedTrophies && rentalResult.awardedTrophies.length > 0) {
@@ -1244,7 +1249,7 @@ export default function Game() {
         const tenantDealIds = new Set(existingTenants.map(t => t.dealId));
         
         // Create tenants only for rentals that don't have one yet
-        const rentalsNeedingTenants = activeRentals.filter(r => !tenantDealIds.has(r.id));
+        const rentalsNeedingTenants = activeRentals.filter(r => !tenantDealIds.has(r.id) && !r.rentalRehabActive);
         for (const rental of rentalsNeedingTenants) {
           try {
             // Get monthly rent from pro forma outputs to determine property class

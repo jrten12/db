@@ -42,7 +42,7 @@ const TERM_DEFINITIONS: Record<string, string> = {
   utilities: "If you pay utilities (water, sewer, trash, gas/electric) instead of tenants, factor this in. Multi-family often has owner-paid utilities. Adds $100-200/month typically.",
   propertyManagement: "Hiring a company to handle tenant screening, rent collection, repairs, and day-to-day operations. Fixed 5% of rent. If you self-manage, you save money but lose 1 month of time and get tenant texts.",
   rehabBudget: "The money you plan to spend fixing up the property - repairs, renovations, upgrades. Unknown until you do a Contractor Walkthrough.",
-  rehabWeeks: "How long the renovation will take. Add buffer time - contractors are almost never early! Unknown until you do a Contractor Walkthrough.",
+  rehabWeeks: "How long the renovation will take. For rentals, no tenant moves in until rehab is done — you'll pay carrying costs during this time. Add buffer time - contractors are almost never early!",
   contingencyPct: "Extra buffer for unexpected costs. Things always cost more than expected! 10-20% is common for experienced investors.",
   sellingCostsPct: "Cost to sell the property after rehab - realtor commission (5-6%), title insurance, transfer taxes, closing costs. Total is typically 8-10% of sale price. Many new flippers forget this!",
   ltv: "Loan-to-Value (LTV) - Using borrowed money. Higher LTV means less cash down but higher interest rates and loan fees. Risk increases with leverage.",
@@ -577,26 +577,37 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
               </div>
             )}
 
+            {(inputs.rehabBudget ?? 0) > 0 && (
+              <FieldRow
+                label="Rehab Timeline"
+                term="rehabWeeks"
+                rangeGuidance={timelineGuidance}
+                rangeColor={hasContractorWalkthrough ? 'green' : 'amber'}
+                isLocked={!hasContractorWalkthrough}
+                lockMessage="Do walkthrough"
+              >
+                <SliderInput
+                  value={inputs.rehabWeeks}
+                  onChange={(v) => handleChange('rehabWeeks', v)}
+                  min={1}
+                  max={24}
+                  step={1}
+                  suffix="months"
+                />
+              </FieldRow>
+            )}
+
+            {!isFlip && (inputs.rehabBudget ?? 0) > 0 && (inputs.rehabWeeks ?? 0) > 0 && (
+              <div className="px-4 py-2.5 border-b border-slate-700/50 bg-amber-900/10">
+                <p className="text-xs text-amber-400/80 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+                  No rental income during rehab. You'll pay carrying costs (mortgage, taxes, insurance) until work is done.
+                </p>
+              </div>
+            )}
+
             {isFlip && (
               <>
-                <FieldRow
-                  label="Rehab Timeline"
-                  term="rehabWeeks"
-                  rangeGuidance={timelineGuidance}
-                  rangeColor={hasContractorWalkthrough ? 'green' : 'amber'}
-                  isLocked={!hasContractorWalkthrough}
-                  lockMessage="Do walkthrough"
-                >
-                  <SliderInput
-                    value={inputs.rehabWeeks}
-                    onChange={(v) => handleChange('rehabWeeks', v)}
-                    min={1}
-                    max={24}
-                    step={1}
-                    suffix="months"
-                  />
-                </FieldRow>
-
                 <FieldRow
                   label="Selling Costs"
                   term="sellingCostsPct"

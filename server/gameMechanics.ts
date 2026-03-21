@@ -1507,13 +1507,57 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
       }
 
       if (weeksLeft <= 0) {
-        // Rental rehab is complete! Property ready for new tenant
         const proFormaInputs = deal.proFormaInputs as any;
         const proFormaOutputs = deal.proFormaOutputs as any;
         
         const walkthroughData = deal.contractorWalkthroughData as ContractorWalkthroughResult | null;
         const allIssues = walkthroughData?.repairItems || [];
         const fixedIssuesThisRound = deal.rentalRehabItems as ContractorWalkthroughItem[] | null;
+        const isPurchaseTimeRehab = !fixedIssuesThisRound || fixedIssuesThisRound.length === 0;
+
+        if (isPurchaseTimeRehab && proFormaOutputs?.monthlyGrossRent !== undefined) {
+          const currentRent = proFormaOutputs.monthlyGrossRent || 0;
+          const evr = proFormaOutputs.effectiveVacancyRate || 5;
+          const opEx = proFormaOutputs.monthlyOperatingExpenses || 0;
+          const debtSvc = proFormaOutputs.monthlyDebtService || proFormaOutputs.debtServiceMonthly || 0;
+          const recomputedCashFlow = currentRent * (1 - evr / 100) - opEx - debtSvc;
+          const recomputedIncome = calculateWeeklyIncome(recomputedCashFlow);
+
+          await storage.updateDeal(deal.id, {
+            rentalRehabActive: false,
+            rentalRehabWeeksRemaining: 0,
+            weeklyIncome: Math.max(0, recomputedIncome),
+            proFormaOutputs: {
+              ...proFormaOutputs,
+              postRehabCompleted: true,
+              cashFlowMonthly: recomputedCashFlow,
+            },
+          });
+
+          await storage.createLedgerEntry({
+            gameRunId,
+            direction: 'credit',
+            category: 'income',
+            amount: 0,
+            balanceAfter: gameRun.cash,
+            description: `Pre-tenant rehab complete — ${property?.name || 'Property'} ready for tenants (rent: $${(proFormaOutputs.monthlyGrossRent || 0).toLocaleString()}/mo)`,
+            propertyId: deal.propertyId,
+            dealId: deal.id,
+            gameWeek: gameRun.currentWeek + 1,
+          });
+
+          completedRentalRehabs.push({
+            dealId: deal.id,
+            propertyName: property?.name || 'Property',
+            newMonthlyRent: proFormaOutputs.monthlyGrossRent || 0,
+            previousRent: 0,
+            fixedCount: 0,
+            totalIssueCount: 0,
+            repairCompletionFactor: 1.0,
+          });
+          continue;
+        }
+
         const previouslyFixedIds = (deal.completedRepairIds as string[] | null) || [];
         
         const fixedThisRoundIds = (fixedIssuesThisRound || []).map(i => i.id);
@@ -1682,7 +1726,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   }
 
   if (marketChanged) {
-    const activeRentals = deals.filter(d => d.status === 'active_rental');
+    const activeRentals = deals.filter(d => d.status === 'active_rental' && !d.rentalRehabActive);
     for (const deal of activeRentals) {
       await applyMarketRentAdjustment(deal, currentMarket);
     }
@@ -1897,31 +1941,70 @@ export async function applyCosmeticUpgrade(
   let saleBoostPct = 0;
   let message: string;
 
+  const locationType = property.locationType || 'suburban';
+  const propertyType = property.propertyType || 'house';
+
   const rentalRenovationDescriptions = [
-    { work: 'Updated kitchen countertops, backsplash, and cabinet hardware', lowPct: 2, highPct: 5 },
-    { work: 'New flooring throughout — LVP in living areas, tile in bathrooms', lowPct: 2.5, highPct: 6 },
-    { work: 'Full bathroom remodel — vanity, fixtures, tile surround', lowPct: 3, highPct: 7 },
-    { work: 'Interior repaint, new lighting fixtures, and updated outlets', lowPct: 1.5, highPct: 4 },
-    { work: 'Kitchen appliance upgrade and fresh interior paint throughout', lowPct: 2, highPct: 5.5 },
-    { work: 'New water heater, HVAC filter system, and thermostat upgrade', lowPct: 1.5, highPct: 4.5 },
-    { work: 'Refinished hardwood floors, crown molding, and fresh trim paint', lowPct: 2, highPct: 5 },
-    { work: 'Landscaping overhaul, new front door, exterior power wash', lowPct: 1, highPct: 3.5 },
+    { work: 'Updated kitchen countertops, backsplash, and cabinet hardware', lowPct: 2, highPct: 5, category: 'kitchen' as const },
+    { work: 'New flooring throughout — LVP in living areas, tile in bathrooms', lowPct: 2.5, highPct: 6, category: 'interior' as const },
+    { work: 'Full bathroom remodel — vanity, fixtures, tile surround', lowPct: 3, highPct: 7, category: 'bathroom' as const },
+    { work: 'Interior repaint, new lighting fixtures, and updated outlets', lowPct: 1.5, highPct: 4, category: 'interior' as const },
+    { work: 'Kitchen appliance upgrade and fresh interior paint throughout', lowPct: 2, highPct: 5.5, category: 'kitchen' as const },
+    { work: 'New water heater, HVAC filter system, and thermostat upgrade', lowPct: 1.5, highPct: 4.5, category: 'systems' as const },
+    { work: 'Refinished hardwood floors, crown molding, and fresh trim paint', lowPct: 2, highPct: 5, category: 'interior' as const },
+    { work: 'Landscaping overhaul, new front door, exterior power wash', lowPct: 1, highPct: 3.5, category: 'curb' as const },
   ];
 
   const flipRenovationDescriptions = [
-    { work: 'Curb appeal package — new siding accents, shutters, landscaping, and front door', lowPct: 1, highPct: 5 },
-    { work: 'Staged interior with modern finishes — quartz counters, brushed nickel fixtures', lowPct: 1.5, highPct: 5.5 },
-    { work: 'Open concept touch-up — removed non-load-bearing wall section, added recessed lighting', lowPct: 2, highPct: 6 },
-    { work: 'Bathroom and kitchen refresh — new tile, faucets, cabinet refacing', lowPct: 1.5, highPct: 5 },
-    { work: 'Energy efficiency upgrades — windows, insulation, smart thermostat', lowPct: 1, highPct: 4.5 },
-    { work: 'Full repaint interior/exterior, new garage door, updated hardware throughout', lowPct: 1.5, highPct: 5 },
+    { work: 'Curb appeal package — new siding accents, shutters, landscaping, and front door', lowPct: 1, highPct: 5, category: 'curb' as const },
+    { work: 'Staged interior with modern finishes — quartz counters, brushed nickel fixtures', lowPct: 1.5, highPct: 5.5, category: 'interior' as const },
+    { work: 'Open concept touch-up — removed non-load-bearing wall section, added recessed lighting', lowPct: 2, highPct: 6, category: 'interior' as const },
+    { work: 'Bathroom and kitchen refresh — new tile, faucets, cabinet refacing', lowPct: 1.5, highPct: 5, category: 'kitchen' as const },
+    { work: 'Energy efficiency upgrades — windows, insulation, smart thermostat', lowPct: 1, highPct: 4.5, category: 'systems' as const },
+    { work: 'Full repaint interior/exterior, new garage door, updated hardware throughout', lowPct: 1.5, highPct: 5, category: 'curb' as const },
   ];
+
+  type RenoCategory = 'kitchen' | 'bathroom' | 'interior' | 'systems' | 'curb';
+  const getResonanceFactor = (cat: RenoCategory, loc: string, propType: string, mkt: MarketCondition): number => {
+    let resonance = 1.0;
+    if (loc === 'urban') {
+      if (cat === 'kitchen' || cat === 'bathroom') resonance *= 1.15;
+      else if (cat === 'curb') resonance *= 0.85;
+      else if (cat === 'systems') resonance *= 1.08;
+    } else {
+      if (cat === 'curb') resonance *= 1.18;
+      else if (cat === 'kitchen') resonance *= 1.05;
+      else if (cat === 'systems') resonance *= 0.92;
+    }
+    if (propType === 'apartment' || propType === 'condo') {
+      if (cat === 'curb') resonance *= 0.7;
+      if (cat === 'interior' || cat === 'kitchen') resonance *= 1.1;
+    }
+    if (propType === 'duplex') {
+      if (cat === 'systems') resonance *= 1.12;
+    }
+    if (priceTier > 500000) {
+      if (cat === 'kitchen' || cat === 'bathroom') resonance *= 1.1;
+      if (cat === 'systems') resonance *= 0.9;
+    } else if (priceTier < 200000) {
+      if (cat === 'systems') resonance *= 1.15;
+      if (cat === 'interior') resonance *= 0.95;
+    }
+    if (mkt === 'excellent' || mkt === 'good') {
+      if (cat === 'interior' || cat === 'kitchen') resonance *= 1.08;
+    } else if (mkt === 'terrible' || mkt === 'poor') {
+      if (cat === 'systems') resonance *= 1.1;
+      if (cat === 'interior') resonance *= 0.88;
+    }
+    return resonance;
+  };
 
   if (succeeded) {
     if (isRental) {
       const desc = rentalRenovationDescriptions[Math.floor(Math.random() * rentalRenovationDescriptions.length)];
+      const resonance = getResonanceFactor(desc.category, locationType, propertyType, market);
       const baseBoost = desc.lowPct + Math.random() * (desc.highPct - desc.lowPct);
-      rentBoostPct = Math.round(baseBoost * conditionBoostMult * investmentMult * 10) / 10;
+      rentBoostPct = Math.round(baseBoost * conditionBoostMult * investmentMult * resonance * 10) / 10;
       rentBoostPct = Math.max(1, Math.min(15, rentBoostPct));
 
       const currentRent = outputs.monthlyGrossRent || 0;
@@ -1960,8 +2043,9 @@ export async function applyCosmeticUpgrade(
       message = `${desc.work}. Rent increased ${rentBoostPct}% → $${newRent.toLocaleString()}/mo.`;
     } else {
       const desc = flipRenovationDescriptions[Math.floor(Math.random() * flipRenovationDescriptions.length)];
+      const resonance = getResonanceFactor(desc.category, locationType, propertyType, market);
       const baseBoost = desc.lowPct + Math.random() * (desc.highPct - desc.lowPct);
-      saleBoostPct = Math.round(baseBoost * conditionBoostMult * investmentMult * 10) / 10;
+      saleBoostPct = Math.round(baseBoost * conditionBoostMult * investmentMult * resonance * 10) / 10;
       saleBoostPct = Math.max(0.5, Math.min(12, saleBoostPct));
 
       const updatedOutputs = {
@@ -1986,13 +2070,14 @@ export async function applyCosmeticUpgrade(
     await storage.updateDeal(deal.id, {
       proFormaOutputs: updatedOutputs,
     });
+    const locationContext = locationType === 'urban' ? 'urban renters' : 'suburban families';
     const failReasons = [
       `Renovation came out fine, but the comps in the area already have similar finishes. Didn't move the needle.`,
-      `Contractor finished the work, but the neighborhood just doesn't support the premium you were hoping for.`,
-      `The updates look good on paper, but tenants and buyers in this price range aren't paying extra for them.`,
-      `Work got done, but the material choices didn't match what this market wants. Wrong style for the area.`,
+      `Contractor finished the work, but ${locationContext} in this neighborhood aren't paying extra for that type of update.`,
+      `The updates look good on paper, but ${propertyType === 'condo' || propertyType === 'apartment' ? 'condo buyers' : 'tenants'} in this price range aren't paying a premium for them.`,
+      `Work got done, but the material choices didn't match what ${locationType === 'urban' ? 'city' : 'suburban'} renters here are looking for. Wrong style for the area.`,
       `Upgrades completed, but timing's off — with ${market === 'terrible' || market === 'poor' ? 'the market this soft' : 'demand the way it is'}, nobody's paying more right now.`,
-      `Renovation finished but there were some scope issues. End result is fine, just not the bump you were looking for.`,
+      `Renovation finished but the scope didn't resonate — ${locationType === 'urban' ? 'downtown tenants care more about kitchen and bath' : 'out here, curb appeal and yard space matter more'} than what was done.`,
     ];
     message = failReasons[Math.floor(Math.random() * failReasons.length)];
   }
@@ -2435,22 +2520,28 @@ export async function activateRentalProperty(
   const loanInterestRate = proFormaOutputs?.interestRate || 6.5;
   const loanTermMonths = proFormaOutputs?.loanTermMonths || 360;
   
+  const rehabWeeks = proFormaInputs?.rehabWeeks || 0;
+  const hasPreTenantRehab = rehabBudget > 0 && rehabWeeks > 0;
+
   const updatedDeal = await storage.updateDeal(deal.id, {
     status: 'active_rental',
-    weeklyIncome,
+    weeklyIncome: hasPreTenantRehab ? 0 : weeklyIncome,
     lastIncomePaymentWeek: gameRun.currentWeek,
-    firstIncomePaymentWeek: gameRun.currentWeek, // Track rental start for progressive escalation
+    firstIncomePaymentWeek: gameRun.currentWeek,
     proFormaOutputs: updatedProFormaOutputs,
     purchasePrice: property?.price || 0,
-    purchaseWeek: gameRun.currentWeek, // For seasoning period tracking
-    // Loan tracking fields
+    purchaseWeek: gameRun.currentWeek,
+    ...(hasPreTenantRehab ? {
+      rentalRehabActive: true,
+      rentalRehabWeeksRemaining: rehabWeeks,
+    } : {}),
     originalLoanAmount: initialLoanBalance,
     loanInterestRate,
     loanTermMonths,
     currentLoanBalance: initialLoanBalance,
     totalPrincipalPaid: 0,
     totalInterestPaid: 0,
-    refinanceCount: 0, // Initialize refinance count
+    refinanceCount: 0,
   });
 
   // Award trophies for rental activation

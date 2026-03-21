@@ -173,7 +173,7 @@ export default function Landing() {
                   textShadow: '0 2px 20px rgba(0,0,0,0.5)',
                 }}
               >
-                You have $100K and<br className="hidden sm:inline" /> 52 weeks. Don't blow it.
+                You've got $100K saved and a<br className="hidden sm:inline" /> real estate dream. See what you can do.
               </h1>
 
               <p

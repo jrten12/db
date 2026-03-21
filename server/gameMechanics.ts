@@ -869,7 +869,7 @@ export async function processRentalIncome(
       const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
       const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
       const maintenancePct = proFormaInputs?.maintenancePct || 5;
-      const capexPct = proFormaInputs?.capexPct || 5;
+      const capexPct = proFormaInputs?.capExPct || 8;
       const hasPropertyMgmt = proFormaInputs?.propertyManagement || false;
       const propertyManagementPct = proFormaInputs?.propertyManagementPct || 10;
       const landlordPaysUtilities = proFormaInputs?.utilities || false;
@@ -1563,7 +1563,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
         const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
         const maintenancePct = proFormaInputs?.maintenancePct || 5;
-        const capexPct = proFormaInputs?.capexPct || 5;
+        const capexPct = proFormaInputs?.capExPct || 8;
         const hasPropertyMgmt = proFormaInputs?.propertyManagement || false;
         const propertyManagementPct = proFormaInputs?.propertyManagementPct || 10;
         const landlordPaysUtilities = proFormaInputs?.utilities || false;
@@ -1744,8 +1744,8 @@ async function applyMarketRentAdjustment(deal: Deal, market: MarketCondition): P
 
   const monthlyTaxes = (inputs?.taxesAnnual || 0) / 12;
   const monthlyInsurance = (inputs?.insuranceAnnual || 0) / 12;
-  const maintenanceCost = newRent * ((inputs?.maintenancePct || 8) / 100);
-  const capExCost = newRent * ((inputs?.capExPct || 10) / 100);
+  const maintenanceCost = newRent * ((inputs?.maintenancePct || 5) / 100);
+  const capExCost = newRent * ((inputs?.capExPct || 8) / 100);
   const utilitiesCost = inputs?.utilities ? (inputs?.utilitiesMonthly || 150) : 0;
   const mgmtCost = inputs?.propertyManagement ? newRent * ((inputs?.propertyManagementPct || 10) / 100) : 0;
   const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
@@ -1934,8 +1934,8 @@ export async function applyCosmeticUpgrade(
       const effectiveRent = newRent * (1 - effectiveVacancyRate / 100);
       const monthlyTaxes = (inputs?.taxesAnnual || 0) / 12;
       const monthlyInsurance = (inputs?.insuranceAnnual || 0) / 12;
-      const maintenanceCost = newRent * ((inputs?.maintenancePct || 8) / 100);
-      const capExCost = newRent * ((inputs?.capExPct || 10) / 100);
+      const maintenanceCost = newRent * ((inputs?.maintenancePct || 5) / 100);
+      const capExCost = newRent * ((inputs?.capExPct || 8) / 100);
       const utilitiesCost = inputs?.utilities ? (inputs?.utilitiesMonthly || 150) : 0;
       const mgmtCost = inputs?.propertyManagement ? newRent * ((inputs?.propertyManagementPct || 10) / 100) : 0;
       const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
@@ -2287,8 +2287,8 @@ export async function activateRentalProperty(
   // Operating expenses (use player's assumptions)
   const monthlyTaxes = (proFormaInputs.taxesAnnual || 0) / 12;
   const monthlyInsurance = (proFormaInputs.insuranceAnnual || 0) / 12;
-  const maintenanceCost = actualRent * ((proFormaInputs.maintenancePct || 8) / 100);
-  const capExCost = actualRent * ((proFormaInputs.capExPct || 10) / 100);
+  const maintenanceCost = actualRent * ((proFormaInputs.maintenancePct || 5) / 100);
+  const capExCost = actualRent * ((proFormaInputs.capExPct || 8) / 100);
   const utilitiesCost = proFormaInputs.utilities ? (proFormaInputs.utilitiesMonthly || 150) : 0;
   const mgmtCost = proFormaInputs.propertyManagement ? actualRent * ((proFormaInputs.propertyManagementPct || 10) / 100) : 0;
 
@@ -2386,7 +2386,7 @@ export async function activateRentalProperty(
   // Operating expenses - use values from proFormaOutputs if available
   const storedDebtService = proFormaOutputs?.debtServiceMonthly || debtServiceMonthly;
   const monthlyMaintenance = monthlyGrossRent * ((proFormaInputs?.maintenancePct || 5) / 100);
-  const monthlyCapex = monthlyGrossRent * ((proFormaInputs?.capexPct || 5) / 100);
+  const monthlyCapex = monthlyGrossRent * ((proFormaInputs?.capExPct || 8) / 100);
   const hasPropertyMgmt = proFormaInputs?.propertyManagement || false;
   const monthlyMgmt = hasPropertyMgmt ? monthlyGrossRent * (proFormaInputs?.propertyManagementPct || 10) / 100 : 0;
   const monthlyUtilitiesCost = proFormaInputs?.utilities ? (proFormaInputs?.utilitiesMonthly || 150) : 0;

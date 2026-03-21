@@ -103,7 +103,15 @@ function getRenovationEstimates(property: any, market: string) {
   else if (condition === 'Excellent') successRate = Math.max(25, successRate - 12);
   const conditionBoost: Record<string, string> = { 'Fixer-Upper': 'High', 'Fair': 'Medium-High', 'Good': 'Medium', 'Excellent': 'Low' };
   const potential = conditionBoost[condition] || 'Medium';
-  return { costMin, costMax, successRate: Math.round(successRate), potential, condition };
+  const conditionBoostMult: Record<string, number> = { 'Fixer-Upper': 1.5, 'Fair': 1.25, 'Good': 1.0, 'Excellent': 0.6 };
+  const boostMult = conditionBoostMult[condition] || 1.0;
+  const avgCostRatio = ((costMin + costMax) / 2) / priceTier;
+  const investmentMult = Math.min(1.5, 0.7 + (avgCostRatio * 15));
+  const rentalLowPct = Math.max(1, Math.round(1.5 * boostMult * investmentMult * 10) / 10);
+  const rentalHighPct = Math.max(1, Math.min(15, Math.round(6 * boostMult * investmentMult * 10) / 10));
+  const flipLowPct = Math.max(0.5, Math.round(1 * boostMult * investmentMult * 10) / 10);
+  const flipHighPct = Math.max(0.5, Math.min(12, Math.round(5 * boostMult * investmentMult * 10) / 10));
+  return { costMin, costMax, successRate: Math.round(successRate), potential, condition, rentalLowPct, rentalHighPct, flipLowPct, flipHighPct };
 }
 
 function RenovationSection({ deal, property, market, onRenovate, isUpgrading }: {
@@ -148,14 +156,15 @@ function RenovationSection({ deal, property, market, onRenovate, isUpgrading }: 
   const avgCost = Math.round((est.costMin + est.costMax) / 2);
   let roiHint = '';
   if (isRental && monthlyRent > 0) {
-    const midBoostPct = est.potential === 'High' ? 6 : est.potential === 'Medium-High' ? 4.5 : est.potential === 'Medium' ? 3 : 1.5;
-    const extraRent = Math.round(monthlyRent * midBoostPct / 100);
-    const paybackMonths = avgCost > 0 && extraRent > 0 ? Math.round(avgCost / extraRent) : 0;
-    roiHint = paybackMonths > 0 ? `~$${extraRent}/mo extra rent, ~${paybackMonths}mo payback` : '';
+    const lowRent = Math.round(monthlyRent * est.rentalLowPct / 100);
+    const highRent = Math.round(monthlyRent * est.rentalHighPct / 100);
+    const midRent = Math.round((lowRent + highRent) / 2);
+    const paybackMonths = avgCost > 0 && midRent > 0 ? Math.round(avgCost / midRent) : 0;
+    roiHint = paybackMonths > 0 ? `+$${lowRent}–$${highRent}/mo rent, ~${paybackMonths}mo payback` : '';
   } else if (purchasePrice > 0) {
-    const midBoostPct = est.potential === 'High' ? 5 : est.potential === 'Medium-High' ? 3.5 : est.potential === 'Medium' ? 2.5 : 1;
-    const extraValue = Math.round(purchasePrice * midBoostPct / 100);
-    roiHint = extraValue > 0 ? `~$${extraValue.toLocaleString()} potential value add` : '';
+    const lowValue = Math.round(purchasePrice * est.flipLowPct / 100);
+    const highValue = Math.round(purchasePrice * est.flipHighPct / 100);
+    roiHint = highValue > 0 ? `+$${lowValue.toLocaleString()}–$${highValue.toLocaleString()} potential value add` : '';
   }
 
   return (
@@ -176,9 +185,9 @@ function RenovationSection({ deal, property, market, onRenovate, isUpgrading }: 
           </span>
         </div>
         <div className="flex justify-between text-gray-400">
-          <span>Upside Potential</span>
+          <span>{isRental ? 'Rent Boost Range' : 'Value Boost Range'}</span>
           <span className={est.potential === 'High' ? 'text-green-400' : est.potential === 'Low' ? 'text-gray-500' : 'text-amber-300'}>
-            {est.potential}
+            {isRental ? `${est.rentalLowPct}–${est.rentalHighPct}%` : `${est.flipLowPct}–${est.flipHighPct}%`}
           </span>
         </div>
         {roiHint && (

@@ -176,25 +176,35 @@ export default function Landing() {
                 You've got $100K saved and a<br className="hidden sm:inline" /> real estate dream. See what you can do.
               </h1>
 
-              <p
-                className="text-lg sm:text-xl lg:text-2xl font-medium leading-snug max-w-[520px] mx-auto lg:mx-0 mb-3"
-                style={{
-                  color: 'rgba(225,220,205,0.7)',
-                  textShadow: '0 1px 8px rgba(0,0,0,0.4)',
-                }}
-              >
-                Every property hides something. Every number lies a little. Find the deal — or find out why you shouldn't have taken it.
-              </p>
-
-              <p
-                className="text-[15px] sm:text-base leading-relaxed max-w-[520px] mx-auto lg:mx-0 mb-6"
-                style={{
-                  color: 'rgba(225,220,205,0.45)',
-                  textShadow: '0 1px 8px rgba(0,0,0,0.3)',
-                }}
-              >
-                A real estate simulation where markets shift, tenants leave, and deals break in ways you won't see coming. No signup. No fluff. Just you and the numbers.
-              </p>
+              <div className="space-y-1 mb-5 max-w-[520px] mx-auto lg:mx-0">
+                <p
+                  className="text-base sm:text-lg lg:text-xl font-medium leading-snug"
+                  style={{
+                    color: 'rgba(225,220,205,0.8)',
+                    textShadow: '0 1px 8px rgba(0,0,0,0.4)',
+                  }}
+                >
+                  You bought the deal. Now live with it.
+                </p>
+                <p
+                  className="text-base sm:text-lg lg:text-xl font-medium leading-snug"
+                  style={{
+                    color: 'rgba(225,220,205,0.65)',
+                    textShadow: '0 1px 8px rgba(0,0,0,0.4)',
+                  }}
+                >
+                  Rent it. Sell it. Hold it together.
+                </p>
+                <p
+                  className="text-base sm:text-lg lg:text-xl font-medium leading-snug"
+                  style={{
+                    color: 'rgba(225,220,205,0.5)',
+                    textShadow: '0 1px 8px rgba(0,0,0,0.4)',
+                  }}
+                >
+                  See if the numbers play out how you thought.
+                </p>
+              </div>
 
               <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
                 <Link href="/game">
@@ -214,20 +224,9 @@ export default function Landing() {
                 </Link>
               </div>
 
-              <p className="mt-3 text-[13px] italic" style={{ color: 'rgba(248,113,113,0.6)' }}>
-                Most players lose money on their first deal.
+              <p className="mt-4 text-sm font-medium" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                No signup. Just play.
               </p>
-
-              <div className="flex items-center justify-center lg:justify-start gap-5 mt-3 text-sm" style={{ color: 'rgba(225,220,205,0.45)' }}>
-                <span className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#10b981' }} />
-                  No signup required
-                </span>
-                <span className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#10b981' }} />
-                  Play instantly
-                </span>
-              </div>
             </div>
 
             <div className="relative w-full max-w-[240px] sm:max-w-[300px] lg:max-w-[380px] xl:max-w-[420px] mx-auto lg:mx-0 lg:flex-shrink-0">

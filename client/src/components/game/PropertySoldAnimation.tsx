@@ -157,11 +157,14 @@ function getAccuracyGrade(projectedProfit: number, actualProfit: number): { grad
 
   const diff = Math.abs(actualProfit - projectedProfit);
   const base = Math.max(Math.abs(projectedProfit), 1000);
-  const pctOff = (diff / base) * 100;
+  let pctOff = (diff / base) * 100;
+
+  const outperformed = actualProfit > projectedProfit;
+  if (outperformed) pctOff *= 0.7;
 
   if (pctOff <= 5) return { grade: 'A+', color: 'text-emerald-400', message: 'Spot-on underwriting! Your projections were nearly perfect.' };
-  if (pctOff <= 15) return { grade: 'A', color: 'text-emerald-400', message: 'Strong analysis. Your estimates were close to reality.' };
-  if (pctOff <= 25) return { grade: 'B', color: 'text-blue-400', message: 'Decent projections. Some assumptions were off but close enough.' };
+  if (pctOff <= 15) return { grade: 'A', color: 'text-emerald-400', message: outperformed ? 'Conservative but accurate analysis — you left a little upside on the table.' : 'Strong analysis. Your estimates were close to reality.' };
+  if (pctOff <= 25) return { grade: 'B', color: 'text-blue-400', message: outperformed ? 'Solid projections. You were conservative, which is a good habit.' : 'Decent projections. Some assumptions were off but close enough.' };
   if (pctOff <= 40) return { grade: 'C', color: 'text-amber-400', message: 'Projections had notable gaps. Review your assumptions for next time.' };
   if (pctOff <= 60) return { grade: 'D', color: 'text-orange-400', message: 'Significant gap between prediction and reality. Diligence matters.' };
   return { grade: 'F', color: 'text-red-400', message: 'Your projections were way off. Focus on better market research and conservative estimates.' };
@@ -270,13 +273,7 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
   let effectiveProjections = proFormaProjections;
 
   if (hasProjections && isRentalStrategy) {
-    const projectedMonthly = proFormaProjections!.projectedMonthlyCashFlow ?? 0;
-    const actualMonthly = proFormaProjections!.actualMonthlyCashFlow ?? 0;
-    const projectedTotal = projectedMonthly * (proFormaProjections!.monthsHeld || 1);
-    const actualTotal = proFormaProjections!.totalRentalIncomeCollected ?? (actualMonthly * (proFormaProjections!.monthsHeld || 1));
-    const totalDealReturn = actualTotal + saleData.saleProfit;
-    accuracyGrade = getAccuracyGrade(projectedTotal, totalDealReturn);
-    effectiveProjections = { ...proFormaProjections!, projectedProfit: projectedTotal };
+    effectiveProjections = { ...proFormaProjections! };
   } else if (hasProjections) {
     const projectedProfitValue = proFormaProjections!.projectedProfit ?? 0;
     accuracyGrade = getAccuracyGrade(projectedProfitValue, saleData.saleProfit);
@@ -418,7 +415,7 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                           <div className="flex items-center gap-2">
                             <Target className="w-4 h-4 text-cyan-400" />
                             <span className="text-sm font-semibold text-cyan-300">
-                              {isRentalStrategy ? 'Pro Forma vs Actual Deal Return' : 'Your Prediction vs Reality'}
+                              {isRentalStrategy ? 'Rental Performance Summary' : 'Your Prediction vs Reality'}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -523,14 +520,14 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                                               </span>
                                             </div>
                                           </div>
-                                          <p className="text-[10px] text-gray-600 mt-0.5">Rental income + sale profit/loss = your grade</p>
+                                          <p className="text-[10px] text-gray-600 mt-0.5">Rental income + sale profit/loss</p>
                                         </div>
                                       );
                                     })()}
                                   </>
                                 )}
 
-                                {accuracyGrade && (
+                                {accuracyGrade && !isRentalStrategy && (
                                   <div className={`mt-2 rounded-lg p-3 border ${
                                     isGoodGrade(accuracyGrade.grade)
                                       ? 'bg-emerald-900/20 border-emerald-500/20' 
@@ -549,6 +546,17 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                                           {accuracyGrade.message}
                                         </p>
                                       </div>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {isRentalStrategy && (
+                                  <div className="mt-2 rounded-lg p-3 border bg-slate-800/40 border-slate-600/30">
+                                    <div className="flex items-start gap-2">
+                                      <Target className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                                      <p className="text-xs text-gray-400 leading-relaxed">
+                                        This property was underwritten as a rental, not a flip. Sale proceeds aren't graded against rental cash flow projections — they're different strategies with different metrics.
+                                      </p>
                                     </div>
                                   </div>
                                 )}

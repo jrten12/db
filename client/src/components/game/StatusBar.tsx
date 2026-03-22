@@ -433,6 +433,11 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <div className="text-gray-500 text-xs">Deals</div>
               </div>
             </div>
+
+            <div className="mt-6 text-center">
+              <p className="text-gray-600 text-[10px] tracking-wider uppercase">v3.15</p>
+              <p className="text-gray-700 text-[9px] tracking-wide mt-0.5">Built with Mechanical Harmonics Systems</p>
+            </div>
           </div>
         </div>,
         document.body

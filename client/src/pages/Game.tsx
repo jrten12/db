@@ -2416,7 +2416,7 @@ export default function Game() {
         
         {/* Sale Confirmation Dialog */}
         {pendingSale && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-4" data-testid="sale-confirmation-dialog">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9998] p-4" data-testid="sale-confirmation-dialog">
             <div className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-md p-5 md:p-6 shadow-2xl">
               <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2">
                 <span>💰</span> Sell {pendingSale.propertyName}?

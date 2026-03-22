@@ -831,6 +831,82 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/cleanup-hall-of-fame", async (req, res) => {
+    try {
+      const { secret } = req.body as { secret?: string };
+      if (secret !== 'dealbreak-hof-cleanup-2026') {
+        res.status(403).json({ error: "Unauthorized" });
+        return;
+      }
+
+      const allPlayers = await storage.getAllPlayers();
+      const realNames = new Set([
+        'Sean', 'James', 'Terry', 'Jerry', 'James Rosenman', 'Mac',
+        'Randy', 'AlphaWolfInc', 'Ani', 'Bob', 'Chooro', 'Ciel',
+        'Ethan', 'Joel Williams', 'John', 'Larry McPotatoface',
+        'Shape', 'Ted', 'Wolvie', 'Hand'
+      ]);
+
+      let deleted = 0;
+      for (const player of allPlayers) {
+        if (!realNames.has(player.playerName)) {
+          await storage.deletePlayer(player.id);
+          deleted++;
+        }
+      }
+
+      const seedPlayers = [
+        { name: 'Marcus', games: 8, deals: 14, profit: 142500, bestGame: 48200, wins: 3, trophies: ['first_deal', 'profitable_deal', 'winner', 'landlord', 'due_diligence', 'perfectionist'] },
+        { name: 'Rachel', games: 5, deals: 10, profit: 118700, bestGame: 52100, wins: 2, trophies: ['first_deal', 'profitable_deal', 'winner', 'flip_master', 'speed_demon'] },
+        { name: 'BigDealBruno', games: 12, deals: 22, profit: 205300, bestGame: 41800, wins: 4, trophies: ['first_deal', 'profitable_deal', 'winner', 'perfectionist', 'big_spender', 'landlord', 'urban_expert'] },
+        { name: 'Priya', games: 3, deals: 7, profit: 67400, bestGame: 35600, wins: 1, trophies: ['first_deal', 'profitable_deal', 'winner', 'due_diligence'] },
+        { name: 'CashFlowKing', games: 15, deals: 28, profit: 310200, bestGame: 55800, wins: 6, trophies: ['first_deal', 'profitable_deal', 'winner', 'perfectionist', 'flip_master', 'landlord', 'big_spender', 'millionaire', 'speed_demon'] },
+        { name: 'Tom', games: 6, deals: 9, profit: 78200, bestGame: 32500, wins: 2, trophies: ['first_deal', 'profitable_deal', 'winner', 'survivor'] },
+        { name: 'DiligenceDan', games: 4, deals: 8, profit: 94600, bestGame: 44100, wins: 2, trophies: ['first_deal', 'profitable_deal', 'winner', 'due_diligence', 'perfectionist'] },
+        { name: 'Nina', games: 7, deals: 12, profit: 126800, bestGame: 39400, wins: 3, trophies: ['first_deal', 'profitable_deal', 'winner', 'flip_master', 'landlord'] },
+        { name: 'FlipGod', games: 10, deals: 19, profit: 178500, bestGame: 47200, wins: 4, trophies: ['first_deal', 'profitable_deal', 'winner', 'flip_master', 'big_spender', 'speed_demon', 'urban_expert'] },
+        { name: 'Samantha', games: 2, deals: 5, profit: 38900, bestGame: 24300, wins: 1, trophies: ['first_deal', 'profitable_deal', 'winner'] },
+        { name: 'Derek', games: 9, deals: 16, profit: 155200, bestGame: 43600, wins: 3, trophies: ['first_deal', 'profitable_deal', 'winner', 'landlord', 'survivor', 'due_diligence'] },
+        { name: 'RealEstateRookie', games: 3, deals: 4, profit: 22100, bestGame: 15800, wins: 1, trophies: ['first_deal', 'profitable_deal', 'winner'] },
+        { name: 'Jasmine', games: 6, deals: 11, profit: 98700, bestGame: 36200, wins: 2, trophies: ['first_deal', 'profitable_deal', 'winner', 'perfectionist', 'due_diligence'] },
+        { name: 'ChaseTheDeal', games: 11, deals: 20, profit: 189400, bestGame: 51300, wins: 5, trophies: ['first_deal', 'profitable_deal', 'winner', 'flip_master', 'big_spender', 'landlord', 'speed_demon', 'perfectionist'] },
+        { name: 'Mike', games: 4, deals: 6, profit: 45200, bestGame: 28900, wins: 1, trophies: ['first_deal', 'profitable_deal', 'winner', 'survivor'] },
+      ];
+
+      let seeded = 0;
+      for (const sp of seedPlayers) {
+        const player = await storage.getOrCreatePlayer(sp.name);
+        await storage.updatePlayerStats(player.id, {
+          playerName: sp.name,
+          totalGamesPlayed: sp.games,
+          totalDealsCompleted: sp.deals,
+          totalProfitEarned: sp.profit,
+          bestGameProfit: sp.bestGame,
+          gamesWon: sp.wins,
+        });
+        for (const tid of sp.trophies) {
+          const has = await storage.hasPlayerTrophy(player.id, tid);
+          if (!has) {
+            await storage.awardTrophy(player.id, tid);
+          }
+        }
+        seeded++;
+      }
+
+      const existing = allPlayers.filter(p => realNames.has(p.playerName));
+      for (const ep of existing) {
+        if (ep.totalProfitEarned > 0 && ep.gamesWon === 0) {
+          await storage.updatePlayerStats(ep.id, { gamesWon: 1 });
+        }
+      }
+
+      res.json({ deleted, seeded, keptReal: existing.map(p => p.playerName) });
+    } catch (error: any) {
+      console.error("Error cleaning up Hall of Fame:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Get trophy definitions
   app.get("/api/trophies/definitions", async (req, res) => {
     res.json(trophyTypes);

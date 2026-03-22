@@ -2405,6 +2405,11 @@ export class DBStorage implements IStorage {
     return !!trophy;
   }
 
+  async deletePlayer(playerId: number): Promise<void> {
+    await db.delete(schema.playerTrophies).where(eq(schema.playerTrophies.playerId, playerId));
+    await db.delete(schema.hallOfFamePlayers).where(eq(schema.hallOfFamePlayers.id, playerId));
+  }
+
   // Tenant methods
   async createTenant(tenant: InsertTenant): Promise<Tenant> {
     const [created] = await db

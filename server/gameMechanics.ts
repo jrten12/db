@@ -2761,9 +2761,8 @@ export async function performContractorWalkthrough(
     return { success: false, error: 'Deal not found' };
   }
 
-  // Must be an active rental
-  if (deal.status !== 'active_rental') {
-    return { success: false, error: 'Property must be an active rental' };
+  if (deal.status !== 'active_rental' && deal.status !== 'ready_to_list') {
+    return { success: false, error: 'Property must be active to inspect' };
   }
 
   // Must not have already done walkthrough
@@ -2957,8 +2956,8 @@ export async function initiateRentalRehab(
   if (deal.gameRunId !== gameRunId) {
     return { success: false, error: 'Deal does not belong to this game' };
   }
-  if (deal.status !== 'active_rental') {
-    return { success: false, error: 'Property must be an active rental' };
+  if (deal.status !== 'active_rental' && deal.status !== 'ready_to_list') {
+    return { success: false, error: 'Property must be active to repair' };
   }
   if (!deal.contractorWalkthroughCompleted) {
     return { success: false, error: 'Must complete contractor walkthrough first' };

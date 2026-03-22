@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { DollarSign, PartyPopper, Sparkles, BadgeDollarSign, ArrowRight, Share2, ChevronDown, ChevronUp, Target, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { DollarSign, PartyPopper, Sparkles, BadgeDollarSign, ArrowRight, Share2, ChevronDown, ChevronUp, Target, AlertTriangle, CheckCircle2, TrendingUp, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { playSaleCompleteSound } from '@/hooks/useClickSound';
@@ -108,7 +108,7 @@ function MoneyRain() {
   );
 }
 
-function ComparisonRow({ label, projected, actual, format = 'currency', higherIsBetter = true }: {
+function ComparisonBar({ label, projected, actual, format = 'currency', higherIsBetter = true }: {
   label: string;
   projected: number;
   actual: number;
@@ -132,16 +132,50 @@ function ComparisonRow({ label, projected, actual, format = 'currency', higherIs
     return `${sign}$${Math.abs(Math.round(v)).toLocaleString()}`;
   };
 
+  const maxVal = Math.max(Math.abs(projected), Math.abs(actual), 1);
+  const projPct = Math.min((Math.abs(projected) / maxVal) * 100, 100);
+  const actPct = Math.min((Math.abs(actual) / maxVal) * 100, 100);
+
   return (
-    <div className="grid grid-cols-[1fr,auto,auto,auto] gap-2 items-center py-1.5 text-xs">
-      <span className="text-gray-400">{label}</span>
-      <span className="text-gray-300 font-mono text-right w-20">{fmt(projected)}</span>
-      <span className="text-white font-mono font-semibold text-right w-20">{fmt(actual)}</span>
-      <span className={`font-mono text-right w-20 font-semibold ${
-        isClose ? 'text-gray-400' : isGood ? 'text-emerald-400' : 'text-red-400'
-      }`}>
-        {isClose ? '~' : diffFmt(diff)}
-      </span>
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-gray-300">{label}</span>
+        <span className={`text-xs font-mono font-semibold ${
+          isClose ? 'text-gray-400' : isGood ? 'text-emerald-400' : 'text-red-400'
+        }`}>
+          {isClose ? '≈' : diffFmt(diff)}
+        </span>
+      </div>
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500 w-14 shrink-0">Projected</span>
+          <div className="flex-1 h-4 bg-slate-800/80 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-slate-600 to-slate-500"
+              initial={{ width: 0 }}
+              animate={{ width: `${projPct}%` }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            />
+          </div>
+          <span className="text-[11px] font-mono text-gray-400 w-20 text-right shrink-0">{fmt(projected)}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-cyan-400/80 w-14 shrink-0">Actual</span>
+          <div className="flex-1 h-4 bg-slate-800/80 rounded-full overflow-hidden">
+            <motion.div
+              className={`h-full rounded-full ${
+                isClose ? 'bg-gradient-to-r from-slate-500 to-slate-400' :
+                isGood ? 'bg-gradient-to-r from-emerald-600 to-emerald-400' :
+                'bg-gradient-to-r from-red-600 to-red-400'
+              }`}
+              initial={{ width: 0 }}
+              animate={{ width: `${actPct}%` }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            />
+          </div>
+          <span className="text-[11px] font-mono text-white font-semibold w-20 text-right shrink-0">{fmt(actual)}</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -402,7 +436,8 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
 
                     {hasProjections && (
                       <motion.div
-                        className="bg-slate-800/60 rounded-xl border border-cyan-500/30 overflow-hidden"
+                        className="rounded-xl border border-slate-700/60 overflow-hidden"
+                        style={{ background: 'linear-gradient(180deg, rgba(15,23,42,0.9) 0%, rgba(30,41,59,0.7) 100%)' }}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
@@ -414,13 +449,26 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                         >
                           <div className="flex items-center gap-2">
                             <Target className="w-4 h-4 text-cyan-400" />
-                            <span className="text-sm font-semibold text-cyan-300">
-                              {isRentalStrategy ? 'Rental Performance Summary' : 'Your Prediction vs Reality'}
+                            <span className="text-sm font-semibold text-white">
+                              {isRentalStrategy ? 'Rental Performance' : 'Prediction vs Reality'}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            {accuracyGrade && (
-                              <span className={`text-lg font-black ${accuracyGrade.color}`}>{accuracyGrade.grade}</span>
+                            {accuracyGrade && !isRentalStrategy && (
+                              <motion.div
+                                className={`flex items-center justify-center w-9 h-9 rounded-lg font-black text-lg ${
+                                  isGoodGrade(accuracyGrade.grade)
+                                    ? 'bg-emerald-500/20 border border-emerald-500/40'
+                                    : (GRADE_RANK[accuracyGrade.grade] || 7) <= 4
+                                      ? 'bg-amber-500/20 border border-amber-500/40'
+                                      : 'bg-red-500/20 border border-red-500/40'
+                                } ${accuracyGrade.color}`}
+                                initial={{ scale: 0, rotate: -15 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={{ type: 'spring', delay: 0.5 }}
+                              >
+                                {accuracyGrade.grade}
+                              </motion.div>
                             )}
                             {showComparison ? (
                               <ChevronUp className="w-4 h-4 text-gray-500" />
@@ -438,43 +486,36 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                               transition={{ duration: 0.2 }}
                               className="overflow-hidden"
                             >
-                              <div className="px-4 pb-4 space-y-3">
-                                <div className="grid grid-cols-[1fr,auto,auto,auto] gap-2 items-center pb-1.5 border-b border-slate-700/50">
-                                  <span className="text-[10px] uppercase tracking-wider text-gray-500"></span>
-                                  <span className="text-[10px] uppercase tracking-wider text-gray-500 text-right w-20">Projected</span>
-                                  <span className="text-[10px] uppercase tracking-wider text-cyan-400 text-right w-20">Actual</span>
-                                  <span className="text-[10px] uppercase tracking-wider text-gray-500 text-right w-20">Diff</span>
-                                </div>
-
+                              <div className="px-4 pb-4 space-y-4">
                                 {proFormaProjections!.strategy === 'flip' ? (
-                                  <>
+                                  <div className="space-y-3">
                                     {proFormaProjections!.projectedSalePrice !== undefined && proFormaProjections!.projectedSalePrice > 0 && (
-                                      <ComparisonRow
+                                      <ComparisonBar
                                         label="Sale Price"
                                         projected={proFormaProjections!.projectedSalePrice}
                                         actual={saleData.salePrice}
                                       />
                                     )}
                                     {proFormaProjections!.projectedProfit !== undefined && (
-                                      <ComparisonRow
+                                      <ComparisonBar
                                         label="Profit"
                                         projected={proFormaProjections!.projectedProfit}
                                         actual={saleData.saleProfit}
                                       />
                                     )}
                                     {proFormaProjections!.projectedROI !== undefined && proFormaProjections!.projectedROI !== 0 && (
-                                      <ComparisonRow
+                                      <ComparisonBar
                                         label="ROI"
                                         projected={proFormaProjections!.projectedROI}
                                         actual={parseFloat(profitPercent)}
                                         format="percent"
                                       />
                                     )}
-                                  </>
+                                  </div>
                                 ) : (
-                                  <>
+                                  <div className="space-y-3">
                                     {proFormaProjections!.projectedMonthlyCashFlow !== undefined && (
-                                      <ComparisonRow
+                                      <ComparisonBar
                                         label="Monthly Cash Flow"
                                         projected={proFormaProjections!.projectedMonthlyCashFlow}
                                         actual={proFormaProjections!.actualMonthlyCashFlow ?? 0}
@@ -486,88 +527,104 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                                       const actualTotal = proFormaProjections!.totalRentalIncomeCollected
                                         ?? ((proFormaProjections!.actualMonthlyCashFlow ?? 0) * (proFormaProjections!.monthsHeld || 1));
                                       return (
-                                        <ComparisonRow
-                                          label={`Total Rental Income (${proFormaProjections!.monthsHeld || 0}mo)`}
+                                        <ComparisonBar
+                                          label={`Total Income (${proFormaProjections!.monthsHeld || 0}mo)`}
                                           projected={projTotal}
                                           actual={actualTotal}
                                         />
                                       );
                                     })()}
-                                    <div className="pt-1 mt-1" style={{ borderTop: '1px solid rgba(100,116,139,0.2)' }}>
-                                      <div className="flex items-center justify-between text-xs">
-                                        <span className="text-gray-500">Exit Sale Profit</span>
-                                        <span className={`font-mono font-semibold ${saleData.saleProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+
+                                    <div className="rounded-lg p-3 bg-slate-800/50 border border-slate-700/40">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                          {saleData.saleProfit >= 0 ? (
+                                            <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                                          ) : (
+                                            <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+                                          )}
+                                          <span className="text-xs text-gray-400">Exit Sale</span>
+                                        </div>
+                                        <span className={`text-sm font-mono font-bold ${saleData.saleProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                           {saleData.saleProfit >= 0 ? '+' : ''}${saleData.saleProfit.toLocaleString()}
                                         </span>
                                       </div>
-                                      <p className="text-[10px] text-gray-600 mt-0.5">Capital gain/loss from selling</p>
                                     </div>
+
                                     {(() => {
                                       const projTotal = (proFormaProjections!.projectedMonthlyCashFlow ?? 0) * (proFormaProjections!.monthsHeld || 1);
                                       const actualRentalTotal = proFormaProjections!.totalRentalIncomeCollected
                                         ?? ((proFormaProjections!.actualMonthlyCashFlow ?? 0) * (proFormaProjections!.monthsHeld || 1));
                                       const totalReturn = actualRentalTotal + saleData.saleProfit;
                                       return (
-                                        <div className="pt-1.5 mt-1.5" style={{ borderTop: '1px solid rgba(100,116,139,0.3)' }}>
-                                          <div className="flex items-center justify-between text-xs">
-                                            <span className="text-white font-medium">Total Deal Return</span>
+                                        <div className="rounded-lg p-3 border-2 border-dashed border-slate-600/50">
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-xs font-medium text-white">Total Deal Return</span>
                                             <div className="text-right">
-                                              <span className={`font-mono font-bold ${totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                              <span className={`text-base font-mono font-black ${totalReturn >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                                 {totalReturn >= 0 ? '+' : ''}${totalReturn.toLocaleString()}
-                                              </span>
-                                              <span className="text-gray-500 text-[10px] ml-1">
-                                                vs ${projTotal.toLocaleString()} projected
                                               </span>
                                             </div>
                                           </div>
-                                          <p className="text-[10px] text-gray-600 mt-0.5">Rental income + sale profit/loss</p>
+                                          <div className="flex items-center justify-between mt-1">
+                                            <span className="text-[10px] text-gray-500">Rental income + sale</span>
+                                            <span className="text-[10px] text-gray-500 font-mono">
+                                              vs ${projTotal.toLocaleString()} projected
+                                            </span>
+                                          </div>
                                         </div>
                                       );
                                     })()}
-                                  </>
+                                  </div>
                                 )}
 
                                 {accuracyGrade && !isRentalStrategy && (
-                                  <div className={`mt-2 rounded-lg p-3 border ${
-                                    isGoodGrade(accuracyGrade.grade)
-                                      ? 'bg-emerald-900/20 border-emerald-500/20' 
-                                      : (GRADE_RANK[accuracyGrade.grade] || 7) <= 4
-                                        ? 'bg-amber-900/20 border-amber-500/20'
-                                        : 'bg-red-900/20 border-red-500/20'
-                                  }`}>
-                                    <div className="flex items-start gap-2">
+                                  <motion.div
+                                    className={`rounded-lg p-3 ${
+                                      isGoodGrade(accuracyGrade.grade)
+                                        ? 'bg-emerald-950/40 border border-emerald-500/20' 
+                                        : (GRADE_RANK[accuracyGrade.grade] || 7) <= 4
+                                          ? 'bg-amber-950/40 border border-amber-500/20'
+                                          : 'bg-red-950/40 border border-red-500/20'
+                                    }`}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.5 }}
+                                  >
+                                    <div className="flex items-start gap-2.5">
                                       {isGoodGrade(accuracyGrade.grade) ? (
                                         <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
                                       ) : (
                                         <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                                       )}
-                                      <div>
-                                        <p className="text-xs text-gray-300 leading-relaxed">
-                                          {accuracyGrade.message}
-                                        </p>
-                                      </div>
+                                      <p className="text-xs text-gray-300 leading-relaxed">
+                                        {accuracyGrade.message}
+                                      </p>
                                     </div>
-                                  </div>
+                                  </motion.div>
                                 )}
 
                                 {isRentalStrategy && (
-                                  <div className="mt-2 rounded-lg p-3 border bg-slate-800/40 border-slate-600/30">
-                                    <div className="flex items-start gap-2">
+                                  <div className="rounded-lg p-3 bg-cyan-950/30 border border-cyan-500/15">
+                                    <div className="flex items-start gap-2.5">
                                       <Target className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
                                       <p className="text-xs text-gray-400 leading-relaxed">
-                                        This property was underwritten as a rental, not a flip. Sale proceeds aren't graded against rental cash flow projections — they're different strategies with different metrics.
+                                        Rental deal — cash flow is the key metric, not sale price. Your projections are compared against actual rental performance.
                                       </p>
                                     </div>
                                   </div>
                                 )}
 
                                 {whyReasons.length > 0 && (
-                                  <div className="space-y-1.5 pt-1">
-                                    <p className="text-[10px] uppercase tracking-wider text-gray-500">Why the difference?</p>
+                                  <div className="space-y-2 pt-1">
+                                    <p className="text-[10px] uppercase tracking-widest text-gray-500 font-medium">Why the difference?</p>
                                     {whyReasons.map((reason, i) => (
-                                      <p key={i} className="text-xs text-gray-400 leading-relaxed pl-3 border-l-2 border-cyan-500/30">
-                                        {reason}
-                                      </p>
+                                      <div key={i} className="flex gap-2.5 items-start">
+                                        <div className="w-1 h-1 rounded-full bg-cyan-400/60 mt-1.5 shrink-0" />
+                                        <p className="text-xs text-gray-400 leading-relaxed">
+                                          {reason}
+                                        </p>
+                                      </div>
                                     ))}
                                   </div>
                                 )}

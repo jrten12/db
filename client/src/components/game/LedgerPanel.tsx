@@ -5,7 +5,7 @@ import {
   ArrowUpCircle, ArrowDownCircle, X, Wallet, Building2, TrendingUp, TrendingDown, Minus,
   Home, Wrench, Zap, Droplets, Flame, Wind, Bug, Trees, Shield, Car, Building, 
   Hammer, PaintBucket, Layers, Snowflake, ThermometerSun, Pipette, AlertTriangle,
-  FileText, DollarSign, Banknote, Receipt, Landmark, Key, LucideIcon
+  FileText, DollarSign, Banknote, Receipt, Landmark, Key, HardHat, ClipboardList, LucideIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -72,6 +72,12 @@ function getExpenseIcon(description: string): LucideIcon {
   // Operating costs / Rent
   if (desc.includes('operating cost') || desc.includes('opex')) return Receipt;
   if (desc.includes('rent')) return Key;
+  
+  // Contractor walkthrough
+  if (desc.includes('contractor walkthrough') || desc.includes('walkthrough')) return HardHat;
+  
+  // Inspection / due diligence
+  if (desc.includes('inspection') || desc.includes('appraisal') || desc.includes('title search') || desc.includes('market study')) return ClipboardList;
   
   // Generic repair/expense
   if (desc.includes('repair') || desc.includes('replace') || desc.includes('fix')) return Wrench;

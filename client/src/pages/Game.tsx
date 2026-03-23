@@ -1122,17 +1122,19 @@ export default function Game() {
 
         const dealOutputs = rentalResult.deal.proFormaOutputs as any;
         const dealInputs = rentalResult.deal.proFormaInputs as any;
-        const projectedRent = proFormaInputs.expectedRent || dealInputs?.expectedRent || 0;
-        const actualRent = dealOutputs?.monthlyGrossRent || 0;
-        const projectedVacancy = proFormaInputs.vacancyRate || dealInputs?.vacancyRate || 5;
-        const actualVacancy = dealOutputs?.effectiveVacancyRate || projectedVacancy;
-        const projectedDebtService = proFormaOutputs?.debtServiceMonthly || 0;
-        const actualDebtService = dealOutputs?.monthlyDebtService || projectedDebtService;
-        const projectedCF = proFormaOutputs?.cashFlowMonthly || 0;
-        const actualCF = dealOutputs?.cashFlowMonthly || 0;
+        const dealSavedOutputs = dealOutputs || {};
+        const projectedRent = dealInputs?.expectedRent || proFormaInputs.expectedRent || 0;
+        const actualRent = dealSavedOutputs.monthlyGrossRent || projectedRent;
+        const projectedVacancy = dealInputs?.vacancyRate ?? proFormaInputs.vacancyRate ?? 5;
+        const actualVacancy = dealSavedOutputs.effectiveVacancyRate || projectedVacancy;
+        const savedProjectedOutputs = dealSavedOutputs.debtServiceMonthly ? dealSavedOutputs : (proFormaOutputs || {});
+        const projectedDebtService = savedProjectedOutputs.debtServiceMonthly || 0;
+        const actualDebtService = dealSavedOutputs.monthlyDebtService || projectedDebtService;
+        const projectedCF = savedProjectedOutputs.cashFlowMonthly || 0;
+        const actualCF = dealSavedOutputs.cashFlowMonthly || 0;
         const projectedEffRent = projectedRent * (1 - projectedVacancy / 100);
-        const projectedExpenses = Math.max(0, projectedEffRent - (proFormaOutputs?.noiMonthly || 0));
-        const actualExpenses = dealOutputs?.monthlyOperatingExpenses || projectedExpenses;
+        const projectedExpenses = Math.max(0, projectedEffRent - (savedProjectedOutputs.noiMonthly || 0));
+        const actualExpenses = dealSavedOutputs.monthlyOperatingExpenses || projectedExpenses;
         const isInRehab = !!rentalResult.deal.rentalRehabActive;
         const rehabMonths = isInRehab ? (dealInputs?.rehabWeeks || 0) : undefined;
 

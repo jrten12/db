@@ -1354,8 +1354,8 @@ export async function registerRoutes(
         return res.status(404).json({ error: "Deal not found" });
       }
 
-      if (deal.status !== 'active_rental') {
-        return res.status(400).json({ error: "Property must be an active rental", eligible: false });
+      if (deal.status !== 'active_rental' && deal.status !== 'ready_to_list') {
+        return res.status(400).json({ error: "Property must be active to inspect", eligible: false });
       }
 
       if (deal.contractorWalkthroughCompleted) {

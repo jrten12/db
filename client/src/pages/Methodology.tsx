@@ -87,35 +87,65 @@ export default function Methodology() {
               project outcomes:
             </p>
 
-            <SubSection title="Capital Stack Composition">
+            <SubSection title="Capital Stack &amp; Dynamic Underwriting">
               <p>
-                Analysis of debt-to-equity ratios and their impact on cash-flow
-                sensitivity. Players choose a Loan-to-Value (LTV) ratio between
-                50% and 100%, which maps to a non-linear interest rate curve:
+                Players choose a Loan-to-Value (LTV) ratio between 50% and 100%.
+                Interest rates are determined by a multi-factor underwriting model
+                that mirrors how real lenders evaluate borrowers. Six independent
+                variables influence the rate a player receives:
               </p>
               <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-                <li>50% LTV (conservative): ~4% interest rate, 1% origination fees</li>
-                <li>75% LTV (moderate): ~6.5% interest rate, 2% origination fees</li>
-                <li>90–100% LTV (aggressive): 6.5–12% interest rate, escalating fees</li>
+                <li><strong>LTV risk premium</strong> — higher leverage increases the base rate on a non-linear curve, with steep escalation above 90%</li>
+                <li><strong>Debt-to-income ratio</strong> — existing monthly obligations relative to rental income shift the rate on a smooth gradient</li>
+                <li><strong>Cash reserves</strong> — lenders reward borrowers who maintain healthy liquidity cushions</li>
+                <li><strong>Net worth / asset coverage</strong> — total asset value relative to total debt obligations factors into creditworthiness</li>
+                <li><strong>Prevailing market conditions</strong> — the in-game market cycle influences the rate environment, similar to how the Federal Reserve's monetary policy affects real-world mortgage rates</li>
+                <li><strong>Deal track record</strong> — a history of profitable deals earns better terms, while losses increase borrowing costs</li>
               </ul>
               <p className="mt-2">
-                This "leverage trap zone" above 90% LTV models the real-world
-                penalty for overleveraging, where thin margins are consumed by
-                debt-service costs.
+                Each factor applies a smooth adjustment rather than a binary
+                threshold, creating a realistic spectrum where small improvements
+                in financial position translate to incrementally better terms. The
+                full breakdown is visible to players in real-time during deal
+                analysis.
               </p>
             </SubSection>
 
-            <SubSection title="Operational Volatility">
+            <SubSection title="Operational Volatility &amp; Tenant Dynamics">
               <p>
-                The engine factors in "hidden" costs that erode returns over time:
+                The engine factors in ongoing costs that erode returns over time,
+                with several layers of realism:
               </p>
               <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
                 <li>Vacancy slippage (configurable, typically 5–7% of gross rent)</li>
-                <li>Maintenance reserves (8% of monthly rent)</li>
-                <li>Unexpected capital expenditures / CapEx (5% of monthly rent)</li>
-                <li>Property management fees (5% of rent when delegated)</li>
-                <li>Property taxes (~1.5% of purchase price) and insurance (~0.5%)</li>
+                <li>Maintenance reserves and capital expenditure reserves</li>
+                <li>Property management fees when delegated</li>
+                <li>Property taxes and insurance scaled to purchase price</li>
               </ul>
+              <p className="mt-2">
+                <strong>Progressive expense escalation:</strong> Unfixed property
+                issues don't stay static — they worsen over time. A minor leak
+                ignored for several months becomes a major water damage event.
+                Both the probability and cost of maintenance events escalate the
+                longer issues go unaddressed, modeling the real-world consequences
+                of deferred maintenance.
+              </p>
+              <p className="mt-2">
+                <strong>Tenant satisfaction:</strong> Rental tenants have a
+                satisfaction score influenced by property conditions and
+                responsiveness to repairs. Persistent neglect leads to tenant
+                departures, vacancy periods, and turnover costs. Conversely,
+                well-maintained properties retain tenants and generate stable
+                income. Tenant mood is visible during gameplay, giving players
+                early warning signals before the financial impact materializes.
+              </p>
+              <p className="mt-2">
+                <strong>Market-driven rent adjustments:</strong> When in-game
+                market conditions shift, active rental income adjusts accordingly.
+                Hot markets push rents up; downturns compress them. This models
+                the real-world correlation between macroeconomic conditions and
+                rental demand.
+              </p>
             </SubSection>
 
             <SubSection title="Time-Value Risk">
@@ -158,12 +188,19 @@ export default function Methodology() {
 
             <SubSection title="Interest Rate Sensitivity">
               <p>
-                The model applies a non-linear interest curve that penalizes
-                aggressive leverage. The Debt Service Coverage Ratio (DSCR) is
-                implicitly tested: as LTV rises and interest rates climb, monthly
-                cash flow compresses. Deals that appear profitable at 75% LTV can
-                turn negative at 95% LTV once origination fees and rate premiums
-                are included.
+                The multi-factor underwriting model means the same LTV can
+                produce meaningfully different rates depending on the borrower's
+                overall financial health and market timing. A player with strong
+                cash reserves entering a soft market may secure rates well below
+                what a thinly capitalized investor would face in a hot market —
+                even at identical leverage levels.
+              </p>
+              <p className="mt-2">
+                The Debt Service Coverage Ratio (DSCR) is implicitly tested: as
+                rates climb, monthly cash flow compresses. Deals that appear
+                profitable under favorable underwriting conditions can turn
+                negative when multiple risk factors compound — overleveraged,
+                under-reserved, in a tightening rate environment.
               </p>
             </SubSection>
 
@@ -171,26 +208,41 @@ export default function Methodology() {
               <p>
                 The simulator models a five-state market cycle — terrible, poor,
                 neutral, good, and excellent — with weighted probabilistic
-                transitions every in-game month. Key behaviors include:
+                transitions every in-game month. Market conditions create
+                cascading effects across multiple game systems:
               </p>
               <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-                <li>"Excellent" markets carry a 15% crash probability per cycle</li>
-                <li>"Good" markets carry a 10% crash probability per cycle</li>
-                <li>Market state directly scales flip sale prices (–15% to +15% of ARV)</li>
+                <li>Overheated markets carry meaningful correction probabilities each cycle</li>
+                <li>Market state directly scales flip sale prices and rental income</li>
+                <li>Prevailing interest rates shift with market conditions (hot markets tighten, weak markets ease)</li>
+                <li>Renovation costs and potential returns scale with market heat</li>
               </ul>
               <p className="mt-2">
-                This models the real-world risk of "timing the market" — entering
-                during peak conditions and facing a correction before the exit.
+                This models the real-world interconnection between monetary
+                policy, asset prices, and financing costs — entering during peak
+                conditions means higher acquisition costs, tighter financing, and
+                the risk of a correction before exit.
               </p>
             </SubSection>
 
             <SubSection title="Exit Strategy Integrity">
               <p>
                 The engine tests the viability of a property sale under compressed
-                conditions. Each property receives a sale multiplier based on market conditions (terrible: 0.78–0.95, poor: 0.85–1.02, neutral: 0.90–1.10, good: 0.95–1.18, excellent: 1.00–1.28), along with property condition, diligence depth, and rehab quality. A deal underwritten at a
-                $200,000 ARV may realize only $156,000 in a "terrible" market — after
-                deducting 6% agent commission, 2% seller closing costs, and full
-                loan payoff with accrued interest.
+                conditions. Each property's sale price is influenced by market
+                conditions, property condition, diligence depth, rehab quality,
+                and location resonance. A deal underwritten at a $200,000 ARV may
+                realize significantly less in a downturn — after deducting agent
+                commissions, seller closing costs, and full loan payoff with
+                accrued interest.
+              </p>
+              <p className="mt-2">
+                Flip sale pricing accounts for the quality and relevance of
+                renovations: a kitchen remodel resonates differently in an urban
+                condo versus a suburban single-family, and the market environment
+                influences both renovation costs and the return on that
+                investment. Players who align their rehab strategy with the
+                property's location, type, and market conditions achieve better
+                outcomes.
               </p>
             </SubSection>
 
@@ -261,19 +313,29 @@ export default function Methodology() {
             <ul className="list-disc list-inside ml-4 mt-2 space-y-2">
               <li>
                 <strong>Leverage management</strong> — understanding how debt
-                amplifies both gains and losses
+                amplifies both gains and losses, and how lender underwriting
+                responds to your overall financial position
               </li>
               <li>
                 <strong>Due diligence value</strong> — quantifying the cost of
-                skipping inspections versus discovering problems early
+                skipping inspections versus discovering problems early, including
+                the compounding consequences of deferred maintenance
               </li>
               <li>
                 <strong>Market cycle awareness</strong> — recognizing that entry
-                timing and exit conditions are often outside investor control
+                timing and exit conditions are often outside investor control,
+                and that markets affect financing costs, rental income, and
+                renovation economics simultaneously
               </li>
               <li>
                 <strong>Cash flow analysis</strong> — distinguishing between
-                paper returns and actual spendable income
+                paper returns and actual spendable income, with real-time P&amp;L
+                tracking per property
+              </li>
+              <li>
+                <strong>Tenant management</strong> — understanding that property
+                condition directly affects tenant satisfaction, retention, and
+                ultimately your bottom line
               </li>
               <li>
                 <strong>Risk tolerance calibration</strong> — learning personal
@@ -283,8 +345,9 @@ export default function Methodology() {
             </ul>
             <p className="mt-4">
               Every deal outcome includes a detailed postmortem analysis
-              connecting the player's decisions to the financial result,
-              reinforcing the educational feedback loop.
+              comparing the player's projections against actual results — with
+              accuracy grades, side-by-side metric comparisons, and explanatory
+              context for any gaps between expectations and reality.
             </p>
           </Section>
 

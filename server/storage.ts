@@ -1619,36 +1619,118 @@ export class DBStorage implements IStorage {
       throw new Error('Not enough time remaining to sell (need 2 months)');
     }
     
+    // Fetch property for condition/issue analysis and price fallback
+    const [property] = await db
+      .select()
+      .from(schema.properties)
+      .where(eq(schema.properties.id, deal.propertyId))
+      .limit(1);
+    if (!property) throw new Error('Property not found');
+    
     let purchasePrice = deal.purchasePrice ?? 0;
     if (purchasePrice <= 0) {
-      const [property] = await db
-        .select()
-        .from(schema.properties)
-        .where(eq(schema.properties.id, deal.propertyId))
-        .limit(1);
-      if (!property) throw new Error('Property not found');
       purchasePrice = property.price;
     }
     
     // Get the CURRENT mortgage balance from the deal
-    // This is the actual amount owed after any refinancing or principal paydown
     const proFormaOutputs = deal.proFormaOutputs as any;
     const mortgagePayoff = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
     
-    // Rental sale uses MARKET CONDITIONS for correlation with flips
-    // Market condition affects the range of sale prices (same as flip logic)
+    // === MULTI-FACTOR RENTAL SALE PRICE ===
+    // Sale price driven by: market, diligence, property condition, time held,
+    // tenant satisfaction, repairs done, and cosmetic upgrades
+    
+    const proFormaInputs = deal.proFormaInputs as any;
     const marketCondition = gameRun.marketCondition || 'good';
     const marketMult = getMarketMultipliers(marketCondition as MarketCondition);
     
-    // Base rental appreciation range: -5% to +15% (rentals appreciate less volatilely than flips)
-    // Market condition shifts this range up or down
-    const baseMin = 0.95;
-    const baseMax = 1.15;
-    const adjustedMin = baseMin * marketMult.min; // In terrible market: 0.95 * 0.85 = 0.81
-    const adjustedMax = baseMax * marketMult.max; // In excellent market: 1.15 * 1.15 = 1.32
+    // 1. TIME HELD — longer hold = more appreciation potential (but diminishing)
+    //    Months 1-3: minimal (0-2%), 4-12: moderate (2-6%), 13-24: good (6-10%), 24+: caps at ~10%
+    const firstIncomeWeek = deal.firstIncomePaymentWeek || deal.lastIncomePaymentWeek || gameRun.currentWeek;
+    const monthsHeld = Math.max(1, gameRun.currentWeek - firstIncomeWeek);
+    const holdAppreciation = Math.min(0.10, monthsHeld * 0.004); // 0.4% per month, cap 10%
     
-    const saleMultiplier = adjustedMin + Math.random() * (adjustedMax - adjustedMin);
-    const salePrice = Math.round(purchasePrice * saleMultiplier);
+    // 2. DILIGENCE — did due diligence before buying? Better knowledge = better negotiation on sale
+    const investigations = await db
+      .select()
+      .from(schema.propertyInvestigations)
+      .where(eq(schema.propertyInvestigations.gameRunId, gameRunId));
+    const completedDiligence = investigations
+      .filter(inv => inv.propertyId === deal.propertyId)
+      .map(inv => inv.investigationType);
+    const diligenceCount = ['appraisal', 'contractor_walkthrough', 'inspection', 'title_search']
+      .filter(d => completedDiligence.includes(d)).length;
+    const diligenceBonus = diligenceCount === 0 ? -0.02
+      : diligenceCount === 1 ? 0.01
+      : diligenceCount === 2 ? 0.03
+      : diligenceCount === 3 ? 0.05
+      : 0.07; // all 4
+    
+    // 3. PROPERTY CONDITION — unfixed issues reduce value, fixed issues boost it
+    const { getRandomizedPropertyIssues } = await import('@shared/propertyIssues');
+    const allIssues = getRandomizedPropertyIssues(
+      gameRunId, deal.propertyId,
+      property.propertyType, property.conditionTag,
+      property.waterSource || 'public'
+    );
+    const rawFixedIssueIds = proFormaInputs?.fixedIssueIds || [];
+    const fixedIssueIds = [...new Set(rawFixedIssueIds)].filter((id: string) => allIssues.some(i => i.id === id));
+    const undiscoveredIssues = allIssues.filter(issue =>
+      !issue.discoveredBy.some(method => completedDiligence.includes(method))
+    );
+    const discoveredButSkipped = allIssues.filter(issue =>
+      issue.discoveredBy.some(method => completedDiligence.includes(method)) &&
+      !fixedIssueIds.includes(issue.id)
+    );
+    // Unfixed issues are a drag on value (buyers find them during their inspection)
+    const conditionPenalty = (undiscoveredIssues.length * 0.025) + (discoveredButSkipped.length * 0.02);
+    const fixedBonus = fixedIssueIds.length > 0 ? Math.min(fixedIssueIds.length * 0.012, 0.06) : 0;
+    
+    // 4. TENANT SATISFACTION — well-managed property presents better to buyers
+    let tenantBonus = 0;
+    try {
+      const tenants = await db
+        .select()
+        .from(schema.tenants)
+        .where(eq(schema.tenants.dealId, dealId))
+        .limit(1);
+      if (tenants.length > 0) {
+        const satisfaction = tenants[0].satisfaction ?? 70;
+        if (satisfaction >= 80) tenantBonus = 0.02;       // Happy tenant = easier sale
+        else if (satisfaction >= 50) tenantBonus = 0.005;  // Neutral
+        else if (satisfaction >= 30) tenantBonus = -0.01;  // Unhappy tenant = buyer discount
+        else tenantBonus = -0.03;                          // Very unhappy = significant discount
+      }
+    } catch (e) { /* non-critical */ }
+    
+    // 5. COSMETIC UPGRADE — renovation boost
+    const cosmeticBoost = proFormaOutputs?.cosmeticUpgradeSaleBoost || 0;
+    
+    // 6. MARKET VARIANCE — some randomness within market band
+    const marketVariance = marketMult.min + (Math.random() * (marketMult.max - marketMult.min));
+    
+    // === COMBINE ALL FACTORS ===
+    // Base: purchase price
+    // Additive factors: hold appreciation, diligence, condition, tenant, cosmetic
+    // Multiplicative: market variance
+    const totalAdditivePct = holdAppreciation + diligenceBonus + fixedBonus - conditionPenalty + tenantBonus + cosmeticBoost;
+    
+    // Base sale price before market
+    const baseSalePrice = purchasePrice * (1 + totalAdditivePct);
+    
+    // Apply market conditions (multiplicative)
+    let salePrice = Math.round(baseSalePrice * marketVariance);
+    
+    // Floor: never sell for less than 60% of purchase price
+    salePrice = Math.max(salePrice, Math.round(purchasePrice * 0.60));
+    
+    // Quick-flip penalty: buying and immediately selling (< 3 months) = wholesale discount
+    if (monthsHeld <= 2) {
+      const quickFlipCap = Math.round(purchasePrice * 0.95); // Lose at least 5% on immediate resale
+      salePrice = Math.min(salePrice, quickFlipCap);
+    }
+    
+    const saleMultiplier = salePrice / purchasePrice;
     
     // Net proceeds = gross sale price minus mortgage payoff
     // This is the actual cash the player receives

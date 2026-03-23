@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { X, HelpCircle, TrendingUp, DollarSign, Percent, Home, AlertTriangle, CheckCircle, Lock, Hammer, Crown } from 'lucide-react';
-import { ProFormaInputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PlayerFinancials, FINISH_LEVEL_CONFIG } from '@/lib/gameData';
+import { ProFormaInputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getInterestRateBreakdown, getLoanFeesFromLTV, getDownPaymentFromLTV, PlayerFinancials, FINISH_LEVEL_CONFIG } from '@/lib/gameData';
 import { getEffectiveRanges } from '@/lib/propertyIssues';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { Property } from '@shared/schema';
@@ -435,12 +435,48 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                 <div className="text-gray-500 text-xs md:text-sm">Down Payment</div>
                 <div className="text-white font-mono text-sm md:text-base font-semibold">{getDownPaymentFromLTV(inputs.ltv)}%</div>
               </div>
-              <div className="text-center">
-                <div className="text-gray-500 text-xs md:text-sm" title="Based on LTV, market conditions, cash reserves, and debt-to-income ratio">Interest Rate*</div>
-                <div className={`font-mono text-sm md:text-base font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>
-                  {(playerFinancials ? getInterestRateWithPlayerState(inputs.ltv, playerFinancials, weekNumber) : getInterestRateFromLTV(inputs.ltv, weekNumber)).toFixed(1)}%
-                </div>
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <div className="text-center cursor-pointer group">
+                    <div className="text-gray-500 text-xs md:text-sm group-hover:text-gray-300 transition-colors">Interest Rate*</div>
+                    <div className={`font-mono text-sm md:text-base font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>
+                      {(playerFinancials ? getInterestRateWithPlayerState(inputs.ltv, playerFinancials, weekNumber) : getInterestRateFromLTV(inputs.ltv, weekNumber)).toFixed(1)}%
+                    </div>
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-3 bg-slate-900 border-slate-700 text-xs" side="bottom">
+                  {(() => {
+                    if (!playerFinancials) return <p className="text-gray-400">Rate based on LTV only</p>;
+                    const bd = getInterestRateBreakdown(inputs.ltv, playerFinancials, weekNumber);
+                    const items: [string, number][] = [
+                      ['Base rate', bd.baseRate],
+                      ['LTV risk premium', bd.ltvPremium],
+                      ['Debt-to-income', bd.dtiAdjustment],
+                      ['Cash reserves', bd.reserveAdjustment],
+                      ['Net worth / assets', bd.assetAdjustment],
+                      ['Market conditions', bd.marketAdjustment],
+                      ['Track record', bd.trackRecordAdjustment],
+                    ];
+                    return (
+                      <div className="space-y-1.5">
+                        <p className="text-gray-300 font-semibold mb-2">Rate Breakdown</p>
+                        {items.map(([label, val]) => (
+                          <div key={label} className="flex justify-between">
+                            <span className="text-gray-400">{label}</span>
+                            <span className={val > 0 ? 'text-red-400 font-mono' : val < 0 ? 'text-emerald-400 font-mono' : 'text-gray-500 font-mono'}>
+                              {val > 0 ? '+' : ''}{val.toFixed(2)}%
+                            </span>
+                          </div>
+                        ))}
+                        <div className="border-t border-slate-700 pt-1.5 flex justify-between font-semibold">
+                          <span className="text-white">Your rate</span>
+                          <span className="text-white font-mono">{bd.finalRate.toFixed(1)}%</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </PopoverContent>
+              </Popover>
               <div className="text-center">
                 <div className="text-gray-500 text-xs md:text-sm">Loan Fees</div>
                 <div className={`font-mono text-sm md:text-base font-semibold ${inputs.ltv >= 80 ? 'text-amber-400' : 'text-white'}`}>

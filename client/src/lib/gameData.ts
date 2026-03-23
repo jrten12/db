@@ -118,34 +118,118 @@ export const getInterestRateFromLTV = (ltv: number, weekNumber?: number): number
   return Math.max(INTEREST_MIN - 0.5, baseRate + marketAdjustment);
 };
 
-// Dynamic interest rate that considers player's financial situation
-// This is the "real" rate that educated investors would see
 export interface PlayerFinancials {
   cash: number;
   totalMonthlyDebt: number;
   totalMonthlyIncome: number;
   totalAssetValue: number;
+  marketCondition?: string;
+  completedProfitableDeals?: number;
+  totalDealsCompleted?: number;
 }
 
-export const getInterestRateWithPlayerState = (ltv: number, playerFinancials: PlayerFinancials, weekNumber?: number): number => {
-  const baseRate = getInterestRateFromLTV(ltv, weekNumber);
-  
-  // DTI adjustment: higher debt = higher rate (reduced impact)
+export interface RateBreakdown {
+  baseRate: number;
+  ltvPremium: number;
+  dtiAdjustment: number;
+  reserveAdjustment: number;
+  assetAdjustment: number;
+  marketAdjustment: number;
+  trackRecordAdjustment: number;
+  finalRate: number;
+}
+
+const MARKET_RATE_SHIFTS: Record<string, number> = {
+  terrible: -1.0,
+  poor: -0.5,
+  neutral: 0,
+  good: 0.4,
+  excellent: 0.85,
+};
+
+export const getInterestRateBreakdown = (ltv: number, playerFinancials: PlayerFinancials, weekNumber?: number): RateBreakdown => {
+  const baseRate = getInterestRateFromLTV(LTV_MIN, weekNumber);
+  const ltvRate = getInterestRateFromLTV(ltv, weekNumber);
+  const ltvPremium = ltvRate - baseRate;
+
   const dti = playerFinancials.totalMonthlyIncome > 0 
     ? (playerFinancials.totalMonthlyDebt / playerFinancials.totalMonthlyIncome) * 100 
-    : 50; // Default to 50% DTI if no income (neutral)
-  const dtiAdjustment = dti > 50 ? (dti - 50) * 0.02 : (dti < 30 ? -0.25 : 0); // +0.02% per point above 50%, bonus for low DTI
-  
-  // Cash reserves adjustment: more cash = lower rate (gentler curve)
-  const reserveMonths = playerFinancials.cash / (playerFinancials.totalMonthlyDebt || 1000);
-  const reserveAdjustment = reserveMonths > 6 ? -0.35 : (reserveMonths < 3 ? 0.5 : 0);
-  
-  // Asset coverage adjustment: more assets relative to new debt = lower rate
-  const assetCoverage = playerFinancials.totalAssetValue / (playerFinancials.cash || 1);
-  const assetAdjustment = assetCoverage > 3 ? -0.2 : (assetCoverage < 1.5 ? 0.35 : 0);
-  
-  // Final rate with player-state adjustments, bounded to reasonable limits
-  return Math.max(3.5, Math.min(15, baseRate + dtiAdjustment + reserveAdjustment + assetAdjustment));
+    : 45;
+  let dtiAdjustment = 0;
+  if (dti <= 25) {
+    dtiAdjustment = -0.35;
+  } else if (dti <= 36) {
+    dtiAdjustment = -0.35 + (dti - 25) / 11 * 0.35;
+  } else if (dti <= 43) {
+    dtiAdjustment = 0;
+  } else if (dti <= 50) {
+    dtiAdjustment = (dti - 43) / 7 * 0.5;
+  } else {
+    dtiAdjustment = 0.5 + (Math.min(dti, 70) - 50) * 0.04;
+  }
+
+  const monthlyExpenses = playerFinancials.totalMonthlyDebt || 1000;
+  const reserveMonths = playerFinancials.cash / monthlyExpenses;
+  let reserveAdjustment = 0;
+  if (reserveMonths >= 12) {
+    reserveAdjustment = -0.45;
+  } else if (reserveMonths >= 6) {
+    reserveAdjustment = -0.45 + (12 - reserveMonths) / 6 * 0.45;
+  } else if (reserveMonths >= 3) {
+    reserveAdjustment = 0;
+  } else {
+    reserveAdjustment = (3 - reserveMonths) / 3 * 0.6;
+  }
+
+  const totalPropertyValue = playerFinancials.totalAssetValue;
+  const netWorth = playerFinancials.cash + totalPropertyValue;
+  const debtLoad = playerFinancials.totalMonthlyDebt * 12;
+  const assetRatio = debtLoad > 0 ? netWorth / debtLoad : (netWorth > 0 ? 10 : 1);
+  let assetAdjustment = 0;
+  if (assetRatio >= 5) {
+    assetAdjustment = -0.3;
+  } else if (assetRatio >= 2) {
+    assetAdjustment = -0.3 + (5 - assetRatio) / 3 * 0.3;
+  } else if (assetRatio >= 1) {
+    assetAdjustment = 0;
+  } else {
+    assetAdjustment = (1 - Math.max(assetRatio, 0)) * 0.45;
+  }
+
+  const mc = playerFinancials.marketCondition || 'neutral';
+  const marketAdjustment = MARKET_RATE_SHIFTS[mc] ?? 0;
+
+  const profitableDeals = playerFinancials.completedProfitableDeals || 0;
+  const totalDeals = playerFinancials.totalDealsCompleted || 0;
+  let trackRecordAdjustment = 0;
+  if (totalDeals >= 1) {
+    const successRate = profitableDeals / totalDeals;
+    if (successRate >= 0.8 && profitableDeals >= 2) {
+      trackRecordAdjustment = -0.3;
+    } else if (successRate >= 0.5 && profitableDeals >= 1) {
+      trackRecordAdjustment = -0.15;
+    } else if (successRate < 0.3 && totalDeals >= 2) {
+      trackRecordAdjustment = 0.25;
+    }
+  }
+
+  const rawRate = ltvRate + dtiAdjustment + reserveAdjustment + assetAdjustment + marketAdjustment + trackRecordAdjustment;
+  const finalRate = Math.max(3.25, Math.min(14, rawRate));
+
+  return {
+    baseRate,
+    ltvPremium,
+    dtiAdjustment,
+    reserveAdjustment,
+    assetAdjustment,
+    marketAdjustment,
+    trackRecordAdjustment,
+    finalRate,
+  };
+};
+
+export const getInterestRateWithPlayerState = (ltv: number, playerFinancials: PlayerFinancials, weekNumber?: number): number => {
+  return getInterestRateBreakdown(ltv, playerFinancials, weekNumber).finalRate;
 };
 
 export const SALE_MARKET_RANGES: Record<string, { min: number; max: number }> = {

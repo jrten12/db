@@ -405,15 +405,22 @@ export default function Game() {
     let totalMonthlyDebt = 0;
     let totalMonthlyIncome = 0;
     let totalAssetValue = 0;
+    let completedProfitableDeals = 0;
+    let totalDealsCompleted = 0;
     
     for (const deal of deals) {
       if (deal.status === 'active_rental') {
         const outputs = deal.proFormaOutputs as any;
         totalMonthlyDebt += outputs?.monthlyDebtService || outputs?.debtServiceMonthly || 0;
         totalMonthlyIncome += outputs?.monthlyGrossRent || 0;
-        // Asset value approximated as property purchase price
         const property = properties?.find(p => p.id === deal.propertyId);
         totalAssetValue += property?.price || 0;
+      }
+      if (deal.status === 'completed' || deal.status === 'sold_rental') {
+        totalDealsCompleted++;
+        if ((deal.actualProfit ?? 0) > 0) {
+          completedProfitableDeals++;
+        }
       }
     }
     
@@ -422,8 +429,11 @@ export default function Game() {
       totalMonthlyDebt,
       totalMonthlyIncome,
       totalAssetValue,
+      marketCondition: (gameRun as any)?.marketCondition || 'neutral',
+      completedProfitableDeals,
+      totalDealsCompleted,
     };
-  }, [deals, properties, gameRun?.cash]);
+  }, [deals, properties, gameRun?.cash, gameRun]);
 
   // Check for new achievements when deals change
   useEffect(() => {

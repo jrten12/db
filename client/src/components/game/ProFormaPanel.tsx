@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials, FINISH_LEVEL_CONFIG, UNKNOWN_REHAB_BUDGET_MULTIPLIER } from '@/lib/gameData';
+import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getInterestRateBreakdown, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials, FINISH_LEVEL_CONFIG, UNKNOWN_REHAB_BUDGET_MULTIPLIER } from '@/lib/gameData';
 
 type FinishLevelKey = keyof typeof FINISH_LEVEL_CONFIG;
 const FINISH_LEVELS = Object.keys(FINISH_LEVEL_CONFIG) as FinishLevelKey[];
@@ -1033,15 +1033,35 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                       {derivedInterestRate.toFixed(1)}%
                     </span>
                   </div>
-                  <div className="text-sm text-gray-400 mt-1">
-                    {derivedInterestRate > 12 
-                      ? 'Extreme risk! Banks charging premium rates.'
-                      : derivedInterestRate > 8
-                      ? 'High leverage = higher rates from lenders.'
-                      : playerFinancials && playerFinancials.totalMonthlyIncome > 0
-                      ? 'Good financial position helps your rate.'
-                      : 'Based on your LTV and financial position.'}
-                  </div>
+                  {(() => {
+                    if (!playerFinancials) return (
+                      <div className="text-sm text-gray-400 mt-1">Based on your LTV and financial position.</div>
+                    );
+                    const bd = getInterestRateBreakdown(inputs.ltv, playerFinancials, weekNumber);
+                    const factors: [string, number][] = [
+                      ['Debt-to-income', bd.dtiAdjustment],
+                      ['Cash reserves', bd.reserveAdjustment],
+                      ['Net worth', bd.assetAdjustment],
+                      ['Market', bd.marketAdjustment],
+                      ['Track record', bd.trackRecordAdjustment],
+                    ].filter(([, v]) => v !== 0) as [string, number][];
+                    return (
+                      <div className="mt-2 space-y-1">
+                        {factors.length > 0 ? (
+                          factors.map(([label, val]) => (
+                            <div key={label} className="flex justify-between text-xs">
+                              <span className="text-gray-500">{label}</span>
+                              <span className={val > 0 ? 'text-red-400 font-mono' : 'text-emerald-400 font-mono'}>
+                                {val > 0 ? '+' : ''}{val.toFixed(2)}%
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-xs text-gray-500">No adjustments — neutral financial position</div>
+                        )}
+                      </div>
+                    );
+                  })()}
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-300">
                     <span>Down: {derivedDownPaymentPct.toFixed(0)}%</span>
                     <span>Loan Fees: {derivedLoanFeesPct.toFixed(1)}%</span>

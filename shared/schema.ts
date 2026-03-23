@@ -272,6 +272,8 @@ export const tenants = pgTable("tenants", {
   lastContactWeek: integer("last_contact_week"),
   satisfaction: integer("satisfaction").notNull().default(75),
   weeksUnhappy: integer("weeks_unhappy").notNull().default(0),
+  leaseStartWeek: integer("lease_start_week"),
+  leaseRentAmount: integer("lease_rent_amount"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

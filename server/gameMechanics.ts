@@ -9,7 +9,7 @@
  */
 
 import { storage, IStorage } from './storage';
-import type { GameRun, Deal, InsertLedgerEntry, InsertCurveballEvent, MarketCondition } from '@shared/schema';
+import type { GameRun, Deal, Property, InsertLedgerEntry, InsertCurveballEvent, MarketCondition } from '@shared/schema';
 import { MARKET_CONDITIONS } from '@shared/schema';
 import * as schema from '@shared/schema';
 import { db } from './storage';
@@ -1304,6 +1304,9 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   // BUG-007 fix: Track running cash in memory, apply single atomic update at end
   let runningCash = gameRun.cash;
 
+  // Get market condition early - needed for lease renewals during rental processing
+  const gameMarket = (gameRun.marketCondition as MarketCondition) || 'good';
+
   // Get all property investigations for this game to check undiscovered issues
   const investigations = await storage.getPropertyInvestigations(gameRunId);
 
@@ -1366,6 +1369,16 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           currentTenant.satisfaction = newSatisfaction;
           currentTenant.weeksUnhappy = newWeeksUnhappy;
 
+          // === LEASE RENEWAL CHECK (every 6 months) ===
+          const leaseStart = currentTenant.leaseStartWeek ?? (deal.firstIncomePaymentWeek || deal.lastIncomePaymentWeek || 0);
+          const monthsSinceLeaseStart = (gameRun.currentWeek + 1) - leaseStart;
+          if (monthsSinceLeaseStart > 0 && monthsSinceLeaseStart % 6 === 0 && property) {
+            const leaseRenewalResult = await processLeaseRenewal(deal, property, currentTenant, gameMarket, gameRun.currentWeek + 1, unfixedIssueIds);
+            if (leaseRenewalResult) {
+              curveballs.push(leaseRenewalResult.event);
+            }
+          }
+
           if (newSatisfaction < 30 && newWeeksUnhappy >= 3 && monthsActive >= 4) {
             const baseLeaveChance = 4;
             const unhappyBonus = Math.min(Math.max(0, newWeeksUnhappy - 3) * 3, 18);
@@ -1373,12 +1386,13 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
 
             if (Math.random() * 100 < totalLeaveChance) {
               const turnoverCost = 500 + Math.floor(Math.random() * 1001);
+              const tenantFirstName = (currentTenant.name || 'Tenant').split(' ')[0];
               const leaveReasons = [
-                'fed up with ongoing maintenance issues',
+                'is fed up with ongoing maintenance issues',
                 'found a better-maintained place nearby',
-                'tired of dealing with repairs',
-                'concerned about health risks from deferred maintenance',
-                'neighbor recommended a better property',
+                'is tired of dealing with repairs',
+                'is concerned about health risks from deferred maintenance',
+                'heard about a better property from a neighbor',
               ];
               const reason = leaveReasons[Math.floor(Math.random() * leaveReasons.length)];
               tenantLeavingEvent = {
@@ -1388,7 +1402,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
                 trigger: 'rental_monthly',
                 cashImpact: -turnoverCost,
                 rentMultiplier: 0,
-                description: `Tenant ${reason}. Property vacant for 1 month. Turnover costs: $${turnoverCost.toLocaleString()}.`,
+                description: `${tenantFirstName} ${reason}. Property vacant for 1 month. Turnover costs: $${turnoverCost.toLocaleString()}.`,
                 emoji: '🚚',
                 color: 'red',
                 tenantIssue: true,
@@ -1400,6 +1414,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
             const lifeLeaveChance = 0.8;
             if (Math.random() * 100 < lifeLeaveChance) {
               const turnoverCost = 500 + Math.floor(Math.random() * 501);
+              const tenantFirstName = (currentTenant.name || 'Tenant').split(' ')[0];
               const lifeSituations = [
                 { reason: 'got a job transfer to another city', emoji: '✈️' },
                 { reason: 'is buying their own home', emoji: '🏡' },
@@ -1416,7 +1431,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
                 trigger: 'rental_monthly',
                 cashImpact: -turnoverCost,
                 rentMultiplier: 0,
-                description: `Tenant ${situation.reason}. Property vacant for 1 month. Turnover costs: $${turnoverCost.toLocaleString()}.`,
+                description: `${tenantFirstName} ${situation.reason}. Property vacant for 1 month. Turnover costs: $${turnoverCost.toLocaleString()}.`,
                 emoji: situation.emoji,
                 color: 'orange',
                 tenantIssue: true,
@@ -1740,12 +1755,8 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     });
   }
 
-  if (marketChanged) {
-    const activeRentals = deals.filter(d => d.status === 'active_rental' && !d.rentalRehabActive);
-    for (const deal of activeRentals) {
-      await applyMarketRentAdjustment(deal, currentMarket);
-    }
-  }
+  // Market rent adjustments now happen at lease renewal (every 6 months), not mid-lease
+  // Store the current market condition for lease renewal calculations but don't change rent mid-lease
 
   return {
     rentalPayments,
@@ -1778,6 +1789,167 @@ function getMarketRentMultiplier(market: MarketCondition): number {
   const [min, max] = multipliers[market];
   if (min === 0 && max === 0) return 1;
   return 1 + min + Math.random() * (max - min);
+}
+
+/**
+ * Process lease renewal every 6 months
+ * Adjusts rent based on market conditions, tenant satisfaction, property condition, and unfixed issues
+ * Returns an event object for the curveball system to display
+ */
+async function processLeaseRenewal(
+  deal: Deal,
+  property: Property,
+  tenant: any,
+  market: MarketCondition,
+  currentWeek: number,
+  unfixedIssueIds: string[]
+): Promise<{ event: any } | null> {
+  const outputs = deal.proFormaOutputs as any;
+  const inputs = deal.proFormaInputs as any;
+  if (!outputs?.monthlyGrossRent) return null;
+
+  const currentRent = outputs.monthlyGrossRent;
+  const activationRent = outputs.activationMonthlyRent || currentRent;
+  const tenantName = (tenant.name || 'Tenant').split(' ')[0];
+
+  // === RENEWAL RENT CALCULATION ===
+  // Base: start from current rent (not activation rent)
+  let rentChangePct = 0;
+
+  // 1. Market condition adjustment (the biggest factor)
+  const marketShifts: Record<string, number> = {
+    terrible: -6, poor: -3, neutral: 0, good: 3, excellent: 5,
+  };
+  const marketPct = marketShifts[market] || 0;
+  // Add some randomness within the market band
+  const marketRandom = marketPct + (Math.random() * 3 - 1.5);
+  rentChangePct += marketRandom;
+
+  // 2. Tenant satisfaction factor — happy tenants accept small increases; unhappy ones demand discounts
+  const satisfaction = tenant.satisfaction ?? 75;
+  if (satisfaction >= 80) {
+    rentChangePct += 1 + Math.random() * 1.5; // Happy tenant, can push rent slightly
+  } else if (satisfaction >= 50) {
+    // Neutral — no bonus or penalty
+  } else if (satisfaction >= 30) {
+    rentChangePct -= 1 + Math.random() * 2; // Unhappy, need to offer a discount to retain
+  } else {
+    rentChangePct -= 3 + Math.random() * 2; // Very unhappy, significant concession needed
+  }
+
+  // 3. Property condition — unfixed issues suppress rent growth
+  if (unfixedIssueIds.length >= 3) {
+    rentChangePct -= 2 + Math.random() * 2;
+  } else if (unfixedIssueIds.length >= 1) {
+    rentChangePct -= 0.5 + Math.random() * 1;
+  }
+
+  // 4. Cosmetic upgrade bonus — renovated properties command more
+  if (outputs.cosmeticUpgradeApplied) {
+    rentChangePct += 0.5 + Math.random() * 1;
+  }
+
+  // Cap the change to reasonable bounds (-8% to +8% per renewal)
+  rentChangePct = Math.max(-8, Math.min(8, rentChangePct));
+
+  // Apply hard floor/ceiling relative to activation rent
+  let newRent = Math.round(currentRent * (1 + rentChangePct / 100));
+  const floor = Math.round(activationRent * 0.70);
+  const ceiling = Math.round(activationRent * 1.35);
+  newRent = Math.max(floor, Math.min(ceiling, newRent));
+
+  // Recalculate cash flow with new rent
+  const vacancyRate = inputs?.vacancyRate || 5;
+  const tenantUtilityPenalty = inputs?.utilities ? 0 : 1.92;
+  const effectiveVacancyRate = vacancyRate + tenantUtilityPenalty;
+  const effectiveRent = newRent * (1 - effectiveVacancyRate / 100);
+
+  const monthlyTaxes = (inputs?.taxesAnnual || 0) / 12;
+  const monthlyInsurance = (inputs?.insuranceAnnual || 0) / 12;
+  const maintenanceCost = newRent * ((inputs?.maintenancePct || 5) / 100);
+  const capExCost = newRent * ((inputs?.capExPct || 8) / 100);
+  const utilitiesCost = inputs?.utilities ? (inputs?.utilitiesMonthly || 150) : 0;
+  const mgmtCost = inputs?.propertyManagement ? newRent * ((inputs?.propertyManagementPct || 10) / 100) : 0;
+  const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
+  const debtService = outputs.monthlyDebtService || 0;
+  const newCashFlow = effectiveRent - monthlyOpEx - debtService;
+  const newWeeklyIncome = calculateWeeklyIncome(newCashFlow);
+
+  const rentDiff = newRent - currentRent;
+  const rentDiffAbs = Math.abs(rentDiff);
+
+  // Update deal with new rent
+  const updatedOutputs = {
+    ...outputs,
+    monthlyGrossRent: newRent,
+    activationMonthlyRent: activationRent,
+    monthlyVacancyLoss: newRent * (effectiveVacancyRate / 100),
+    monthlyOperatingExpenses: monthlyOpEx,
+    cashFlowMonthly: newCashFlow,
+    lastLeaseRenewalWeek: currentWeek,
+    lastMarketRentAdjustment: market,
+  };
+
+  await storage.updateDeal(deal.id, {
+    weeklyIncome: newWeeklyIncome,
+    proFormaOutputs: updatedOutputs,
+  });
+
+  // Update tenant lease tracking
+  await storage.updateTenant(tenant.id, {
+    leaseStartWeek: currentWeek,
+    leaseRentAmount: newRent,
+  });
+
+  // Build descriptive event
+  const propertyName = property.name || 'Property';
+  let description: string;
+  let emoji: string;
+  let eventType: string;
+  let color: string;
+
+  if (rentDiff > 0) {
+    const reasons: string[] = [];
+    if (marketPct >= 2) reasons.push('strong market demand');
+    if (satisfaction >= 70) reasons.push('happy tenant accepted increase');
+    if (outputs.cosmeticUpgradeApplied) reasons.push('recent renovation');
+    if (reasons.length === 0) reasons.push('market adjustment');
+    description = `${tenantName}'s lease renewed at $${newRent.toLocaleString()}/mo (+$${rentDiffAbs}/mo). ${reasons.join(', ').replace(/^./, s => s.toUpperCase())}.`;
+    emoji = '📈';
+    eventType = 'positive';
+    color = 'green';
+  } else if (rentDiff < 0) {
+    const reasons: string[] = [];
+    if (marketPct <= -2) reasons.push('weak market conditions');
+    if (satisfaction < 50) reasons.push('tenant negotiated lower rent');
+    if (unfixedIssueIds.length > 0) reasons.push(`${unfixedIssueIds.length} unresolved property issue${unfixedIssueIds.length > 1 ? 's' : ''}`);
+    if (reasons.length === 0) reasons.push('market softening');
+    description = `${tenantName}'s lease renewed at $${newRent.toLocaleString()}/mo (-$${rentDiffAbs}/mo). ${reasons.join(', ').replace(/^./, s => s.toUpperCase())}.`;
+    emoji = '📉';
+    eventType = 'negative';
+    color = 'orange';
+  } else {
+    description = `${tenantName}'s lease renewed at $${newRent.toLocaleString()}/mo (no change). Stable market and property conditions.`;
+    emoji = '📋';
+    eventType = 'neutral';
+    color = 'blue';
+  }
+
+  return {
+    event: {
+      id: 'lease_renewal',
+      name: 'Lease Renewal',
+      type: eventType,
+      trigger: 'rental_monthly',
+      cashImpact: 0,
+      rentMultiplier: 1,
+      description,
+      emoji,
+      color,
+      tenantIssue: false,
+      propertyName,
+    },
+  };
 }
 
 async function applyMarketRentAdjustment(deal: Deal, market: MarketCondition): Promise<void> {

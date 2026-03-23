@@ -1285,6 +1285,20 @@ export default function Game() {
         });
       }
 
+      // Show lease renewal notifications
+      if (result.curveballs && result.curveballs.length > 0) {
+        const leaseRenewals = result.curveballs.filter((c: any) => c.id === 'lease_renewal');
+        for (const renewal of leaseRenewals) {
+          if (renewal.type === 'positive') {
+            toast.success(`${renewal.emoji} ${renewal.description}`, { duration: 5000 });
+          } else if (renewal.type === 'negative') {
+            toast.warning(`${renewal.emoji} ${renewal.description}`, { duration: 5000 });
+          } else {
+            toast(`${renewal.emoji} ${renewal.description}`, { duration: 4000 });
+          }
+        }
+      }
+
       if (result.marketChanged && result.marketCondition) {
         const marketLabels: Record<string, string> = {
           terrible: 'Terrible',
@@ -1295,7 +1309,7 @@ export default function Game() {
         };
         const label = marketLabels[result.marketCondition] || result.marketCondition;
         const hasRentals = deals.some(d => d.status === 'active_rental');
-        const rentNote = hasRentals ? ' Rental income has been adjusted.' : '';
+        const rentNote = hasRentals ? ' This will affect your next lease renewal.' : '';
         toast(`📊 Market shifted to ${label}.${rentNote}`, { duration: 4000 });
       }
 

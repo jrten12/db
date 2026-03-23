@@ -1247,6 +1247,10 @@ export async function registerRoutes(
       const conditionPenalty = Math.min(unfixedCount * 3, 15);
       const initialSatisfaction = (70 + Math.floor(Math.random() * 16)) - conditionPenalty;
 
+      const gameRun = deal ? await storage.getGameRun(deal.gameRunId) : null;
+      const currentWeek = gameRun?.currentWeek || 0;
+      const currentRent = deal?.proFormaOutputs ? (deal.proFormaOutputs as any).monthlyGrossRent || 0 : 0;
+
       const tenant = await storage.createTenant({
         dealId,
         name,
@@ -1255,6 +1259,8 @@ export async function registerRoutes(
         lastContactWeek: null,
         satisfaction: Math.max(40, initialSatisfaction),
         weeksUnhappy: 0,
+        leaseStartWeek: currentWeek,
+        leaseRentAmount: currentRent || null,
       });
       res.json(tenant);
     } catch (error) {

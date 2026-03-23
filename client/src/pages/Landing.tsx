@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch } from 'lucide-react';
 import heroHouseImage from '@assets/Gemini_hero.webp';
 import dbLogoImage from '@assets/db_logo_64.webp';
 const heroBgPattern = '/hero-bg-pattern.webp';
@@ -131,6 +131,28 @@ export default function Landing() {
           </div>
         </div>
       </nav>
+
+      {/* === TESTING PHASE BANNER (TEMPORARY) === */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(90deg, rgba(212,175,55,0.06) 0%, rgba(19,19,22,0.98) 50%, rgba(16,185,129,0.06) 100%)',
+          borderBottom: '1px solid rgba(212,175,55,0.1)',
+        }}
+        data-testid="banner-testing-phase"
+      >
+        <div className="max-w-4xl mx-auto px-5 py-2 flex items-center justify-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#d4af37' }} />
+            <span className="text-[11px] sm:text-xs font-semibold tracking-wide" style={{ color: 'rgba(212,175,55,0.85)' }}>
+              Final Testing Phase
+            </span>
+          </div>
+          <span className="text-[10px] sm:text-[11px]" style={{ color: 'rgba(225,220,205,0.4)' }}>
+            We're actively refining mechanics, squashing bugs, and polishing every detail. Thanks for your patience as we get this right.
+          </span>
+        </div>
+      </div>
 
       {/* === HERO SECTION === */}
       <section className="relative overflow-hidden">
@@ -450,6 +472,118 @@ export default function Landing() {
               title="No Two Games Alike"
               detail="Property issues, market events, tenant behavior, and renovation outcomes are all procedurally generated. Your strategy has to adapt, not memorize."
             />
+          </div>
+        </div>
+      </section>
+
+      {/* === BUILT WITH PRECISION (DEPTH SHOWCASE) === */}
+      <section className="py-6 lg:py-14 px-5">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-6 lg:mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)' }}>
+              <Microscope className="w-3 h-3" style={{ color: 'rgba(16,185,129,0.7)' }} />
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(16,185,129,0.8)' }}>Under the Hood</span>
+            </div>
+            <h2
+              className="text-2xl sm:text-3xl lg:text-[2.5rem] font-bold mb-3 tracking-tight leading-tight"
+              style={{ color: '#f0e6d0' }}
+            >
+              Every Number Earns Its Place
+            </h2>
+            <p className="text-sm sm:text-base max-w-2xl mx-auto leading-relaxed" style={{ color: 'rgba(225,220,205,0.55)' }}>
+              This isn't surface-level. Every mechanic models a real variable that shapes real deals. The deeper you look, the more you find.
+            </p>
+          </div>
+
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{
+              background: 'linear-gradient(180deg, rgba(19,19,22,0.95) 0%, rgba(16,20,18,0.95) 100%)',
+              border: '1px solid rgba(16,185,129,0.12)',
+            }}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-px" style={{ background: 'rgba(16,185,129,0.06)' }}>
+              <div className="p-5 lg:p-6" style={{ background: 'rgba(19,19,22,0.98)' }}>
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}>
+                    <SlidersHorizontal className="w-4 h-4" style={{ color: '#10b981' }} />
+                  </div>
+                  <h3 className="font-bold text-sm" style={{ color: '#f0e6d0' }}>Multi-Variable Underwriting</h3>
+                </div>
+                <p className="text-xs leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                  Interest rates aren't random. A 6-factor model weighs your LTV, debt-to-income, cash reserves, net worth, market conditions, and track record — the same inputs a real lender evaluates.
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {['LTV Premium', 'DTI Gradient', 'Cash Reserves', 'Net Worth', 'Market Shift', 'Track Record'].map(f => (
+                    <span key={f} className="text-[9px] font-mono px-2 py-0.5 rounded" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.12)', color: 'rgba(16,185,129,0.7)' }}>{f}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-5 lg:p-6" style={{ background: 'rgba(19,19,22,0.98)' }}>
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.2)' }}>
+                    <Activity className="w-4 h-4" style={{ color: '#d4af37' }} />
+                  </div>
+                  <h3 className="font-bold text-sm" style={{ color: '#f0e6d0' }}>Living Properties</h3>
+                </div>
+                <p className="text-xs leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                  Properties aren't static assets. Unfixed issues escalate over time — mild in month two, critical by month ten. Tenant satisfaction tracks monthly, driving turnover risk. Market shifts adjust your rent in real time.
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Expense Escalation', 'Tenant Mood', 'Market Rent Adj.', 'Turnover Cost'].map(f => (
+                    <span key={f} className="text-[9px] font-mono px-2 py-0.5 rounded" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.12)', color: 'rgba(212,175,55,0.7)' }}>{f}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-5 lg:p-6" style={{ background: 'rgba(19,19,22,0.98)' }}>
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)' }}>
+                    <Crosshair className="w-4 h-4" style={{ color: '#06b6d4' }} />
+                  </div>
+                  <h3 className="font-bold text-sm" style={{ color: '#f0e6d0' }}>Precision Postmortems</h3>
+                </div>
+                <p className="text-xs leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                  After every deal, a detailed breakdown compares your pro forma projections to actual outcomes line by line. Rent, vacancy, expenses, cash flow — each graded with an explanation of exactly where your assumptions held or broke down.
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Pro Forma vs Reality', 'Letter Grade', 'Line-by-Line', 'Gap Analysis'].map(f => (
+                    <span key={f} className="text-[9px] font-mono px-2 py-0.5 rounded" style={{ background: 'rgba(6,182,212,0.06)', border: '1px solid rgba(6,182,212,0.12)', color: 'rgba(6,182,212,0.7)' }}>{f}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-5 lg:p-6" style={{ background: 'rgba(19,19,22,0.98)' }}>
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}>
+                    <GitBranch className="w-4 h-4" style={{ color: '#a855f7' }} />
+                  </div>
+                  <h3 className="font-bold text-sm" style={{ color: '#f0e6d0' }}>Branching Outcome Paths</h3>
+                </div>
+                <p className="text-xs leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                  Your diligence choices, contractor picks, repair selections, and financing structure all feed into outcome calculations. Renovation yields account for location, property type, market demand, and price tier — not just cost.
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Renovation Resonance', 'Contractor Loyalty', 'Diligence Depth', 'Strategy Fork'].map(f => (
+                    <span key={f} className="text-[9px] font-mono px-2 py-0.5 rounded" style={{ background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.12)', color: 'rgba(168,85,247,0.7)' }}>{f}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="px-5 py-3.5 text-center"
+              style={{
+                background: 'linear-gradient(90deg, rgba(16,185,129,0.04), rgba(19,19,22,0.98), rgba(212,175,55,0.04))',
+                borderTop: '1px solid rgba(16,185,129,0.08)',
+              }}
+            >
+              <p className="text-[11px] sm:text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.45)' }}>
+                Dozens of interconnected variables. Every deal calculated from first principles.
+                <span className="ml-1 font-medium" style={{ color: 'rgba(16,185,129,0.7)' }}>The depth is the game.</span>
+              </p>
+            </div>
           </div>
         </div>
       </section>

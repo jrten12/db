@@ -297,7 +297,10 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
     .filter(deal => deal.status !== 'planned')
     .map(deal => {
       const property = properties.find(p => p.id === deal.propertyId);
-      const dealEntries = entries.filter(e => e.dealId === deal.id);
+      const dealEntries = entries.filter(e => 
+        e.dealId === deal.id || 
+        (!e.dealId && e.propertyId === deal.propertyId)
+      );
       
       const totalIncome = dealEntries
         .filter(e => e.direction === 'credit')
@@ -333,7 +336,10 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
       return b.dealId - a.dealId;
     });
 
-  const unassignedEntries = entries.filter(e => !e.dealId);
+  const assignedPropertyIds = new Set(deals.filter(d => d.status !== 'planned').map(d => d.propertyId));
+  const unassignedEntries = entries.filter(e => 
+    !e.dealId && (!e.propertyId || !assignedPropertyIds.has(e.propertyId))
+  );
   const hasUnassigned = unassignedEntries.length > 0;
 
   const handleClose = (e: React.MouseEvent) => {

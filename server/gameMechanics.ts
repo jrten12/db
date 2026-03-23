@@ -722,6 +722,9 @@ export async function completeFlipDeal(
   const allInCost = proFormaOutputs.allInBasis || 0;
   const profit = salePrice - allInCost - totalHoldingCostsPaid - sellingCosts - surpriseCosts;
 
+  // Calculate mortgage payoff
+  const mortgagePayoff = deal.currentLoanBalance ?? loanAmount ?? 0;
+
   // Create ledger entries - sale proceeds and all selling costs
   const ledgerEntries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[] = [];
 
@@ -736,6 +739,18 @@ export async function completeFlipDeal(
     propertyId: deal.propertyId,
     dealId: deal.id,
   });
+
+  // Mortgage payoff (loan repayment from sale proceeds)
+  if (mortgagePayoff > 0) {
+    ledgerEntries.push({
+      direction: 'debit',
+      category: 'expense',
+      amount: mortgagePayoff,
+      description: `Mortgage payoff`,
+      propertyId: deal.propertyId,
+      dealId: deal.id,
+    });
+  }
 
   // Selling costs (realtor commission, closing costs)
   if (sellingCosts > 0) {

@@ -1038,6 +1038,7 @@ export default function Game() {
             amount: proFormaOutputs.downPaymentAmount,
             description: `Down payment - ${selectedProperty.name}`,
             propertyId: selectedProperty.id,
+            dealId: newDeal.id,
           },
           {
             direction: 'debit',
@@ -1045,6 +1046,7 @@ export default function Game() {
             amount: closingCosts,
             description: `Closing costs (2.5%) - ${selectedProperty.name}`,
             propertyId: selectedProperty.id,
+            dealId: newDeal.id,
           },
           {
             direction: 'debit',
@@ -1052,6 +1054,7 @@ export default function Game() {
             amount: loanOriginationFee,
             description: `Loan origination fee (${loanFeesPct.toFixed(1)}%) - ${selectedProperty.name}`,
             propertyId: selectedProperty.id,
+            dealId: newDeal.id,
           },
         ],
         currentCash: gameRun.cash,

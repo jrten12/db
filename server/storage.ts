@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import pkg from "pg";
 const { Pool } = pkg;
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, sql } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import type { MarketCondition } from "@shared/schema";
 import { getMarketMultipliers, calculateFlipSalePrice } from "./gameMechanics";
@@ -626,7 +626,7 @@ export class DBStorage implements IStorage {
       .from(schema.gameRuns)
       .where(
         and(
-          eq(schema.gameRuns.playerName, playerName),
+          sql`LOWER(${schema.gameRuns.playerName}) = LOWER(${playerName})`,
           eq(schema.gameRuns.status, "active")
         )
       )

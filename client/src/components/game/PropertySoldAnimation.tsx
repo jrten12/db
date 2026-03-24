@@ -308,6 +308,11 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
 
   if (hasProjections && isRentalStrategy) {
     effectiveProjections = { ...proFormaProjections! };
+    const projectedRentalTotal = (proFormaProjections!.projectedMonthlyCashFlow ?? 0) * (proFormaProjections!.monthsHeld || 1);
+    const actualRentalTotal = proFormaProjections!.totalRentalIncomeCollected
+      ?? ((proFormaProjections!.actualMonthlyCashFlow ?? 0) * (proFormaProjections!.monthsHeld || 1));
+    const totalActualReturn = actualRentalTotal + saleData.saleProfit;
+    accuracyGrade = getAccuracyGrade(projectedRentalTotal, totalActualReturn);
   } else if (hasProjections) {
     const projectedProfitValue = proFormaProjections!.projectedProfit ?? 0;
     accuracyGrade = getAccuracyGrade(projectedProfitValue, saleData.saleProfit);
@@ -454,7 +459,7 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
-                            {accuracyGrade && !isRentalStrategy && (
+                            {accuracyGrade && (
                               <motion.div
                                 className={`flex items-center justify-center w-9 h-9 rounded-lg font-black text-lg ${
                                   isGoodGrade(accuracyGrade.grade)
@@ -578,7 +583,7 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                                   </div>
                                 )}
 
-                                {accuracyGrade && !isRentalStrategy && (
+                                {accuracyGrade && (
                                   <motion.div
                                     className={`rounded-lg p-3 ${
                                       isGoodGrade(accuracyGrade.grade)
@@ -598,21 +603,12 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
                                         <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                                       )}
                                       <p className="text-xs text-gray-300 leading-relaxed">
-                                        {accuracyGrade.message}
+                                        {isRentalStrategy
+                                          ? `Grade reflects total deal return (rental income + sale) vs your projected cash flow. ${accuracyGrade.message}`
+                                          : accuracyGrade.message}
                                       </p>
                                     </div>
                                   </motion.div>
-                                )}
-
-                                {isRentalStrategy && (
-                                  <div className="rounded-lg p-3 bg-cyan-950/30 border border-cyan-500/15">
-                                    <div className="flex items-start gap-2.5">
-                                      <Target className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-                                      <p className="text-xs text-gray-400 leading-relaxed">
-                                        Rental deal — cash flow is the key metric, not sale price. Your projections are compared against actual rental performance.
-                                      </p>
-                                    </div>
-                                  </div>
                                 )}
 
                                 {whyReasons.length > 0 && (

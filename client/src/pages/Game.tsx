@@ -56,7 +56,8 @@ import {
   calculateTimePenalty,
   TIME_PENALTY_TENANT_PAYS_UTILITIES,
   PlayerFinancials,
-  getSaleEstimateRange
+  getSaleEstimateRange,
+  MARKET_DEFAULTS
 } from '@/lib/gameData';
 import { getEffectiveRanges, getRevealedIssues, getRevealedRandomizedIssues } from '@/lib/propertyIssues';
 import { type Curveball, getTenantMessageForCurveball, curveballHasTenantMessage, getCurveballById } from '@/lib/curveballs';
@@ -646,6 +647,8 @@ export default function Game() {
       expectedRent: prev.expectedRent ?? rentEstimate,
       rehabBudget: prev.rehabBudget ?? rehabEstimate,
       rehabWeeks: prev.rehabWeeks ?? timelineEstimate,
+      sellingCostsPct: prev.sellingCostsPct ?? MARKET_DEFAULTS.sellingCostsPct,
+      contingencyPct: prev.contingencyPct ?? MARKET_DEFAULTS.contingencyPct,
       // Apply property-based defaults for taxes/insurance if not already set
       taxesAnnual: prev.taxesAnnual ?? propertyDefaults.taxesAnnual,
       insuranceAnnual: prev.insuranceAnnual ?? propertyDefaults.insuranceAnnual,
@@ -1473,6 +1476,10 @@ export default function Game() {
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to advance month');
+      try {
+        const recoveredRun = await api.getGameRun(gameRun.id);
+        if (recoveredRun) setGameRun(recoveredRun);
+      } catch {}
     } finally {
       setIsAdvancingWeek(false);
     }
@@ -1972,6 +1979,20 @@ export default function Game() {
             onViewHallOfFame={() => setShowHallOfFame(true)}
             savedGameInfo={savedGameInfo}
             onContinueSavedGame={continueSavedGame}
+            checkExistingGame={async (name: string) => {
+              const result = await api.getActiveGameByPlayer(name);
+              return result;
+            }}
+            onResumeGame={(existingRun) => {
+              setGameRun(existingRun);
+              setPlayerName(existingRun.playerName);
+              setShowNameEntry(false);
+              sessionStorage.setItem('currentGameRunId', String(existingRun.id));
+            }}
+            onNewGameReplace={async (name: string, existingGameId: number) => {
+              await api.deleteGameRun(existingGameId);
+              startNewGame(name);
+            }}
           />
           <HallOfFameModal
             isOpen={showHallOfFame}

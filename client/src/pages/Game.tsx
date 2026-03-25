@@ -1301,6 +1301,17 @@ export default function Game() {
             toast(`${renewal.emoji} ${renewal.description}`, { duration: 4000 });
           }
         }
+
+        const moveIns = result.curveballs.filter((c: any) => c.id === 'tenant_move_in');
+        for (const moveIn of moveIns) {
+          if (moveIn.type === 'positive') {
+            toast.success(`${moveIn.emoji} ${moveIn.description}`, { duration: 5000 });
+          } else if (moveIn.type === 'negative') {
+            toast.warning(`${moveIn.emoji} ${moveIn.description}`, { duration: 5000 });
+          } else {
+            toast(`${moveIn.emoji} ${moveIn.description}`, { duration: 4000 });
+          }
+        }
       }
 
       if (result.marketChanged && result.marketCondition) {

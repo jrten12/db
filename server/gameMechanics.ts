@@ -1353,6 +1353,149 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
 
         const currentTenant = allTenants.find((t: any) => t.dealId === deal.id);
         let tenantLeavingEvent: any = null;
+        let newTenantMoveInEvent: any = null;
+
+        // === NEW TENANT MOVE-IN DETECTION ===
+        // If tenant's leaseStartWeek matches current week, they just moved in after a vacancy
+        // Adjust rent to current market rate (new lease negotiation) and create a move-in event
+        if (currentTenant && property && monthsActive > 1) {
+          const tenantLeaseStart = currentTenant.leaseStartWeek ?? 0;
+          const isNewMoveIn = tenantLeaseStart >= gameRun.currentWeek && tenantLeaseStart > firstPaymentWeek;
+          
+          if (isNewMoveIn) {
+            const outputs = deal.proFormaOutputs as any;
+            const inputs = deal.proFormaInputs as any;
+            const currentRent = outputs?.monthlyGrossRent || 0;
+            
+            if (currentRent > 0) {
+              // New tenant lease negotiation — rent adjusts to current market conditions
+              const marketShifts: Record<string, number> = {
+                terrible: -5, poor: -2, neutral: 0, good: 2, excellent: 4,
+              };
+              const marketPct = marketShifts[gameMarket] || 0;
+              const marketRandom = marketPct + (Math.random() * 2 - 1);
+              
+              // New tenants negotiate based on property condition
+              const unfixedCount = getUnfixedIssues(deal, property).length;
+              let conditionPct = 0;
+              if (unfixedCount >= 3) conditionPct = -(1 + Math.random() * 2);
+              else if (unfixedCount >= 1) conditionPct = -(0.5 + Math.random() * 1);
+              
+              // Cosmetic upgrade bonus
+              const cosmeticPct = outputs.cosmeticUpgradeApplied ? (0.5 + Math.random() * 1) : 0;
+              
+              let totalChangePct = marketRandom + conditionPct + cosmeticPct;
+              totalChangePct = Math.max(-6, Math.min(6, totalChangePct));
+              
+              const activationRent = outputs.activationMonthlyRent || currentRent;
+              let newRent = Math.round(currentRent * (1 + totalChangePct / 100));
+              const floor = Math.round(activationRent * 0.70);
+              const ceiling = Math.round(activationRent * 1.35);
+              newRent = Math.max(floor, Math.min(ceiling, newRent));
+              
+              const rentDiff = newRent - currentRent;
+              
+              // Recalculate cash flow with new rent
+              const vacancyRate = inputs?.vacancyRate || 5;
+              const tenantUtilityPenalty = inputs?.utilities ? 0 : 1.92;
+              const effectiveVacancyRate = vacancyRate + tenantUtilityPenalty;
+              const effectiveRent = newRent * (1 - effectiveVacancyRate / 100);
+              const monthlyTaxes = (inputs?.taxesAnnual || 0) / 12;
+              const monthlyInsurance = (inputs?.insuranceAnnual || 0) / 12;
+              const maintenanceCost = newRent * ((inputs?.maintenancePct || 5) / 100);
+              const capExCost = newRent * ((inputs?.capExPct || 8) / 100);
+              const utilitiesCost = inputs?.utilities ? (inputs?.utilitiesMonthly || 150) : 0;
+              const mgmtCost = inputs?.propertyManagement ? newRent * ((inputs?.propertyManagementPct || 10) / 100) : 0;
+              const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
+              const debtService = outputs.monthlyDebtService || 0;
+              const newCashFlow = effectiveRent - monthlyOpEx - debtService;
+              const newWeeklyIncome = calculateWeeklyIncome(newCashFlow);
+              
+              // Update deal with new rent
+              const updatedOutputs = {
+                ...outputs,
+                monthlyGrossRent: newRent,
+                monthlyVacancyLoss: newRent * (effectiveVacancyRate / 100),
+                monthlyOperatingExpenses: monthlyOpEx,
+                cashFlowMonthly: newCashFlow,
+                preRenewalRent: currentRent,
+              };
+              
+              await storage.updateDeal(deal.id, {
+                weeklyIncome: newWeeklyIncome,
+                proFormaOutputs: updatedOutputs,
+              });
+              
+              // Update tenant lease rent amount
+              await storage.updateTenant(currentTenant.id, {
+                leaseRentAmount: newRent,
+              });
+              
+              // Re-fetch deal so processRentalIncome uses updated values
+              const refreshedDeal = await storage.getDeal(deal.id);
+              if (refreshedDeal) currentDeal = refreshedDeal;
+              
+              // Build the move-in event
+              const tenantName = (currentTenant.name || 'New Tenant').split(' ')[0];
+              const propertyName = property.name || `Property #${deal.propertyId}`;
+              const rentDiffAbs = Math.abs(rentDiff);
+              
+              if (rentDiff > 0) {
+                newTenantMoveInEvent = {
+                  id: 'tenant_move_in',
+                  name: 'New Tenant Moving In',
+                  type: 'positive',
+                  trigger: 'rental_monthly',
+                  description: `${tenantName} signed a lease at $${newRent.toLocaleString()}/mo (+$${rentDiffAbs}/mo from previous tenant). ${gameMarket === 'good' || gameMarket === 'excellent' ? 'Strong market demand.' : 'Competitive market rate.'}`,
+                  emoji: '🔑',
+                  color: 'green',
+                };
+              } else if (rentDiff < 0) {
+                newTenantMoveInEvent = {
+                  id: 'tenant_move_in',
+                  name: 'New Tenant Moving In',
+                  type: 'neutral',
+                  trigger: 'rental_monthly',
+                  description: `${tenantName} signed a lease at $${newRent.toLocaleString()}/mo (-$${rentDiffAbs}/mo from previous tenant). ${gameMarket === 'terrible' || gameMarket === 'poor' ? 'Soft market conditions.' : 'Negotiated rate based on property condition.'}`,
+                  emoji: '🔑',
+                  color: 'yellow',
+                };
+              } else {
+                newTenantMoveInEvent = {
+                  id: 'tenant_move_in',
+                  name: 'New Tenant Moving In',
+                  type: 'neutral',
+                  trigger: 'rental_monthly',
+                  description: `${tenantName} signed a lease at $${newRent.toLocaleString()}/mo (same rate as previous tenant).`,
+                  emoji: '🔑',
+                  color: 'blue',
+                };
+              }
+              
+              curveballs.push(newTenantMoveInEvent);
+              
+              // Create a ledger entry for the tenant move-in (informational, $0 impact)
+              const propName = property.name || `Property #${deal.propertyId}`;
+              const tenantFirst = (currentTenant.name || 'New Tenant').split(' ')[0];
+              const moveInDesc = rentDiff !== 0
+                ? `${tenantFirst} moved in - new lease at $${newRent.toLocaleString()}/mo (${rentDiff > 0 ? '+' : '-'}$${Math.abs(rentDiff).toLocaleString()}/mo) - ${propName}`
+                : `${tenantFirst} moved in - lease at $${newRent.toLocaleString()}/mo - ${propName}`;
+              
+              await storage.createLedgerEntry({
+                gameRunId,
+                direction: 'credit',
+                category: 'income',
+                amount: 0,
+                description: moveInDesc,
+                propertyId: deal.propertyId,
+                dealId: deal.id,
+                gameWeek: gameRun.currentWeek,
+                balanceAfter: runningCash,
+              });
+            }
+          }
+        }
+
         if (property && currentTenant) {
           const unfixedIssueIds = getUnfixedIssues(deal, property);
           const currentSatisfaction = currentTenant.satisfaction ?? 75;

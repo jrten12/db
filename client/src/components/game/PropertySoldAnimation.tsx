@@ -186,7 +186,28 @@ function isGoodGrade(grade: string): boolean {
   return (GRADE_RANK[grade] || 7) <= 3;
 }
 
-function getAccuracyGrade(projectedProfit: number, actualProfit: number): { grade: string; color: string; message: string } {
+type AccuracyGradeResult = { grade: string; color: string; message: string };
+
+const ACCURACY_TIERS: AccuracyGradeResult[] = [
+  { grade: 'A+', color: 'text-emerald-400', message: 'Spot-on underwriting! Your projections were nearly perfect.' },
+  { grade: 'A', color: 'text-emerald-400', message: 'Strong analysis. Your estimates were close to reality.' },
+  { grade: 'B', color: 'text-blue-400', message: 'Decent projections. Some assumptions were off but close enough.' },
+  { grade: 'C', color: 'text-amber-400', message: 'Projections had notable gaps. Review your assumptions for next time.' },
+  { grade: 'D', color: 'text-orange-400', message: 'Significant gap between prediction and reality. Diligence matters.' },
+  { grade: 'F', color: 'text-red-400', message: 'Your projections were way off. Focus on better market research and conservative estimates.' },
+];
+
+function capAccuracyGrade(result: AccuracyGradeResult, maxGrade: string): AccuracyGradeResult {
+  const order = ['A+', 'A', 'B', 'C', 'D', 'F'];
+  const resultIdx = order.indexOf(result.grade);
+  const capIdx = order.indexOf(maxGrade);
+  if (resultIdx < capIdx) {
+    return { ...ACCURACY_TIERS[capIdx] };
+  }
+  return result;
+}
+
+function getAccuracyGrade(projectedProfit: number, actualProfit: number, proForma?: ProFormaProjection | null): AccuracyGradeResult {
   if (projectedProfit === 0 && actualProfit === 0) return { grade: '-', color: 'text-gray-400', message: 'No projection available' };
 
   const diff = Math.abs(actualProfit - projectedProfit);
@@ -196,12 +217,40 @@ function getAccuracyGrade(projectedProfit: number, actualProfit: number): { grad
   const outperformed = actualProfit > projectedProfit;
   if (outperformed) pctOff *= 0.7;
 
-  if (pctOff <= 5) return { grade: 'A+', color: 'text-emerald-400', message: 'Spot-on underwriting! Your projections were nearly perfect.' };
-  if (pctOff <= 15) return { grade: 'A', color: 'text-emerald-400', message: outperformed ? 'Conservative but accurate analysis — you left a little upside on the table.' : 'Strong analysis. Your estimates were close to reality.' };
-  if (pctOff <= 25) return { grade: 'B', color: 'text-blue-400', message: outperformed ? 'Solid projections. You were conservative, which is a good habit.' : 'Decent projections. Some assumptions were off but close enough.' };
-  if (pctOff <= 40) return { grade: 'C', color: 'text-amber-400', message: 'Projections had notable gaps. Review your assumptions for next time.' };
-  if (pctOff <= 60) return { grade: 'D', color: 'text-orange-400', message: 'Significant gap between prediction and reality. Diligence matters.' };
-  return { grade: 'F', color: 'text-red-400', message: 'Your projections were way off. Focus on better market research and conservative estimates.' };
+  let result: AccuracyGradeResult;
+  if (pctOff <= 5) result = { ...ACCURACY_TIERS[0] };
+  else if (pctOff <= 15) result = { ...ACCURACY_TIERS[1], message: outperformed ? 'Conservative but accurate analysis — you left a little upside on the table.' : ACCURACY_TIERS[1].message };
+  else if (pctOff <= 25) result = { ...ACCURACY_TIERS[2], message: outperformed ? 'Solid projections. You were conservative, which is a good habit.' : ACCURACY_TIERS[2].message };
+  else if (pctOff <= 40) result = { ...ACCURACY_TIERS[3] };
+  else if (pctOff <= 60) result = { ...ACCURACY_TIERS[4] };
+  else result = { ...ACCURACY_TIERS[5] };
+
+  if (proForma) {
+    const isFlip = proForma.strategy === 'flip';
+    const fieldsFilledCount = isFlip
+      ? [
+          (proForma.projectedSalePrice ?? 0) > 0,
+          (proForma.projectedProfit ?? 0) !== 0,
+          (proForma.projectedTotalExpenses ?? 0) > 0,
+        ].filter(Boolean).length
+      : [
+          (proForma.projectedRent ?? 0) > 0,
+          (proForma.projectedMonthlyCashFlow ?? 0) !== 0,
+          (proForma.projectedTotalExpenses ?? 0) > 0,
+        ].filter(Boolean).length;
+
+    if (fieldsFilledCount === 0) {
+      result = capAccuracyGrade(result, 'F');
+      result.message = 'You skipped the pro forma entirely. The grade reflects your analysis effort, not just the outcome.';
+    } else if (fieldsFilledCount === 1) {
+      result = capAccuracyGrade(result, 'D');
+      result.message = 'Your pro forma was mostly blank. Fill in more assumptions to get a meaningful grade.';
+    } else if (fieldsFilledCount === 2) {
+      result = capAccuracyGrade(result, 'B');
+    }
+  }
+
+  return result;
 }
 
 function getWhyDifferent(proj: ProFormaProjection, saleData: NonNullable<PropertySoldAnimationProps['saleData']>): string[] {
@@ -312,10 +361,10 @@ export function PropertySoldAnimation({ isOpen, onClose, onShareCard, saleData, 
     const actualRentalTotal = proFormaProjections!.totalRentalIncomeCollected
       ?? ((proFormaProjections!.actualMonthlyCashFlow ?? 0) * (proFormaProjections!.monthsHeld || 1));
     const totalActualReturn = actualRentalTotal + saleData.saleProfit;
-    accuracyGrade = getAccuracyGrade(projectedRentalTotal, totalActualReturn);
+    accuracyGrade = getAccuracyGrade(projectedRentalTotal, totalActualReturn, proFormaProjections);
   } else if (hasProjections) {
     const projectedProfitValue = proFormaProjections!.projectedProfit ?? 0;
-    accuracyGrade = getAccuracyGrade(projectedProfitValue, saleData.saleProfit);
+    accuracyGrade = getAccuracyGrade(projectedProfitValue, saleData.saleProfit, proFormaProjections);
     effectiveProjections = { ...proFormaProjections!, projectedProfit: projectedProfitValue };
   }
 

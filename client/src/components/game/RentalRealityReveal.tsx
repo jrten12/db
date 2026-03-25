@@ -25,7 +25,32 @@ interface RentalRealityRevealProps {
   } | null;
 }
 
-function getRevealGrade(projectedCF: number, actualCF: number): { grade: string; color: string; bgColor: string; emoji: string; headline: string } {
+type RevealGradeResult = { grade: string; color: string; bgColor: string; emoji: string; headline: string };
+
+const GRADE_TIERS: RevealGradeResult[] = [
+  { grade: 'A+', color: 'text-emerald-400', bgColor: 'from-emerald-600 to-emerald-800', emoji: '🎯', headline: 'Nailed It!' },
+  { grade: 'A', color: 'text-emerald-400', bgColor: 'from-emerald-600 to-teal-800', emoji: '💪', headline: 'Sharp Analysis' },
+  { grade: 'B', color: 'text-blue-400', bgColor: 'from-blue-600 to-indigo-800', emoji: '👍', headline: 'Close Enough' },
+  { grade: 'C', color: 'text-amber-400', bgColor: 'from-amber-600 to-orange-800', emoji: '🤔', headline: 'Reality Check' },
+  { grade: 'D', color: 'text-orange-400', bgColor: 'from-orange-600 to-red-800', emoji: '😬', headline: 'Rough Start' },
+  { grade: 'F', color: 'text-red-400', bgColor: 'from-red-600 to-red-900', emoji: '😳', headline: 'Back to the Drawing Board' },
+];
+
+function capGrade(result: RevealGradeResult, maxGrade: string): RevealGradeResult {
+  const order = ['A+', 'A', 'B', 'C', 'D', 'F'];
+  const resultIdx = order.indexOf(result.grade);
+  const capIdx = order.indexOf(maxGrade);
+  if (resultIdx < capIdx) {
+    const capped = GRADE_TIERS[capIdx];
+    return { ...capped };
+  }
+  return result;
+}
+
+function getRevealGrade(
+  projectedCF: number, actualCF: number,
+  proFormaData?: { projectedRent: number; projectedVacancy: number; projectedExpenses: number }
+): RevealGradeResult {
   if (projectedCF === 0 && actualCF === 0) return { grade: '-', color: 'text-gray-400', bgColor: 'from-gray-600 to-gray-700', emoji: '', headline: 'No cash flow projected' };
   
   const diff = Math.abs(actualCF - projectedCF);
@@ -33,12 +58,36 @@ function getRevealGrade(projectedCF: number, actualCF: number): { grade: string;
   const pctOff = (diff / base) * 100;
   const better = actualCF >= projectedCF;
 
-  if (pctOff <= 8) return { grade: 'A+', color: 'text-emerald-400', bgColor: 'from-emerald-600 to-emerald-800', emoji: '🎯', headline: 'Nailed It!' };
-  if (pctOff <= 18) return { grade: 'A', color: 'text-emerald-400', bgColor: 'from-emerald-600 to-teal-800', emoji: '💪', headline: better ? 'Even Better Than Expected' : 'Sharp Analysis' };
-  if (pctOff <= 30) return { grade: 'B', color: 'text-blue-400', bgColor: 'from-blue-600 to-indigo-800', emoji: '👍', headline: better ? 'Pleasant Surprise' : 'Close Enough' };
-  if (pctOff <= 50) return { grade: 'C', color: 'text-amber-400', bgColor: 'from-amber-600 to-orange-800', emoji: '🤔', headline: better ? 'Better Than You Thought' : 'Reality Check' };
-  if (pctOff <= 75) return { grade: 'D', color: 'text-orange-400', bgColor: 'from-orange-600 to-red-800', emoji: '😬', headline: better ? 'Way Under-Estimated' : 'Rough Start' };
-  return { grade: 'F', color: 'text-red-400', bgColor: 'from-red-600 to-red-900', emoji: '😳', headline: better ? 'Wildly Conservative' : 'Back to the Drawing Board' };
+  let result: RevealGradeResult;
+  if (pctOff <= 8) result = { ...GRADE_TIERS[0], headline: 'Nailed It!' };
+  else if (pctOff <= 18) result = { ...GRADE_TIERS[1], headline: better ? 'Even Better Than Expected' : 'Sharp Analysis' };
+  else if (pctOff <= 30) result = { ...GRADE_TIERS[2], headline: better ? 'Pleasant Surprise' : 'Close Enough' };
+  else if (pctOff <= 50) result = { ...GRADE_TIERS[3], headline: better ? 'Better Than You Thought' : 'Reality Check' };
+  else if (pctOff <= 75) result = { ...GRADE_TIERS[4], headline: better ? 'Way Under-Estimated' : 'Rough Start' };
+  else result = { ...GRADE_TIERS[5], headline: better ? 'Wildly Conservative' : 'Back to the Drawing Board' };
+
+  if (proFormaData) {
+    const { projectedRent, projectedVacancy, projectedExpenses } = proFormaData;
+    const fieldsFilledCount = [
+      projectedRent > 0,
+      projectedVacancy > 0,
+      projectedExpenses > 0,
+    ].filter(Boolean).length;
+
+    if (fieldsFilledCount === 0) {
+      result = capGrade(result, 'F');
+      result.headline = 'You Skipped the Analysis';
+      result.emoji = '📋';
+    } else if (fieldsFilledCount === 1) {
+      result = capGrade(result, 'D');
+      result.headline = 'Incomplete Analysis';
+      result.emoji = '📝';
+    } else if (fieldsFilledCount === 2) {
+      result = capGrade(result, 'B');
+    }
+  }
+
+  return result;
 }
 
 function RevealRow({ label, projected, actual, format = 'currency', delay, isRevealed }: {
@@ -122,7 +171,11 @@ export function RentalRealityReveal({ isOpen, onClose, data }: RentalRealityReve
 
   if (!data) return null;
 
-  const grade = getRevealGrade(data.projectedCashFlow, data.actualCashFlow);
+  const grade = getRevealGrade(data.projectedCashFlow, data.actualCashFlow, {
+    projectedRent: data.projectedRent,
+    projectedVacancy: data.projectedVacancy,
+    projectedExpenses: data.projectedExpenses,
+  });
   const rentDiff = data.actualRent - data.projectedRent;
   const cfDiff = data.actualCashFlow - data.projectedCashFlow;
   const isGood = grade.grade === 'A+' || grade.grade === 'A' || grade.grade === 'B';

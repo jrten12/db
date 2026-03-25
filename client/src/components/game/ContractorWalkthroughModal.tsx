@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, HardHat, Wrench, AlertTriangle, CheckCircle2, DollarSign, Clock, ArrowRight, Info, TrendingUp, Check, XCircle } from 'lucide-react';
+import { Loader2, HardHat, Wrench, AlertTriangle, CheckCircle2, DollarSign, Clock, ArrowRight, Info, TrendingUp, Check, XCircle, Sparkles } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { playPurchaseConfirmSound } from '@/hooks/useClickSound';
 import type { Deal, Property, GameRun } from '@shared/schema';
@@ -12,13 +12,16 @@ import { formatCurrency } from '@/lib/gameData';
 interface ContractorWalkthroughItem {
   id: string;
   name: string;
-  severity: 'mild' | 'moderate' | 'severe';
+  severity: 'mild' | 'moderate' | 'severe' | 'upgrade';
   originalCost: number;
   contractorCost: number;
   timelineWeeks: number;
   description: string;
   markup: number;
   rentImpactPct?: number;
+  saleImpactPct?: number;
+  isUpgrade?: boolean;
+  category?: string;
   marketCostMultiplier?: number;
   marketRentMultiplier?: number;
 }
@@ -26,11 +29,13 @@ interface ContractorWalkthroughItem {
 interface WalkthroughQuote {
   eligible: boolean;
   completed: boolean;
+  hasUpgrades?: boolean;
   walkthroughFee?: number;
   canAfford?: boolean;
   currentCash?: number;
   data?: {
     repairItems: ContractorWalkthroughItem[];
+    upgradeItems?: ContractorWalkthroughItem[];
     totalRepairCost: number;
     walkthroughFee: number;
   };
@@ -41,6 +46,7 @@ interface WalkthroughResult {
   result?: {
     walkthroughFee: number;
     repairItems: ContractorWalkthroughItem[];
+    upgradeItems?: ContractorWalkthroughItem[];
     totalRepairCost: number;
     totalOriginalCost: number;
     averageMarkup: number;
@@ -98,15 +104,27 @@ export function ContractorWalkthroughModal({
     return 1500;
   }, [deal?.proFormaOutputs, property]);
 
+  const allItems = useMemo(() => {
+    const repairs = result?.repairItems || [];
+    const upgrades = result?.upgradeItems || [];
+    return { repairs, upgrades, all: [...repairs, ...upgrades] };
+  }, [result?.repairItems, result?.upgradeItems]);
+
   const selectedTotals = useMemo(() => {
-    if (!result?.repairItems) return { cost: 0, weeks: 0, count: 0, rentImpactPct: 0, netRentImpactPct: 0, rentIncrease: 0, annualYieldPct: 0, paybackMonths: 0 };
-    const selected = result.repairItems.filter(item => selectedRepairIds.includes(item.id));
+    if (allItems.all.length === 0) return { cost: 0, weeks: 0, count: 0, repairCount: 0, upgradeCount: 0, rentImpactPct: 0, netRentImpactPct: 0, rentIncrease: 0, annualYieldPct: 0, paybackMonths: 0 };
+    const selected = allItems.all.filter(item => selectedRepairIds.includes(item.id));
+    const selectedRepairs = selected.filter(item => !item.isUpgrade);
+    const selectedUpgrades = selected.filter(item => item.isUpgrade);
     const rentImpactPct = selected.reduce((sum, item) => sum + (item.rentImpactPct || 0), 0);
     const minBumpPerItem = Math.max(25, Math.round(baseMonthlyRent * 0.02));
-    const totalFixedIncrease = selected.reduce((sum, item) => {
+    const repairRentIncrease = selectedRepairs.reduce((sum, item) => {
       const pctBump = Math.round(baseMonthlyRent * ((item.rentImpactPct || 2) / 100));
       return sum + Math.max(minBumpPerItem, pctBump);
     }, 0);
+    const upgradeRentIncrease = selectedUpgrades.reduce((sum, item) => {
+      return sum + Math.round(baseMonthlyRent * ((item.rentImpactPct || 0) / 100));
+    }, 0);
+    const totalFixedIncrease = repairRentIncrease + upgradeRentIncrease;
     const maxIncrease = Math.round(baseMonthlyRent * 0.25);
     const rentIncrease = Math.min(totalFixedIncrease, maxIncrease);
     const netRentImpactPct = baseMonthlyRent > 0 ? Math.round((rentIncrease / baseMonthlyRent) * 100) : 0;
@@ -118,13 +136,15 @@ export function ContractorWalkthroughModal({
       cost: totalCost,
       weeks: Math.max(...selected.map(item => item.timelineWeeks), 0),
       count: selected.length,
+      repairCount: selectedRepairs.length,
+      upgradeCount: selectedUpgrades.length,
       rentImpactPct,
       netRentImpactPct,
       rentIncrease,
       annualYieldPct,
       paybackMonths,
     };
-  }, [result?.repairItems, selectedRepairIds, baseMonthlyRent]);
+  }, [allItems, selectedRepairIds, baseMonthlyRent]);
 
   // Check affordability
   const affordability = useMemo(() => {
@@ -147,14 +167,10 @@ export function ContractorWalkthroughModal({
     );
   };
 
-  // Select all repairs
   const selectAllRepairs = () => {
-    if (result?.repairItems) {
-      setSelectedRepairIds(result.repairItems.map(item => item.id));
-    }
+    setSelectedRepairIds(allItems.all.map(item => item.id));
   };
 
-  // Select no repairs  
   const selectNoRepairs = () => {
     setSelectedRepairIds([]);
   };
@@ -182,20 +198,23 @@ export function ContractorWalkthroughModal({
       
       setQuote(data as WalkthroughQuote);
       
-      if (data.completed && data.hasRemainingRepairs && data.data?.repairItems?.length > 0) {
+      const hasRepairs = data.hasRemainingRepairs && data.data?.repairItems?.length > 0;
+      const hasUpgrades = data.hasUpgrades && data.data?.upgradeItems?.length > 0;
+      if (data.completed && (hasRepairs || hasUpgrades)) {
         setViewState('already_done');
         setResult({
           walkthroughFee: data.data.walkthroughFee || 0,
-          repairItems: data.data.repairItems,
+          repairItems: data.data.repairItems || [],
+          upgradeItems: data.data.upgradeItems || [],
           totalRepairCost: data.data.totalRepairCost,
-          totalOriginalCost: data.data.repairItems.reduce((sum: number, item: any) => sum + item.originalCost, 0),
+          totalOriginalCost: (data.data.repairItems || []).reduce((sum: number, item: any) => sum + item.originalCost, 0),
           averageMarkup: data.data.averageMarkup || 0,
           marketCondition: data.data.marketCondition,
           marketCostMultiplier: data.data.marketCostMultiplier,
           marketRentMultiplier: data.data.marketRentMultiplier,
         });
-      } else if (data.completed && !data.hasRemainingRepairs) {
-        setError('All repairs have been completed for this property!');
+      } else if (data.completed && !hasRepairs && !hasUpgrades) {
+        setError('All repairs and upgrades have been completed for this property!');
         setQuote(null);
         return;
       } else {
@@ -245,6 +264,7 @@ export function ContractorWalkthroughModal({
       case 'mild': return 'bg-green-500/20 text-green-400 border-green-500/30';
       case 'moderate': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
       case 'severe': return 'bg-red-500/20 text-red-400 border-red-500/30';
+      case 'upgrade': return 'bg-violet-500/20 text-violet-400 border-violet-500/30';
       default: return 'bg-muted text-muted-foreground';
     }
   };
@@ -254,6 +274,7 @@ export function ContractorWalkthroughModal({
       case 'mild': return <CheckCircle2 className="w-3 h-3" />;
       case 'moderate': return <AlertTriangle className="w-3 h-3" />;
       case 'severe': return <AlertTriangle className="w-3 h-3" />;
+      case 'upgrade': return <Sparkles className="w-3 h-3" />;
       default: return null;
     }
   };
@@ -420,17 +441,20 @@ export function ContractorWalkthroughModal({
                       <Wrench className="w-5 h-5 text-cyan-400" />
                       <div>
                         <p className="text-cyan-400 font-medium text-sm">
-                          {result.repairItems.length} repair{result.repairItems.length !== 1 ? 's' : ''} remaining
+                          {allItems.repairs.length > 0 && `${allItems.repairs.length} repair${allItems.repairs.length !== 1 ? 's' : ''}`}
+                          {allItems.repairs.length > 0 && allItems.upgrades.length > 0 && ' + '}
+                          {allItems.upgrades.length > 0 && `${allItems.upgrades.length} upgrade${allItems.upgrades.length !== 1 ? 's' : ''}`}
+                          {' '}available
                         </p>
                         <p className="text-xs text-slate-400">
-                          Select which items to renovate next
+                          Select what to do next
                         </p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {result.repairItems.length === 0 ? (
+                {allItems.all.length === 0 ? (
                   <div className="bg-slate-800/50 rounded-xl p-6 text-center border border-slate-700/50">
                     <CheckCircle2 className="w-12 h-12 text-green-400 mx-auto mb-3" />
                     <p className="text-white font-medium">No Repairs Needed!</p>
@@ -440,18 +464,8 @@ export function ContractorWalkthroughModal({
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center justify-between px-1">
-                      <span className="text-sm font-medium text-slate-300">
-                        Issues Found ({result.repairItems.length})
-                      </span>
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                        <TrendingUp className="w-3 h-3" />
-                        <span>Avg {result.averageMarkup}% markup</span>
-                      </div>
-                    </div>
-
                     <div className="flex items-center justify-between mb-2 px-1">
-                      <span className="text-xs text-slate-400">Select repairs to do:</span>
+                      <span className="text-xs text-slate-400">Select items:</span>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={selectAllRepairs}
@@ -506,15 +520,23 @@ export function ContractorWalkthroughModal({
                     )}
 
                     <div className="space-y-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
-                      {result.repairItems.map((item, index) => {
+                      {allItems.repairs.length > 0 && (
+                        <div className="flex items-center gap-2 px-1 pb-1">
+                          <Wrench className="w-3.5 h-3.5 text-cyan-400" />
+                          <span className="text-xs font-medium text-cyan-400 uppercase tracking-wide">Repairs ({allItems.repairs.length})</span>
+                          {result.averageMarkup > 0 && (
+                            <span className="text-[10px] text-slate-500 ml-auto">{result.averageMarkup}% avg markup</span>
+                          )}
+                        </div>
+                      )}
+                      {allItems.repairs.map((item, index) => {
                         const isSelected = selectedRepairIds.includes(item.id);
-                        
                         return (
                           <motion.button
                             key={item.id}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
+                            transition={{ delay: index * 0.05 }}
                             onClick={(e) => {
                               e.stopPropagation();
                               e.preventDefault();
@@ -528,7 +550,6 @@ export function ContractorWalkthroughModal({
                             data-testid={`repair-item-${item.id}`}
                           >
                             <div className="flex items-start gap-3">
-                              {/* Checkbox */}
                               <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
                                 isSelected 
                                   ? 'bg-cyan-500 border-cyan-500' 
@@ -536,7 +557,6 @@ export function ContractorWalkthroughModal({
                               }`}>
                                 {isSelected && <Check className="w-3 h-3 text-white" />}
                               </div>
-                              
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className={`font-medium text-sm truncate ${isSelected ? 'text-cyan-100' : 'text-white'}`}>
@@ -591,6 +611,93 @@ export function ContractorWalkthroughModal({
                           </motion.button>
                         );
                       })}
+
+                      {allItems.upgrades.length > 0 && (
+                        <>
+                          {allItems.repairs.length > 0 && <div className="border-t border-slate-700/50 my-3" />}
+                          <div className="flex items-center gap-2 px-1 pb-1">
+                            <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                            <span className="text-xs font-medium text-violet-400 uppercase tracking-wide">Upgrades ({allItems.upgrades.length})</span>
+                          </div>
+                          {allItems.upgrades.map((item, index) => {
+                            const isSelected = selectedRepairIds.includes(item.id);
+                            const rentBump = Math.round(baseMonthlyRent * ((item.rentImpactPct || 0) / 100));
+                            const itemYield = item.contractorCost > 0 && rentBump > 0 ? Math.round((rentBump * 12 / item.contractorCost) * 1000) / 10 : 0;
+                            return (
+                              <motion.button
+                                key={item.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: (allItems.repairs.length + index) * 0.05 }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  toggleRepair(item.id);
+                                }}
+                                className={`w-full text-left bg-slate-800/60 rounded-xl p-3 border transition-all touch-manipulation active:opacity-80 select-none ${
+                                  isSelected 
+                                    ? 'border-violet-500/50 bg-violet-900/20' 
+                                    : 'border-slate-700/50 hover:border-slate-600'
+                                }`}
+                                data-testid={`upgrade-item-${item.id}`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                                    isSelected 
+                                      ? 'bg-violet-500 border-violet-500' 
+                                      : 'border-slate-500'
+                                  }`}>
+                                    {isSelected && <Check className="w-3 h-3 text-white" />}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className={`font-medium text-sm truncate ${isSelected ? 'text-violet-100' : 'text-white'}`}>
+                                        {item.name}
+                                      </span>
+                                      <Badge 
+                                        variant="outline" 
+                                        className={`text-[10px] px-1.5 py-0 h-5 ${getSeverityColor('upgrade')}`}
+                                      >
+                                        <Sparkles className="w-3 h-3" />
+                                        <span className="ml-1">Upgrade</span>
+                                      </Badge>
+                                    </div>
+                                    <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                                      {item.description}
+                                    </p>
+                                  </div>
+                                  <div className="text-right flex-shrink-0">
+                                    <div className="text-sm font-semibold text-white">
+                                      ${item.contractorCost.toLocaleString()}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3 mt-2 text-xs ml-8 flex-wrap">
+                                  {item.timelineWeeks > 0 && (
+                                    <span className="flex items-center gap-1 text-slate-500">
+                                      <Clock className="w-3 h-3" />
+                                      ~{item.timelineWeeks} month{item.timelineWeeks > 1 ? 's' : ''}
+                                    </span>
+                                  )}
+                                  {rentBump > 0 && (
+                                    <>
+                                      <span className="flex items-center gap-1 text-emerald-400">
+                                        <TrendingUp className="w-3 h-3" />
+                                        +${rentBump}/mo rent
+                                      </span>
+                                      {itemYield > 0 && (
+                                        <span className={`font-mono ${itemYield >= 10 ? 'text-emerald-300' : itemYield >= 5 ? 'text-cyan-400' : 'text-amber-400'}`}>
+                                          {itemYield}% annual yield
+                                        </span>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </motion.button>
+                            );
+                          })}
+                        </>
+                      )}
                     </div>
 
                     {/* Cost breakdown with affordability */}
@@ -606,10 +713,9 @@ export function ContractorWalkthroughModal({
                           <span className="text-amber-400 font-mono">${breakFee.toLocaleString()}</span>
                         </div>
                         
-                        {/* Selected repairs */}
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-slate-400">
-                            Selected Repairs ({selectedTotals.count}/{result.repairItems.length})
+                            Selected ({selectedTotals.count}/{allItems.all.length})
                           </span>
                           <span className="text-white font-mono font-semibold">
                             ${selectedTotals.cost.toLocaleString()}
@@ -688,7 +794,7 @@ export function ContractorWalkthroughModal({
                   </>
                 )}
 
-                {result.repairItems.length > 0 && onStartRepairs && (
+                {allItems.all.length > 0 && onStartRepairs && (
                   <div className="space-y-2">
                     <Button
                       className={`w-full h-12 font-semibold ${
@@ -734,12 +840,12 @@ export function ContractorWalkthroughModal({
                       {startingRepairs ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Starting Repairs...
+                          Starting Work...
                         </>
                       ) : selectedTotals.count === 0 ? (
                         <>
                           <Wrench className="w-4 h-4 mr-2" />
-                          Select Repairs Above
+                          Select Items Above
                         </>
                       ) : !affordability.canAfford ? (
                         <>
@@ -749,14 +855,14 @@ export function ContractorWalkthroughModal({
                       ) : (
                         <>
                           <Wrench className="w-4 h-4 mr-2" />
-                          Start {selectedTotals.count} Repair{selectedTotals.count !== 1 ? 's' : ''} (${selectedTotals.cost.toLocaleString()})
+                          Start {selectedTotals.count} {selectedTotals.upgradeCount > 0 && selectedTotals.repairCount === 0 ? 'Upgrade' : 'Repair'}{selectedTotals.count !== 1 ? 's' : ''}{selectedTotals.upgradeCount > 0 && selectedTotals.repairCount > 0 ? ` + ${selectedTotals.upgradeCount} Upgrade${selectedTotals.upgradeCount !== 1 ? 's' : ''}` : ''} (${selectedTotals.cost.toLocaleString()})
                         </>
                       )}
                     </Button>
                     <p className="text-xs text-center text-slate-400">
                       {selectedTotals.count > 0 
                         ? `Tenant receives $${breakFee.toLocaleString()} break fee. No rent during ~${selectedTotals.weeks} month rehab.`
-                        : 'Select at least one repair to proceed'
+                        : 'Select at least one item to proceed'
                       }
                     </p>
                   </div>
@@ -774,7 +880,7 @@ export function ContractorWalkthroughModal({
             onClick={onClose}
             data-testid="button-walkthrough-done"
           >
-            {viewState === 'already_done' ? 'Close' : (result && result.repairItems.length > 0) ? 'Maybe Later' : 'Close'}
+            {viewState === 'already_done' ? 'Close' : (result && allItems.all.length > 0) ? 'Maybe Later' : 'Close'}
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

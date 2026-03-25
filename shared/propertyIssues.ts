@@ -1146,3 +1146,145 @@ export function shouldUseRandomizedIssues(gameRunId?: number): boolean {
   // Use randomized issues for all new game runs
   return gameRunId !== undefined && gameRunId > 0;
 }
+
+export interface PropertyUpgrade {
+  id: string;
+  name: string;
+  description: string;
+  category: 'kitchen' | 'bathroom' | 'interior' | 'systems' | 'curb';
+  costMin: number;
+  costMax: number;
+  rentImpactPct: number;
+  saleImpactPct: number;
+  timelineWeeks: number;
+  availableConditions: string[];
+}
+
+export const PROPERTY_UPGRADES: PropertyUpgrade[] = [
+  {
+    id: 'upgrade_fresh_paint',
+    name: 'Fresh Paint & Light Fixtures',
+    description: 'Interior repaint with modern color palette and updated light fixtures throughout',
+    category: 'interior',
+    costMin: 1500,
+    costMax: 3500,
+    rentImpactPct: 2.5,
+    saleImpactPct: 1.5,
+    timelineWeeks: 1,
+    availableConditions: ['Fixer-Upper', 'Needs Repairs', 'Needs-work', 'Fair', 'Dated', 'Cosmetic'],
+  },
+  {
+    id: 'upgrade_new_flooring',
+    name: 'New Flooring',
+    description: 'Luxury vinyl plank in living areas and new tile in bathrooms — durable and modern',
+    category: 'interior',
+    costMin: 2500,
+    costMax: 5500,
+    rentImpactPct: 3.5,
+    saleImpactPct: 2.5,
+    timelineWeeks: 1,
+    availableConditions: ['Fixer-Upper', 'Needs Repairs', 'Needs-work', 'Fair', 'Dated', 'Cosmetic'],
+  },
+  {
+    id: 'upgrade_appliances',
+    name: 'Appliance Package',
+    description: 'New stainless steel refrigerator, stove, dishwasher, and microwave',
+    category: 'kitchen',
+    costMin: 2000,
+    costMax: 4500,
+    rentImpactPct: 2.5,
+    saleImpactPct: 2,
+    timelineWeeks: 1,
+    availableConditions: ['Fixer-Upper', 'Needs Repairs', 'Needs-work', 'Fair', 'Dated', 'Cosmetic', 'Good'],
+  },
+  {
+    id: 'upgrade_landscaping',
+    name: 'Curb Appeal Package',
+    description: 'Professional landscaping, new front door hardware, exterior power wash, and fresh mulch',
+    category: 'curb',
+    costMin: 1500,
+    costMax: 3500,
+    rentImpactPct: 1.5,
+    saleImpactPct: 2.5,
+    timelineWeeks: 1,
+    availableConditions: ['Fixer-Upper', 'Needs Repairs', 'Needs-work', 'Fair', 'Dated', 'Cosmetic', 'Good', 'Turnkey'],
+  },
+  {
+    id: 'upgrade_kitchen_refresh',
+    name: 'Kitchen Refresh',
+    description: 'New countertops, cabinet refacing, modern backsplash, and updated hardware',
+    category: 'kitchen',
+    costMin: 4000,
+    costMax: 9000,
+    rentImpactPct: 5,
+    saleImpactPct: 4,
+    timelineWeeks: 2,
+    availableConditions: ['Fair', 'Dated', 'Cosmetic', 'Good', 'Turnkey'],
+  },
+  {
+    id: 'upgrade_bathroom_update',
+    name: 'Bathroom Update',
+    description: 'New vanity, modern fixtures, tile surround, and frameless mirror',
+    category: 'bathroom',
+    costMin: 3500,
+    costMax: 7500,
+    rentImpactPct: 4,
+    saleImpactPct: 3.5,
+    timelineWeeks: 2,
+    availableConditions: ['Fair', 'Dated', 'Cosmetic', 'Good', 'Turnkey'],
+  },
+  {
+    id: 'upgrade_smart_home',
+    name: 'Smart Home Basics',
+    description: 'Smart thermostat, keyless entry, smart smoke detectors, and USB outlets',
+    category: 'systems',
+    costMin: 1500,
+    costMax: 3000,
+    rentImpactPct: 2,
+    saleImpactPct: 1.5,
+    timelineWeeks: 1,
+    availableConditions: ['Good', 'Turnkey', 'Excellent'],
+  },
+  {
+    id: 'upgrade_premium_kitchen',
+    name: 'Premium Kitchen',
+    description: 'Quartz countertops, soft-close cabinets, designer backsplash, and under-cabinet lighting',
+    category: 'kitchen',
+    costMin: 8000,
+    costMax: 16000,
+    rentImpactPct: 6,
+    saleImpactPct: 5,
+    timelineWeeks: 3,
+    availableConditions: ['Good', 'Turnkey', 'Excellent'],
+  },
+  {
+    id: 'upgrade_spa_bathroom',
+    name: 'Spa Bathroom',
+    description: 'Rainfall showerhead, heated tile floors, freestanding tub, and premium fixtures',
+    category: 'bathroom',
+    costMin: 6000,
+    costMax: 13000,
+    rentImpactPct: 5,
+    saleImpactPct: 4.5,
+    timelineWeeks: 3,
+    availableConditions: ['Turnkey', 'Excellent'],
+  },
+  {
+    id: 'upgrade_custom_finishes',
+    name: 'Custom Finishes',
+    description: 'Crown molding, wainscoting, built-in shelving, and designer hardware throughout',
+    category: 'interior',
+    costMin: 5000,
+    costMax: 11000,
+    rentImpactPct: 4,
+    saleImpactPct: 3.5,
+    timelineWeeks: 2,
+    availableConditions: ['Turnkey', 'Excellent'],
+  },
+];
+
+export function getAvailableUpgrades(conditionTag: string, completedUpgradeIds: string[]): PropertyUpgrade[] {
+  return PROPERTY_UPGRADES.filter(u =>
+    u.availableConditions.includes(conditionTag) && !completedUpgradeIds.includes(u.id)
+  );
+}

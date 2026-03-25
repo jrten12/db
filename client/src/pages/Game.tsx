@@ -1637,31 +1637,6 @@ export default function Game() {
     }
   }, [gameRun, deals, properties, queryClient, addTrophies]);
 
-  const handleCosmeticUpgrade = useCallback(async (dealId: number) => {
-    if (!gameRun) return;
-    try {
-      const result = await api.cosmeticUpgrade(dealId, gameRun.id);
-      queryClient.invalidateQueries({ queryKey: ['deals'] });
-      queryClient.invalidateQueries({ queryKey: ['ledger'] });
-      const updatedRun = await api.getGameRun(gameRun.id);
-      if (updatedRun) setGameRun(updatedRun);
-
-      if (result.success) {
-        toast.success(`🔨 Renovation — $${result.cost.toLocaleString()}`, {
-          description: result.message,
-          duration: 6000,
-        });
-      } else {
-        toast(`🔨 Renovation — $${result.cost.toLocaleString()}`, {
-          description: result.message,
-          duration: 6000,
-        });
-      }
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to apply cosmetic upgrade');
-    }
-  }, [gameRun, queryClient]);
-
   const handleOpenRefinanceModal = useCallback(async (dealId: number) => {
     const deal = deals.find(d => d.id === dealId);
     if (!deal) return;
@@ -2194,7 +2169,6 @@ export default function Game() {
                   onSellFlip={handleSellFlip}
                   onSellProperty={handleSellProperty}
                   onRefinanceRental={handleOpenRefinanceModal}
-                  onCosmeticUpgrade={handleCosmeticUpgrade}
                 />
                 <DebtPanelTrigger
                   deals={deals}

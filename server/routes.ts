@@ -1371,15 +1371,29 @@ export async function registerRoutes(
         const remainingItems = allRepairItems.filter(
           (item: any) => !completedRepairIds.includes(item.id)
         );
+
+        const property = await storage.getProperty(deal.propertyId);
+        const gameRun = await storage.getGameRun(gameRunId);
+        const completedUpgradeIds = ((deal.proFormaOutputs as any)?.completedUpgradeIds as string[]) || [];
+        const upgradeItems = (property && gameRun) ? gameMechanics.generateUpgradeItems(
+          property,
+          (gameRun.marketCondition as any) || 'neutral',
+          completedUpgradeIds,
+          dealId * 7 + gameRun.currentWeek
+        ) : [];
+
+        const hasContent = remainingItems.length > 0 || upgradeItems.length > 0;
         return res.json({ 
-          eligible: remainingItems.length > 0,
+          eligible: hasContent,
           completed: true,
           hasRemainingRepairs: remainingItems.length > 0,
+          hasUpgrades: upgradeItems.length > 0,
           completedRepairIds,
           data: {
             ...walkthroughData,
             repairItems: remainingItems,
             totalRepairCost: remainingItems.reduce((sum: number, item: any) => sum + item.contractorCost, 0),
+            upgradeItems,
           }
         });
       }

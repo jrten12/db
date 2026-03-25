@@ -15,7 +15,7 @@ import * as schema from '@shared/schema';
 import { db } from './storage';
 import { eq } from 'drizzle-orm';
 import { rollForCurveball, rollForCurveballWithIssues, type PropertyContext, type CurveballResult, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
-import { calculateSurpriseCosts, PropertyIssue, getRandomizedPropertyIssues, RENT_IMPACT_BY_ISSUE } from '@shared/propertyIssues';
+import { calculateSurpriseCosts, PropertyIssue, getRandomizedPropertyIssues, RENT_IMPACT_BY_ISSUE, getAvailableUpgrades, type PropertyUpgrade } from '@shared/propertyIssues';
 
 export interface FlipPricingParams {
   purchasePrice: number;
@@ -1684,6 +1684,17 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           const pctBump = Math.round(baseMonthlyRent * ((item.rentImpactPct || 2) / 100));
           return sum + Math.max(minBumpPerItem, pctBump);
         }, 0);
+
+        // Upgrade rent boost from pending upgrades
+        const pendingUpgradeIds = proFormaOutputs?.pendingUpgradeIds || [];
+        const upgradeRentBoost = pendingUpgradeIds.reduce((sum: number, upgradeId: string) => {
+          const rehabItems = deal.rentalRehabItems as any[];
+          const upgradeItem = rehabItems?.find((item: any) => item.id === upgradeId);
+          if (upgradeItem?.rentImpactPct) {
+            return sum + Math.round(baseMonthlyRent * (upgradeItem.rentImpactPct / 100));
+          }
+          return sum;
+        }, 0);
         
         // Unfixed issues depress rent (1% per unfixed item)
         const unfixedIssues = allIssues.filter(item => !allCompletedIds.includes(item.id));
@@ -1692,9 +1703,9 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           return sum + Math.round(baseMonthlyRent * 0.01);
         }, 0);
         
-        // Net rent change: gains from this round's fixes minus mild depression (capped at 25% of base)
+        // Net rent change: gains from this round's fixes + upgrades minus mild depression (capped at 25% of base)
         const maxIncrease = Math.round(baseMonthlyRent * 0.25);
-        const rentIncrease = Math.min(Math.max(0, totalFixedRentIncrease - unfixedDepressionAmt), maxIncrease);
+        const rentIncrease = Math.min(Math.max(0, totalFixedRentIncrease + upgradeRentBoost - unfixedDepressionAmt), maxIncrease);
         const newMonthlyRent = baseMonthlyRent + rentIncrease;
         
         const repairCompletionFactor = allIssuesCount > 0 
@@ -1728,6 +1739,10 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         const newNetMonthlyCashFlow = newMonthlyRent - newMonthlyVacancyLoss - newMonthlyOperatingExpenses - monthlyDebtService;
         const newWeeklyIncome = calculateWeeklyIncome(newNetMonthlyCashFlow);
 
+        // Move pending upgrades to completed
+        const previousCompletedUpgrades = proFormaOutputs?.completedUpgradeIds || [];
+        const newCompletedUpgrades = [...previousCompletedUpgrades, ...pendingUpgradeIds];
+
         await storage.updateDeal(deal.id, {
           rentalRehabActive: false,
           rentalRehabWeeksRemaining: 0,
@@ -1743,6 +1758,9 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
             postRehabCompleted: true,
             repairCompletionFactor,
             unfixedIssueCount,
+            completedUpgradeIds: newCompletedUpgrades,
+            pendingUpgradeIds: [],
+            pendingUpgradeCost: 0,
           },
         });
 
@@ -2103,6 +2121,87 @@ async function applyMarketRentAdjustment(deal: Deal, market: MarketCondition): P
   await storage.updateDeal(deal.id, {
     weeklyIncome: newWeeklyIncome,
     proFormaOutputs: updatedOutputs,
+  });
+}
+
+export function generateUpgradeItems(
+  property: { price: number; conditionTag: string },
+  marketCondition: MarketCondition,
+  completedUpgradeIds: string[],
+  seed: number
+): Array<{
+  id: string;
+  name: string;
+  severity: 'upgrade';
+  originalCost: number;
+  contractorCost: number;
+  timelineWeeks: number;
+  description: string;
+  markup: number;
+  rentImpactPct: number;
+  saleImpactPct: number;
+  isUpgrade: true;
+  category: string;
+  marketCostMultiplier: number;
+  marketRentMultiplier: number;
+}> {
+  const condition = property.conditionTag || 'Fair';
+  const upgrades = getAvailableUpgrades(condition, completedUpgradeIds);
+
+  if (upgrades.length === 0) return [];
+
+  const marketCostMultipliers: Record<MarketCondition, number> = {
+    terrible: 0.8,
+    poor: 0.9,
+    neutral: 1.0,
+    good: 1.12,
+    excellent: 1.3,
+  };
+  const marketRentMultipliers: Record<MarketCondition, number> = {
+    terrible: 0.7,
+    poor: 0.85,
+    neutral: 1.0,
+    good: 1.1,
+    excellent: 1.2,
+  };
+  const marketCostMult = marketCostMultipliers[marketCondition];
+  const marketRentMult = marketRentMultipliers[marketCondition];
+
+  const priceTier = property.price || 200000;
+  let priceScale = 1.0;
+  if (priceTier >= 750000) priceScale = 1.6;
+  else if (priceTier >= 500000) priceScale = 1.35;
+  else if (priceTier >= 350000) priceScale = 1.15;
+  else if (priceTier < 200000) priceScale = 0.85;
+
+  let state = seed;
+  const random = () => {
+    state = (state * 1103515245 + 12345) & 0x7fffffff;
+    return state / 0x7fffffff;
+  };
+
+  return upgrades.map(u => {
+    const baseCost = Math.round(u.costMin + random() * (u.costMax - u.costMin));
+    const contractorCost = Math.round(baseCost * priceScale * marketCostMult);
+    const markup = Math.round(((contractorCost / baseCost) - 1) * 100);
+    const adjustedRentPct = Math.round(u.rentImpactPct * marketRentMult * 10) / 10;
+
+    return {
+      id: u.id,
+      name: u.name,
+      severity: 'upgrade' as const,
+      originalCost: baseCost,
+      contractorCost,
+      timelineWeeks: u.timelineWeeks,
+      description: u.description,
+      markup: Math.max(0, markup),
+      rentImpactPct: adjustedRentPct,
+      saleImpactPct: u.saleImpactPct,
+      isUpgrade: true as const,
+      category: u.category,
+      marketCostMultiplier: marketCostMult,
+      marketRentMultiplier: marketRentMult,
+    };
   });
 }
 
@@ -2954,6 +3053,7 @@ export interface ContractorWalkthroughResult {
   marketCondition?: string;
   marketCostMultiplier?: number;
   marketRentMultiplier?: number;
+  upgradeItems?: any[];
 }
 
 function seededRandom(seed: number): () => number {
@@ -3067,6 +3167,14 @@ export async function performContractorWalkthrough(
   const foundTreasure = treasureRoll < (1 / 300);
   const treasureAmount = foundTreasure ? 100000 : 0;
 
+  const completedUpgradeIds = ((deal.proFormaOutputs as any)?.completedUpgradeIds as string[]) || [];
+  const upgradeItems = generateUpgradeItems(
+    property,
+    marketCondition,
+    completedUpgradeIds,
+    dealId * 7 + gameRun.currentWeek
+  );
+
   const result: ContractorWalkthroughResult = {
     walkthroughFee,
     repairItems,
@@ -3078,6 +3186,7 @@ export async function performContractorWalkthrough(
     marketCondition,
     marketCostMultiplier: Math.round(marketMults.costMult * 100) / 100,
     marketRentMultiplier: Math.round(marketMults.rentMult * 100) / 100,
+    upgradeItems,
   };
 
   // Deduct walkthrough fee from cash, add treasure if found
@@ -3181,9 +3290,6 @@ export async function initiateRentalRehab(
 
   // Get walkthrough data
   const walkthroughData = deal.contractorWalkthroughData as ContractorWalkthroughResult | null;
-  if (!walkthroughData || !walkthroughData.repairItems || walkthroughData.repairItems.length === 0) {
-    return { success: false, error: 'No repair items found from walkthrough' };
-  }
 
   const gameRun = await storage.getGameRun(gameRunId);
   if (!gameRun) {
@@ -3195,44 +3301,63 @@ export async function initiateRentalRehab(
     return { success: false, error: 'Property not found' };
   }
 
+  // Separate repair IDs from upgrade IDs
+  const selectedUpgradeIds = (selectedRepairIds || []).filter(id => id.startsWith('upgrade_'));
+  const selectedActualRepairIds = (selectedRepairIds || []).filter(id => !id.startsWith('upgrade_'));
+
   // Get valid repair IDs from walkthrough data, excluding previously completed repairs
   const previouslyCompletedIds = (deal.completedRepairIds as string[] | null) || [];
-  const availableRepairItems = walkthroughData.repairItems.filter(
+  const allRepairItems = walkthroughData?.repairItems || [];
+  const availableRepairItems = allRepairItems.filter(
     item => !previouslyCompletedIds.includes(item.id)
   );
   
-  if (availableRepairItems.length === 0) {
-    return { success: false, error: 'All repairs have already been completed' };
-  }
-  
   const validRepairIds = new Set(availableRepairItems.map(item => item.id));
   
-  // Validate selectedRepairIds if provided - must be subset of available (not yet completed) IDs
-  if (selectedRepairIds && selectedRepairIds.length > 0) {
-    const invalidIds = selectedRepairIds.filter(id => !validRepairIds.has(id));
+  // Validate selectedActualRepairIds if provided
+  if (selectedActualRepairIds.length > 0) {
+    const invalidIds = selectedActualRepairIds.filter(id => !validRepairIds.has(id));
     if (invalidIds.length > 0) {
       return { success: false, error: `Invalid repair IDs: ${invalidIds.join(', ')}` };
     }
   }
+
+  // Validate upgrade IDs
+  const completedUpgradeIds = ((deal.proFormaOutputs as any)?.completedUpgradeIds as string[]) || [];
+  const marketCondition = (gameRun.marketCondition || 'neutral') as MarketCondition;
+  const availableUpgrades = generateUpgradeItems(property, marketCondition, completedUpgradeIds, dealId * 7 + gameRun.currentWeek);
+  const validUpgradeIds = new Set(availableUpgrades.map(u => u.id));
+
+  if (selectedUpgradeIds.length > 0) {
+    const invalidUpgrades = selectedUpgradeIds.filter(id => !validUpgradeIds.has(id));
+    if (invalidUpgrades.length > 0) {
+      return { success: false, error: `Invalid upgrade IDs: ${invalidUpgrades.join(', ')}` };
+    }
+  }
   
-  // Filter to only selected repairs (if specified), otherwise use all available
-  const repairItems = selectedRepairIds && selectedRepairIds.length > 0
-    ? availableRepairItems.filter(item => selectedRepairIds.includes(item.id))
-    : availableRepairItems;
+  // Filter to only selected repairs
+  const repairItems = selectedActualRepairIds.length > 0
+    ? availableRepairItems.filter(item => selectedActualRepairIds.includes(item.id))
+    : (selectedRepairIds === undefined ? availableRepairItems : []);
+
+  const upgradeItems = availableUpgrades.filter(u => selectedUpgradeIds.includes(u.id));
   
-  if (repairItems.length === 0) {
-    return { success: false, error: 'No repairs selected' };
+  if (repairItems.length === 0 && upgradeItems.length === 0) {
+    return { success: false, error: 'No repairs or upgrades selected' };
   }
 
   // Calculate tenant break fee (1 month of current rent)
   const monthlyRent = (deal.weeklyIncome || 0) * 4.33;
   const breakFee = Math.round(monthlyRent);
 
-  // Calculate base rehab cost and timeline from SELECTED items only
-  const baseCost = repairItems.reduce((sum, item) => sum + item.contractorCost, 0);
+  // Calculate base rehab cost and timeline from SELECTED items (repairs + upgrades)
+  const repairCost = repairItems.reduce((sum, item) => sum + item.contractorCost, 0);
+  const upgradeCost = upgradeItems.reduce((sum, item) => sum + item.contractorCost, 0);
+  const baseCost = repairCost + upgradeCost;
   
   // Timeline: Use MAX of selected item timelines (work done in parallel where possible)
-  const baseWeeks = Math.max(...repairItems.map(item => item.timelineWeeks), 1);
+  const allTimelines = [...repairItems.map(item => item.timelineWeeks), ...upgradeItems.map(u => u.timelineWeeks)];
+  const baseWeeks = Math.max(...allTimelines, 1);
 
   // TIMELINE VARIANCE: Contractors can run early, on-time, or late
   // 15% under time (-1-2 weeks), 25% on time, 60% over time (+1-3 weeks)
@@ -3310,7 +3435,16 @@ export async function initiateRentalRehab(
     await storage.createLedgerEntry(entry);
   }
 
-  // Update deal to rental rehab state - store only selected repair items
+  // Store upgrade IDs being processed alongside repairs
+  const pendingUpgradeIds = upgradeItems.map(u => u.id);
+  const outputs = deal.proFormaOutputs as any;
+  const updatedOutputs = {
+    ...outputs,
+    pendingUpgradeIds,
+    pendingUpgradeCost: upgradeCost,
+  };
+
+  // Update deal to rental rehab state - store only selected repair items + upgrades
   await storage.updateDeal(dealId, {
     rentalRehabActive: true,
     rentalRehabWeeksRemaining: actualWeeks,
@@ -3319,10 +3453,11 @@ export async function initiateRentalRehab(
     rentalRehabCostActual: actualCost,
     rentalRehabVariancePct: Math.round((varianceWeeks / baseWeeks) * 100),
     rentalRehabStartWeek: gameRun.currentWeek,
-    rentalRehabItems: repairItems, // Only selected items
+    rentalRehabItems: [...repairItems, ...upgradeItems],
     tenantDisplaced: true,
     tenantBreakFee: breakFee,
     weeklyIncome: 0, // No rent during rehab (vacant)
+    proFormaOutputs: updatedOutputs,
   });
 
   return {

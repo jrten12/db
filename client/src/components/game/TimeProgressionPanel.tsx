@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw, Smile, Meh, Frown, Paintbrush, ShieldAlert } from 'lucide-react';
+import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw, Smile, Meh, Frown, ShieldAlert } from 'lucide-react';
 import type { Deal, GameRun, Property, Tenant } from '@shared/schema';
 import { formatCurrency, getSaleEstimateRange } from '@/lib/gameData';
 
@@ -30,7 +30,7 @@ function estimateMonthlyExpenses(deals: Deal[], properties: Property[]): { total
     const proFormaOutputs = deal.proFormaOutputs as any;
 
     if (deal.status === 'active_rental' && !deal.rentalRehabActive) {
-      const netIncome = deal.weeklyIncome || 0;
+      const netIncome = getMonthlyCashFlow(deal);
       if (netIncome >= 0) {
         totalIncome += netIncome;
       } else {
@@ -69,6 +69,17 @@ function getTenantMood(satisfaction: number): { label: string; color: string; Ic
   return { label: 'Unhappy', color: 'text-red-400', Icon: Frown };
 }
 
+function getMonthlyCashFlow(deal: Deal): number {
+  const outputs = deal.proFormaOutputs as any;
+  if (!outputs) return deal.weeklyIncome || 0;
+  const rent = outputs.monthlyGrossRent || 0;
+  const vacancy = outputs.monthlyVacancyLoss || 0;
+  const opex = outputs.monthlyOperatingExpenses || 0;
+  const debt = outputs.debtServiceMonthly || outputs.monthlyDebtService || 0;
+  if (rent === 0 && debt === 0) return deal.weeklyIncome || 0;
+  return Math.round(rent - vacancy - opex - debt);
+}
+
 interface TimeProgressionPanelProps {
   gameRun: GameRun;
   deals: Deal[];
@@ -79,162 +90,17 @@ interface TimeProgressionPanelProps {
   onSellFlip?: (dealId: number) => Promise<void>;
   onSellProperty?: (dealId: number, strategy: 'rent' | 'flip') => void;
   onRefinanceRental?: (dealId: number) => Promise<void>;
-  onCosmeticUpgrade?: (dealId: number) => Promise<void>;
 }
 
-function getRenovationEstimates(property: any, market: string) {
-  const condition = property?.conditionTag || 'Fair';
-  const priceTier = property?.price || 200000;
-  const conditionCost: Record<string, number> = { 'Fixer-Upper': 1.6, 'Fair': 1.2, 'Good': 1.0, 'Excellent': 0.8 };
-  const marketCost: Record<string, number> = { terrible: 0.75, poor: 0.85, neutral: 1.0, good: 1.15, excellent: 1.35 };
-  const conditionMult = conditionCost[condition] || 1.0;
-  const marketMult = marketCost[market] || 1.0;
-  let costMin: number, costMax: number;
-  if (priceTier < 200000) { costMin = 2500; costMax = 6000; }
-  else if (priceTier < 350000) { costMin = 4000; costMax = 10000; }
-  else if (priceTier < 500000) { costMin = 6000; costMax = 15000; }
-  else if (priceTier < 750000) { costMin = 8000; costMax = 22000; }
-  else { costMin = 12000; costMax = 35000; }
-  costMin = Math.round(costMin * conditionMult * marketMult);
-  costMax = Math.round(costMax * conditionMult * marketMult);
-  const marketSuccess: Record<string, number> = { terrible: 40, poor: 52, neutral: 65, good: 78, excellent: 88 };
-  let successRate = marketSuccess[market] || 65;
-  if (condition === 'Fixer-Upper' || condition === 'Fair') successRate = Math.min(95, successRate + 8);
-  else if (condition === 'Excellent') successRate = Math.max(25, successRate - 12);
-  const conditionBoost: Record<string, string> = { 'Fixer-Upper': 'High', 'Fair': 'Medium-High', 'Good': 'Medium', 'Excellent': 'Low' };
-  const potential = conditionBoost[condition] || 'Medium';
-  const conditionBoostMult: Record<string, number> = { 'Fixer-Upper': 1.5, 'Fair': 1.25, 'Good': 1.0, 'Excellent': 0.6 };
-  const boostMult = conditionBoostMult[condition] || 1.0;
-  const avgCostRatio = ((costMin + costMax) / 2) / priceTier;
-  const investmentMult = Math.min(1.5, 0.7 + (avgCostRatio * 15));
-  const rentalLowPct = Math.max(1, Math.round(1.5 * boostMult * investmentMult * 10) / 10);
-  const rentalHighPct = Math.max(1, Math.min(15, Math.round(6 * boostMult * investmentMult * 10) / 10));
-  const flipLowPct = Math.max(0.5, Math.round(1 * boostMult * investmentMult * 10) / 10);
-  const flipHighPct = Math.max(0.5, Math.min(12, Math.round(5 * boostMult * investmentMult * 10) / 10));
-  return { costMin, costMax, successRate: Math.round(successRate), potential, condition, rentalLowPct, rentalHighPct, flipLowPct, flipHighPct };
-}
 
-function RenovationSection({ deal, property, market, onRenovate, isUpgrading }: {
-  deal: Deal; property: any; market: string;
-  onRenovate?: (dealId: number) => Promise<void>;
-  isUpgrading: boolean;
-}) {
-  const outputs = deal.proFormaOutputs as any;
-  if (!onRenovate) return null;
 
-  if (outputs?.cosmeticUpgradeApplied) {
-    const rentBoost = outputs.cosmeticUpgradeRentBoost;
-    const saleBoost = outputs.cosmeticUpgradeSaleBoost;
-    const upgradeCost = outputs.cosmeticUpgradeCost || 0;
-    const hasBoost = (rentBoost && rentBoost > 0) || (saleBoost && saleBoost > 0);
-    return (
-      <div className={`border-t border-white/10 pt-2.5 mt-2`}>
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <Paintbrush className="w-3.5 h-3.5 text-violet-400" />
-          <span className="text-xs font-medium text-violet-300">Renovation Complete</span>
-        </div>
-        <div className="text-xs text-gray-400 space-y-0.5">
-          <div className="flex justify-between">
-            <span>Cost</span>
-            <span className="text-gray-300">${upgradeCost.toLocaleString()}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Result</span>
-            <span className={hasBoost ? 'text-green-400' : 'text-gray-500'}>
-              {rentBoost > 0 ? `+${rentBoost}% rent` : saleBoost > 0 ? `+${saleBoost}% sale value` : 'No measurable impact'}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const est = getRenovationEstimates(property, market);
-  const isRental = deal.status === 'active_rental';
-  const monthlyRent = outputs?.monthlyGrossRent || 0;
-  const purchasePrice = deal.purchasePrice || property?.price || 0;
-  const avgCost = Math.round((est.costMin + est.costMax) / 2);
-  let roiHint = '';
-  if (isRental && monthlyRent > 0) {
-    const lowRent = Math.round(monthlyRent * est.rentalLowPct / 100);
-    const highRent = Math.round(monthlyRent * est.rentalHighPct / 100);
-    const midRent = Math.round((lowRent + highRent) / 2);
-    const paybackMonths = avgCost > 0 && midRent > 0 ? Math.round(avgCost / midRent) : 0;
-    roiHint = paybackMonths > 0 ? `+$${lowRent}–$${highRent}/mo rent, ~${paybackMonths}mo payback` : '';
-  } else if (purchasePrice > 0) {
-    const lowValue = Math.round(purchasePrice * est.flipLowPct / 100);
-    const highValue = Math.round(purchasePrice * est.flipHighPct / 100);
-    roiHint = highValue > 0 ? `+$${lowValue.toLocaleString()}–$${highValue.toLocaleString()} potential value add` : '';
-  }
-
-  return (
-    <div className="border-t border-white/10 pt-2.5 mt-2">
-      <div className="flex items-center gap-1.5 mb-2">
-        <Paintbrush className="w-3.5 h-3.5 text-violet-400" />
-        <span className="text-xs font-medium text-violet-300">Renovation Upgrade</span>
-      </div>
-      <div className="text-xs space-y-1 mb-2.5">
-        <div className="flex justify-between text-gray-400">
-          <span>Est. Cost</span>
-          <span className="text-gray-300">${est.costMin.toLocaleString()} – ${est.costMax.toLocaleString()}</span>
-        </div>
-        <div className="flex justify-between text-gray-400">
-          <span>Success Rate</span>
-          <span className={est.successRate >= 70 ? 'text-green-400' : est.successRate >= 50 ? 'text-amber-400' : 'text-red-400'}>
-            {est.successRate}%
-          </span>
-        </div>
-        <div className="flex justify-between text-gray-400">
-          <span>{isRental ? 'Rent Boost Range' : 'Value Boost Range'}</span>
-          <span className={est.potential === 'High' ? 'text-green-400' : est.potential === 'Low' ? 'text-gray-500' : 'text-amber-300'}>
-            {isRental ? `${est.rentalLowPct}–${est.rentalHighPct}%` : `${est.flipLowPct}–${est.flipHighPct}%`}
-          </span>
-        </div>
-        {roiHint && (
-          <div className="text-gray-500 italic pt-0.5">{roiHint}</div>
-        )}
-        <div className="text-gray-600 text-[10px] pt-0.5">
-          {est.condition === 'Fixer-Upper' || est.condition === 'Fair'
-            ? 'Property condition has room for improvement — renovations pay off more here.'
-            : est.condition === 'Excellent'
-            ? 'Property is already in great shape — limited room for improvement.'
-            : 'Moderate improvement potential based on current condition.'}
-        </div>
-      </div>
-      <Button
-        size="sm"
-        className="w-full bg-violet-600 hover:bg-violet-700 text-white text-xs h-7 gap-1.5"
-        disabled={isUpgrading}
-        onClick={(e) => {
-          e.stopPropagation();
-          onRenovate(deal.id);
-        }}
-        data-testid={`button-renovate-${deal.id}`}
-        data-no-click-sound
-      >
-        {isUpgrading ? (
-          <Loader2 className="w-3 h-3 animate-spin" />
-        ) : (
-          <>
-            <Paintbrush className="w-3 h-3" />
-            Renovate — ~${avgCost.toLocaleString()}
-          </>
-        )}
-      </Button>
-    </div>
-  );
-}
-
-function RentalFinancialDetails({ deal, propertyName, property, market, onRenovate, isUpgrading }: {
+function RentalFinancialDetails({ deal, propertyName, property }: {
   deal: Deal; propertyName: string; property?: any;
-  market?: string; onRenovate?: (dealId: number) => Promise<void>; isUpgrading?: boolean;
 }) {
   const outputs = deal.proFormaOutputs as any;
   const inputs = deal.proFormaInputs as any;
   
   const fmt = (n: number) => Math.round(n).toLocaleString();
-  
-  const weeklyIncome = deal.weeklyIncome || 0;
   
   const monthlyRent = outputs?.monthlyGrossRent || 0;
   const monthlyVacancy = outputs?.monthlyVacancyLoss || 0;
@@ -247,7 +113,7 @@ function RentalFinancialDetails({ deal, propertyName, property, market, onRenova
   const ltv = inputs?.ltv || 0;
   const purchasePrice = deal.purchasePrice || 0;
   
-  const hasNoRent = monthlyRent === 0 && monthlyDebt > 0 && weeklyIncome <= 0;
+  const hasNoRent = monthlyRent === 0 && monthlyDebt > 0 && getMonthlyCashFlow(deal) <= 0;
   
   const realityCheck = outputs?.realityCheck;
   const projectedRent = inputs?.expectedRent || 0;
@@ -341,12 +207,6 @@ function RentalFinancialDetails({ deal, propertyName, property, market, onRenova
             {Math.round(monthlyCashFlow) >= 0 ? '+' : ''}{fmt(monthlyCashFlow)}
           </span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-white font-medium">Monthly Income</span>
-          <span className={`font-bold ${weeklyIncome >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-            {weeklyIncome >= 0 ? '+' : ''}{fmt(weeklyIncome)}
-          </span>
-        </div>
       </div>
       
       {purchasePrice > 0 && (
@@ -361,21 +221,12 @@ function RentalFinancialDetails({ deal, propertyName, property, market, onRenova
           </div>
         </div>
       )}
-
-      <RenovationSection
-        deal={deal}
-        property={property}
-        market={market || 'neutral'}
-        onRenovate={onRenovate}
-        isUpgrading={isUpgrading || false}
-      />
     </div>
   );
 }
 
-function FlipFinancialDetails({ deal, propertyName, property, market, onRenovate, isUpgrading }: {
-  deal: Deal; propertyName: string; property?: any;
-  market?: string; onRenovate?: (dealId: number) => Promise<void>; isUpgrading?: boolean;
+function FlipFinancialDetails({ deal, propertyName }: {
+  deal: Deal; propertyName: string;
 }) {
   const outputs = deal.proFormaOutputs as any;
   const inputs = deal.proFormaInputs as any;
@@ -424,13 +275,6 @@ function FlipFinancialDetails({ deal, propertyName, property, market, onRenovate
         </div>
       </div>
 
-      <RenovationSection
-        deal={deal}
-        property={property}
-        market={market || 'neutral'}
-        onRenovate={onRenovate}
-        isUpgrading={isUpgrading || false}
-      />
     </div>
   );
 }
@@ -445,12 +289,10 @@ export function TimeProgressionPanel({
   onSellFlip,
   onSellProperty,
   onRefinanceRental,
-  onCosmeticUpgrade,
 }: TimeProgressionPanelProps) {
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [sellingDealId, setSellingDealId] = useState<number | null>(null);
   const [refinancingDealId, setRefinancingDealId] = useState<number | null>(null);
-  const [upgradingDealId, setUpgradingDealId] = useState<number | null>(null);
   const [showBankruptcyWarning, setShowBankruptcyWarning] = useState(false);
 
   const SEASONING_WEEKS = 8; // Must match server
@@ -500,8 +342,7 @@ export function TimeProgressionPanel({
   const flipsInRehab = deals.filter(d => d.status === 'in_rehab');
   const flipsReadyToList = deals.filter(d => d.status === 'ready_to_list');
 
-  // Calculate total monthly income (stored in weeklyIncome field for historical reasons)
-  const totalMonthlyIncome = activeRentals.reduce((sum, deal) => sum + (deal.weeklyIncome || 0), 0);
+  const totalMonthlyIncome = activeRentals.reduce((sum, deal) => sum + getMonthlyCashFlow(deal), 0);
 
   const expenseEstimate = estimateMonthlyExpenses(
     [...activeRentals, ...flipsInRehab, ...flipsReadyToList],
@@ -702,7 +543,7 @@ export function TimeProgressionPanel({
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="flex items-center gap-2 min-w-0 hover:bg-white/10 rounded px-1 py-0.5 transition-colors cursor-pointer">
-                      <Home className={`w-3 h-3 flex-shrink-0 ${(deal.weeklyIncome || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`} />
+                      <Home className={`w-3 h-3 flex-shrink-0 ${getMonthlyCashFlow(deal) >= 0 ? 'text-green-400' : 'text-red-400'}`} />
                       <span className="text-xs md:text-sm text-white truncate">{propertyName}</span>
                       {(() => {
                         const tenant = tenants.find(t => t.dealId === deal.id);
@@ -721,8 +562,8 @@ export function TimeProgressionPanel({
                         }
                         return null;
                       })()}
-                      <span className={`text-xs md:text-sm font-medium ${(deal.weeklyIncome || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {(deal.weeklyIncome || 0) >= 0 ? '+' : ''}${(deal.weeklyIncome || 0).toLocaleString()}/mo
+                      <span className={`text-xs md:text-sm font-medium ${getMonthlyCashFlow(deal) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {getMonthlyCashFlow(deal) >= 0 ? '+' : ''}${getMonthlyCashFlow(deal).toLocaleString()}/mo
                       </span>
                       <Info className="w-3 h-3 text-gray-500" />
                     </button>
@@ -732,37 +573,10 @@ export function TimeProgressionPanel({
                       deal={deal}
                       propertyName={propertyName}
                       property={getProperty(deal.propertyId)}
-                      market={(gameRun as any).marketCondition || 'neutral'}
-                      onRenovate={onCosmeticUpgrade ? async (id) => {
-                        setUpgradingDealId(id);
-                        try { await onCosmeticUpgrade(id); } finally { setUpgradingDealId(null); }
-                      } : undefined}
-                      isUpgrading={upgradingDealId === deal.id}
                     />
                   </PopoverContent>
                 </Popover>
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  {onCosmeticUpgrade && !(deal.proFormaOutputs as any)?.cosmeticUpgradeApplied && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 px-1.5 text-violet-400 hover:text-violet-300 hover:bg-violet-500/20"
-                      disabled={upgradingDealId === deal.id}
-                      onClick={() => {
-                        setUpgradingDealId(deal.id);
-                        onCosmeticUpgrade(deal.id).finally(() => setUpgradingDealId(null));
-                      }}
-                      data-testid={`button-renovate-inline-${deal.id}`}
-                      data-no-click-sound
-                      title="Renovate property"
-                    >
-                      {upgradingDealId === deal.id ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Paintbrush className="w-3.5 h-3.5" />
-                      )}
-                    </Button>
-                  )}
                   {onRefinanceRental && (
                     <Popover>
                       <PopoverTrigger asChild>
@@ -860,13 +674,6 @@ export function TimeProgressionPanel({
                   <FlipFinancialDetails
                     deal={deal}
                     propertyName={propertyName}
-                    property={getProperty(deal.propertyId)}
-                    market={(gameRun as any).marketCondition || 'neutral'}
-                    onRenovate={onCosmeticUpgrade ? async (id) => {
-                      setUpgradingDealId(id);
-                      try { await onCosmeticUpgrade(id); } finally { setUpgradingDealId(null); }
-                    } : undefined}
-                    isUpgrading={upgradingDealId === deal.id}
                   />
                 </PopoverContent>
               </Popover>
@@ -899,38 +706,10 @@ export function TimeProgressionPanel({
                     <FlipFinancialDetails
                       deal={deal}
                       propertyName={getPropertyName(deal.propertyId)}
-                      property={getProperty(deal.propertyId)}
-                      market={(gameRun as any).marketCondition || 'neutral'}
-                      onRenovate={onCosmeticUpgrade ? async (id) => {
-                        setUpgradingDealId(id);
-                        try { await onCosmeticUpgrade(id); } finally { setUpgradingDealId(null); }
-                      } : undefined}
-                      isUpgrading={upgradingDealId === deal.id}
                     />
                   </PopoverContent>
                 </Popover>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {onCosmeticUpgrade && !(deal.proFormaOutputs as any)?.cosmeticUpgradeApplied && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-6 px-1.5 text-violet-400 hover:text-violet-300 hover:bg-violet-500/20"
-                      disabled={upgradingDealId === deal.id}
-                      onClick={() => {
-                        setUpgradingDealId(deal.id);
-                        onCosmeticUpgrade!(deal.id).finally(() => setUpgradingDealId(null));
-                      }}
-                      data-testid={`button-renovate-flip-inline-${deal.id}`}
-                      data-no-click-sound
-                      title="Renovate before selling"
-                    >
-                      {upgradingDealId === deal.id ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Paintbrush className="w-3.5 h-3.5" />
-                      )}
-                    </Button>
-                  )}
                   <span className="text-xs text-gray-400 hidden sm:inline">
                     ${estimatedSaleMin.toLocaleString()}-${estimatedSaleMax.toLocaleString()}
                   </span>

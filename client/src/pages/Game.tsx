@@ -162,6 +162,7 @@ export default function Game() {
     minSale: number;
     maxSale: number;
   } | null>(null);
+  const [isSelling, setIsSelling] = useState(false);
   
   // Refinance modal state
   const [refinancingDeal, setRefinancingDeal] = useState<{
@@ -1515,141 +1516,134 @@ export default function Game() {
   }, [gameRun, queryClient, addRentalPayment, addFlipProceeds, properties, deals]);
 
   const handleSellRental = useCallback(async (dealId: number) => {
-    if (!gameRun) return;
-    
-    try {
-      const result = await api.sellRental(dealId, gameRun.id);
-      
-      // Update game state with new cash and weeks
-      setGameRun(result.gameRun);
-      
-      // Find property name for animation
-      const deal = deals.find(d => d.id === dealId);
-      const property = properties.find(p => p.id === deal?.propertyId);
-      
-      const pfi = deal?.proFormaInputs && typeof deal.proFormaInputs === 'object' ? deal.proFormaInputs as any : {};
-      const pfo = deal?.proFormaOutputs && typeof deal.proFormaOutputs === 'object' ? deal.proFormaOutputs as any : {};
-      const rentalRehab = pfi.rehabBudget || 0;
-      const rPurchasePrice = deal?.purchasePrice || property?.price || 0;
-      const rClosingCosts = Math.round(rPurchasePrice * 0.025);
-      const rLoanAmount = pfo.loanAmount || 0;
-      const rLoanOriginationPct = pfi.loanOriginationPct ?? 2;
-      const rLoanFees = Math.round(rLoanAmount * (rLoanOriginationPct / 100));
-      const rSellingCostsPct = pfi.sellingCostsPct || 5;
-      const rSellingCosts = Math.round(result.salePrice * (rSellingCostsPct / 100));
-
-      const rentalMonthsHeld = deal?.weeksUntilCompletion || (gameRun ? Math.max(1, gameRun.currentWeek - (deal?.lastIncomePaymentWeek || 0)) : 1);
-      const projectedMonthlyCashFlow = pfo.cashFlowMonthly || 0;
-      const projectedCashOnCash = pfo.cashOnCash || 0;
-      const projectedRent = pfi.expectedRent || pfi.monthlyRent || 0;
-      const actualMonthlyCashFlow = (deal?.weeklyIncome || 0) * 4.33;
-      const totalRentalIncomeCollected = (deal?.weeklyIncome || 0) * rentalMonthsHeld * 4.33;
-
-      setPropertySoldAnim({
-        isOpen: true,
-        data: {
-          propertyName: property?.name || 'Property',
-          salePrice: result.salePrice,
-          purchasePrice: rPurchasePrice,
-          mortgagePayoff: result.mortgagePayoff,
-          netProceeds: result.netProceeds,
-          saleProfit: result.saleProfit,
-          isRental: true,
-          rehabCost: rentalRehab,
-          sellingCosts: rSellingCosts,
-          closingCosts: rClosingCosts,
-          loanFees: rLoanFees,
-        },
-        proFormaProjections: {
-          strategy: 'rent',
-          projectedProfit: projectedMonthlyCashFlow * rentalMonthsHeld,
-          projectedMonthlyCashFlow,
-          projectedCashOnCash,
-          projectedRent,
-          monthsHeld: rentalMonthsHeld,
-          actualMonthlyCashFlow,
-          totalRentalIncomeCollected,
-        },
-      });
-      
-      queryClient.invalidateQueries({ queryKey: ['deals'] });
-      queryClient.invalidateQueries({ queryKey: ['ledger'] });
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sell property');
+    if (!gameRun) {
+      throw new Error('No active game found');
     }
+    
+    const result = await api.sellRental(dealId, gameRun.id);
+    
+    setGameRun(result.gameRun);
+    
+    const deal = deals.find(d => d.id === dealId);
+    const property = properties.find(p => p.id === deal?.propertyId);
+    
+    const pfi = deal?.proFormaInputs && typeof deal.proFormaInputs === 'object' ? deal.proFormaInputs as any : {};
+    const pfo = deal?.proFormaOutputs && typeof deal.proFormaOutputs === 'object' ? deal.proFormaOutputs as any : {};
+    const rentalRehab = pfi.rehabBudget || 0;
+    const rPurchasePrice = deal?.purchasePrice || property?.price || 0;
+    const rClosingCosts = Math.round(rPurchasePrice * 0.025);
+    const rLoanAmount = pfo.loanAmount || 0;
+    const rLoanOriginationPct = pfi.loanOriginationPct ?? 2;
+    const rLoanFees = Math.round(rLoanAmount * (rLoanOriginationPct / 100));
+    const rSellingCostsPct = pfi.sellingCostsPct || 5;
+    const rSellingCosts = Math.round(result.salePrice * (rSellingCostsPct / 100));
+
+    const rentalMonthsHeld = deal?.weeksUntilCompletion || (gameRun ? Math.max(1, gameRun.currentWeek - (deal?.lastIncomePaymentWeek || 0)) : 1);
+    const projectedMonthlyCashFlow = pfo.cashFlowMonthly || 0;
+    const projectedCashOnCash = pfo.cashOnCash || 0;
+    const projectedRent = pfi.expectedRent || pfi.monthlyRent || 0;
+    const actualMonthlyCashFlow = (deal?.weeklyIncome || 0) * 4.33;
+    const totalRentalIncomeCollected = (deal?.weeklyIncome || 0) * rentalMonthsHeld * 4.33;
+
+    setPropertySoldAnim({
+      isOpen: true,
+      data: {
+        propertyName: property?.name || 'Property',
+        salePrice: result.salePrice,
+        purchasePrice: rPurchasePrice,
+        mortgagePayoff: result.mortgagePayoff,
+        netProceeds: result.netProceeds,
+        saleProfit: result.saleProfit,
+        isRental: true,
+        rehabCost: rentalRehab,
+        sellingCosts: rSellingCosts,
+        closingCosts: rClosingCosts,
+        loanFees: rLoanFees,
+      },
+      proFormaProjections: {
+        strategy: 'rent',
+        projectedProfit: projectedMonthlyCashFlow * rentalMonthsHeld,
+        projectedMonthlyCashFlow,
+        projectedCashOnCash,
+        projectedRent,
+        monthsHeld: rentalMonthsHeld,
+        actualMonthlyCashFlow,
+        totalRentalIncomeCollected,
+      },
+    });
+    
+    queryClient.invalidateQueries({ queryKey: ['deals'] });
+    queryClient.invalidateQueries({ queryKey: ['ledger'] });
   }, [gameRun, deals, properties, queryClient]);
 
   const handleSellFlip = useCallback(async (dealId: number) => {
-    if (!gameRun) return;
-    
-    try {
-      const result = await api.sellFlip(dealId, gameRun.id);
-      
-      setGameRun(result.gameRun);
-      
-      const deal = deals.find(d => d.id === dealId);
-      const property = properties.find(p => p.id === deal?.propertyId);
-      const fpfi = deal?.proFormaInputs && typeof deal.proFormaInputs === 'object' ? deal.proFormaInputs as any : {};
-      const fpfo = deal?.proFormaOutputs && typeof deal.proFormaOutputs === 'object' ? deal.proFormaOutputs as any : {};
-      const flipPurchasePrice = deal?.purchasePrice || property?.price || 0;
-      const flipRehabBudget = fpfi.rehabBudget || 0;
-      const flipClosingCosts = Math.round(flipPurchasePrice * 0.025);
-      const flipLoanAmount = fpfo.loanAmount || 0;
-      const flipLoanOriginationPct = fpfi.loanOriginationPct ?? 2;
-      const flipLoanFees = Math.round(flipLoanAmount * (flipLoanOriginationPct / 100));
-      const flipSellingCostsPct = fpfi.sellingCostsPct || 5;
-      const flipSellingCosts = Math.round(result.salePrice * (flipSellingCostsPct / 100));
-      const flipInterestRate = fpfo.interestRate || fpfi.interestRate || 0;
-      const flipTaxesAnnual = fpfi.taxesAnnual || 0;
-      const flipInsuranceAnnual = fpfi.insuranceAnnual || 0;
-      const flipRehabWeeks = deal?.weeksUntilCompletion || fpfi.rehabWeeks || 0;
-      const flipHoldingPerWeek = Math.round(
-        (flipLoanAmount * (flipInterestRate / 100) / 52) +
-        (flipTaxesAnnual / 52) +
-        (flipInsuranceAnnual / 52)
-      );
-      const flipHoldingCosts = flipHoldingPerWeek * flipRehabWeeks;
-      
-      const flipProjectedProfit = fpfo.flipProfit || 0;
-      const flipProjectedROI = fpfo.flipROI || 0;
-      const flipProjectedSalePrice = fpfo.arvWithFinishBoost || fpfo.arv || fpfi.arv || 0;
-
-      setPropertySoldAnim({
-        isOpen: true,
-        data: {
-          propertyName: property?.name || 'Property',
-          salePrice: result.salePrice,
-          purchasePrice: flipPurchasePrice,
-          mortgagePayoff: result.mortgagePayoff || 0,
-          netProceeds: result.netProceeds || result.salePrice,
-          saleProfit: result.saleProfit,
-          isRental: false,
-          rehabCost: flipRehabBudget,
-          sellingCosts: flipSellingCosts,
-          closingCosts: flipClosingCosts,
-          holdingCosts: flipHoldingCosts,
-          loanFees: flipLoanFees,
-        },
-        proFormaProjections: {
-          strategy: 'flip',
-          projectedProfit: flipProjectedProfit,
-          projectedROI: flipProjectedROI,
-          projectedSalePrice: flipProjectedSalePrice,
-          projectedTotalExpenses: flipRehabBudget + flipClosingCosts + flipLoanFees,
-          monthsHeld: flipRehabWeeks,
-        },
-      });
-      
-      // Show trophy notifications if any were awarded
-      if (result.awardedTrophies && result.awardedTrophies.length > 0) {
-        addTrophies(result.awardedTrophies);
-      }
-      
-      queryClient.invalidateQueries({ queryKey: ['deals'] });
-      queryClient.invalidateQueries({ queryKey: ['ledger'] });
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to sell flip property');
+    if (!gameRun) {
+      throw new Error('No active game found');
     }
+    
+    const result = await api.sellFlip(dealId, gameRun.id);
+    
+    setGameRun(result.gameRun);
+    
+    const deal = deals.find(d => d.id === dealId);
+    const property = properties.find(p => p.id === deal?.propertyId);
+    const fpfi = deal?.proFormaInputs && typeof deal.proFormaInputs === 'object' ? deal.proFormaInputs as any : {};
+    const fpfo = deal?.proFormaOutputs && typeof deal.proFormaOutputs === 'object' ? deal.proFormaOutputs as any : {};
+    const flipPurchasePrice = deal?.purchasePrice || property?.price || 0;
+    const flipRehabBudget = fpfi.rehabBudget || 0;
+    const flipClosingCosts = Math.round(flipPurchasePrice * 0.025);
+    const flipLoanAmount = fpfo.loanAmount || 0;
+    const flipLoanOriginationPct = fpfi.loanOriginationPct ?? 2;
+    const flipLoanFees = Math.round(flipLoanAmount * (flipLoanOriginationPct / 100));
+    const flipSellingCostsPct = fpfi.sellingCostsPct || 5;
+    const flipSellingCosts = Math.round(result.salePrice * (flipSellingCostsPct / 100));
+    const flipInterestRate = fpfo.interestRate || fpfi.interestRate || 0;
+    const flipTaxesAnnual = fpfi.taxesAnnual || 0;
+    const flipInsuranceAnnual = fpfi.insuranceAnnual || 0;
+    const flipRehabWeeks = deal?.weeksUntilCompletion || fpfi.rehabWeeks || 0;
+    const flipHoldingPerWeek = Math.round(
+      (flipLoanAmount * (flipInterestRate / 100) / 52) +
+      (flipTaxesAnnual / 52) +
+      (flipInsuranceAnnual / 52)
+    );
+    const flipHoldingCosts = flipHoldingPerWeek * flipRehabWeeks;
+    
+    const flipProjectedProfit = fpfo.flipProfit || 0;
+    const flipProjectedROI = fpfo.flipROI || 0;
+    const flipProjectedSalePrice = fpfo.arvWithFinishBoost || fpfo.arv || fpfi.arv || 0;
+
+    setPropertySoldAnim({
+      isOpen: true,
+      data: {
+        propertyName: property?.name || 'Property',
+        salePrice: result.salePrice,
+        purchasePrice: flipPurchasePrice,
+        mortgagePayoff: result.mortgagePayoff || 0,
+        netProceeds: result.netProceeds || result.salePrice,
+        saleProfit: result.saleProfit,
+        isRental: false,
+        rehabCost: flipRehabBudget,
+        sellingCosts: flipSellingCosts,
+        closingCosts: flipClosingCosts,
+        holdingCosts: flipHoldingCosts,
+        loanFees: flipLoanFees,
+      },
+      proFormaProjections: {
+        strategy: 'flip',
+        projectedProfit: flipProjectedProfit,
+        projectedROI: flipProjectedROI,
+        projectedSalePrice: flipProjectedSalePrice,
+        projectedTotalExpenses: flipRehabBudget + flipClosingCosts + flipLoanFees,
+        monthsHeld: flipRehabWeeks,
+      },
+    });
+    
+    if (result.awardedTrophies && result.awardedTrophies.length > 0) {
+      addTrophies(result.awardedTrophies);
+    }
+    
+    queryClient.invalidateQueries({ queryKey: ['deals'] });
+    queryClient.invalidateQueries({ queryKey: ['ledger'] });
   }, [gameRun, deals, properties, queryClient, addTrophies]);
 
   const handleOpenRefinanceModal = useCallback(async (dealId: number) => {
@@ -1731,10 +1725,10 @@ export default function Game() {
   
   // Actually execute the sale after confirmation
   const confirmSale = useCallback(async () => {
-    if (!pendingSale) return;
+    if (!pendingSale || isSelling) return;
     
     const { dealId, strategy } = pendingSale;
-    setPendingSale(null);
+    setIsSelling(true);
     
     try {
       if (strategy === 'rent') {
@@ -1742,10 +1736,14 @@ export default function Game() {
       } else {
         await handleSellFlip(dealId);
       }
+      setPendingSale(null);
     } catch (error: any) {
+      console.error('confirmSale: sale failed', error);
       toast.error(error.message || 'Failed to complete sale');
+    } finally {
+      setIsSelling(false);
     }
-  }, [pendingSale, handleSellRental, handleSellFlip]);
+  }, [pendingSale, isSelling, handleSellRental, handleSellFlip]);
   
   const cancelSale = useCallback(() => {
     setPendingSale(null);
@@ -2512,19 +2510,21 @@ export default function Game() {
               <div className="flex gap-3">
                 <button
                   onClick={cancelSale}
-                  className="flex-1 px-4 py-4 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-white rounded-xl font-medium text-base transition-colors min-h-[52px] touch-manipulation"
+                  className="flex-1 px-4 py-4 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-white rounded-xl font-medium text-base transition-colors min-h-[52px] touch-manipulation disabled:opacity-50"
                   data-testid="button-cancel-sale"
                   type="button"
+                  disabled={isSelling}
                 >
                   Keep Property
                 </button>
                 <button
                   onClick={confirmSale}
-                  className="flex-1 px-4 py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-400 text-white rounded-xl font-bold text-base transition-colors min-h-[52px] touch-manipulation"
+                  className="flex-1 px-4 py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-400 text-white rounded-xl font-bold text-base transition-colors min-h-[52px] touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
                   data-testid="button-confirm-sale"
                   type="button"
+                  disabled={isSelling}
                 >
-                  Sell Now
+                  {isSelling ? 'Selling...' : 'Sell Now'}
                 </button>
               </div>
             </div>

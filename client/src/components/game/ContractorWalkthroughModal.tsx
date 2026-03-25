@@ -101,18 +101,14 @@ export function ContractorWalkthroughModal({
   const selectedTotals = useMemo(() => {
     if (!result?.repairItems) return { cost: 0, weeks: 0, count: 0, rentImpactPct: 0, netRentImpactPct: 0, rentIncrease: 0, annualYieldPct: 0, paybackMonths: 0 };
     const selected = result.repairItems.filter(item => selectedRepairIds.includes(item.id));
-    const unselected = result.repairItems.filter(item => !selectedRepairIds.includes(item.id));
     const rentImpactPct = selected.reduce((sum, item) => sum + (item.rentImpactPct || 0), 0);
     const minBumpPerItem = Math.max(25, Math.round(baseMonthlyRent * 0.02));
     const totalFixedIncrease = selected.reduce((sum, item) => {
       const pctBump = Math.round(baseMonthlyRent * ((item.rentImpactPct || 2) / 100));
       return sum + Math.max(minBumpPerItem, pctBump);
     }, 0);
-    const unfixedDepressionAmt = unselected.reduce((sum) => {
-      return sum + Math.round(baseMonthlyRent * 0.01);
-    }, 0);
     const maxIncrease = Math.round(baseMonthlyRent * 0.25);
-    const rentIncrease = Math.min(Math.max(0, totalFixedIncrease - unfixedDepressionAmt), maxIncrease);
+    const rentIncrease = Math.min(totalFixedIncrease, maxIncrease);
     const netRentImpactPct = baseMonthlyRent > 0 ? Math.round((rentIncrease / baseMonthlyRent) * 100) : 0;
     const totalCost = selected.reduce((sum, item) => sum + item.contractorCost, 0);
     const annualRentGain = rentIncrease * 12;
@@ -578,7 +574,7 @@ export function ContractorWalkthroughModal({
                               )}
                               {(item.rentImpactPct || 0) > 0 && (() => {
                                 const rentBump = Math.max(Math.max(25, Math.round(baseMonthlyRent * 0.02)), Math.round(baseMonthlyRent * ((item.rentImpactPct || 2) / 100)));
-                                const itemYield = item.contractorCost > 0 ? Math.round((rentBump * 12 / item.contractorCost) * 100) / 10 : 0;
+                                const itemYield = item.contractorCost > 0 ? Math.round((rentBump * 12 / item.contractorCost) * 1000) / 10 : 0;
                                 return (
                                   <>
                                     <span className="flex items-center gap-1 text-emerald-400">

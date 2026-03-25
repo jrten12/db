@@ -1013,12 +1013,23 @@ export async function processRentalIncome(
   // so we just need to apply vacancy - no separate reality adjustment needed
   const netRentAfterVacancy = scaledGrossRent - scaledVacancyLoss;
   const actualRentReceived = netRentAfterVacancy;
+  
+  // Annotate the rent description when lease renewal just changed the rent this month
+  let rentDescription = `Rent - ${propertyName}`;
+  if (proFormaOutputs?.lastLeaseRenewalWeek === gameRun.currentWeek + 1) {
+    const prevRent = proFormaOutputs?.preRenewalRent;
+    if (prevRent && prevRent !== monthlyGrossRent) {
+      const diff = monthlyGrossRent - prevRent;
+      rentDescription = `Rent - ${propertyName} (lease renewed: ${diff > 0 ? '+' : '-'}$${Math.abs(diff).toLocaleString()}/mo)`;
+    }
+  }
+  
   if (actualRentReceived > 0) {
     ledgerEntries.push({
       direction: 'credit',
       category: 'income',
       amount: actualRentReceived,
-      description: `Rent - ${propertyName}`,
+      description: rentDescription,
       propertyId: deal.propertyId,
       dealId: deal.id,
       gameWeek: gameRun.currentWeek,
@@ -1337,6 +1348,9 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         const firstPaymentWeek = deal.firstIncomePaymentWeek || deal.lastIncomePaymentWeek || gameRun.currentWeek;
         const monthsActive = Math.max(0, (gameRun.currentWeek + 1) - firstPaymentWeek);
 
+        // Use a mutable reference so lease renewal can refresh data before income processing
+        let currentDeal = deal;
+
         const currentTenant = allTenants.find((t: any) => t.dealId === deal.id);
         let tenantLeavingEvent: any = null;
         if (property && currentTenant) {
@@ -1381,6 +1395,11 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
             const leaseRenewalResult = await processLeaseRenewal(deal, property, currentTenant, gameMarket, gameRun.currentWeek + 1, unfixedIssueIds);
             if (leaseRenewalResult) {
               curveballs.push(leaseRenewalResult.event);
+              // Re-fetch deal so processRentalIncome uses the updated rent from lease renewal
+              const refreshedDeal = await storage.getDeal(deal.id);
+              if (refreshedDeal) {
+                currentDeal = refreshedDeal;
+              }
             }
           }
 
@@ -1464,7 +1483,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           }
         }
 
-        const result = await processRentalIncome(deal, gameRun, curveball, runningCash);
+        const result = await processRentalIncome(currentDeal, gameRun, curveball, runningCash);
         runningCash = result.newCash;
 
         if (currentTenant && result.grossRent > 0 && !isTenantVacant(curveball)) {
@@ -1974,6 +1993,7 @@ async function processLeaseRenewal(
     cashFlowMonthly: newCashFlow,
     lastLeaseRenewalWeek: currentWeek,
     lastMarketRentAdjustment: market,
+    preRenewalRent: currentRent,
   };
 
   await storage.updateDeal(deal.id, {
@@ -1987,15 +2007,15 @@ async function processLeaseRenewal(
     leaseRentAmount: newRent,
   });
 
-  // Build descriptive event
+  // Build descriptive event with reasons
   const propertyName = property.name || 'Property';
   let description: string;
   let emoji: string;
   let eventType: string;
   let color: string;
+  const reasons: string[] = [];
 
   if (rentDiff > 0) {
-    const reasons: string[] = [];
     if (marketPct >= 2) reasons.push('strong market demand');
     if (satisfaction >= 70) reasons.push('happy tenant accepted increase');
     if (outputs.cosmeticUpgradeApplied) reasons.push('recent renovation');
@@ -2005,7 +2025,6 @@ async function processLeaseRenewal(
     eventType = 'positive';
     color = 'green';
   } else if (rentDiff < 0) {
-    const reasons: string[] = [];
     if (marketPct <= -2) reasons.push('weak market conditions');
     if (satisfaction < 50) reasons.push('tenant negotiated lower rent');
     if (unfixedIssueIds.length > 0) reasons.push(`${unfixedIssueIds.length} unresolved property issue${unfixedIssueIds.length > 1 ? 's' : ''}`);
@@ -2020,6 +2039,7 @@ async function processLeaseRenewal(
     eventType = 'neutral';
     color = 'blue';
   }
+
 
   return {
     event: {

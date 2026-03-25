@@ -61,7 +61,7 @@ interface ContractorWalkthroughModalProps {
   gameRun: GameRun;
   onComplete: () => void;
   onTreasureFound?: (amount: number, propertyName: string) => void;
-  onStartRepairs?: (dealId: number, propertyName: string, weeks: number, cost: number) => void;
+  onStartRepairs?: (dealId: number, propertyName: string, weeks: number, cost: number, varianceInfo?: { timelineVariance: 'early' | 'on_time' | 'late'; baseWeeksEstimate: number; costOverrun?: number }) => void;
 }
 
 type ViewState = 'quote' | 'performing' | 'results' | 'already_done';
@@ -711,7 +711,12 @@ export function ContractorWalkthroughModal({
                             const actualRehabCost = data.totalCost != null && data.breakFee != null 
                               ? data.totalCost - data.breakFee 
                               : selectedTotals.cost;
-                            onStartRepairs(deal.id, property.name, data.actualWeeks ?? selectedTotals.weeks, actualRehabCost);
+                            const varianceInfo = data.timelineVariance && data.estimatedWeeks != null ? {
+                              timelineVariance: data.timelineVariance as 'early' | 'on_time' | 'late',
+                              baseWeeksEstimate: data.estimatedWeeks,
+                              costOverrun: data.costOverrun,
+                            } : undefined;
+                            onStartRepairs(deal.id, property.name, data.actualWeeks ?? selectedTotals.weeks, actualRehabCost, varianceInfo);
                             onComplete();
                             onClose();
                           } else {

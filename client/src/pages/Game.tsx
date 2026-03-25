@@ -2664,8 +2664,8 @@ export default function Game() {
             onTreasureFound={(amount, propertyName) => {
               setTreasureData({ amount, propertyName, context: 'walkthrough' });
             }}
-            onStartRepairs={(dealId, propertyName, weeks, cost) => {
-              addConstructionStart(propertyName, 'rent', weeks, cost);
+            onStartRepairs={(dealId, propertyName, weeks, cost, varianceInfo) => {
+              addConstructionStart(propertyName, 'rent', weeks, cost, varianceInfo);
               queryClient.invalidateQueries({ queryKey: ['deals'] });
               queryClient.invalidateQueries({ queryKey: ['ledger'] });
               if (gameRun) {

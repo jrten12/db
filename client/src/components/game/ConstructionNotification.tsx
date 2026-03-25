@@ -14,6 +14,9 @@ export interface ConstructionEvent {
   rentIncrease?: number;
   oldRent?: number;
   newRent?: number;
+  timelineVariance?: 'early' | 'on_time' | 'late';
+  baseWeeksEstimate?: number;
+  costOverrun?: number;
 }
 
 interface ConstructionNotificationProps {
@@ -133,15 +136,28 @@ export function ConstructionNotification({ events, onDismiss }: ConstructionNoti
                     <div className="flex flex-wrap items-center gap-3 text-sm">
                       {currentEvent.weeksEstimated && (
                         <span className="text-orange-200">
-                          Est. {currentEvent.weeksEstimated} month{currentEvent.weeksEstimated !== 1 ? 's' : ''}
+                          {currentEvent.weeksEstimated} month{currentEvent.weeksEstimated !== 1 ? 's' : ''}
                         </span>
                       )}
                       {currentEvent.rehabCost && (
                         <span className="text-orange-200">
                           Budget: {formatCurrency(currentEvent.rehabCost)}
+                          {currentEvent.costOverrun ? ` (+${formatCurrency(currentEvent.costOverrun)} overrun)` : ''}
                         </span>
                       )}
                     </div>
+                    {currentEvent.timelineVariance === 'late' && currentEvent.baseWeeksEstimate && (
+                      <p className="text-amber-300/90 text-xs mt-1.5 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Contractor running behind — estimated {currentEvent.baseWeeksEstimate}mo, now {currentEvent.weeksEstimated}mo
+                      </p>
+                    )}
+                    {currentEvent.timelineVariance === 'early' && currentEvent.baseWeeksEstimate && (
+                      <p className="text-emerald-300/90 text-xs mt-1.5 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Contractor ahead of schedule — estimated {currentEvent.baseWeeksEstimate}mo, finishing in {currentEvent.weeksEstimated}mo
+                      </p>
+                    )}
                     {!isFlip && (
                       <p className="text-orange-300/80 text-xs mt-2 flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" />
@@ -233,7 +249,8 @@ export function useConstructionNotifications() {
     propertyName: string,
     strategy: 'flip' | 'rent',
     weeksEstimated: number,
-    rehabCost: number
+    rehabCost: number,
+    varianceInfo?: { timelineVariance: 'early' | 'on_time' | 'late'; baseWeeksEstimate: number; costOverrun?: number }
   ) => {
     const event: ConstructionEvent = {
       id: `construction-${Date.now()}`,
@@ -242,6 +259,9 @@ export function useConstructionNotifications() {
       strategy,
       weeksEstimated,
       rehabCost,
+      timelineVariance: varianceInfo?.timelineVariance,
+      baseWeeksEstimate: varianceInfo?.baseWeeksEstimate,
+      costOverrun: varianceInfo?.costOverrun,
     };
     setEvents(prev => [...prev, event]);
   };

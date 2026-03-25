@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, DollarSign, Target } from 'lucide-react';
-import heroHouseImage from '@assets/Gemini_hero.webp';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch } from 'lucide-react';
 import dbLogoImage from '@assets/db_logo_64.webp';
 const heroBgPattern = '/hero-bg-pattern.webp';
 import { useMusic } from '@/hooks/useMusicPlayer';
@@ -138,7 +137,7 @@ export default function Landing() {
             alt=""
             role="presentation"
             className="w-full h-full object-cover"
-            style={{ opacity: 0.6 }}
+            style={{ opacity: 0.4 }}
             fetchPriority="high"
             width={1408}
             height={768}
@@ -147,127 +146,173 @@ export default function Landing() {
             className="absolute inset-0"
             style={{
               background: `
-                linear-gradient(180deg, rgba(19,19,22,0.3) 0%, rgba(19,19,22,0.5) 30%, rgba(19,19,22,0.7) 70%, rgba(19,19,22,0.95) 100%),
-                radial-gradient(ellipse 80% 60% at 50% 50%, transparent, rgba(19,19,22,0.4))
+                linear-gradient(180deg, rgba(19,19,22,0.5) 0%, rgba(19,19,22,0.6) 30%, rgba(19,19,22,0.8) 70%, rgba(19,19,22,0.98) 100%),
+                radial-gradient(ellipse 80% 60% at 50% 50%, transparent, rgba(19,19,22,0.5))
               `,
             }}
           />
         </div>
 
         <div
-          className="absolute inset-x-0 bottom-0 h-[2px]"
-          style={{
-            background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.5), rgba(16,185,129,0.3), rgba(212,175,55,0.5), transparent)',
-          }}
+          className="absolute inset-x-0 bottom-0 h-px"
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.3), rgba(16,185,129,0.2), rgba(212,175,55,0.3), transparent)' }}
         />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-5 py-5 lg:py-16">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:gap-12 xl:gap-16">
-            <div className="flex-1 text-center lg:text-left mb-6 lg:mb-0">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(16,185,129,0.7)' }}>Real Estate Simulator</span>
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-5 py-6 sm:py-8 lg:py-14">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:gap-10 xl:gap-14">
+
+            {/* LEFT: Scenario entry */}
+            <div className="flex-1 mb-6 lg:mb-0 lg:pt-4">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="font-mono text-[11px] tracking-wide" style={{ color: 'rgba(225,220,205,0.35)' }}>Month 3 of 52</span>
+                <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#f59e0b' }} />
+                  <span className="font-mono text-[11px]" style={{ color: 'rgba(245,158,11,0.7)' }}>2 active issues</span>
+                </div>
               </div>
 
               <h1
-                className="text-[2.2rem] sm:text-[2.8rem] lg:text-5xl xl:text-[3.5rem] leading-[1.08] font-bold tracking-tight mb-3"
+                className="text-[1.75rem] sm:text-[2.2rem] lg:text-[2.8rem] xl:text-[3.2rem] leading-[1.1] font-bold tracking-tight mb-4"
                 style={{
                   color: '#f5f0e0',
                   textShadow: '0 2px 20px rgba(0,0,0,0.5)',
                 }}
               >
-                You've got $100K saved and a<br className="hidden sm:inline" /> real estate dream. See what you can do.
+                You closed on a duplex<br className="hidden sm:inline" /> in March.<br className="hidden sm:inline" />
+                <span style={{ color: 'rgba(248,113,113,0.9)' }}>One tenant is already late.</span>
               </h1>
 
-              <div className="space-y-1 mb-5 max-w-[520px] mx-auto lg:mx-0">
-                <p
-                  className="text-base sm:text-lg lg:text-xl font-medium leading-snug"
-                  style={{
-                    color: 'rgba(225,220,205,0.8)',
-                    textShadow: '0 1px 8px rgba(0,0,0,0.4)',
-                  }}
-                >
-                  You bought the deal. Now live with it.
+              <div className="space-y-1.5 mb-6 max-w-[460px]">
+                <p className="text-sm sm:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.6)' }}>
+                  The numbers looked right on paper. Now you're living with the deal — month by month, decision by decision.
                 </p>
-                <p
-                  className="text-base sm:text-lg lg:text-xl font-medium leading-snug"
-                  style={{
-                    color: 'rgba(225,220,205,0.65)',
-                    textShadow: '0 1px 8px rgba(0,0,0,0.4)',
-                  }}
-                >
-                  Rent it. Sell it. Hold it together.
-                </p>
-                <p
-                  className="text-base sm:text-lg lg:text-xl font-medium leading-snug"
-                  style={{
-                    color: 'rgba(225,220,205,0.5)',
-                    textShadow: '0 1px 8px rgba(0,0,0,0.4)',
-                  }}
-                >
-                  See if the numbers play out how you thought.
+                <p className="text-sm sm:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.4)' }}>
+                  52 months. $100K. Every choice compounds.
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row items-start gap-3 mb-5">
                 <Link href="/game">
                   <button
-                    className="group w-full sm:w-auto min-w-[220px] py-4 px-10 rounded-xl font-bold text-[17px] tracking-wide transition-all active:scale-[0.97] flex items-center justify-center gap-2.5"
+                    className="group w-full sm:w-auto min-w-[200px] py-3.5 px-8 rounded-lg font-bold text-[15px] tracking-wide transition-all active:scale-[0.97] flex items-center justify-center gap-2.5"
                     style={{
-                      background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
+                      background: 'linear-gradient(180deg, rgba(16,185,129,0.9) 0%, rgba(5,150,105,0.95) 100%)',
                       color: '#fff',
-                      boxShadow: '0 4px 24px rgba(16,185,129,0.35), 0 2px 0 #047857, 0 0 60px rgba(16,185,129,0.15)',
-                      border: '1px solid rgba(16,185,129,0.4)',
+                      boxShadow: '0 4px 20px rgba(16,185,129,0.3), 0 1px 0 rgba(4,120,87,0.8)',
+                      border: '1px solid rgba(16,185,129,0.5)',
                     }}
                     data-testid="button-play-simulator"
                   >
-                    Play Now
-                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                    Enter the Deal
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                   </button>
                 </Link>
+                <span className="text-[11px] font-medium self-center" style={{ color: 'rgba(225,220,205,0.3)' }}>No signup. Free to play.</span>
               </div>
 
-              <div className="mt-5 flex items-center gap-4 justify-center lg:justify-start">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 rounded flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.15)' }}>
-                    <DollarSign className="w-3 h-3" style={{ color: '#10b981' }} />
-                  </div>
-                  <span className="text-xs font-medium" style={{ color: 'rgba(225,220,205,0.4)' }}>$100K start</span>
-                </div>
-                <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.08)' }} />
-                <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 rounded flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.15)' }}>
-                    <Clock className="w-3 h-3" style={{ color: '#3b82f6' }} />
-                  </div>
-                  <span className="text-xs font-medium" style={{ color: 'rgba(225,220,205,0.4)' }}>52 months</span>
-                </div>
-                <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.08)' }} />
-                <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 rounded flex items-center justify-center" style={{ background: 'rgba(251,191,36,0.15)' }}>
-                    <Target className="w-3 h-3" style={{ color: '#fbbf24' }} />
-                  </div>
-                  <span className="text-xs font-medium" style={{ color: 'rgba(225,220,205,0.4)' }}>Free to play</span>
-                </div>
+              {/* Depth signals */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: 'rgba(225,220,205,0.2)' }}>Simulation includes:</span>
+                {['Variable rates', 'Tenant turnover', 'Hidden damage', 'Market shifts'].map((s) => (
+                  <span key={s} className="text-[10px] font-medium px-2 py-0.5 rounded" style={{ color: 'rgba(225,220,205,0.35)', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>{s}</span>
+                ))}
               </div>
             </div>
 
-            <div className="relative w-full max-w-[240px] sm:max-w-[300px] lg:max-w-[380px] xl:max-w-[420px] mx-auto lg:mx-0 lg:flex-shrink-0">
+            {/* RIGHT: System dashboard panel */}
+            <div className="w-full lg:w-[400px] xl:w-[440px] flex-shrink-0">
               <div
-                className="absolute -inset-12 rounded-full blur-[80px]"
-                style={{ background: 'rgba(212,175,55,0.1)' }}
-              />
-              <img
-                src={heroHouseImage}
-                alt="Dealbreak real estate investment simulator - analyze properties and close deals"
-                className="relative w-full h-auto"
-                width={420}
-                height={420}
-                fetchPriority="high"
+                className="rounded-xl overflow-hidden"
                 style={{
-                  filter: 'drop-shadow(0 16px 48px rgba(0,0,0,0.5)) drop-shadow(0 4px 16px rgba(212,175,55,0.1))',
+                  background: 'linear-gradient(180deg, rgba(15,15,20,0.95) 0%, rgba(10,10,14,0.98) 100%)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  boxShadow: '0 24px 80px rgba(0,0,0,0.5), 0 0 1px rgba(255,255,255,0.1)',
                 }}
-                data-testid="hero-image"
-              />
+                data-testid="hero-dashboard-panel"
+              >
+                {/* Panel header */}
+                <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-3.5 h-3.5" style={{ color: 'rgba(212,175,55,0.6)' }} />
+                    <span className="font-mono text-[11px] font-semibold" style={{ color: 'rgba(225,220,205,0.7)' }}>DEAL OVERVIEW</span>
+                  </div>
+                  <span className="font-mono text-[10px]" style={{ color: 'rgba(225,220,205,0.25)' }}>Month 3</span>
+                </div>
+
+                {/* Property info */}
+                <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-bold" style={{ color: '#e8dfc8' }}>Riverside Duplex</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold" style={{ color: '#3b82f6', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}>RENTAL</span>
+                  </div>
+                  <span className="text-[11px]" style={{ color: 'rgba(225,220,205,0.35)' }}>Philadelphia, PA</span>
+                </div>
+
+                {/* Financial grid */}
+                <div className="grid grid-cols-2 gap-px" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="px-4 py-2.5" style={{ background: 'rgba(10,10,14,0.95)' }}>
+                    <div className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: 'rgba(225,220,205,0.3)' }}>Purchase</div>
+                    <div className="font-mono text-sm font-bold" style={{ color: '#e8dfc8' }}>$293,000</div>
+                  </div>
+                  <div className="px-4 py-2.5" style={{ background: 'rgba(10,10,14,0.95)' }}>
+                    <div className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: 'rgba(225,220,205,0.3)' }}>Cash Left</div>
+                    <div className="font-mono text-sm font-bold" style={{ color: '#fbbf24' }}>$41,200</div>
+                  </div>
+                  <div className="px-4 py-2.5" style={{ background: 'rgba(10,10,14,0.95)' }}>
+                    <div className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: 'rgba(225,220,205,0.3)' }}>Monthly Cash Flow</div>
+                    <div className="font-mono text-sm font-bold" style={{ color: '#10b981' }}>+$284/mo</div>
+                  </div>
+                  <div className="px-4 py-2.5" style={{ background: 'rgba(10,10,14,0.95)' }}>
+                    <div className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: 'rgba(225,220,205,0.3)' }}>Cash-on-Cash</div>
+                    <div className="font-mono text-sm font-bold" style={{ color: 'rgba(225,220,205,0.6)' }}>4.7%</div>
+                  </div>
+                </div>
+
+                {/* Active issues */}
+                <div className="px-4 py-3 space-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                  <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: 'rgba(248,113,113,0.6)' }}>Active Issues</div>
+                  <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg" style={{ background: 'rgba(248,113,113,0.05)', border: '1px solid rgba(248,113,113,0.1)' }}>
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#f87171' }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold" style={{ color: '#fca5a5' }}>Tenant late on rent</div>
+                      <div className="text-[10px]" style={{ color: 'rgba(225,220,205,0.3)' }}>Unit A &middot; 12 days overdue</div>
+                    </div>
+                    <span className="font-mono text-[10px] font-bold" style={{ color: '#f87171' }}>-$875</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg" style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.1)' }}>
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#f59e0b' }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold" style={{ color: '#fbbf24' }}>Water heater failing</div>
+                      <div className="text-[10px]" style={{ color: 'rgba(225,220,205,0.3)' }}>Repair estimate: $2,800</div>
+                    </div>
+                    <Wrench className="w-3 h-3" style={{ color: 'rgba(245,158,11,0.5)' }} />
+                  </div>
+                </div>
+
+                {/* Pressure bar */}
+                <div className="px-4 py-2.5 flex items-center justify-between" style={{ background: 'rgba(0,0,0,0.3)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3 h-3" style={{ color: 'rgba(59,130,246,0.5)' }} />
+                      <span className="font-mono text-[10px]" style={{ color: 'rgba(59,130,246,0.7)' }}>49 months left</span>
+                    </div>
+                    <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                    <div className="flex items-center gap-1.5">
+                      <Activity className="w-3 h-3" style={{ color: 'rgba(245,158,11,0.5)' }} />
+                      <span className="font-mono text-[10px]" style={{ color: 'rgba(245,158,11,0.6)' }}>Rates rising</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subtle timeline */}
+              <div className="mt-3 flex items-center gap-2 px-1">
+                <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                  <div className="h-full rounded-full" style={{ width: '5.8%', background: 'linear-gradient(90deg, #3b82f6, #10b981)' }} />
+                </div>
+                <span className="font-mono text-[9px] flex-shrink-0" style={{ color: 'rgba(225,220,205,0.2)' }}>3/52</span>
+              </div>
             </div>
           </div>
         </div>

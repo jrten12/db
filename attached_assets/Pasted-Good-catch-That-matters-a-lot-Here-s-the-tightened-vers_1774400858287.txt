@@ -1,0 +1,171 @@
+Good catch. That matters a lot. Here’s the tightened version — explicitly scoped to landing page only, no product rebuild, just perception shift.
+
+⸻
+
+REPLIT AI PROMPT (LANDING PAGE ONLY)
+
+You are refining the landing page only for an existing web app called Dealbreak — a real estate simulation game.
+
+You are NOT modifying the core game logic or backend.
+You are NOT rebuilding the app experience.
+
+Your sole objective is to:
+
+Transform the landing page so it attracts serious, systems-oriented simulation players
+
+⸻
+
+CURRENT PROBLEM
+
+The landing page currently feels like:
+	•	a polished SaaS product
+	•	a generic game pitch
+
+It needs to feel like:
+	•	a real system already in motion
+	•	a scenario the user is stepping into
+	•	something with risk, pressure, and consequence
+
+⸻
+
+CORE DIRECTIVE
+
+Do NOT make it more “fun” or casual.
+
+Make it feel:
+	•	more real
+	•	more tense
+	•	more system-driven
+	•	slightly less polished and more serious
+
+⸻
+
+HERO SECTION (PRIMARY FOCUS)
+
+Modify ONLY the landing page hero section.
+
+REMOVE:
+	•	Generic marketing-style imagery (logo / decorative icon on right)
+	•	Overly broad copy like “See what you can do”
+
+⸻
+
+ADD: IN-SCENARIO ENTRY
+
+Replace the hero with a live scenario presentation
+
+LEFT SIDE (minimal text)
+	•	Include a timestamp or moment in time
+	•	1–2 lines of scenario setup
+
+Example tone (not exact copy):
+“March 3rd
+You just closed on a duplex in Phoenix.
+One tenant is already late.”
+
+Keep it tight. No fluff.
+
+⸻
+
+RIGHT SIDE (SYSTEM PANEL UI)
+Add a panel that looks like a real tool/dashboard, not marketing.
+
+Include:
+	•	Property name/location
+	•	Purchase price
+	•	Cash remaining
+	•	Monthly cash flow (+ / -)
+	•	At least 2 problems:
+	•	late tenant
+	•	maintenance issue
+	•	vacancy risk
+
+Design this like:
+	•	a financial dashboard
+	•	slightly dense, information-forward
+	•	credible, not flashy
+
+⸻
+
+SYSTEM PRESSURE (VISIBLE ABOVE THE FOLD)
+
+Add tension indicators such as:
+	•	Cash runway (e.g. “2.3 months remaining”)
+	•	Monthly burn
+	•	Next event countdown (e.g. “Rent due in 5 days”)
+
+These must be visible immediately on load.
+
+Goal:
+Create urgency and consequence before any click.
+
+⸻
+
+CTA (BUTTON)
+
+Replace “Play Now” with something more committed:
+
+Examples:
+	•	Enter the deal
+	•	Take control
+	•	Continue timeline
+
+The button should feel like:
+
+stepping into an active system, not starting a demo
+
+⸻
+
+DEPTH SIGNALS (SUBTLE, NOT BULLET LISTS)
+
+Without adding long explanations, visually imply:
+	•	multi-month simulation (e.g. “Month 3 of 52”)
+	•	changing conditions (rates, tenants, costs)
+	•	non-deterministic outcomes
+
+These can appear as:
+	•	small labels
+	•	micro UI elements
+	•	faint timeline indicators
+
+⸻
+
+VISUAL STYLE ADJUSTMENTS
+
+Keep your current design system, but shift tone:
+	•	Reduce “luxury marketing” feel slightly
+	•	Increase “serious tool” feel
+	•	Allow slightly denser UI where appropriate
+	•	Prioritize clarity and realism over aesthetic emptiness
+
+Avoid:
+	•	cartoonish elements
+	•	overly playful UI
+	•	generic fintech polish
+
+⸻
+
+WHAT NOT TO DO
+	•	Do NOT redesign the full site
+	•	Do NOT change routing or core app flow
+	•	Do NOT add tutorials or onboarding
+	•	Do NOT simplify the concept
+
+⸻
+
+SUCCESS CRITERIA
+
+A serious simulation player landing on the page should think:
+	•	“This looks like a real system”
+	•	“I could mess this up”
+	•	“There’s depth here”
+	•	“I want to see how this plays out”
+
+NOT:
+	•	“This looks like a casual game”
+	•	“This is a demo tool”
+	•	“This is surface-level”
+
+⸻
+
+Refine the existing landing page accordingly, preserving structure where possible but upgrading tone, tension, and perceived depth.

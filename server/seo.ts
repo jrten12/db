@@ -678,10 +678,6 @@ export function injectSeoMeta(html: string, url: string, req: Request): string {
     const preloads = [
       '<link rel="preload" as="image" type="image/webp" href="/hero-bg-pattern.webp" fetchpriority="high" />',
     ];
-    const heroAsset = resolveHashedAsset('Gemini_hero', '.webp');
-    if (heroAsset) {
-      preloads.push(`<link rel="preload" as="image" type="image/webp" href="/assets/${heroAsset}" fetchpriority="high" />`);
-    }
     html = html.replace('</head>', `    ${preloads.join('\n    ')}\n  </head>`);
   }
 

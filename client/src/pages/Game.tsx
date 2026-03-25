@@ -1279,13 +1279,15 @@ export default function Game() {
       // Show beautiful rental rehab completion notifications with rent increase
       if (result.completedRentalRehabs && result.completedRentalRehabs.length > 0) {
         result.completedRentalRehabs.forEach((rehab: any) => {
-          const rentIncrease = rehab.newMonthlyRent - rehab.previousRent;
+          const newNet = rehab.newNetRent ?? rehab.newMonthlyRent;
+          const oldNet = rehab.previousNetRent ?? rehab.previousRent;
+          const netIncrease = newNet - oldNet;
           addConstructionComplete(
             rehab.propertyName, 
             'rent', 
-            rentIncrease > 0 ? rentIncrease : undefined,
-            rehab.previousRent,
-            rehab.newMonthlyRent
+            netIncrease > 0 ? netIncrease : undefined,
+            oldNet,
+            newNet
           );
         });
       }

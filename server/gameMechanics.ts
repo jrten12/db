@@ -555,6 +555,8 @@ interface CompletedRentalRehab {
   propertyName: string;
   newMonthlyRent: number;
   previousRent: number;
+  newNetRent: number;
+  previousNetRent: number;
   fixedCount: number;
   totalIssueCount: number;
   repairCompletionFactor: number;
@@ -1814,11 +1816,15 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
             gameWeek: gameRun.currentWeek + 1,
           });
 
+          const grossRent = proFormaOutputs.monthlyGrossRent || 0;
+          const vacLoss = proFormaOutputs.monthlyVacancyLoss || 0;
           completedRentalRehabs.push({
             dealId: deal.id,
             propertyName: property?.name || 'Property',
-            newMonthlyRent: proFormaOutputs.monthlyGrossRent || 0,
+            newMonthlyRent: grossRent,
             previousRent: 0,
+            newNetRent: Math.round(grossRent - vacLoss),
+            previousNetRent: 0,
             fixedCount: 0,
             totalIssueCount: 0,
             repairCompletionFactor: 1.0,
@@ -1931,32 +1937,40 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           },
         });
 
-        // Create ledger entry for rehab completion showing actual rent increase
+        // Calculate NET rent values (what the player actually sees in the income line)
+        const oldVacancyLoss = baseMonthlyRent * (effectiveVacancyRate / 100);
+        const newNetRent = Math.round(newMonthlyRent - newMonthlyVacancyLoss);
+        const oldNetRent = Math.round(baseMonthlyRent - oldVacancyLoss);
+        const netRentIncrease = newNetRent - oldNetRent;
+
+        // Create ledger entry for rehab completion showing NET rent increase (matches income line)
         const partialNote = unfixedIssueCount > 0 
           ? ` (${(fixedIssuesThisRound || []).length}/${allIssuesCount} issues fixed)`
           : '';
-        const rentChangePctDisplay = baseMonthlyRent > 0 ? Math.round((rentIncrease / baseMonthlyRent) * 100) : 0;
-        const rentChangeNote = rentIncrease > 0 
-          ? ` Rent +$${rentIncrease.toLocaleString()}/mo (+${rentChangePctDisplay}%)`
-          : rentIncrease === 0 ? ' Rent unchanged' : '';
+        const rentChangePctDisplay = oldNetRent > 0 ? Math.round((netRentIncrease / oldNetRent) * 100) : 0;
+        const rentChangeNote = netRentIncrease > 0 
+          ? ` Rent +$${netRentIncrease.toLocaleString()}/mo (+${rentChangePctDisplay}%)`
+          : netRentIncrease === 0 ? ' Rent unchanged' : '';
         await storage.createLedgerEntry({
           gameRunId,
           direction: 'credit',
           category: 'income',
           amount: 0,
           balanceAfter: gameRun.cash,
-          description: `Rental rehab complete - ${property?.name || 'Property'} (new rent: $${newMonthlyRent.toLocaleString()}/mo)${partialNote}${rentChangeNote}`,
+          description: `Rental rehab complete - ${property?.name || 'Property'}${partialNote}${rentChangeNote}`,
           propertyId: deal.propertyId,
           dealId: deal.id,
           gameWeek: gameRun.currentWeek + 1,
         });
         
-        // Add to completed rehabs for frontend notification
+        // Add to completed rehabs for frontend notification (use NET rent for consistency with ledger)
         completedRentalRehabs.push({
           dealId: deal.id,
           propertyName: property?.name || 'Property',
           newMonthlyRent,
           previousRent: baseMonthlyRent,
+          newNetRent,
+          previousNetRent: oldNetRent,
           fixedCount,
           totalIssueCount: allIssuesCount,
           repairCompletionFactor,
@@ -2166,7 +2180,13 @@ async function processLeaseRenewal(
   const newWeeklyIncome = calculateWeeklyIncome(newCashFlow);
 
   const rentDiff = newRent - currentRent;
-  const rentDiffAbs = Math.abs(rentDiff);
+
+  // Calculate NET rent values for display (matches what the player sees in the income line)
+  const oldEffRent = currentRent * (1 - effectiveVacancyRate / 100);
+  const newNetRent = Math.round(effectiveRent);
+  const oldNetRent = Math.round(oldEffRent);
+  const netDiff = newNetRent - oldNetRent;
+  const netDiffAbs = Math.abs(netDiff);
 
   // Update deal with new rent
   const updatedOutputs = {
@@ -2206,7 +2226,7 @@ async function processLeaseRenewal(
     if (satisfaction >= 70) reasons.push('happy tenant accepted increase');
     if (outputs.cosmeticUpgradeApplied) reasons.push('recent renovation');
     if (reasons.length === 0) reasons.push('market adjustment');
-    description = `${tenantName}'s lease renewed at $${newRent.toLocaleString()}/mo (+$${rentDiffAbs}/mo). ${reasons.join(', ').replace(/^./, s => s.toUpperCase())}.`;
+    description = `${tenantName}'s lease renewed — income ${netDiff >= 0 ? '+' : '-'}$${netDiffAbs.toLocaleString()}/mo. ${reasons.join(', ').replace(/^./, s => s.toUpperCase())}.`;
     emoji = '📈';
     eventType = 'positive';
     color = 'green';
@@ -2215,12 +2235,12 @@ async function processLeaseRenewal(
     if (satisfaction < 50) reasons.push('tenant negotiated lower rent');
     if (unfixedIssueIds.length > 0) reasons.push(`${unfixedIssueIds.length} unresolved property issue${unfixedIssueIds.length > 1 ? 's' : ''}`);
     if (reasons.length === 0) reasons.push('market softening');
-    description = `${tenantName}'s lease renewed at $${newRent.toLocaleString()}/mo (-$${rentDiffAbs}/mo). ${reasons.join(', ').replace(/^./, s => s.toUpperCase())}.`;
+    description = `${tenantName}'s lease renewed — income -$${netDiffAbs.toLocaleString()}/mo. ${reasons.join(', ').replace(/^./, s => s.toUpperCase())}.`;
     emoji = '📉';
     eventType = 'negative';
     color = 'orange';
   } else {
-    description = `${tenantName}'s lease renewed at $${newRent.toLocaleString()}/mo (no change). Stable market and property conditions.`;
+    description = `${tenantName}'s lease renewed (no change). Stable market and property conditions.`;
     emoji = '📋';
     eventType = 'neutral';
     color = 'blue';

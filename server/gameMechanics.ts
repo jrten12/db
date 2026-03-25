@@ -525,6 +525,11 @@ interface RentalIncomeResult {
     fromIssue?: boolean;
     issueId?: string;
   };
+  latePayment?: {
+    amount: number;
+    tenantMessage: string;
+    tenantName: string;
+  };
   newCash: number;
   dealId: number;
   principalPaid?: number;
@@ -1461,6 +1466,53 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
 
         const result = await processRentalIncome(deal, gameRun, curveball, runningCash);
         runningCash = result.newCash;
+
+        if (currentTenant && result.grossRent > 0 && !isTenantVacant(curveball)) {
+          const ethic = (currentTenant.paymentEthic || 'good') as string;
+          const lateChance = ethic === 'perfect' ? 0
+            : ethic === 'good' ? 3
+            : ethic === 'occasional' ? 10
+            : ethic === 'chronic' ? 25 : 3;
+
+          if (lateChance > 0 && Math.random() * 100 < lateChance) {
+            const latePct = ethic === 'chronic'
+              ? 0.15 + Math.random() * 0.20
+              : 0.08 + Math.random() * 0.15;
+            const lateAmount = Math.round(result.grossRent * latePct);
+
+            if (lateAmount > 0) {
+              const propertyObj = await storage.getProperty(deal.propertyId);
+              const propName = propertyObj?.name || `Property #${deal.propertyId}`;
+
+              await storage.createLedgerEntry({
+                gameRunId: gameRun.id,
+                direction: 'debit',
+                category: 'expense',
+                amount: lateAmount,
+                description: `Late rent - ${propName}`,
+                propertyId: deal.propertyId,
+                dealId: deal.id,
+                gameWeek: gameRun.currentWeek,
+                balanceAfter: runningCash - lateAmount,
+              });
+
+              runningCash -= lateAmount;
+              result.newCash = runningCash;
+              result.weeklyIncome -= lateAmount;
+
+              const tenantFirst = (currentTenant.name || 'Tenant').split(' ')[0];
+              const lateMessages = getLatePaymentMessages(ethic, tenantFirst, lateAmount);
+              const lateMsg = lateMessages[Math.floor(Math.random() * lateMessages.length)];
+
+              result.latePayment = {
+                amount: lateAmount,
+                tenantMessage: lateMsg,
+                tenantName: currentTenant.name,
+              };
+            }
+          }
+        }
+
         rentalPayments.push(result);
 
         if (curveball) {
@@ -1768,6 +1820,40 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     marketCondition: currentMarket,
     marketChanged,
   };
+}
+
+function isTenantVacant(curveball: any): boolean {
+  if (!curveball) return false;
+  return curveball.rentMultiplier === 0 ||
+    curveball.id === 'tenant_departure_conditions' ||
+    curveball.id === 'tenant_departure_life' ||
+    curveball.id === 'early_lease_break';
+}
+
+function getLatePaymentMessages(ethic: string, firstName: string, amount: number): string[] {
+  const amtStr = `$${amount.toLocaleString()}`;
+  if (ethic === 'chronic') {
+    return [
+      `hey sorry rent is short again this month. ${amtStr} short. ill get it to u next month 🙏`,
+      `ik ik im late again. im ${amtStr} short rn. working on it`,
+      `rent is gonna be short by ${amtStr}. had some stuff come up. sorry`,
+      `look i know this is getting old but im short ${amtStr} this month. im trying`,
+      `so... rent situation. im ${amtStr} behind. i promise ill catch up`,
+    ];
+  }
+  if (ethic === 'occasional') {
+    return [
+      `hey heads up - rent is ${amtStr} short this month. car repair wiped me out. so sorry`,
+      `hi, really sorry but im going to be ${amtStr} short on rent. unexpected medical bill`,
+      `ugh this is embarrassing but im short ${amtStr} on rent this month. wont happen again`,
+      `hey, bad month financially. ${amtStr} short on rent. ill make it up next month`,
+    ];
+  }
+  return [
+    `hi sorry! rent is going to be ${amtStr} short this month. first time this has happened to me 😅`,
+    `hey really sorry about this - im ${amtStr} short on rent. had an emergency expense. wont be a habit`,
+    `wanted to let u know rent will be short by ${amtStr}. so embarrassed. ill have it sorted by next month`,
+  ];
 }
 
 /**

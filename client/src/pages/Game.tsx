@@ -19,7 +19,7 @@ import { ConstructionNotification, useConstructionNotifications } from '@/compon
 import { TenantIssuePopup, type TenantIssueEvent } from '@/components/game/TenantIssuePopup';
 import { TenantTextPopup } from '@/components/game/TenantTextPopup';
 import { AnimatedBackground } from '@/components/game/AnimatedBackground';
-import { generateTenantName, getRandomPersonalityType, getSpeechPatterns, getRandomMessage } from '@/lib/tenantGenerator';
+import { generateTenantName, getRandomPersonalityType, getSpeechPatterns, getRandomMessage, getRandomPaymentEthic } from '@/lib/tenantGenerator';
 import type { Tenant } from '@shared/schema';
 import { PremiumModal } from '@/components/game/PremiumModal';
 import { BadgesModal } from '@/components/game/BadgesModal';
@@ -1350,11 +1350,13 @@ export default function Game() {
             const personalityType = getRandomPersonalityType(monthlyRent);
             const name = generateTenantName();
             const speechPatterns = getSpeechPatterns(personalityType);
+            const paymentEthic = getRandomPaymentEthic();
             
             await api.createTenant(rental.id, {
               name,
               personalityType,
               speechPatterns,
+              paymentEthic,
             });
           } catch (err) {
             // Silently continue - tenant creation is non-critical
@@ -1444,10 +1446,22 @@ export default function Game() {
             }
           }
           
-          // Removed random humor messages - tenant texts now only appear when
-          // tied to an actual expense event (curveball). This prevents confusion
-          // where tenants text about issues that don't appear in the ledger.
-          // Landlord expenses (PM, taxes, insurance, etc.) don't generate tenant texts.
+          if (!expenseMessageShown) {
+            for (const payment of result.rentalPayments) {
+              if (!isDealSelfManaged(payment.dealId)) continue;
+              if (payment.latePayment) {
+                const tenantForDeal = selfManagedTenants.find(t => t.dealId === payment.dealId);
+                if (tenantForDeal) {
+                  setTenantTextPopup({
+                    isOpen: true,
+                    tenant: tenantForDeal,
+                    message: payment.latePayment.tenantMessage,
+                  });
+                  break;
+                }
+              }
+            }
+          }
         }
       } catch (err) {
         // Tenant feature errors should not break week advancement

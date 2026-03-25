@@ -284,3 +284,13 @@ export function getPortraitPrompt(personalityType: TenantPersonalityType): strin
 export function getRandomMessage(speechPatterns: string[]): string {
   return speechPatterns[Math.floor(Math.random() * speechPatterns.length)];
 }
+
+export type PaymentEthic = 'perfect' | 'good' | 'occasional' | 'chronic';
+
+export function getRandomPaymentEthic(): PaymentEthic {
+  const roll = Math.random() * 100;
+  if (roll < 25) return 'perfect';
+  if (roll < 65) return 'good';
+  if (roll < 85) return 'occasional';
+  return 'chronic';
+}

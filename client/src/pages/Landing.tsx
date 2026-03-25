@@ -106,7 +106,6 @@ export default function Landing() {
           </div>
         </div>
       </nav>
-
       {/* === TESTING PHASE BANNER (TEMPORARY) === */}
       <div
         className="relative overflow-hidden"
@@ -128,7 +127,6 @@ export default function Landing() {
           </span>
         </div>
       </div>
-
       {/* === HERO SECTION === */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
@@ -184,9 +182,7 @@ export default function Landing() {
               </h1>
 
               <div className="space-y-1.5 mb-6 max-w-[460px]">
-                <p className="text-sm sm:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.6)' }}>
-                  The numbers looked right on paper. Now you're living with the deal — month by month, decision by decision.
-                </p>
+                <p className="text-sm sm:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.6)' }}>The numbers looked right on paper.....</p>
                 <p className="text-sm sm:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.4)' }}>
                   52 months. $100K. Every choice compounds.
                 </p>
@@ -323,7 +319,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* === WHAT HAPPENS WHEN YOU PLAY (DOPAMINE LAYER) === */}
       <section className="py-6 lg:py-14 px-5">
         <div className="max-w-5xl mx-auto">
@@ -449,12 +444,10 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* === GAME SHOWCASE (GAMEPLAY FIRST) === */}
       <Suspense fallback={<div className="py-16" />}>
         <GameShowcase />
       </Suspense>
-
       {/* === THIS IS NOT A CALCULATOR === */}
       <section
         className="relative py-6 lg:py-16 overflow-hidden"
@@ -526,7 +519,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* === BUILT WITH PRECISION (DEPTH SHOWCASE) === */}
       <section className="py-6 lg:py-14 px-5">
         <div className="max-w-5xl mx-auto">
@@ -638,7 +630,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* === REAL SKILLS STRIP (EDUCATION REPOSITIONED) === */}
       <section className="py-4 lg:py-10 px-5">
         <div className="max-w-5xl mx-auto">
@@ -696,7 +687,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* === STRATEGY INTEL (EDUCATION BELOW GAMEPLAY) === */}
       <section className="py-2 lg:py-10 px-5">
         <div className="max-w-5xl mx-auto">
@@ -804,7 +794,6 @@ export default function Landing() {
           </Link>
         </div>
       </section>
-
       {/* === FINAL CTA === */}
       <section className="py-6 lg:py-14 px-5">
         <div className="max-w-3xl mx-auto text-center">
@@ -840,7 +829,6 @@ export default function Landing() {
           </Link>
         </div>
       </section>
-
       {/* === FAQ === */}
       <section className="py-3 lg:py-14 px-5">
         <div className="max-w-3xl mx-auto">
@@ -879,7 +867,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* === DISCLAIMER === */}
       <div className="px-5 pb-2 pt-4 max-w-3xl mx-auto text-center">
         <p className="text-[11px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.25)' }}>
@@ -887,7 +874,6 @@ export default function Landing() {
         </p>
         <p className="text-[10px] mt-2" style={{ color: 'rgba(225,220,205,0.15)' }}>v2.0</p>
       </div>
-
       {/* === FOOTER === */}
       <Suspense fallback={null}>
         <Footer />

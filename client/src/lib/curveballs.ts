@@ -340,6 +340,18 @@ export const POSITIVE_CURVEBALLS: Curveball[] = [
     emoji: '👥',
     color: 'green',
   },
+  {
+    id: 'tax_appeal_success',
+    name: 'Property Tax Appeal Won',
+    type: 'positive',
+    trigger: 'rental_monthly',
+    probability: 3,
+    cashImpactMin: 400,
+    cashImpactMax: 1200,
+    description: 'Successfully appealed property tax assessment — county agreed the valuation was too high. Refund issued.',
+    emoji: '⚖️',
+    color: 'green',
+  },
 ];
 
 /**
@@ -691,6 +703,39 @@ export const NEGATIVE_CURVEBALLS: Curveball[] = [
     color: 'yellow',
     propertyTypes: ['condo', 'apartment', 'townhouse', 'duplex'],
     locationTypes: ['urban'],
+  },
+
+  // === PROPERTY TAX & ASSESSMENT ===
+  {
+    id: 'tax_reassessment_increase',
+    name: 'Property Tax Reassessment',
+    type: 'negative',
+    trigger: 'rental_monthly',
+    probability: 3,
+    cashImpactMin: -500,
+    cashImpactMax: -1800,
+    scaleWithPrice: true,
+    description: 'County reassessed property values in your area — your annual tax bill just went up.',
+    emoji: '🏛️',
+    color: 'red',
+    tenantMessages: {
+      law_curious: ["saw property assessments went up in our zip code. guessing that wont affect my rent right? 😅"],
+      corporate_brain: ["heads up - county assessment notices are out. might want to appeal if the valuation looks high"],
+      retired_micromanager: ["Noticed the county assessor's car on our street Tuesday at 10:14 AM. Tax bill going up?"],
+      generic: ["saw something about property taxes going up around here. does that change anything for me?"],
+    },
+  },
+  {
+    id: 'insurance_rate_hike',
+    name: 'Insurance Premium Increase',
+    type: 'negative',
+    trigger: 'rental_monthly',
+    probability: 3,
+    cashImpactMin: -300,
+    cashImpactMax: -900,
+    description: 'Your property insurance carrier raised rates across the region due to increased claims.',
+    emoji: '📋',
+    color: 'yellow',
   },
 
   // === DUPLEX-SPECIFIC ISSUES ===

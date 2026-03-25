@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/popover';
 import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw, Smile, Meh, Frown, ShieldAlert } from 'lucide-react';
 import type { Deal, GameRun, Property, Tenant } from '@shared/schema';
-import { formatCurrency, getSaleEstimateRange } from '@/lib/gameData';
+import { formatCurrency } from '@/lib/gameData';
 
 function estimateMonthlyExpenses(deals: Deal[], properties: Property[]): { totalExpenses: number; totalIncome: number; netCashFlow: number; breakdown: { name: string; amount: number }[] } {
   const breakdown: { name: string; amount: number }[] = [];
@@ -512,9 +512,6 @@ export function TimeProgressionPanel({
         <div className="space-y-2">
           {/* Active Rentals */}
           {activeRentals.map((deal) => {
-            const purchasePrice = deal.purchasePrice || 0;
-            const marketCondition = (gameRun as any).marketCondition || 'neutral';
-            const { min: estimatedSaleMin, max: estimatedSaleMax } = getSaleEstimateRange(purchasePrice, marketCondition);
             const canSell = !!onSellRental;
             const propertyName = getPropertyName(deal.propertyId);
             
@@ -621,9 +618,6 @@ export function TimeProgressionPanel({
                       </PopoverContent>
                     </Popover>
                   )}
-                  <span className="text-xs text-gray-500 hidden sm:inline">
-                    ${estimatedSaleMin.toLocaleString()}-${estimatedSaleMax.toLocaleString()}
-                  </span>
                   <Button
                     size="sm"
                     className="bg-orange-500 hover:bg-orange-600 text-white h-7 px-2.5 text-xs"
@@ -682,9 +676,6 @@ export function TimeProgressionPanel({
 
           {/* Flips Ready to Sell */}
           {flipsReadyToList.map((deal) => {
-            const purchasePrice = deal.purchasePrice || 0;
-            const marketCondition = (gameRun as any).marketCondition || 'neutral';
-            const { min: estimatedSaleMin, max: estimatedSaleMax } = getSaleEstimateRange(purchasePrice, marketCondition);
             const canSell = !!onSellFlip;
             
             return (
@@ -710,9 +701,6 @@ export function TimeProgressionPanel({
                   </PopoverContent>
                 </Popover>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <span className="text-xs text-gray-400 hidden sm:inline">
-                    ${estimatedSaleMin.toLocaleString()}-${estimatedSaleMax.toLocaleString()}
-                  </span>
                   <Button
                     size="sm"
                     className="bg-emerald-600 hover:bg-emerald-700 text-white h-7 px-2.5 text-xs font-semibold"

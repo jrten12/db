@@ -1221,8 +1221,9 @@ export default function Game() {
       // Show income notifications for rental payments
       result.rentalPayments.forEach((payment: any) => {
         const property = properties.find(p => p.id === deals.find(d => d.id === payment.dealId)?.propertyId);
+        const monthlyNet = (payment.grossRent || 0) - (payment.totalExpenses || 0);
         addRentalPayment(
-          payment.weeklyIncome,
+          monthlyNet,
           payment.grossRent || 0,
           payment.totalExpenses || 0,
           property?.name

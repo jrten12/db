@@ -52,3 +52,7 @@ ENABLE_PREMIUM_PURCHASES = "false"
 ENABLE_ADMIN_TOOLS = "false"
 VITE_ADSENSE_PUB_ID = "ca-pub-2744316013184797"
 EXPO_TOKEN = "BiHbabc3O-2VqXveYcUrsd8HuegfM1_iTDFNRuj9"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000

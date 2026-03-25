@@ -1014,13 +1014,20 @@ export async function processRentalIncome(
   const netRentAfterVacancy = scaledGrossRent - scaledVacancyLoss;
   const actualRentReceived = netRentAfterVacancy;
   
-  // Annotate the rent description when lease renewal just changed the rent this month
+  // Annotate the rent description when lease renewal or new tenant just changed the rent this month
   let rentDescription = `Rent - ${propertyName}`;
   if (proFormaOutputs?.lastLeaseRenewalWeek === gameRun.currentWeek + 1) {
     const prevRent = proFormaOutputs?.preRenewalRent;
     if (prevRent && prevRent !== monthlyGrossRent) {
-      const diff = monthlyGrossRent - prevRent;
-      rentDescription = `Rent - ${propertyName} (lease renewed: ${diff > 0 ? '+' : '-'}$${Math.abs(diff).toLocaleString()}/mo)`;
+      const isNewTenant = proFormaOutputs?.lastRenewalWasNewTenant === true;
+      const label = isNewTenant ? 'new tenant' : 'lease renewed';
+      // Calculate old net rent using same vacancy rate so the diff matches what the player sees
+      const vacRate = proFormaOutputs?.monthlyVacancyLoss && monthlyGrossRent > 0
+        ? (proFormaOutputs.monthlyVacancyLoss / monthlyGrossRent) * 100
+        : (proFormaInputs?.vacancyRate || 5);
+      const prevNetRent = Math.round(prevRent * (1 - vacRate / 100));
+      const diff = actualRentReceived - prevNetRent;
+      rentDescription = `Rent - ${propertyName} (${label}: ${diff > 0 ? '+' : '-'}$${Math.abs(diff).toLocaleString()}/mo)`;
     }
   }
   
@@ -1410,8 +1417,22 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
               const debtService = outputs.monthlyDebtService || 0;
               const newCashFlow = effectiveRent - monthlyOpEx - debtService;
               const newWeeklyIncome = calculateWeeklyIncome(newCashFlow);
+
+              // Calculate old cash flow to get the NET income change (what the player actually sees)
+              const oldEffectiveRent = currentRent * (1 - effectiveVacancyRate / 100);
+              const oldMaintenanceCost = currentRent * ((inputs?.maintenancePct || 5) / 100);
+              const oldCapExCost = currentRent * ((inputs?.capExPct || 8) / 100);
+              const oldMgmtCost = inputs?.propertyManagement ? currentRent * ((inputs?.propertyManagementPct || 10) / 100) : 0;
+              const oldMonthlyOpEx = monthlyTaxes + monthlyInsurance + oldMaintenanceCost + oldCapExCost + utilitiesCost + oldMgmtCost;
+              const oldCashFlow = oldEffectiveRent - oldMonthlyOpEx - debtService;
+              const netIncomeDiff = Math.round(newCashFlow - oldCashFlow);
+
+              // Net rent after vacancy — this is what appears as the rent line in the ledger
+              const newNetRent = Math.round(effectiveRent);
+              const oldNetRent = Math.round(oldEffectiveRent);
+              const netRentDiff = newNetRent - oldNetRent;
               
-              // Update deal with new rent
+              // Update deal with new rent and mark this as a move-in week for rent annotation
               const updatedOutputs = {
                 ...outputs,
                 monthlyGrossRent: newRent,
@@ -1419,6 +1440,8 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
                 monthlyOperatingExpenses: monthlyOpEx,
                 cashFlowMonthly: newCashFlow,
                 preRenewalRent: currentRent,
+                lastLeaseRenewalWeek: gameRun.currentWeek + 1,
+                lastRenewalWasNewTenant: true,
               };
               
               await storage.updateDeal(deal.id, {
@@ -1435,28 +1458,28 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
               const refreshedDeal = await storage.getDeal(deal.id);
               if (refreshedDeal) currentDeal = refreshedDeal;
               
-              // Build the move-in event
+              // Build the move-in event — use NET income diff (what the player sees in the ledger)
               const tenantName = (currentTenant.name || 'New Tenant').split(' ')[0];
               const propertyName = property.name || `Property #${deal.propertyId}`;
-              const rentDiffAbs = Math.abs(rentDiff);
+              const netDiffAbs = Math.abs(netIncomeDiff);
               
-              if (rentDiff > 0) {
+              if (netIncomeDiff > 0) {
                 newTenantMoveInEvent = {
                   id: 'tenant_move_in',
                   name: 'New Tenant Moving In',
                   type: 'positive',
                   trigger: 'rental_monthly',
-                  description: `${tenantName} signed a lease at $${newRent.toLocaleString()}/mo (+$${rentDiffAbs}/mo from previous tenant). ${gameMarket === 'good' || gameMarket === 'excellent' ? 'Strong market demand.' : 'Competitive market rate.'}`,
+                  description: `${tenantName} signed a lease at $${newRent.toLocaleString()}/mo — your net income increases +$${netDiffAbs.toLocaleString()}/mo. ${gameMarket === 'good' || gameMarket === 'excellent' ? 'Strong market demand.' : 'Competitive market rate.'}`,
                   emoji: '🔑',
                   color: 'green',
                 };
-              } else if (rentDiff < 0) {
+              } else if (netIncomeDiff < 0) {
                 newTenantMoveInEvent = {
                   id: 'tenant_move_in',
                   name: 'New Tenant Moving In',
                   type: 'neutral',
                   trigger: 'rental_monthly',
-                  description: `${tenantName} signed a lease at $${newRent.toLocaleString()}/mo (-$${rentDiffAbs}/mo from previous tenant). ${gameMarket === 'terrible' || gameMarket === 'poor' ? 'Soft market conditions.' : 'Negotiated rate based on property condition.'}`,
+                  description: `${tenantName} signed a lease at $${newRent.toLocaleString()}/mo — your net income decreases -$${netDiffAbs.toLocaleString()}/mo. ${gameMarket === 'terrible' || gameMarket === 'poor' ? 'Soft market conditions.' : 'Negotiated rate based on property condition.'}`,
                   emoji: '🔑',
                   color: 'yellow',
                 };
@@ -1475,10 +1498,11 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
               curveballs.push(newTenantMoveInEvent);
               
               // Create a ledger entry for the tenant move-in (informational, $0 impact)
+              // Show NET rent change (matches the rent line in the ledger) for consistency
               const propName = property.name || `Property #${deal.propertyId}`;
               const tenantFirst = (currentTenant.name || 'New Tenant').split(' ')[0];
-              const moveInDesc = rentDiff !== 0
-                ? `${tenantFirst} moved in - new lease at $${newRent.toLocaleString()}/mo (${rentDiff > 0 ? '+' : '-'}$${Math.abs(rentDiff).toLocaleString()}/mo) - ${propName}`
+              const moveInDesc = netRentDiff !== 0
+                ? `${tenantFirst} moved in - new lease at $${newRent.toLocaleString()}/mo (rent ${netRentDiff > 0 ? '+' : '-'}$${Math.abs(netRentDiff).toLocaleString()}/mo) - ${propName}`
                 : `${tenantFirst} moved in - lease at $${newRent.toLocaleString()}/mo - ${propName}`;
               
               await storage.createLedgerEntry({
@@ -2155,6 +2179,7 @@ async function processLeaseRenewal(
     lastLeaseRenewalWeek: currentWeek,
     lastMarketRentAdjustment: market,
     preRenewalRent: currentRent,
+    lastRenewalWasNewTenant: false,
   };
 
   await storage.updateDeal(deal.id, {

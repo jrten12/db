@@ -182,7 +182,7 @@ export default function Landing() {
               </h1>
 
               <div className="space-y-1.5 mb-6 max-w-[460px]">
-                <p className="text-sm sm:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.6)' }}>The numbers looked right on paper.....</p>
+                <p className="sm:text-base text-[16px] font-semibold" style={{ color: 'rgba(225,220,205,0.6)' }}>The numbers looked right on paper.</p>
                 <p className="text-sm sm:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.4)' }}>
                   52 months. $100K. Every choice compounds.
                 </p>

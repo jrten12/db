@@ -5,7 +5,8 @@ import {
   ArrowUpCircle, ArrowDownCircle, X, Wallet, Building2, TrendingUp, TrendingDown, Minus,
   Home, Wrench, Zap, Droplets, Flame, Wind, Bug, Trees, Shield, Car, Building, 
   Hammer, PaintBucket, Layers, Snowflake, ThermometerSun, Pipette, AlertTriangle,
-  FileText, DollarSign, Banknote, Receipt, Landmark, Key, HardHat, ClipboardList, LucideIcon
+  FileText, DollarSign, Banknote, Receipt, Landmark, Key, HardHat, ClipboardList, LucideIcon,
+  Sparkles, ChevronUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -84,6 +85,96 @@ function getExpenseIcon(description: string): LucideIcon {
   
   // Default
   return DollarSign;
+}
+
+function isRehabCompletionEntry(entry: LedgerEntry): boolean {
+  if (!entry.description) return false;
+  return entry.description.startsWith('Rental rehab complete') || 
+         entry.description.startsWith('Pre-tenant rehab complete');
+}
+
+function parseRehabDetails(description: string): { propertyName: string; newRent: string; rentChange: string; pctChange: string; issueNote: string } | null {
+  if (!description) return null;
+  
+  const nameMatch = description.match(/(?:Rental rehab complete - |Pre-tenant rehab complete — )([^(]+)/);
+  const rentMatch = description.match(/(?:new rent|rent): \$([0-9,]+)\/mo/);
+  const changeMatch = description.match(/Rent \+\$([0-9,]+)\/mo/);
+  const pctMatch = description.match(/\((\+\d+%)\)/);
+  const issueMatch = description.match(/\((\d+\/\d+ issues? fixed)\)/);
+  
+  return {
+    propertyName: nameMatch?.[1]?.trim() || 'Property',
+    newRent: rentMatch?.[1] || '',
+    rentChange: changeMatch?.[1] || '',
+    pctChange: pctMatch?.[1] || '',
+    issueNote: issueMatch?.[1] || '',
+  };
+}
+
+function RehabCompletionRow({ entry }: { entry: LedgerEntry }) {
+  const details = parseRehabDetails(entry.description || '');
+  const hasRentIncrease = details?.rentChange && details.rentChange !== '0';
+  
+  return (
+    <div
+      className="ledger-rent-increase rounded-lg p-3 border overflow-hidden relative"
+      style={{
+        background: 'linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(6,182,212,0.05) 100%)',
+        borderColor: 'rgba(16,185,129,0.2)',
+      }}
+      data-testid={`ledger-entry-${entry.id}`}
+    >
+      <div className="ledger-rent-shimmer absolute inset-0 pointer-events-none" />
+      <div className="relative flex items-center gap-3">
+        <div
+          className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
+          style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)' }}
+        >
+          {hasRentIncrease ? (
+            <TrendingUp className="w-[18px] h-[18px] text-emerald-400" />
+          ) : (
+            <Sparkles className="w-[18px] h-[18px] text-cyan-400" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: 'rgba(16,185,129,0.7)' }}>
+              Rehab Complete
+            </span>
+            <span className="text-xs text-gray-500">Month {entry.gameWeek ?? '?'}</span>
+          </div>
+          <div className="text-sm font-semibold text-white truncate">
+            {details?.propertyName || 'Property'}
+          </div>
+          {details?.issueNote && (
+            <div className="text-[11px] mt-0.5" style={{ color: 'rgba(225,220,205,0.4)' }}>
+              {details.issueNote}
+            </div>
+          )}
+        </div>
+        <div className="flex-shrink-0 text-right">
+          {hasRentIncrease ? (
+            <>
+              <div className="flex items-center gap-1 justify-end">
+                <ChevronUp className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="font-mono text-sm font-bold text-emerald-400">
+                  +${details!.rentChange}/mo
+                </span>
+              </div>
+              <div className="text-[11px] font-mono mt-0.5" style={{ color: 'rgba(16,185,129,0.6)' }}>
+                {details!.pctChange && <span>{details!.pctChange} </span>}
+                → ${details!.newRent}/mo
+              </div>
+            </>
+          ) : (
+            <div className="text-xs" style={{ color: 'rgba(6,182,212,0.7)' }}>
+              Ready for tenants
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 interface LedgerPanelProps {
@@ -223,27 +314,47 @@ function UnitPnLCard({ unit, isExpanded, onToggle }: { unit: UnitPnL; isExpanded
           <div className="space-y-1.5">
             {[...unit.entries].sort((a, b) => 
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            ).map((entry) => (
-              <div 
-                key={entry.id}
-                className="flex items-center justify-between gap-2 text-xs"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  {entry.direction === 'debit' ? (
-                    <ArrowDownCircle className="w-3 h-3 text-red-400 flex-shrink-0" />
-                  ) : (
-                    <ArrowUpCircle className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                  )}
-                  <span className={`${CATEGORY_COLORS[entry.category] || 'text-gray-400'} flex-shrink-0`}>
-                    {CATEGORY_LABELS[entry.category] || entry.category}
+            ).map((entry) => {
+              if (isRehabCompletionEntry(entry)) {
+                const details = parseRehabDetails(entry.description || '');
+                const hasIncrease = details?.rentChange && details.rentChange !== '0';
+                return (
+                  <div key={entry.id} className="flex items-center justify-between gap-2 text-xs py-1 px-2 rounded" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.12)' }}>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <TrendingUp className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                      <span className="text-emerald-400 flex-shrink-0 font-semibold">Rehab Done</span>
+                      <span className="text-gray-500">Mo {entry.gameWeek}</span>
+                    </div>
+                    {hasIncrease ? (
+                      <span className="font-mono text-emerald-400 font-semibold">+${details!.rentChange}/mo</span>
+                    ) : (
+                      <span className="text-cyan-400/60">Ready</span>
+                    )}
+                  </div>
+                );
+              }
+              return (
+                <div 
+                  key={entry.id}
+                  className="flex items-center justify-between gap-2 text-xs"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    {entry.direction === 'debit' ? (
+                      <ArrowDownCircle className="w-3 h-3 text-red-400 flex-shrink-0" />
+                    ) : (
+                      <ArrowUpCircle className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                    )}
+                    <span className={`${CATEGORY_COLORS[entry.category] || 'text-gray-400'} flex-shrink-0`}>
+                      {CATEGORY_LABELS[entry.category] || entry.category}
+                    </span>
+                    <span className="text-gray-500">Wk {entry.gameWeek}</span>
+                  </div>
+                  <span className={`font-mono ${entry.direction === 'debit' ? 'text-red-400' : 'text-emerald-400'}`}>
+                    {entry.direction === 'debit' ? '-' : '+'}{formatCurrency(entry.amount)}
                   </span>
-                  <span className="text-gray-500">Wk {entry.gameWeek}</span>
                 </div>
-                <span className={`font-mono ${entry.direction === 'debit' ? 'text-red-400' : 'text-emerald-400'}`}>
-                  {entry.direction === 'debit' ? '-' : '+'}{formatCurrency(entry.amount)}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -420,6 +531,10 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
             ) : (
               <div className="space-y-2">
                 {sortedEntries.map((entry) => {
+                  if (isRehabCompletionEntry(entry)) {
+                    return <RehabCompletionRow key={entry.id} entry={entry} />;
+                  }
+                  
                   const isOpex = entry.description?.includes('Operating costs');
                   const isClickable = isOpex && onOpexClick && entry.dealId;
                   
@@ -438,7 +553,6 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
                         ) : (
                           <ArrowUpCircle className="w-5 h-5 text-emerald-400" />
                         )}
-                        {/* Contextual icon based on description */}
                         {entry.description && (() => {
                           const Icon = getExpenseIcon(entry.description);
                           return <Icon className={`w-4 h-4 ${entry.direction === 'debit' ? 'text-red-300/70' : 'text-emerald-300/70'}`} />;

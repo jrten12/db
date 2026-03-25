@@ -448,3 +448,40 @@
     opacity: 0;
   }
 }
+
+@keyframes rent-increase-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes rent-bump-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ledger-rent-increase {
+  animation: rent-bump-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.ledger-rent-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(16,185,129,0.06) 40%,
+    rgba(16,185,129,0.12) 50%,
+    rgba(16,185,129,0.06) 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: rent-increase-shimmer 3s ease-in-out infinite;
+}

@@ -1748,6 +1748,8 @@ export class DBStorage implements IStorage {
         saleMultiplier,
         purchasePrice,
         weeklyIncome: 0,
+        rentalRehabActive: false,
+        rentalRehabWeeksRemaining: 0,
         completedAt: new Date(),
       })
       .where(eq(schema.deals.id, dealId))
@@ -2109,7 +2111,7 @@ export class DBStorage implements IStorage {
     }
     
     // Calculate current property value with appreciation (deterministic)
-    const monthsHeld = Math.floor(weeksHeld / 4.33);
+    const monthsHeld = weeksHeld;
     const baseAppreciation = 0.02;
     const timeAppreciation = Math.min(monthsHeld * 0.005, 0.10);
     const locationBonus = property.locationType === 'urban' ? 0.015 : 0;

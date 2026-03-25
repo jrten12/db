@@ -175,7 +175,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
             return { label: 'OFF MARKET', color: 'bg-gray-600 border-gray-400', icon: Lock };
           };
           
-          const isInRehab = dealInfo?.status === 'in_rehab' || dealInfo?.rentalRehabActive;
+          const isInRehab = dealInfo?.status === 'in_rehab' || (dealInfo?.rentalRehabActive && dealInfo?.status === 'active_rental');
           
           const statusBadge = getStatusBadge();
           

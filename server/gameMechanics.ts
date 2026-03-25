@@ -324,13 +324,12 @@ export function calculateWeeklyPrincipalPayment(
   // Calculate monthly amortization values
   const amort = calculateAmortizationPayment(currentBalance, annualRate, termMonths, originalPrincipal);
   
-  // Convert to weekly (4.33 weeks per month)
-  const weeksPerMonth = 4.33;
-  const weeklyInterest = Math.round(amort.interestPayment / weeksPerMonth);
-  const weeklyPrincipal = Math.round(amort.principalPayment / weeksPerMonth);
+  // Each game turn = 1 month, so use monthly values directly
+  const weeklyInterest = Math.round(amort.interestPayment);
+  const weeklyPrincipal = Math.round(amort.principalPayment);
   
   // Accelerated principal for loan balance tracking (bookkeeping only, not cash)
-  // This simulates multiple months of principal paydown per game week
+  // This simulates multiple months of principal paydown per game turn
   const acceleratedPrincipal = Math.min(
     Math.round(weeklyPrincipal * MORTGAGE_ACCELERATION_FACTOR),
     currentBalance
@@ -719,12 +718,12 @@ export async function completeFlipDeal(
   const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
   const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
   const rehabWeeks = deal.weeksUntilCompletion || proFormaInputs?.rehabWeeks || 0;
-  const holdingCostPerWeek = Math.round(
-    (loanAmount * (interestRate / 100) / 52) +
-    (taxesAnnual / 52) +
-    (insuranceAnnual / 52)
+  const holdingCostPerMonth = Math.round(
+    (loanAmount * (interestRate / 100) / 12) +
+    (taxesAnnual / 12) +
+    (insuranceAnnual / 12)
   );
-  const totalHoldingCostsPaid = holdingCostPerWeek * rehabWeeks;
+  const totalHoldingCostsPaid = holdingCostPerMonth * rehabWeeks;
 
   const allInCost = proFormaOutputs.allInBasis || 0;
   const profit = salePrice - allInCost - totalHoldingCostsPaid - sellingCosts - surpriseCosts;
@@ -861,7 +860,6 @@ export async function processRentalIncome(
 ): Promise<RentalIncomeResult> {
   const proFormaOutputs = deal.proFormaOutputs as any;
   const proFormaInputs = deal.proFormaInputs as any;
-  const weeksPerMonth = 4.33;
   
   // Use the stored weeklyIncome as the authoritative net value
   const storedWeeklyIncome = deal.weeklyIncome || 0;
@@ -910,7 +908,7 @@ export async function processRentalIncome(
       // LEGACY FALLBACK: No rent data available, reconstruct from storedWeeklyIncome
       // Use cashFlowMonthly to back-calculate expenses
       monthlyDebtService = proFormaOutputs?.debtServiceMonthly || 0;
-      const playerCashFlowMonthly = proFormaOutputs?.cashFlowMonthly || (storedWeeklyIncome * 4.33);
+      const playerCashFlowMonthly = proFormaOutputs?.cashFlowMonthly || storedWeeklyIncome;
       
       // We can't know gross rent, so estimate based on cashFlowMonthly + debt service
       // This is imprecise but maintains the correct net payout
@@ -1276,24 +1274,24 @@ async function chargeFlipCarryingCosts(deal: Deal, gameRun: GameRun, storage: IS
   const interestRate = deal.loanInterestRate ?? proFormaOutputs?.interestRate ?? 7.0;
   const purchasePrice = property?.price || proFormaInputs?.purchasePrice || 200000;
   
-  const weeklyInterest = Math.round((loanAmount * (interestRate / 100)) / 52);
+  const monthlyInterest = Math.round((loanAmount * (interestRate / 100)) / 12);
   
   const annualTaxes = purchasePrice * 0.015;
   const annualInsurance = purchasePrice * 0.005;
-  const weeklyTaxesAndInsurance = Math.round((annualTaxes + annualInsurance) / 52);
+  const monthlyTaxesAndInsurance = Math.round((annualTaxes + annualInsurance) / 12);
   
-  const weeklyCarryingCost = weeklyInterest + weeklyTaxesAndInsurance;
+  const monthlyCarryingCost = monthlyInterest + monthlyTaxesAndInsurance;
   
-  if (weeklyCarryingCost <= 0) return currentCash;
+  if (monthlyCarryingCost <= 0) return currentCash;
   
-  const newCash = currentCash - weeklyCarryingCost;
+  const newCash = currentCash - monthlyCarryingCost;
   
   // Create ledger entry only (no cash update - handled by advanceGameWeek)
   await storage.createLedgerEntry({
     gameRunId: gameRun.id,
     direction: 'debit',
     category: 'expense',
-    amount: weeklyCarryingCost,
+    amount: monthlyCarryingCost,
     balanceAfter: newCash,
     description: `Carrying costs - ${propertyName} (interest, taxes, insurance)`,
     propertyId: deal.propertyId,
@@ -2075,11 +2073,11 @@ function getLatePaymentMessages(ethic: string, firstName: string, amount: number
 }
 
 /**
- * Calculate weekly rental income from monthly cash flow
- * (Monthly cash flow / 4.33 weeks per month)
+ * Calculate per-turn rental income from monthly cash flow
+ * Each game turn = 1 month, so this just rounds the monthly value
  */
 export function calculateWeeklyIncome(monthlyCashFlow: number): number {
-  return Math.floor(monthlyCashFlow / 4.33);
+  return Math.round(monthlyCashFlow);
 }
 
 function getMarketRentMultiplier(market: MarketCondition): number {
@@ -2313,7 +2311,7 @@ async function applyMarketRentAdjustment(deal: Deal, market: MarketCondition): P
 }
 
 export function generateUpgradeItems(
-  property: { price: number; conditionTag: string },
+  property: { price: number; conditionTag: string; propertyType?: string },
   marketCondition: MarketCondition,
   completedUpgradeIds: string[],
   seed: number
@@ -2334,7 +2332,7 @@ export function generateUpgradeItems(
   marketRentMultiplier: number;
 }> {
   const condition = property.conditionTag || 'Fair';
-  const upgrades = getAvailableUpgrades(condition, completedUpgradeIds);
+  const upgrades = getAvailableUpgrades(condition, completedUpgradeIds, property.propertyType);
 
   if (upgrades.length === 0) return [];
 
@@ -3535,7 +3533,7 @@ export async function initiateRentalRehab(
   }
 
   // Calculate tenant break fee (1 month of current rent)
-  const monthlyRent = (deal.weeklyIncome || 0) * 4.33;
+  const monthlyRent = deal.weeklyIncome || 0;
   const breakFee = Math.round(monthlyRent);
 
   // Calculate base rehab cost and timeline from SELECTED items (repairs + upgrades)

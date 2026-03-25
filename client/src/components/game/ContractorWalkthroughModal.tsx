@@ -92,8 +92,7 @@ export function ContractorWalkthroughModal({
 
   // Calculate tenant break fee (1 month of current rent)
   const breakFee = useMemo(() => {
-    const monthlyRent = (deal?.weeklyIncome || 0) * 4.33;
-    return Math.round(monthlyRent);
+    return Math.round(deal?.weeklyIncome || 0);
   }, [deal?.weeklyIncome]);
 
   // Base monthly rent from proFormaOutputs (matches server calculation)

@@ -208,7 +208,7 @@ const phases = [
 export function GameShowcase() {
   return (
     <section
-      className="relative py-6 lg:py-16"
+      className="relative py-10 lg:py-16"
       style={{ background: 'linear-gradient(180deg, #151518 0%, #131316 100%)' }}
       data-testid="section-game-showcase"
     >
@@ -259,10 +259,10 @@ export function GameShowcase() {
           ))}
         </div>
 
-        <div className="text-center mt-6 lg:mt-10">
+        <div className="text-center mt-8 lg:mt-10">
           <Link
             href="/game"
-            className="group py-3 px-7 rounded-lg font-bold text-base transition-all hover:brightness-110 active:scale-[0.98] inline-flex items-center gap-2"
+            className="group w-full sm:w-auto py-4 sm:py-3 px-7 rounded-lg font-bold text-base transition-all hover:brightness-110 active:scale-[0.98] flex sm:inline-flex items-center justify-center gap-2 min-h-[52px] sm:min-h-0"
             style={{
               background: 'rgba(16,185,129,0.12)',
               color: '#4ade80',

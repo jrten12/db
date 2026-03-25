@@ -80,7 +80,7 @@ async function calculateRefinanceOptions(deal: Deal, gameRun: GameRun, allDeals:
   // Calculate current property value with appreciation
   // Deterministic appreciation based on weeks held - no random variation
   // This ensures consistent values when modal is reopened
-  const monthsHeld = Math.floor(weeksHeld / 4.33);
+  const monthsHeld = weeksHeld;
   const baseAppreciation = 0.02; // 2% base (market floor)
   const timeAppreciation = Math.min(monthsHeld * 0.005, 0.10); // 0.5% per month, max 10%
   // Use property location for a small deterministic variation (urban appreciates faster)

@@ -1542,8 +1542,8 @@ export default function Game() {
     const projectedMonthlyCashFlow = pfo.cashFlowMonthly || 0;
     const projectedCashOnCash = pfo.cashOnCash || 0;
     const projectedRent = pfi.expectedRent || pfi.monthlyRent || 0;
-    const actualMonthlyCashFlow = (deal?.weeklyIncome || 0) * 4.33;
-    const totalRentalIncomeCollected = (deal?.weeklyIncome || 0) * rentalMonthsHeld * 4.33;
+    const actualMonthlyCashFlow = deal?.weeklyIncome || 0;
+    const totalRentalIncomeCollected = (deal?.weeklyIncome || 0) * rentalMonthsHeld;
 
     setPropertySoldAnim({
       isOpen: true,

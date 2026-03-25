@@ -56,8 +56,8 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 function StatCallout({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center px-3">
-      <div className="font-mono font-black text-lg sm:text-xl" style={{ color: '#d4af37' }}>{value}</div>
-      <div className="text-[10px] sm:text-[11px] leading-tight mt-0.5" style={{ color: 'rgba(225,220,205,0.45)' }}>{label}</div>
+      <div className="font-mono font-black text-xl sm:text-xl" style={{ color: '#d4af37' }}>{value}</div>
+      <div className="text-[11px] sm:text-[11px] leading-tight mt-1" style={{ color: 'rgba(225,220,205,0.45)' }}>{label}</div>
     </div>
   );
 }
@@ -67,7 +67,7 @@ export default function Landing() {
 
   return (
     <div
-      className="min-h-screen min-h-[100dvh] overflow-x-hidden"
+      className="min-h-screen min-h-[100dvh] overflow-x-hidden safe-area-x"
       style={{ background: '#131316' }}
       data-testid="landing-page"
     >
@@ -156,11 +156,11 @@ export default function Landing() {
           style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.3), rgba(16,185,129,0.2), rgba(212,175,55,0.3), transparent)' }}
         />
 
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-5 py-6 sm:py-8 lg:py-14">
+        <div className="relative z-10 max-w-6xl mx-auto px-5 py-8 sm:py-8 lg:py-14">
           <div className="flex flex-col lg:flex-row lg:items-start lg:gap-10 xl:gap-14">
 
             {/* LEFT: Scenario entry */}
-            <div className="flex-1 mb-6 lg:mb-0 lg:pt-4">
+            <div className="flex-1 mb-8 lg:mb-0 lg:pt-4">
               <div className="flex items-center gap-3 mb-4">
                 <span className="font-mono text-[11px] tracking-wide" style={{ color: 'rgba(225,220,205,0.35)' }}>Month 3 of 52</span>
                 <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.08)' }} />
@@ -171,7 +171,7 @@ export default function Landing() {
               </div>
 
               <h1
-                className="text-[1.85rem] sm:text-[2.4rem] lg:text-[3rem] xl:text-[3.5rem] leading-[1.05] tracking-[-0.02em] mb-4 font-serif"
+                className="text-[2.2rem] sm:text-[2.4rem] lg:text-[3rem] xl:text-[3.5rem] leading-[1.08] tracking-[-0.02em] mb-5 font-serif"
                 style={{
                   color: '#f5f0e0',
                   textShadow: '0 2px 20px rgba(0,0,0,0.5)',
@@ -181,17 +181,17 @@ export default function Landing() {
                 <span style={{ color: 'rgba(248,113,113,0.9)' }}>One tenant is already late.</span>
               </h1>
 
-              <div className="space-y-1.5 mb-6 max-w-[460px]">
-                <p className="sm:text-base text-[16px] font-semibold" style={{ color: 'rgba(225,220,205,0.6)' }}>The numbers looked right on paper.</p>
-                <p className="text-sm sm:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.4)' }}>
+              <div className="space-y-2 mb-7 max-w-[460px]">
+                <p className="text-[17px] sm:text-base font-semibold" style={{ color: 'rgba(225,220,205,0.6)' }}>The numbers looked right on paper.</p>
+                <p className="text-[15px] sm:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.4)' }}>
                   52 months. $100K. Every choice compounds.
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-start gap-3 mb-5">
-                <Link href="/game">
+              <div className="flex flex-col sm:flex-row items-start gap-3 mb-6">
+                <Link href="/game" className="w-full sm:w-auto">
                   <button
-                    className="group w-full sm:w-auto min-w-[200px] py-3.5 px-8 rounded-lg font-bold text-[15px] tracking-wide transition-all active:scale-[0.97] flex items-center justify-center gap-2.5"
+                    className="group w-full sm:w-auto min-w-[200px] py-4 sm:py-3.5 px-8 rounded-lg font-bold text-base sm:text-[15px] tracking-wide transition-all active:scale-[0.97] flex items-center justify-center gap-2.5 min-h-[52px] sm:min-h-0"
                     style={{
                       background: 'linear-gradient(180deg, rgba(16,185,129,0.9) 0%, rgba(5,150,105,0.95) 100%)',
                       color: '#fff',
@@ -208,10 +208,10 @@ export default function Landing() {
               </div>
 
               {/* Depth signals */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: 'rgba(225,220,205,0.2)' }}>Simulation includes:</span>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5">
+                <span className="font-mono text-[10px] uppercase tracking-widest w-full sm:w-auto" style={{ color: 'rgba(225,220,205,0.2)' }}>Simulation includes:</span>
                 {['Variable rates', 'Tenant turnover', 'Hidden damage', 'Market shifts'].map((s) => (
-                  <span key={s} className="text-[10px] font-medium px-2 py-0.5 rounded" style={{ color: 'rgba(225,220,205,0.35)', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>{s}</span>
+                  <span key={s} className="text-[11px] sm:text-[10px] font-medium px-2.5 py-1 sm:px-2 sm:py-0.5 rounded" style={{ color: 'rgba(225,220,205,0.35)', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>{s}</span>
                 ))}
               </div>
             </div>
@@ -247,21 +247,21 @@ export default function Landing() {
 
                 {/* Financial grid */}
                 <div className="grid grid-cols-2 gap-px" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                  <div className="px-4 py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
-                    <div className="text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Purchase</div>
-                    <div className="font-mono text-[13px] font-bold tabular-nums" style={{ color: '#e8dfc8' }}>$293,000</div>
+                  <div className="px-4 py-2.5 sm:py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
+                    <div className="text-[9px] sm:text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Purchase</div>
+                    <div className="font-mono text-[15px] sm:text-[13px] font-bold tabular-nums" style={{ color: '#e8dfc8' }}>$293,000</div>
                   </div>
-                  <div className="px-4 py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
-                    <div className="text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash Left</div>
-                    <div className="font-mono text-[13px] font-bold tabular-nums" style={{ color: '#fbbf24' }}>$41,200</div>
+                  <div className="px-4 py-2.5 sm:py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
+                    <div className="text-[9px] sm:text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash Left</div>
+                    <div className="font-mono text-[15px] sm:text-[13px] font-bold tabular-nums" style={{ color: '#fbbf24' }}>$41,200</div>
                   </div>
-                  <div className="px-4 py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
-                    <div className="text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash Flow</div>
-                    <div className="font-mono text-[13px] font-bold tabular-nums" style={{ color: '#10b981' }}>+$284/mo</div>
+                  <div className="px-4 py-2.5 sm:py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
+                    <div className="text-[9px] sm:text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash Flow</div>
+                    <div className="font-mono text-[15px] sm:text-[13px] font-bold tabular-nums" style={{ color: '#10b981' }}>+$284/mo</div>
                   </div>
-                  <div className="px-4 py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
-                    <div className="text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash-on-Cash</div>
-                    <div className="font-mono text-[13px] font-bold tabular-nums" style={{ color: 'rgba(225,220,205,0.55)' }}>4.7%</div>
+                  <div className="px-4 py-2.5 sm:py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
+                    <div className="text-[9px] sm:text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash-on-Cash</div>
+                    <div className="font-mono text-[15px] sm:text-[13px] font-bold tabular-nums" style={{ color: 'rgba(225,220,205,0.55)' }}>4.7%</div>
                   </div>
                 </div>
 
@@ -320,7 +320,7 @@ export default function Landing() {
         </div>
       </section>
       {/* === WHAT HAPPENS WHEN YOU PLAY (DOPAMINE LAYER) === */}
-      <section className="py-6 lg:py-14 px-5">
+      <section className="py-10 lg:py-14 px-5">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-6 lg:mb-10">
             <h2
@@ -450,7 +450,7 @@ export default function Landing() {
       </Suspense>
       {/* === THIS IS NOT A CALCULATOR === */}
       <section
-        className="relative py-6 lg:py-16 overflow-hidden"
+        className="relative py-10 lg:py-16 overflow-hidden"
         style={{ background: 'linear-gradient(180deg, #131316 0%, #15151a 50%, #131316 100%)' }}
       >
         <div
@@ -520,7 +520,7 @@ export default function Landing() {
         </div>
       </section>
       {/* === BUILT WITH PRECISION (DEPTH SHOWCASE) === */}
-      <section className="py-6 lg:py-14 px-5">
+      <section className="py-10 lg:py-14 px-5">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-6 lg:mb-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.15)' }}>
@@ -631,7 +631,7 @@ export default function Landing() {
         </div>
       </section>
       {/* === REAL SKILLS STRIP (EDUCATION REPOSITIONED) === */}
-      <section className="py-4 lg:py-10 px-5">
+      <section className="py-8 lg:py-10 px-5">
         <div className="max-w-5xl mx-auto">
           <div
             className="relative rounded-2xl overflow-hidden"
@@ -688,7 +688,7 @@ export default function Landing() {
         </div>
       </section>
       {/* === STRATEGY INTEL (EDUCATION BELOW GAMEPLAY) === */}
-      <section className="py-2 lg:py-10 px-5">
+      <section className="py-8 lg:py-10 px-5">
         <div className="max-w-5xl mx-auto">
           <Link href="/learn">
             <div
@@ -795,7 +795,7 @@ export default function Landing() {
         </div>
       </section>
       {/* === FINAL CTA === */}
-      <section className="py-6 lg:py-14 px-5">
+      <section className="py-10 lg:py-14 px-5">
         <div className="max-w-3xl mx-auto text-center">
           <h2
             className="text-2xl sm:text-3xl lg:text-4xl font-serif mb-3 tracking-[-0.01em]"
@@ -812,9 +812,9 @@ export default function Landing() {
           <p className="text-xs mb-6" style={{ color: 'rgba(248,113,113,0.5)' }}>
             Most players overestimate their first deal by 40%.
           </p>
-          <Link href="/game">
+          <Link href="/game" className="block sm:inline-block w-full sm:w-auto">
             <button
-              className="group py-3.5 px-10 rounded-lg font-bold text-lg transition-all hover:brightness-110 active:scale-[0.98] inline-flex items-center gap-2"
+              className="group w-full sm:w-auto py-4 sm:py-3.5 px-10 rounded-lg font-bold text-lg transition-all hover:brightness-110 active:scale-[0.98] flex sm:inline-flex items-center justify-center gap-2 min-h-[52px] sm:min-h-0"
               style={{
                 background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
                 color: '#fff',
@@ -830,7 +830,7 @@ export default function Landing() {
         </div>
       </section>
       {/* === FAQ === */}
-      <section className="py-3 lg:py-14 px-5">
+      <section className="py-8 lg:py-14 px-5">
         <div className="max-w-3xl mx-auto">
           <h2
             className="text-center text-2xl sm:text-3xl font-serif mb-5 lg:mb-6 tracking-[-0.01em]"
@@ -868,7 +868,7 @@ export default function Landing() {
         </div>
       </section>
       {/* === DISCLAIMER === */}
-      <div className="px-5 pb-2 pt-4 max-w-3xl mx-auto text-center">
+      <div className="px-5 pt-6 max-w-3xl mx-auto text-center" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
         <p className="text-[11px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.25)' }}>
           DealBreak Simulator is a game for educational purposes only. It does not constitute financial, investment, or legal advice. All scenarios, market conditions, and outcomes are simulated. Real estate investing involves substantial risk. Consult a qualified professional before making real investment decisions.
         </p>

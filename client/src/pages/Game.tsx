@@ -510,7 +510,7 @@ export default function Game() {
   }, [gameRun?.id]);
 
   useEffect(() => {
-    if (!gameRun || gameRun.status !== 'active') return;
+    if (!gameRun || gameRun.status !== 'active' || gameRun.weeksRemaining <= 0) return;
     
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
@@ -752,6 +752,7 @@ export default function Game() {
       setEndGameWon(won);
       setEndGameMidGame(isMidGame);
       setShowEndGameSummary(true);
+      clearSave();
     }
   }, [gameRun]);
 
@@ -1860,6 +1861,7 @@ export default function Game() {
     }
     
     // Reset game state and go back to name entry
+    clearSave();
     setGameRun(null);
     setShowNameEntry(true);
     setCurrentScreen('market');

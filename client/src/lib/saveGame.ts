@@ -17,6 +17,10 @@ export interface SavedGameState {
 
 export function saveGame(state: Omit<SavedGameState, 'version' | 'savedAt'>): void {
   try {
+    if (state.gameRun.weeksRemaining <= 0 || state.gameRun.status !== 'active') {
+      clearSave();
+      return;
+    }
     const saveData: SavedGameState = {
       ...state,
       version: SAVE_VERSION,
@@ -40,6 +44,11 @@ export function loadGame(): SavedGameState | null {
       clearSave();
       return null;
     }
+
+    if (data.gameRun.weeksRemaining <= 0 || data.gameRun.status !== 'active') {
+      clearSave();
+      return null;
+    }
     
     return data;
   } catch (err) {
@@ -49,11 +58,7 @@ export function loadGame(): SavedGameState | null {
 }
 
 export function hasSavedGame(): boolean {
-  try {
-    return localStorage.getItem(SAVE_KEY) !== null;
-  } catch {
-    return false;
-  }
+  return getSaveInfo() !== null;
 }
 
 export function clearSave(): void {
@@ -70,6 +75,12 @@ export function getSaveInfo(): { playerName: string; savedAt: Date; cash: number
     if (!saved) return null;
     
     const data = JSON.parse(saved) as SavedGameState;
+
+    if (data.gameRun.weeksRemaining <= 0 || data.gameRun.status !== 'active') {
+      clearSave();
+      return null;
+    }
+
     return {
       playerName: data.gameRun.playerName,
       savedAt: new Date(data.savedAt),

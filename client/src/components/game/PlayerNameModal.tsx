@@ -293,76 +293,175 @@ export function PlayerNameModal({
           </div>
         </div>
 
-        <div
-          className="rounded-2xl p-5 mb-4"
-          style={{
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
-            border: '1px solid rgba(255,255,255,0.06)',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          }}
-        >
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="investor-name-input" className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-medium mb-2 block">
-                Your investor name
-              </label>
-              <input
-                id="investor-name-input"
-                type="text"
-                value={playerName}
-                onChange={(e) => {
-                  if (e.target.value !== playerName) {
-                    playKeySound();
-                  }
-                  setPlayerName(e.target.value);
-                  setError('');
-                }}
-                placeholder="Enter your name..."
-                className="w-full px-4 py-3.5 rounded-xl text-white text-base placeholder:text-white/15 focus:outline-none transition-all font-medium"
-                style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: `1.5px solid ${error ? 'rgba(239,68,68,0.4)' : playerName ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.08)'}`,
-                  boxShadow: playerName ? '0 0 20px rgba(16,185,129,0.05)' : 'none',
-                }}
-                autoFocus
-                disabled={isChecking}
-                data-testid="input-player-name"
-              />
-              {error && (
-                <p className="mt-1.5 text-red-400 text-xs">{error}</p>
-              )}
+        {savedGameInfo && onContinueSavedGame ? (
+          <div className="space-y-3 mb-4">
+            <button
+              onClick={() => { if (isChecking) return; playUkuleleStrum(); onContinueSavedGame(); }}
+              disabled={isChecking}
+              className="w-full rounded-2xl overflow-hidden transition-all active:scale-[0.97] disabled:opacity-50"
+              style={{
+                background: 'linear-gradient(180deg, rgba(16,185,129,0.15) 0%, rgba(5,150,105,0.08) 100%)',
+                border: '1.5px solid rgba(16,185,129,0.35)',
+                boxShadow: '0 0 40px rgba(16,185,129,0.1), 0 20px 60px rgba(0,0,0,0.3)',
+              }}
+              data-testid="button-continue-saved"
+            >
+              <div className="p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.3)' }}>
+                    <PlayCircle className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-base font-bold text-emerald-300">Continue as {savedGameInfo.playerName}</div>
+                    <div className="text-[10px] text-white/35 uppercase tracking-wider">Saved game found</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-lg py-1.5 px-2" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                    <div className="text-sm font-bold text-emerald-400 font-mono">${savedGameInfo.cash.toLocaleString()}</div>
+                    <div className="text-[9px] text-white/30 uppercase">Cash</div>
+                  </div>
+                  <div className="rounded-lg py-1.5 px-2" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                    <div className="text-sm font-bold text-blue-400">{savedGameInfo.weeksRemaining}</div>
+                    <div className="text-[9px] text-white/30 uppercase">Months Left</div>
+                  </div>
+                  <div className="rounded-lg py-1.5 px-2" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                    <div className="text-[10px] text-white/40">
+                      {(() => { const mins = Math.floor((Date.now() - savedGameInfo.savedAt.getTime()) / 60000); if (mins < 60) return `${mins}m ago`; const hrs = Math.floor(mins / 60); if (hrs < 24) return `${hrs}h ago`; return `${Math.floor(hrs / 24)}d ago`; })()}
+                    </div>
+                    <div className="text-[9px] text-white/30 uppercase">Saved</div>
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            <div className="relative flex items-center gap-3 my-2">
+              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+              <span className="text-[10px] uppercase tracking-widest text-white/20">or</span>
+              <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
             </div>
 
-            <button
-              type="submit"
-              disabled={isChecking || !playerName.trim()}
-              className="w-full py-3.5 rounded-xl font-bold text-base transition-all active:scale-[0.97] flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+            <div
+              className="rounded-2xl p-5"
               style={{
-                background: playerName.trim()
-                  ? 'linear-gradient(135deg, rgba(16,185,129,0.4), rgba(5,150,105,0.5))'
-                  : 'rgba(255,255,255,0.04)',
-                border: playerName.trim()
-                  ? '1.5px solid rgba(16,185,129,0.5)'
-                  : '1.5px solid rgba(255,255,255,0.06)',
-                color: playerName.trim() ? '#6ee7b7' : 'rgba(255,255,255,0.2)',
-                boxShadow: playerName.trim() ? '0 0 30px rgba(16,185,129,0.15)' : 'none',
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
               }}
-              data-testid="button-start-game"
             >
-              {isChecking ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Checking...
-                </>
-              ) : (
-                <>
-                  Let's Go
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-        </div>
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <label htmlFor="investor-name-input" className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-medium block">
+                  Start new game
+                </label>
+                <input
+                  id="investor-name-input"
+                  type="text"
+                  value={playerName}
+                  onChange={(e) => {
+                    if (e.target.value !== playerName) playKeySound();
+                    setPlayerName(e.target.value);
+                    setError('');
+                  }}
+                  placeholder="Enter your name..."
+                  className="w-full px-4 py-3 rounded-xl text-white text-base placeholder:text-white/15 focus:outline-none transition-all font-medium"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: `1.5px solid ${error ? 'rgba(239,68,68,0.4)' : playerName ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.08)'}`,
+                  }}
+                  disabled={isChecking}
+                  data-testid="input-player-name"
+                />
+                {error && <p className="mt-1 text-red-400 text-xs">{error}</p>}
+                <button
+                  type="submit"
+                  disabled={isChecking || !playerName.trim()}
+                  className="w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-[0.97] flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+                  style={{
+                    background: playerName.trim() ? 'linear-gradient(135deg, rgba(251,191,36,0.3), rgba(245,158,11,0.35))' : 'rgba(255,255,255,0.04)',
+                    border: playerName.trim() ? '1.5px solid rgba(251,191,36,0.4)' : '1.5px solid rgba(255,255,255,0.06)',
+                    color: playerName.trim() ? '#fbbf24' : 'rgba(255,255,255,0.2)',
+                  }}
+                  data-testid="button-start-game"
+                >
+                  {isChecking ? <><Loader2 className="w-4 h-4 animate-spin" /> Checking...</> : <>New Game <ArrowRight className="w-4 h-4" /></>}
+                </button>
+              </form>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div
+              className="rounded-2xl p-5 mb-4"
+              style={{
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+              }}
+            >
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label htmlFor="investor-name-input" className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-medium mb-2 block">
+                    Your investor name
+                  </label>
+                  <input
+                    id="investor-name-input"
+                    type="text"
+                    value={playerName}
+                    onChange={(e) => {
+                      if (e.target.value !== playerName) {
+                        playKeySound();
+                      }
+                      setPlayerName(e.target.value);
+                      setError('');
+                    }}
+                    placeholder="Enter your name..."
+                    className="w-full px-4 py-3.5 rounded-xl text-white text-base placeholder:text-white/15 focus:outline-none transition-all font-medium"
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: `1.5px solid ${error ? 'rgba(239,68,68,0.4)' : playerName ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.08)'}`,
+                      boxShadow: playerName ? '0 0 20px rgba(16,185,129,0.05)' : 'none',
+                    }}
+                    autoFocus
+                    disabled={isChecking}
+                    data-testid="input-player-name"
+                  />
+                  {error && (
+                    <p className="mt-1.5 text-red-400 text-xs">{error}</p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isChecking || !playerName.trim()}
+                  className="w-full py-3.5 rounded-xl font-bold text-base transition-all active:scale-[0.97] flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+                  style={{
+                    background: playerName.trim()
+                      ? 'linear-gradient(135deg, rgba(16,185,129,0.4), rgba(5,150,105,0.5))'
+                      : 'rgba(255,255,255,0.04)',
+                    border: playerName.trim()
+                      ? '1.5px solid rgba(16,185,129,0.5)'
+                      : '1.5px solid rgba(255,255,255,0.06)',
+                    color: playerName.trim() ? '#6ee7b7' : 'rgba(255,255,255,0.2)',
+                    boxShadow: playerName.trim() ? '0 0 30px rgba(16,185,129,0.15)' : 'none',
+                  }}
+                  data-testid="button-start-game"
+                >
+                  {isChecking ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Checking...
+                    </>
+                  ) : (
+                    <>
+                      Let's Go
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          </>
+        )}
 
         <button
           onClick={onViewHallOfFame}

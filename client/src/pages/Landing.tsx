@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, DollarSign, Target } from 'lucide-react';
 import heroHouseImage from '@assets/Gemini_hero.webp';
 import dbLogoImage from '@assets/db_logo_64.webp';
 const heroBgPattern = '/hero-bg-pattern.webp';
@@ -95,17 +95,7 @@ export default function Landing() {
               Dealbreak
             </span>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/learn">
-              <span className="text-sm font-medium hidden sm:inline" style={{ color: 'rgba(212,175,55,0.7)' }} data-testid="link-learn-landing-nav">
-                Learn
-              </span>
-            </Link>
-            <Link href="/tools">
-              <span className="text-sm font-medium hidden sm:inline" style={{ color: 'rgba(212,175,55,0.7)' }} data-testid="link-tools-landing-nav">
-                Tools
-              </span>
-            </Link>
+          <div className="flex items-center gap-3">
             <button
               onClick={toggleMusic}
               className="p-2 rounded-full transition-all active:scale-[0.97]"
@@ -114,20 +104,6 @@ export default function Landing() {
             >
               {isMusicPlaying ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
-            <Link href="/game">
-              <button
-                className="px-5 py-2 rounded-md font-semibold text-sm transition-all active:scale-[0.97]"
-                style={{
-                  background: 'linear-gradient(180deg, #d4af37 0%, #b8962e 100%)',
-                  color: '#0c0c0e',
-                  boxShadow: '0 2px 8px rgba(212,175,55,0.3)',
-                  border: '1px solid rgba(212,175,55,0.5)',
-                }}
-                data-testid="button-play-free-header"
-              >
-                Run a Deal
-              </button>
-            </Link>
           </div>
         </div>
       </nav>
@@ -188,6 +164,11 @@ export default function Landing() {
         <div className="relative z-10 max-w-6xl mx-auto px-5 py-5 lg:py-16">
           <div className="flex flex-col lg:flex-row lg:items-center lg:gap-12 xl:gap-16">
             <div className="flex-1 text-center lg:text-left mb-6 lg:mb-0">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: 'rgba(16,185,129,0.7)' }}>Real Estate Simulator</span>
+              </div>
+
               <h1
                 className="text-[2.2rem] sm:text-[2.8rem] lg:text-5xl xl:text-[3.5rem] leading-[1.08] font-bold tracking-tight mb-3"
                 style={{
@@ -231,24 +212,43 @@ export default function Landing() {
               <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start">
                 <Link href="/game">
                   <button
-                    className="group w-full sm:w-auto min-w-[220px] py-3.5 px-10 rounded-lg font-bold text-[17px] tracking-wide transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center gap-2"
+                    className="group w-full sm:w-auto min-w-[220px] py-4 px-10 rounded-xl font-bold text-[17px] tracking-wide transition-all active:scale-[0.97] flex items-center justify-center gap-2.5"
                     style={{
                       background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
                       color: '#fff',
-                      boxShadow: '0 4px 24px rgba(16,185,129,0.35), 0 2px 0 #047857',
+                      boxShadow: '0 4px 24px rgba(16,185,129,0.35), 0 2px 0 #047857, 0 0 60px rgba(16,185,129,0.15)',
                       border: '1px solid rgba(16,185,129,0.4)',
                     }}
                     data-testid="button-play-simulator"
                   >
-                    Run Your First Deal
-                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
+                    Play Now
+                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                   </button>
                 </Link>
               </div>
 
-              <p className="mt-4 text-sm font-medium" style={{ color: 'rgba(225,220,205,0.5)' }}>
-                No signup. Just play.
-              </p>
+              <div className="mt-5 flex items-center gap-4 justify-center lg:justify-start">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.15)' }}>
+                    <DollarSign className="w-3 h-3" style={{ color: '#10b981' }} />
+                  </div>
+                  <span className="text-xs font-medium" style={{ color: 'rgba(225,220,205,0.4)' }}>$100K start</span>
+                </div>
+                <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.15)' }}>
+                    <Clock className="w-3 h-3" style={{ color: '#3b82f6' }} />
+                  </div>
+                  <span className="text-xs font-medium" style={{ color: 'rgba(225,220,205,0.4)' }}>52 months</span>
+                </div>
+                <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded flex items-center justify-center" style={{ background: 'rgba(251,191,36,0.15)' }}>
+                    <Target className="w-3 h-3" style={{ color: '#fbbf24' }} />
+                  </div>
+                  <span className="text-xs font-medium" style={{ color: 'rgba(225,220,205,0.4)' }}>Free to play</span>
+                </div>
+              </div>
             </div>
 
             <div className="relative w-full max-w-[240px] sm:max-w-[300px] lg:max-w-[380px] xl:max-w-[420px] mx-auto lg:mx-0 lg:flex-shrink-0">

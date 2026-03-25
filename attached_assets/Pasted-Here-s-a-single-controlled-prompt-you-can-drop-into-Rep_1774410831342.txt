@@ -1,0 +1,82 @@
+Here’s a **single, controlled prompt** you can drop into Replit AI Agent. It’s written to **refine, not rebuild**, and to actively avoid the generic AI look.
+
+---
+
+You are refining an existing production web app landing page (DealBreakSimulator). You are NOT redesigning from scratch. You must preserve all structure, layout, and functionality while improving visual identity, typography, and subtle interaction quality.
+
+PRIMARY GOAL
+Eliminate any “generic AI-generated / template SaaS” feel. The page should feel like a controlled, serious simulation system where decisions have consequences. Not playful startup. Not overdesigned. Not trendy.
+
+DO NOT
+
+* Do not change layout structure or component hierarchy
+* Do not rewrite core copy or tone dramatically
+* Do not add new sections or features
+* Do not introduce flashy animations, parallax, or gimmicks
+* Do not use common UI fonts (Inter, Poppins, Montserrat, etc.)
+* Do not make everything more “modern” or “clean” in a generic way
+
+TYPOGRAPHY (CRITICAL)
+Implement a two-system typography approach:
+
+1. Headline Font (identity layer)
+
+* Use a distinctive serif or sharp grotesk from locally hosted font files (/public/fonts/)
+* Slightly condensed or high-contrast preferred
+* Tighten line-height and slightly reduce letter spacing
+* Headlines should feel weighty and slightly aggressive, not friendly
+
+2. UI / Data Font (system layer)
+
+* Clean, restrained sans-serif
+* Optimized for numbers and readability
+* Used for stats, labels, panels
+
+3. Labels / Metadata
+
+* Slightly increased letter spacing
+* Smaller size
+* Can feel “instrument-like” (subtle system readout tone)
+
+Load all fonts locally using @font-face (woff2). No Google Fonts.
+
+VISUAL HIERARCHY
+
+* Increase dominance of the main headline (larger size, tighter spacing)
+* Subtext should recede slightly in contrast
+* CTA remains but should not feel oversized or overly promotional
+
+RIGHT-SIDE PANEL (DEAL CARD)
+Refine to feel like a system output, not a soft UI card:
+
+* Reduce border radius slightly
+* Increase contrast between rows/sections
+* Align all numbers cleanly (consistent alignment, no visual drift)
+* Tighten vertical spacing
+* Make issue states (late tenant, repairs) feel precise, not decorative
+
+SPACING + LAYOUT
+
+* Avoid perfect symmetry; allow slight imbalance for realism
+* Maintain grid but reduce “even padding everywhere” feeling
+* Headline side should feel heavier than the UI card side
+
+COLOR + BACKGROUND
+
+* Keep existing palette but reduce any overly glossy or gradient-heavy feel if present
+* Preserve the current aesthetic direction, just tighten it
+
+ANIMATION (SUBTLE, FUNCTIONAL ONLY)
+
+* Add micro-interactions tied to meaning:
+
+  * Issue rows can subtly pulse or shift when appearing
+  * Financial numbers can tick or update with slight motion
+* Use very short durations and slight irregular timing
+* No global entrance animations, no scroll gimmicks
+
+FINAL STANDARD
+The page should feel like:
+A controlled simulation interface with real consequences. Slightly tense. Intentional. Not friendly, not playful, not generic.
+
+Do all changes incrementally and safely without breaking existing functionality.

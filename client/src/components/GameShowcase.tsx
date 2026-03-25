@@ -219,7 +219,7 @@ export function GameShowcase() {
 
       <div className="max-w-5xl mx-auto px-5">
         <h2
-          className="text-center text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 lg:mb-4 tracking-tight"
+          className="text-center text-2xl sm:text-3xl lg:text-4xl font-serif mb-2 lg:mb-4 tracking-[-0.01em]"
           style={{ color: '#f0e6d0' }}
         >
           Four Phases. One Deal. Infinite Ways to Break It.

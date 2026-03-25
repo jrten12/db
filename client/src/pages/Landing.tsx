@@ -25,7 +25,7 @@ function MechanicCard({ Icon, accent, title, detail }: { Icon: any; accent: stri
         >
           <Icon className="w-4 h-4" style={{ color: accent }} />
         </div>
-        <h3 className="font-bold text-sm" style={{ color: '#f0e6d0' }}>{title}</h3>
+        <h3 className="font-semibold text-sm" style={{ color: '#f0e6d0' }}>{title}</h3>
       </div>
       <p className="text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.55)' }}>{detail}</p>
     </div>
@@ -173,7 +173,7 @@ export default function Landing() {
               </div>
 
               <h1
-                className="text-[1.75rem] sm:text-[2.2rem] lg:text-[2.8rem] xl:text-[3.2rem] leading-[1.1] font-bold tracking-tight mb-4"
+                className="text-[1.85rem] sm:text-[2.4rem] lg:text-[3rem] xl:text-[3.5rem] leading-[1.05] tracking-[-0.02em] mb-4 font-serif"
                 style={{
                   color: '#f5f0e0',
                   textShadow: '0 2px 20px rgba(0,0,0,0.5)',
@@ -223,84 +223,90 @@ export default function Landing() {
             {/* RIGHT: System dashboard panel */}
             <div className="w-full lg:w-[400px] xl:w-[440px] flex-shrink-0">
               <div
-                className="rounded-xl overflow-hidden"
+                className="rounded-lg overflow-hidden"
                 style={{
-                  background: 'linear-gradient(180deg, rgba(15,15,20,0.95) 0%, rgba(10,10,14,0.98) 100%)',
-                  border: '1px solid rgba(255,255,255,0.07)',
-                  boxShadow: '0 24px 80px rgba(0,0,0,0.5), 0 0 1px rgba(255,255,255,0.1)',
+                  background: 'linear-gradient(180deg, rgba(12,12,16,0.97) 0%, rgba(8,8,11,0.99) 100%)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.3)',
                 }}
                 data-testid="hero-dashboard-panel"
               >
                 {/* Panel header */}
-                <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="flex items-center justify-between px-4 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-3.5 h-3.5" style={{ color: 'rgba(212,175,55,0.6)' }} />
-                    <span className="font-mono text-[11px] font-semibold" style={{ color: 'rgba(225,220,205,0.7)' }}>DEAL OVERVIEW</span>
+                    <Building2 className="w-3 h-3" style={{ color: 'rgba(212,175,55,0.5)' }} />
+                    <span className="font-mono text-[10px] font-bold tracking-[0.12em]" style={{ color: 'rgba(225,220,205,0.5)' }}>DEAL OVERVIEW</span>
                   </div>
-                  <span className="font-mono text-[10px]" style={{ color: 'rgba(225,220,205,0.25)' }}>Month 3</span>
+                  <span className="font-mono text-[10px] tracking-wider" style={{ color: 'rgba(225,220,205,0.2)' }}>MO 3</span>
                 </div>
 
                 {/* Property info */}
-                <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-bold" style={{ color: '#e8dfc8' }}>Riverside Duplex</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded font-mono font-bold" style={{ color: '#3b82f6', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}>RENTAL</span>
+                <div className="px-4 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-sm font-semibold" style={{ color: '#e8dfc8' }}>Riverside Duplex</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-sm font-mono font-bold tracking-wider" style={{ color: '#3b82f6', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)' }}>RENTAL</span>
                   </div>
-                  <span className="text-[11px]" style={{ color: 'rgba(225,220,205,0.35)' }}>Philadelphia, PA</span>
+                  <span className="text-[10px] tracking-wide" style={{ color: 'rgba(225,220,205,0.3)' }}>Philadelphia, PA</span>
                 </div>
 
                 {/* Financial grid */}
                 <div className="grid grid-cols-2 gap-px" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                  <div className="px-4 py-2.5" style={{ background: 'rgba(10,10,14,0.95)' }}>
-                    <div className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: 'rgba(225,220,205,0.3)' }}>Purchase</div>
-                    <div className="font-mono text-sm font-bold" style={{ color: '#e8dfc8' }}>$293,000</div>
+                  <div className="px-4 py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
+                    <div className="text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Purchase</div>
+                    <div className="font-mono text-[13px] font-bold tabular-nums" style={{ color: '#e8dfc8' }}>$293,000</div>
                   </div>
-                  <div className="px-4 py-2.5" style={{ background: 'rgba(10,10,14,0.95)' }}>
-                    <div className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: 'rgba(225,220,205,0.3)' }}>Cash Left</div>
-                    <div className="font-mono text-sm font-bold" style={{ color: '#fbbf24' }}>$41,200</div>
+                  <div className="px-4 py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
+                    <div className="text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash Left</div>
+                    <div className="font-mono text-[13px] font-bold tabular-nums" style={{ color: '#fbbf24' }}>$41,200</div>
                   </div>
-                  <div className="px-4 py-2.5" style={{ background: 'rgba(10,10,14,0.95)' }}>
-                    <div className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: 'rgba(225,220,205,0.3)' }}>Monthly Cash Flow</div>
-                    <div className="font-mono text-sm font-bold" style={{ color: '#10b981' }}>+$284/mo</div>
+                  <div className="px-4 py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
+                    <div className="text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash Flow</div>
+                    <div className="font-mono text-[13px] font-bold tabular-nums" style={{ color: '#10b981' }}>+$284/mo</div>
                   </div>
-                  <div className="px-4 py-2.5" style={{ background: 'rgba(10,10,14,0.95)' }}>
-                    <div className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: 'rgba(225,220,205,0.3)' }}>Cash-on-Cash</div>
-                    <div className="font-mono text-sm font-bold" style={{ color: 'rgba(225,220,205,0.6)' }}>4.7%</div>
+                  <div className="px-4 py-2" style={{ background: 'rgba(8,8,11,0.97)' }}>
+                    <div className="text-[8px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash-on-Cash</div>
+                    <div className="font-mono text-[13px] font-bold tabular-nums" style={{ color: 'rgba(225,220,205,0.55)' }}>4.7%</div>
                   </div>
                 </div>
 
                 {/* Active issues */}
-                <div className="px-4 py-3 space-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-                  <div className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: 'rgba(248,113,113,0.6)' }}>Active Issues</div>
-                  <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg" style={{ background: 'rgba(248,113,113,0.05)', border: '1px solid rgba(248,113,113,0.1)' }}>
-                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#f87171' }} />
+                <div className="px-4 py-2.5 space-y-1.5" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                  <div className="text-[8px] uppercase tracking-[0.18em] font-bold" style={{ color: 'rgba(248,113,113,0.5)' }}>Active Issues</div>
+                  <div
+                    className="deal-issue-row flex items-center gap-2 px-2.5 py-1.5 rounded"
+                    style={{ background: 'rgba(248,113,113,0.04)', border: '1px solid rgba(248,113,113,0.08)' }}
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#f87171', boxShadow: '0 0 6px rgba(248,113,113,0.4)' }} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold" style={{ color: '#fca5a5' }}>Tenant late on rent</div>
-                      <div className="text-[10px]" style={{ color: 'rgba(225,220,205,0.3)' }}>Unit A &middot; 12 days overdue</div>
+                      <div className="text-[11px] font-semibold" style={{ color: '#fca5a5' }}>Tenant late on rent</div>
+                      <div className="text-[9px] tracking-wide" style={{ color: 'rgba(225,220,205,0.25)' }}>Unit A · 12 days overdue</div>
                     </div>
-                    <span className="font-mono text-[10px] font-bold" style={{ color: '#f87171' }}>-$875</span>
+                    <span className="font-mono text-[10px] font-bold tabular-nums" style={{ color: '#f87171' }}>-$875</span>
                   </div>
-                  <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg" style={{ background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.1)' }}>
-                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#f59e0b' }} />
+                  <div
+                    className="deal-issue-row flex items-center gap-2 px-2.5 py-1.5 rounded"
+                    style={{ background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.08)' }}
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#f59e0b', boxShadow: '0 0 6px rgba(245,158,11,0.3)' }} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold" style={{ color: '#fbbf24' }}>Water heater failing</div>
-                      <div className="text-[10px]" style={{ color: 'rgba(225,220,205,0.3)' }}>Repair estimate: $2,800</div>
+                      <div className="text-[11px] font-semibold" style={{ color: '#fbbf24' }}>Water heater failing</div>
+                      <div className="text-[9px] tracking-wide" style={{ color: 'rgba(225,220,205,0.25)' }}>Repair estimate: $2,800</div>
                     </div>
-                    <Wrench className="w-3 h-3" style={{ color: 'rgba(245,158,11,0.5)' }} />
+                    <Wrench className="w-3 h-3" style={{ color: 'rgba(245,158,11,0.4)' }} />
                   </div>
                 </div>
 
                 {/* Pressure bar */}
-                <div className="px-4 py-2.5 flex items-center justify-between" style={{ background: 'rgba(0,0,0,0.3)', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                <div className="px-4 py-2 flex items-center justify-between" style={{ background: 'rgba(0,0,0,0.35)', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5">
-                      <Clock className="w-3 h-3" style={{ color: 'rgba(59,130,246,0.5)' }} />
-                      <span className="font-mono text-[10px]" style={{ color: 'rgba(59,130,246,0.7)' }}>49 months left</span>
+                      <Clock className="w-3 h-3" style={{ color: 'rgba(59,130,246,0.4)' }} />
+                      <span className="font-mono text-[9px] tracking-wider" style={{ color: 'rgba(59,130,246,0.6)' }}>49 MO LEFT</span>
                     </div>
-                    <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.06)' }} />
+                    <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.05)' }} />
                     <div className="flex items-center gap-1.5">
-                      <Activity className="w-3 h-3" style={{ color: 'rgba(245,158,11,0.5)' }} />
-                      <span className="font-mono text-[10px]" style={{ color: 'rgba(245,158,11,0.6)' }}>Rates rising</span>
+                      <Activity className="w-3 h-3" style={{ color: 'rgba(245,158,11,0.4)' }} />
+                      <span className="font-mono text-[9px] tracking-wider" style={{ color: 'rgba(245,158,11,0.5)' }}>RATES RISING</span>
                     </div>
                   </div>
                 </div>
@@ -323,7 +329,7 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-6 lg:mb-10">
             <h2
-              className="text-2xl sm:text-3xl lg:text-[2.5rem] font-bold mb-2 tracking-tight leading-tight"
+              className="text-2xl sm:text-3xl lg:text-[2.5rem] font-serif mb-2 tracking-[-0.01em] leading-tight"
               style={{ color: '#f0e6d0' }}
             >
               What Happens When You Play
@@ -467,7 +473,7 @@ export default function Landing() {
               <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(248,113,113,0.8)' }}>Not a Calculator</span>
             </div>
             <h2
-              className="text-2xl sm:text-3xl lg:text-[2.5rem] font-bold mb-3 tracking-tight leading-tight"
+              className="text-2xl sm:text-3xl lg:text-[2.5rem] font-serif mb-3 tracking-[-0.01em] leading-tight"
               style={{ color: '#f0e6d0' }}
             >
               This Is a Simulation. Things Go Wrong.
@@ -530,7 +536,7 @@ export default function Landing() {
               <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(16,185,129,0.8)' }}>Under the Hood</span>
             </div>
             <h2
-              className="text-2xl sm:text-3xl lg:text-[2.5rem] font-bold mb-3 tracking-tight leading-tight"
+              className="text-2xl sm:text-3xl lg:text-[2.5rem] font-serif mb-3 tracking-[-0.01em] leading-tight"
               style={{ color: '#f0e6d0' }}
             >
               Every Number Earns Its Place
@@ -651,7 +657,7 @@ export default function Landing() {
                     You learn because you lost money — not before
                   </p>
                   <h2
-                    className="text-xl sm:text-2xl font-bold mb-2 tracking-tight"
+                    className="text-xl sm:text-2xl font-serif mb-2 tracking-[-0.01em]"
                     style={{ color: '#f0e6d0' }}
                   >
                     Every concept mirrors how real deals work.
@@ -722,7 +728,7 @@ export default function Landing() {
                       </span>
                     </div>
 
-                    <h2 className="text-xl sm:text-2xl font-bold mb-2 tracking-tight group-hover:text-amber-300 transition-colors" style={{ color: '#f0e6d0' }}>
+                    <h2 className="text-xl sm:text-2xl font-serif mb-2 tracking-[-0.01em] group-hover:text-amber-300 transition-colors" style={{ color: '#f0e6d0' }}>
                       Lost Money? Now Read Why.
                     </h2>
                     <p className="text-sm leading-relaxed mb-4 max-w-lg" style={{ color: 'rgba(225,220,205,0.65)' }}>
@@ -803,7 +809,7 @@ export default function Landing() {
       <section className="py-6 lg:py-14 px-5">
         <div className="max-w-3xl mx-auto text-center">
           <h2
-            className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 tracking-tight"
+            className="text-2xl sm:text-3xl lg:text-4xl font-serif mb-3 tracking-[-0.01em]"
             style={{ color: '#f0e6d0' }}
           >
             Think you can spot a bad deal?
@@ -839,7 +845,7 @@ export default function Landing() {
       <section className="py-3 lg:py-14 px-5">
         <div className="max-w-3xl mx-auto">
           <h2
-            className="text-center text-2xl sm:text-3xl font-bold mb-5 lg:mb-6"
+            className="text-center text-2xl sm:text-3xl font-serif mb-5 lg:mb-6 tracking-[-0.01em]"
             style={{ color: '#f0e6d0' }}
           >
             Frequently Asked Questions

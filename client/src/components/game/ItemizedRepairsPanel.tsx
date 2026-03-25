@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Wrench, Check, X, AlertTriangle, DollarSign, Clock, ChevronDown, ChevronUp, TrendingUp } from 'lucide-react';
 import type { PropertyIssue } from '@/lib/propertyIssues';
 import { getIssueImage } from '@/lib/propertyImages';
+import { RENT_IMPACT_BY_ISSUE } from '@shared/propertyIssues';
 
 interface ItemizedRepairsPanelProps {
   issues: PropertyIssue[];
@@ -27,11 +28,12 @@ const SEVERITY_LABELS = {
   severe: 'High Priority',
 };
 
-const SEVERITY_RENT_IMPACT: Record<string, number> = {
-  mild: 2,
-  moderate: 4,
-  severe: 3,
-};
+function getIssueRentImpact(issueId: string, severity: string): number {
+  const specific = RENT_IMPACT_BY_ISSUE[issueId];
+  if (specific !== undefined) return specific;
+  const defaults: Record<string, number> = { mild: 1, moderate: 3, severe: 1.5 };
+  return defaults[severity] || 1;
+}
 
 export function ItemizedRepairsPanel({
   issues,
@@ -255,7 +257,7 @@ export function ItemizedRepairsPanel({
                       {strategy === 'rent' && baseMonthlyRent && baseMonthlyRent > 0 && (
                         <span className="flex items-center gap-1 text-emerald-400">
                           <TrendingUp className="w-3 h-3" />
-                          ~+${Math.max(25, Math.round(baseMonthlyRent * (SEVERITY_RENT_IMPACT[issue.severity] || 2) / 100))}/mo rent
+                          ~+${Math.max(25, Math.round(baseMonthlyRent * getIssueRentImpact(issue.id, issue.severity) / 100))}/mo rent
                         </span>
                       )}
                     </div>

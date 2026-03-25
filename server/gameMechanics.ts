@@ -15,7 +15,7 @@ import * as schema from '@shared/schema';
 import { db } from './storage';
 import { eq } from 'drizzle-orm';
 import { rollForCurveball, rollForCurveballWithIssues, type PropertyContext, type CurveballResult, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
-import { calculateSurpriseCosts, PropertyIssue, getRandomizedPropertyIssues } from '@shared/propertyIssues';
+import { calculateSurpriseCosts, PropertyIssue, getRandomizedPropertyIssues, RENT_IMPACT_BY_ISSUE } from '@shared/propertyIssues';
 
 export interface FlipPricingParams {
   purchasePrice: number;
@@ -2910,96 +2910,16 @@ function getMarketRenovationMultipliers(condition: MarketCondition, random: () =
   }
 }
 
-const RENT_IMPACT_BY_REPAIR: Record<string, number> = {
-  cosmetic_updates: 8,
-  hvac_replacement: 6,
-  outdated_hvac: 5,
-  hvac_commercial: 5,
-  hvac_high_rise: 5,
-  dual_hvac: 5,
-  electrical_upgrade: 4,
-  electrical_outdated: 3,
-  plumbing_galvanized: 3,
-  plumbing_replacement: 3,
-  plumbing_stack: 3,
-  roof_wear: 2,
-  roof_replacement: 3,
-  roof_shared: 2,
-  roof_historic: 3,
-  window_seals: 4,
-  historic_windows: 5,
-  foundation_settling: 1,
-  foundation_major: 1,
-  structural_settling: 1,
-  drainage_issues: 1,
-  mold_remediation: 4,
-  basement_moisture: 2,
-  termite_damage: 2,
-  asbestos_tiles: 2,
-  lead_paint: 2,
-  lead_paint_abatement: 2,
-  radon_mitigation: 2,
-  septic_issues: 1,
-  septic_maintenance: 1,
-  well_water: 1,
-  well_pump: 1,
-  siding_damage: 3,
-  brick_repointing: 3,
-  porch_rot: 3,
-  chimney_rebuild: 1,
-  knob_tube: 3,
-  fire_suppression: 2,
-  loading_dock: 1,
-  dock_repair: 2,
-  dock_permit: 1,
-  sump_pump: 1,
-  salt_corrosion: 2,
-  hurricane_straps: 1,
-  wood_stove: 1,
-  irrigation_repair: 2,
-  pool_resurface: 5,
-  pool_equipment: 4,
-  industrial_conversion: 3,
-  hoa_assessment: 0,
-  hoa_assessment_pending: 0,
-  hoa_reserve_low: 0,
-  high_hoa_fees: 0,
-  building_systems: 3,
-  parking_issues: 2,
-  historic_requirements: 2,
-  elevator_issues: 3,
-  shared_wall_issues: 2,
-  city_violations: 1,
-  narrow_lot_access: 0,
-  separate_utilities: 2,
-  utility_separation: 2,
-  dual_system_updates: 3,
-  deferred_maintenance: 4,
-  zoning_issues: 0,
-  seawall_maintenance: 2,
-  barn_roof: 1,
-  pest_infestation: 3,
-  appliance_age: 5,
-  gutter_damage: 1,
-  smoke_co_detectors: 0,
-  insulation_poor: 3,
-  water_heater_age: 2,
-  deck_rot: 3,
-  garage_door: 2,
-  bathroom_outdated: 6,
-  grading_erosion: 1,
-  exterior_paint: 3,
-};
-
 function getRentImpactForRepair(issueId: string, severity: 'mild' | 'moderate' | 'severe', random: () => number): number {
-  const baseImpact = RENT_IMPACT_BY_REPAIR[issueId];
+  const baseImpact = RENT_IMPACT_BY_ISSUE[issueId];
   if (baseImpact !== undefined) {
-    const variance = (random() - 0.5) * 2;
+    const scale = Math.max(1, baseImpact);
+    const variance = (random() - 0.5) * scale * 0.6;
     return Math.max(0, Math.round((baseImpact + variance) * 10) / 10);
   }
-  const severityDefaults: Record<string, number> = { mild: 2, moderate: 4, severe: 3 };
-  const fallback = severityDefaults[severity] || 2;
-  const variance = (random() - 0.5) * 2;
+  const severityDefaults: Record<string, number> = { mild: 1, moderate: 3, severe: 1.5 };
+  const fallback = severityDefaults[severity] || 1;
+  const variance = (random() - 0.5) * fallback * 0.6;
   return Math.max(0, Math.round((fallback + variance) * 10) / 10);
 }
 

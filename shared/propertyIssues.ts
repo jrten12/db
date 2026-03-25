@@ -9,6 +9,85 @@ export interface PropertyIssue {
   discoveredBy: ('contractor_walkthrough' | 'inspection' | 'title_search')[];
 }
 
+export const RENT_IMPACT_BY_ISSUE: Record<string, number> = {
+  cosmetic_updates: 7,
+  cosmetic_both_units: 8,
+  bathroom_outdated: 6,
+  hvac_replacement: 5,
+  outdated_hvac: 4,
+  hvac_commercial: 4,
+  hvac_high_rise: 4,
+  dual_hvac: 5,
+  dual_system_updates: 5,
+  electrical_upgrade: 3,
+  electrical_outdated: 3,
+  plumbing_galvanized: 2,
+  plumbing_replacement: 2,
+  plumbing_stack: 2,
+  plumbing_shared: 2,
+  roof_wear: 1,
+  roof_replacement: 2,
+  roof_shared: 1,
+  roof_historic: 2,
+  window_seals: 4,
+  window_replacement: 4,
+  historic_windows: 5,
+  foundation_settling: 0.5,
+  foundation_major: 0.5,
+  structural_settling: 0.5,
+  drainage_issues: 0.5,
+  mold_remediation: 3,
+  basement_moisture: 1,
+  termite_damage: 1,
+  asbestos_tiles: 1,
+  lead_paint: 1,
+  lead_paint_abatement: 1,
+  radon_mitigation: 0.5,
+  septic_issues: 0.5,
+  septic_maintenance: 0.5,
+  well_water: 0.5,
+  well_pump: 0.5,
+  siding_damage: 3,
+  brick_repointing: 2,
+  porch_rot: 3,
+  deck_rot: 3,
+  exterior_paint: 3,
+  chimney_rebuild: 0.5,
+  knob_tube: 2,
+  knob_tube_wiring: 2,
+  fire_suppression: 1,
+  loading_dock: 0,
+  dock_repair: 1,
+  appliance_age: 1,
+  water_heater_age: 0.5,
+  garage_door: 1,
+  gutter_damage: 0.5,
+  smoke_co_detectors: 0,
+  insulation_poor: 2,
+  sump_pump: 0.5,
+  grading_erosion: 0.5,
+  tree_root_damage: 0.5,
+  pest_infestation: 2,
+  party_wall: 1,
+  fire_separation: 1,
+  utility_separation: 0,
+  separate_meters: 0,
+  industrial_conversion: 3,
+  elevator_issues: 1,
+  hoa_assessment: 0,
+  hoa_reserve_low: 0,
+  special_assessment_pending: 0,
+  parking_issues: 0,
+  building_systems: 0,
+  narrow_lot_access: 0,
+  historic_requirements: 1,
+};
+
+const COSMETIC_ISSUE_IDS = new Set([
+  'cosmetic_updates', 'cosmetic_both_units', 'bathroom_outdated', 'appliance_age',
+  'exterior_paint', 'window_seals', 'window_replacement', 'historic_windows',
+]);
+
 export const PROPERTY_ISSUES: Record<string, PropertyIssue[]> = {
   'Oakwood Cottage': [
     {
@@ -1004,10 +1083,14 @@ export function getRandomizedPropertyIssues(
   const seed = gameRunId * 1000 + propertyId;
   const random = seededRandom(seed);
   
-  // Get appropriate issue pool, filtered by water source compatibility
   const poolKey = getIssuePoolKey(propertyType);
   const rawPool = ISSUE_POOLS[poolKey] || ISSUE_POOLS['house'];
-  const pool = filterPoolByWaterSource(rawPool, waterSource);
+  let pool = filterPoolByWaterSource(rawPool, waterSource);
+
+  const isGoodCondition = ['Good', 'Turnkey', 'Excellent'].includes(conditionTag);
+  if (isGoodCondition) {
+    pool = pool.filter(i => !COSMETIC_ISSUE_IDS.has(i.id));
+  }
   
   // Determine how many issues based on condition
   const conditionIssueCount: Record<string, { min: number; max: number }> = {

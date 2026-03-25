@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Trophy, X } from 'lucide-react';
 import { trophyTypes } from '@shared/schema';
 
@@ -7,24 +7,41 @@ interface TrophyUnlockNotificationProps {
   onDismiss: () => void;
 }
 
-const tierColors: Record<string, { bg: string; border: string; text: string; icon: string }> = {
+const tierConfig: Record<string, {
+  bg: string;
+  border: string;
+  text: string;
+  glowColor: string;
+  particleColor: string;
+  ringColor: string;
+  label: string;
+}> = {
   bronze: {
-    bg: 'from-amber-900/95 to-amber-800/95',
-    border: 'border-amber-500/60',
-    text: 'text-amber-300',
-    icon: 'text-amber-400',
+    bg: 'bg-gradient-to-br from-amber-950/95 via-amber-900/95 to-amber-950/95',
+    border: 'border-amber-600/50',
+    text: 'text-amber-400',
+    glowColor: 'rgba(217, 119, 6, 0.35)',
+    particleColor: '#d97706',
+    ringColor: 'border-amber-500/40',
+    label: 'Bronze',
   },
   silver: {
-    bg: 'from-gray-600/95 to-gray-500/95',
-    border: 'border-gray-300/60',
-    text: 'text-gray-200',
-    icon: 'text-gray-300',
+    bg: 'bg-gradient-to-br from-slate-800/95 via-slate-700/95 to-slate-800/95',
+    border: 'border-slate-400/50',
+    text: 'text-slate-300',
+    glowColor: 'rgba(148, 163, 184, 0.35)',
+    particleColor: '#94a3b8',
+    ringColor: 'border-slate-400/40',
+    label: 'Silver',
   },
   gold: {
-    bg: 'from-yellow-600/95 to-amber-500/95',
-    border: 'border-yellow-300/60',
-    text: 'text-yellow-200',
-    icon: 'text-yellow-300',
+    bg: 'bg-gradient-to-br from-yellow-950/95 via-yellow-800/95 to-amber-900/95',
+    border: 'border-yellow-500/60',
+    text: 'text-yellow-400',
+    glowColor: 'rgba(234, 179, 8, 0.4)',
+    particleColor: '#eab308',
+    ringColor: 'border-yellow-400/40',
+    label: 'Gold',
   },
 };
 
@@ -48,106 +65,168 @@ function playTrophySound(tier: string) {
   try {
     const ctx = getOrCreateAudioContext();
     if (!ctx) return;
-    
+
     if (ctx.state === 'suspended') {
       ctx.resume().catch(() => {});
     }
-    
+
     const now = ctx.currentTime;
-    
-    const frequencies = tier === 'gold' 
+
+    const frequencies = tier === 'gold'
       ? [523.25, 659.25, 783.99, 1046.5]
       : tier === 'silver'
       ? [440, 554.37, 659.25]
       : [349.23, 440, 523.25];
-    
+
     frequencies.forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      
+
       osc.type = 'sine';
       osc.frequency.value = freq;
-      
-      gain.gain.setValueAtTime(0, now + i * 0.1);
-      gain.gain.linearRampToValueAtTime(0.15, now + i * 0.1 + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
-      
+
+      gain.gain.setValueAtTime(0, now + i * 0.12);
+      gain.gain.linearRampToValueAtTime(0.15, now + i * 0.12 + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.4);
+
       osc.connect(gain);
       gain.connect(ctx.destination);
-      
-      osc.start(now + i * 0.1);
-      osc.stop(now + i * 0.1 + 0.4);
+
+      osc.start(now + i * 0.12);
+      osc.stop(now + i * 0.12 + 0.5);
     });
   } catch {}
 }
 
+function generateParticles(count: number) {
+  return Array.from({ length: count }, (_, i) => {
+    const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+    const distance = 40 + Math.random() * 50;
+    return {
+      tx: Math.cos(angle) * distance,
+      ty: Math.sin(angle) * distance,
+      delay: Math.random() * 0.2,
+      size: 3 + Math.random() * 3,
+    };
+  });
+}
+
 export function TrophyUnlockNotification({ trophyId, onDismiss }: TrophyUnlockNotificationProps) {
   const trophy = trophyTypes.find(t => t.id === trophyId);
-  const [isVisible, setIsVisible] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
+  const [phase, setPhase] = useState<'enter' | 'visible' | 'exit' | 'done'>('enter');
+
+  const particles = useMemo(() => generateParticles(12), []);
 
   useEffect(() => {
-    requestAnimationFrame(() => setIsVisible(true));
-
     if (trophy) {
       playTrophySound(trophy.tier);
     }
 
-    const timer = setTimeout(() => {
-      handleDismiss();
-    }, 2200);
+    const visibleTimer = setTimeout(() => setPhase('visible'), 600);
+    const exitTimer = setTimeout(() => setPhase('exit'), 3000);
+    const doneTimer = setTimeout(() => {
+      setPhase('done');
+      onDismiss();
+    }, 3300);
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(visibleTimer);
+      clearTimeout(exitTimer);
+      clearTimeout(doneTimer);
     };
   }, []);
 
   const handleDismiss = useCallback(() => {
-    setIsExiting(true);
+    setPhase('exit');
     setTimeout(() => {
+      setPhase('done');
       onDismiss();
-    }, 300);
+    }, 280);
   }, [onDismiss]);
 
-  if (!trophy) return null;
+  if (!trophy || phase === 'done') return null;
 
-  const colors = tierColors[trophy.tier] || tierColors.bronze;
+  const config = tierConfig[trophy.tier] || tierConfig.bronze;
+  const isExiting = phase === 'exit';
 
   return (
     <div
-      className={`fixed top-3 left-1/2 -translate-x-1/2 z-[60] transition-all duration-300 pointer-events-auto ${
-        isVisible && !isExiting
-          ? 'opacity-100 translate-y-0'
-          : 'opacity-0 -translate-y-4'
+      className={`fixed inset-0 z-[9995] flex items-center justify-center pointer-events-auto ${
+        isExiting ? 'trophy-overlay-exit' : 'trophy-overlay-enter'
       }`}
+      onClick={handleDismiss}
       data-testid="trophy-unlock-notification"
     >
-      <div
-        className={`relative flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r ${colors.bg} ${colors.border} border backdrop-blur-md shadow-lg max-w-[340px]`}
-        onClick={handleDismiss}
-      >
-        <div className={`w-10 h-10 rounded-full bg-black/20 flex items-center justify-center flex-shrink-0`}>
-          <Trophy className={`w-5 h-5 ${colors.icon}`} />
-        </div>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
 
-        <div className="flex-1 min-w-0">
-          <div className={`text-[10px] uppercase tracking-wider font-bold ${colors.text} leading-none mb-0.5`}>
-            {trophy.tier} Achievement
+      <div
+        className={`relative ${isExiting ? 'trophy-card-exit' : 'trophy-card-enter'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className={`relative overflow-hidden rounded-2xl ${config.bg} ${config.border} border-2 shadow-2xl px-8 py-6 min-w-[280px] max-w-[340px]`}
+        >
+          <div className="absolute inset-0 trophy-shimmer pointer-events-none rounded-2xl" />
+
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="relative w-16 h-16 flex items-center justify-center">
+              <div
+                className="absolute inset-0 rounded-full trophy-glow"
+                style={{ boxShadow: `0 0 30px 10px ${config.glowColor}` }}
+              />
+
+              <div
+                className={`absolute inset-[-8px] rounded-full border-2 ${config.ringColor} trophy-ring`}
+              />
+
+              {particles.map((p, i) => (
+                <div
+                  key={i}
+                  className="trophy-particle"
+                  style={{
+                    '--tx': `${p.tx}px`,
+                    '--ty': `${p.ty}px`,
+                    width: `${p.size}px`,
+                    height: `${p.size}px`,
+                    backgroundColor: config.particleColor,
+                    animationDelay: `${0.2 + p.delay}s`,
+                    left: '50%',
+                    top: '50%',
+                    marginLeft: `-${p.size / 2}px`,
+                    marginTop: `-${p.size / 2}px`,
+                  } as any}
+                />
+              ))}
+
+              <div className="trophy-icon-reveal relative z-10">
+                <div className={`w-14 h-14 rounded-xl ${config.bg} border ${config.border} flex items-center justify-center`}>
+                  <Trophy className={`w-7 h-7 ${config.text}`} />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-center gap-1">
+              <div className={`text-[10px] font-bold uppercase tracking-[0.15em] ${config.text} trophy-tier-label`}>
+                {config.label} Trophy Unlocked
+              </div>
+              <div className="text-white font-bold text-lg leading-tight trophy-text-name">
+                {trophy.name}
+              </div>
+              <div className="text-white/55 text-sm leading-snug trophy-text-desc max-w-[260px]">
+                {trophy.description}
+              </div>
+            </div>
           </div>
-          <div className="text-white font-semibold text-sm leading-tight truncate">
-            {trophy.name}
-          </div>
-          <div className="text-white/60 text-xs leading-tight truncate">
-            {trophy.description}
-          </div>
+
+          <div className={`absolute bottom-0 left-0 right-0 h-[2px] ${config.text.replace('text-', 'bg-')} opacity-60 trophy-progress-bar`} />
         </div>
 
         <button
           onClick={(e) => { e.stopPropagation(); handleDismiss(); }}
-          className="p-1 rounded-full hover:bg-black/20 transition-colors flex-shrink-0"
+          className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-black/60 border border-white/20 flex items-center justify-center hover:bg-black/80 transition-colors"
           data-testid="button-dismiss-trophy"
         >
-          <X className="w-4 h-4 text-white/50" />
+          <X className="w-3.5 h-3.5 text-white/60" />
         </button>
       </div>
     </div>

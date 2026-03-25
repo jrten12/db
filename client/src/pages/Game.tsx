@@ -2071,7 +2071,7 @@ export default function Game() {
 
       {/* Fixed header at top of viewport - safe area handled by StatusBar */}
       {currentScreen !== 'home' && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-sm pointer-events-auto overflow-hidden">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900 pointer-events-auto overflow-hidden" style={{ isolation: 'isolate' }}>
           <StatusBar
             cash={gameRun.cash}
             weeksRemaining={gameRun.weeksRemaining}

@@ -15,7 +15,7 @@ import * as schema from '@shared/schema';
 import { db } from './storage';
 import { eq } from 'drizzle-orm';
 import { rollForCurveball, rollForCurveballWithIssues, type PropertyContext, type CurveballResult, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
-import { calculateSurpriseCosts, PropertyIssue, getRandomizedPropertyIssues, RENT_IMPACT_BY_ISSUE, getAvailableUpgrades, type PropertyUpgrade } from '@shared/propertyIssues';
+import { calculateSurpriseCosts, PropertyIssue, getRandomizedPropertyIssues, RENT_IMPACT_BY_ISSUE, getAvailableUpgrades, type PropertyUpgrade, PROPERTY_UPGRADES } from '@shared/propertyIssues';
 
 export interface FlipPricingParams {
   purchasePrice: number;
@@ -31,17 +31,19 @@ export interface FlipPricingParams {
   conditionPenalty?: number;
   fixedBonus?: number;
   marketMult: { min: number; max: number };
+  renovationArvBoostPct?: number;
 }
 
 export function calculateFlipSalePrice(params: FlipPricingParams): number {
   const {
     purchasePrice, rehabBudget, finishLevel, contingencyPct,
     arvMin, arvMax, rehabMax, playerArvEstimate,
-    didComps, diligenceCount, conditionPenalty = 0, fixedBonus = 0, marketMult
+    didComps, diligenceCount, conditionPenalty = 0, fixedBonus = 0, marketMult,
+    renovationArvBoostPct = 0
   } = params;
 
   const finishCostMult = finishLevel === 'luxury' ? 1.4 : 1.0;
-  const finishArvBoost = finishLevel === 'luxury' ? 0.10 : 0;
+  const finishArvBoost = (finishLevel === 'luxury' ? 0.10 : 0) + (renovationArvBoostPct / 100);
   const adjustedRehabBudget = Math.round(rehabBudget * finishCostMult);
   const actualRehabSpend = adjustedRehabBudget * (1 + contingencyPct / 100);
 
@@ -225,6 +227,56 @@ export function shouldMarketChange(currentWeek: number, lastMarketChangeWeek: nu
   // Force first transition by week 16 if market has never changed (lastMarketChangeWeek is 0)
   if (lastMarketChangeWeek === 0 && currentWeek >= 16) return true;
   return false;
+}
+
+/**
+ * Compute market-driven price drift when market condition changes.
+ * Returns a small percentage change to add to the cumulative priceDriftPct.
+ * 
+ * Drift ranges per market condition (applied each ~4-week cycle):
+ *   Terrible:  -1.2% to -0.4%  (prices falling in bad market)
+ *   Poor:      -0.4% to +0.1%  (stagnant/slightly declining)
+ *   Neutral:   +0.0% to +0.5%  (normal appreciation/inflation)
+ *   Good:      +0.3% to +1.0%  (rising market)
+ *   Excellent: +0.6% to +1.5%  (hot market appreciation)
+ * 
+ * Cumulative drift is capped at ±20% to keep the game balanced.
+ */
+export function computePriceDrift(marketCondition: MarketCondition, currentDriftPct: number): number {
+  const DRIFT_CAP = 20;
+
+  const driftRanges: Record<MarketCondition, { min: number; max: number }> = {
+    terrible:  { min: -1.2, max: -0.4 },
+    poor:      { min: -0.4, max: 0.1 },
+    neutral:   { min: 0.0,  max: 0.5 },
+    good:      { min: 0.3,  max: 1.0 },
+    excellent: { min: 0.6,  max: 1.5 },
+  };
+
+  const range = driftRanges[marketCondition] || driftRanges.neutral;
+  const drift = range.min + Math.random() * (range.max - range.min);
+  const newDrift = Math.round((currentDriftPct + drift) * 100) / 100;
+  return Math.max(-DRIFT_CAP, Math.min(DRIFT_CAP, newDrift));
+}
+
+/**
+ * Apply price drift to a property's monetary values.
+ * Returns adjusted values based on cumulative drift percentage.
+ */
+export function applyPriceDrift<T extends { price: number; rentMin: number; rentMax: number; arvMin: number; arvMax: number }>(
+  property: T,
+  driftPct: number
+): T {
+  if (!driftPct || driftPct === 0) return property;
+  const mult = 1 + driftPct / 100;
+  return {
+    ...property,
+    price: Math.round(property.price * mult),
+    rentMin: Math.round(property.rentMin * mult),
+    rentMax: Math.round(property.rentMax * mult),
+    arvMin: Math.round(property.arvMin * mult),
+    arvMax: Math.round(property.arvMax * mult),
+  };
 }
 
 /**
@@ -591,8 +643,9 @@ export async function completeFlipDeal(
   const proFormaOutputs = deal.proFormaOutputs as any;
   const proFormaInputs = deal.proFormaInputs as any;
 
-  // Get property to access ARV and rehab ranges
-  const property = await storage.getProperty(deal.propertyId);
+  // Get property to access ARV and rehab ranges (apply market drift)
+  const rawProperty = await storage.getProperty(deal.propertyId);
+  const property = rawProperty ? applyPriceDrift(rawProperty, gameRun.priceDriftPct ?? 0) : rawProperty;
   
   // Get market multipliers for current conditions
   const market = marketCondition || (gameRun.marketCondition as MarketCondition) || 'good';
@@ -656,6 +709,12 @@ export async function completeFlipDeal(
     const fixedCount = fixedIssueIds.length;
     const fixedBonus = fixedCount > 0 ? Math.min(fixedCount * 0.01, 0.05) : 0;
 
+    const selectedRenovationIds = proFormaInputs?.selectedRenovationIds || [];
+    const renovationArvBoostPct = selectedRenovationIds
+      .map((id: string) => PROPERTY_UPGRADES.find(u => u.id === id))
+      .filter(Boolean)
+      .reduce((sum: number, u: any) => sum + (u.saleImpactPct || 0), 0);
+
     salePrice = calculateFlipSalePrice({
       purchasePrice,
       rehabBudget: rawRehabBudget,
@@ -670,6 +729,7 @@ export async function completeFlipDeal(
       conditionPenalty,
       fixedBonus,
       marketMult,
+      renovationArvBoostPct,
     });
   } else {
     salePrice = proFormaOutputs.arv || 0;
@@ -2008,13 +2068,25 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
       currentMarket = newMarket;
       marketChanged = true;
     }
-    await storage.updateGameRun(gameRunId, {
-      cash: runningCash,
-      currentWeek: newWeek,
-      weeksRemaining: newWeeksRemaining,
-      marketCondition: currentMarket,
-      lastMarketChangeWeek: newWeek,
-    });
+    if (marketChanged) {
+      const currentDrift = gameRun.priceDriftPct ?? 0;
+      await storage.updateGameRun(gameRunId, {
+        cash: runningCash,
+        currentWeek: newWeek,
+        weeksRemaining: newWeeksRemaining,
+        marketCondition: currentMarket,
+        lastMarketChangeWeek: newWeek,
+        priceDriftPct: computePriceDrift(currentMarket, currentDrift),
+      });
+    } else {
+      await storage.updateGameRun(gameRunId, {
+        cash: runningCash,
+        currentWeek: newWeek,
+        weeksRemaining: newWeeksRemaining,
+        marketCondition: currentMarket,
+        lastMarketChangeWeek: newWeek,
+      });
+    }
   } else {
     await storage.updateGameRun(gameRunId, {
       cash: runningCash,
@@ -2401,8 +2473,9 @@ export async function applyCosmeticUpgrade(
   const gameRun = await storage.getGameRun(gameRunId);
   if (!gameRun) throw new Error('Game run not found');
 
-  const property = await storage.getProperty(deal.propertyId);
-  if (!property) throw new Error('Property not found');
+  const rawProperty = await storage.getProperty(deal.propertyId);
+  if (!rawProperty) throw new Error('Property not found');
+  const property = applyPriceDrift(rawProperty, gameRun.priceDriftPct ?? 0);
 
   if (deal.gameRunId !== gameRunId) {
     throw new Error('Deal does not belong to this game run');
@@ -2814,11 +2887,12 @@ export async function activateRentalProperty(
   deal: Deal,
   gameRun: GameRun
 ): Promise<RentalActivationResult> {
-  // Get property to access ground truth rent data
-  const property = await storage.getProperty(deal.propertyId);
-  if (!property) {
+  // Get property to access ground truth rent data (apply market drift)
+  const rawProperty = await storage.getProperty(deal.propertyId);
+  if (!rawProperty) {
     throw new Error('Property not found');
   }
+  const property = applyPriceDrift(rawProperty, gameRun.priceDriftPct ?? 0);
 
   const proFormaInputs = deal.proFormaInputs as any;
   const investigations = await storage.getPropertyInvestigations(gameRun.id);
@@ -2921,6 +2995,18 @@ export async function activateRentalProperty(
   if (validFixedIds.length > 0) {
     const rentBoostPct = Math.min(validFixedIds.length * 0.015, 0.08);
     actualRent = Math.round(actualRent * (1 + rentBoostPct));
+  }
+
+  // Renovation rent boost: strategic upgrades increase rent potential
+  const rentalSelectedRenovationIds = proFormaInputs?.selectedRenovationIds || [];
+  if (rentalSelectedRenovationIds.length > 0) {
+    const renovationRentBoostPct = rentalSelectedRenovationIds
+      .map((id: string) => PROPERTY_UPGRADES.find(u => u.id === id))
+      .filter(Boolean)
+      .reduce((sum: number, u: any) => sum + (u.rentImpactPct || 0), 0);
+    if (renovationRentBoostPct > 0) {
+      actualRent = Math.round(actualRent * (1 + renovationRentBoostPct / 100));
+    }
   }
   
   // Diligence bonus for rentals: thorough investors negotiate better leases,
@@ -3275,10 +3361,11 @@ export async function performContractorWalkthrough(
     return { success: false, error: 'Game run not found' };
   }
 
-  const property = await storage.getProperty(deal.propertyId);
-  if (!property) {
+  const rawProperty = await storage.getProperty(deal.propertyId);
+  if (!rawProperty) {
     return { success: false, error: 'Property not found' };
   }
+  const property = applyPriceDrift(rawProperty, gameRun.priceDriftPct ?? 0);
 
   // Generate walkthrough fee ($400-800)
   const random = seededRandom(dealId * 1000 + gameRun.currentWeek);
@@ -3482,10 +3569,11 @@ export async function initiateRentalRehab(
     return { success: false, error: 'Game run not found' };
   }
 
-  const property = await storage.getProperty(deal.propertyId);
-  if (!property) {
+  const rawProperty = await storage.getProperty(deal.propertyId);
+  if (!rawProperty) {
     return { success: false, error: 'Property not found' };
   }
+  const property = applyPriceDrift(rawProperty, gameRun.priceDriftPct ?? 0);
 
   // Separate repair IDs from upgrade IDs
   const selectedUpgradeIds = (selectedRepairIds || []).filter(id => id.startsWith('upgrade_'));

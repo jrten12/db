@@ -57,7 +57,8 @@ import {
   TIME_PENALTY_TENANT_PAYS_UTILITIES,
   PlayerFinancials,
   getSaleEstimateRange,
-  MARKET_DEFAULTS
+  MARKET_DEFAULTS,
+  applyPriceDrift
 } from '@/lib/gameData';
 import { getEffectiveRanges, getRevealedIssues, getRevealedRandomizedIssues } from '@/lib/propertyIssues';
 import { type Curveball, getTenantMessageForCurveball, curveballHasTenantMessage, getCurveballById } from '@/lib/curveballs';
@@ -348,12 +349,18 @@ export default function Game() {
     }
   }, [queryClient]);
 
-  const { data: properties = [], isLoading: isLoadingProps } = useQuery({
+  const { data: rawProperties = [], isLoading: isLoadingProps } = useQuery({
     queryKey: ['properties'],
     queryFn: api.getProperties,
-    staleTime: 0, // Always refetch properties to ensure we have the latest list
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes but always refetch
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
   });
+
+  const properties = useMemo(() => {
+    const drift = gameRun?.priceDriftPct;
+    if (!drift) return rawProperties;
+    return rawProperties.map(p => applyPriceDrift(p, drift));
+  }, [rawProperties, gameRun?.priceDriftPct]);
 
   const updateGameMutation = useMutation({
     mutationFn: ({ id, updates }: { id: number; updates: Partial<GameRun> }) =>
@@ -1077,10 +1084,14 @@ export default function Game() {
 
       if (proFormaInputs.strategy === 'flip') {
         const rehabBudget = proFormaInputs.rehabBudget ?? 0;
+        const renovationWeeks = proFormaOutputs.renovationWeeks ?? 0;
+        const renovationCost = proFormaOutputs.renovationCost ?? 0;
+        const totalBudget = rehabBudget + renovationCost;
         const hasAppraisal = (completedDiligence[selectedProperty.id] || []).includes('appraisal');
         
-        // If no rehab budget, timeline is 0 (skip rehab phase, go straight to ready-to-list)
-        const rehabWeeks = rehabBudget > 0 ? (proFormaInputs.rehabWeeks ?? 0) : 0;
+        // If no rehab budget and no renovations, timeline is 0
+        const baseRehabWeeks = totalBudget > 0 ? (proFormaInputs.rehabWeeks ?? 0) : 0;
+        const totalWeeks = baseRehabWeeks + renovationWeeks;
         
         if (hasAppraisal) {
           const contingencyPct = proFormaInputs.contingencyPct ?? 0;
@@ -1088,22 +1099,21 @@ export default function Game() {
           const taxesAnnual = proFormaInputs.taxesAnnual ?? 0;
           const insuranceAnnual = proFormaInputs.insuranceAnnual ?? 0;
           
-          const allInBasis = selectedProperty.price + closingCosts + rehabBudget * (1 + contingencyPct / 100);
+          const allInBasis = selectedProperty.price + closingCosts + totalBudget * (1 + contingencyPct / 100);
           const holdingCostPerWeek = Math.round((selectedProperty.price * (interestRate / 100) / 52) +
             (taxesAnnual / 52) + (insuranceAnnual / 52));
           const arvMid = (selectedProperty.arvMin + selectedProperty.arvMax) / 2;
-          const profit = arvMid - allInBasis - (holdingCostPerWeek * rehabWeeks);
+          const profit = arvMid - allInBasis - (holdingCostPerWeek * totalWeeks);
           const roi = proFormaOutputs.totalCashInvested > 0 ? (profit / proFormaOutputs.totalCashInvested) * 100 : 0;
-          setFlipMetrics({ profit, roi, holdWeeks: rehabWeeks, hasAppraisal: true });
+          setFlipMetrics({ profit, roi, holdWeeks: totalWeeks, hasAppraisal: true });
         } else {
-          setFlipMetrics({ profit: 0, roi: 0, holdWeeks: rehabWeeks, hasAppraisal: false });
+          setFlipMetrics({ profit: 0, roi: 0, holdWeeks: totalWeeks, hasAppraisal: false });
         }
 
-        // Start flip - if no rehab budget, use 0 weeks (ready to list immediately)
-        await api.startFlipRehab(newDeal.id, gameRun.id, rehabWeeks);
-        if (rehabBudget > 0) {
-          // Show beautiful construction start notification
-          addConstructionStart(selectedProperty.name, 'flip', rehabWeeks, rehabBudget);
+        // Start flip - if no budget at all, use 0 weeks (ready to list immediately)
+        await api.startFlipRehab(newDeal.id, gameRun.id, totalWeeks);
+        if (totalBudget > 0) {
+          addConstructionStart(selectedProperty.name, 'flip', totalWeeks, totalBudget);
         } else {
           toast.success('Flip started! No renovations planned - ready to list immediately. Sale price will reflect property condition.');
         }
@@ -2654,8 +2664,8 @@ export default function Game() {
             onTreasureFound={(amount, propertyName) => {
               setTreasureData({ amount, propertyName, context: 'walkthrough' });
             }}
-            onStartRepairs={(dealId, propertyName, weeks, cost, varianceInfo) => {
-              addConstructionStart(propertyName, 'rent', weeks, cost, varianceInfo);
+            onStartRepairs={(dealId, propertyName, weeks, cost, varianceInfo, strategy) => {
+              addConstructionStart(propertyName, strategy || 'rent', weeks, cost, varianceInfo);
               queryClient.invalidateQueries({ queryKey: ['deals'] });
               queryClient.invalidateQueries({ queryKey: ['ledger'] });
               if (gameRun) {

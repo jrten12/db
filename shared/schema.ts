@@ -35,6 +35,7 @@ export const gameRuns = pgTable("game_runs", {
   status: text("status").notNull().default("active"),
   marketCondition: text("market_condition").notNull().default("good"), // Current market: terrible, poor, neutral, good, excellent
   lastMarketChangeWeek: integer("last_market_change_week").notNull().default(0), // Week when market last changed
+  priceDriftPct: real("price_drift_pct").notNull().default(0), // Cumulative market-driven price drift percentage
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

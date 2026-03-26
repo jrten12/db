@@ -6,6 +6,7 @@ const FINISH_LEVELS = Object.keys(FINISH_LEVEL_CONFIG) as FinishLevelKey[];
 import { getEffectiveRanges, EffectiveRanges, getRevealedIssues, getRevealedRandomizedIssues, type PropertyIssue } from '@/lib/propertyIssues';
 import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet, ArrowDown } from 'lucide-react';
 import { ItemizedRepairsPanel } from './ItemizedRepairsPanel';
+import { RenovationsPanel } from './RenovationsPanel';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AssumptionInput, PercentAssumption } from './AssumptionInput';
 import { FormulaCanvas, MiniFormula } from './FormulaCanvas';
@@ -427,12 +428,13 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     return risks;
   }, [inputs, effectiveRanges, propertyRanges]);
 
-  const closingCosts = Math.round(property.price * 0.025);
-  const allInBasis = property.price + closingCosts + n(inputs.rehabBudget) * (1 + n(inputs.contingencyPct) / 100);
-  
   const liveOutputs = useMemo(() => {
     return calculateProForma(inputs, property, playerFinancials, weekNumber);
   }, [inputs, property, playerFinancials, weekNumber]);
+
+  const closingCosts = Math.round(property.price * 0.025);
+  const renovationCostForDisplay = liveOutputs.renovationCost ?? 0;
+  const allInBasis = property.price + closingCosts + (n(inputs.rehabBudget) + renovationCostForDisplay) * (1 + n(inputs.contingencyPct) / 100);
 
   const tenantPaysUtilitiesVacancyPenalty = inputs.utilities ? 0 : 1.92;
   const effectiveVacancyRate = n(inputs.vacancyRate) + tenantPaysUtilitiesVacancyPenalty;
@@ -499,6 +501,13 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
       rehabBudget: avgCost,
     });
   }, [revealedIssues, inputs, onInputsChange]);
+
+  const handleRenovationSelectionChange = useCallback((selectedIds: string[]) => {
+    onInputsChange({
+      ...inputs,
+      selectedRenovationIds: selectedIds,
+    });
+  }, [inputs, onInputsChange]);
   
   const missingDiligence = {
     rent: !hasMarketStudy,
@@ -869,6 +878,16 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         testId="slider-rental-rehab-budget"
                       />
                     )}
+                    <div className="mt-3">
+                      <RenovationsPanel
+                        selectedRenovationIds={inputs.selectedRenovationIds || []}
+                        onSelectionChange={handleRenovationSelectionChange}
+                        finishLevel={inputs.finishLevel}
+                        strategy={inputs.strategy}
+                        baseMonthlyRent={n(inputs.expectedRent)}
+                        conditionTag={property.conditionTag}
+                      />
+                    </div>
                   </div>
                 </>
               ) : (
@@ -892,6 +911,16 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                           </div>
                         </div>
                       )}
+                      <div className="mt-3">
+                        <RenovationsPanel
+                          selectedRenovationIds={inputs.selectedRenovationIds || []}
+                          onSelectionChange={handleRenovationSelectionChange}
+                          finishLevel={inputs.finishLevel}
+                          strategy={inputs.strategy}
+                          baseMonthlyRent={n(inputs.expectedRent)}
+                          conditionTag={property.conditionTag}
+                        />
+                      </div>
                     </div>
                   ) : (
                     <>
@@ -913,6 +942,16 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         zeroBadge="No Rehab"
                         testId="slider-rehab-budget"
                       />
+                      <div className="col-span-full mt-3">
+                        <RenovationsPanel
+                          selectedRenovationIds={inputs.selectedRenovationIds || []}
+                          onSelectionChange={handleRenovationSelectionChange}
+                          finishLevel={inputs.finishLevel}
+                          strategy={inputs.strategy}
+                          baseMonthlyRent={n(inputs.expectedRent)}
+                          conditionTag={property.conditionTag}
+                        />
+                      </div>
                     </>
                   )}
                   

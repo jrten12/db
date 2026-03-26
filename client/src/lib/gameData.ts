@@ -1,4 +1,5 @@
 import type { Property } from '@shared/schema';
+import { PROPERTY_UPGRADES } from '@shared/propertyIssues';
 
 export interface ProFormaInputs {
   strategy: 'rent' | 'flip';
@@ -28,6 +29,8 @@ export interface ProFormaInputs {
   discoveredIssueIds?: string[];  // Issue IDs discovered during diligence
   fixedIssueIds?: string[];       // Issue IDs that were fixed during rehab
 
+  // Renovation tracking - strategic upgrades (distinct from repairs)
+  selectedRenovationIds?: string[];  // Upgrade IDs selected from PROPERTY_UPGRADES
 }
 
 // Finish level multipliers
@@ -281,6 +284,16 @@ export interface ProFormaOutputs {
   // Flip-specific outputs (only meaningful when strategy is 'flip')
   flipProfit: number;
   flipROI: number;
+  // Renovation outputs
+  renovationCost?: number;
+  renovationWeeks?: number;
+  renovationRentBoostPct?: number;
+  renovationArvBoostPct?: number;
+  // Computed values exposed for display
+  rehabBudgetAdjusted?: number;
+  finishLevelLabel?: string;
+  rentWithFinishBoost?: number;
+  arvWithFinishBoost?: number;
 }
 
 // Default LTV at 75% (25% down payment, ~7.5% interest)
@@ -327,6 +340,7 @@ export const defaultProForma: ProFormaInputs = {
   arvEstimate: null,
   fixedIssueIds: [],
   discoveredIssueIds: [],
+  selectedRenovationIds: [],
 };
 
 // Helper to get property-specific defaults based on price
@@ -429,6 +443,16 @@ export const calculateProForma = (
   const rehabBudget = Math.round(rawRehabBudget * finishConfig.costMultiplier);
   const contingencyPct = inputs.contingencyPct ?? 0;
   const rehabWeeks = inputs.rehabWeeks ?? 4;
+
+  // Calculate renovation costs and impacts from selected upgrades
+  const selectedRenovations = (inputs.selectedRenovationIds || [])
+    .map(id => PROPERTY_UPGRADES.find(u => u.id === id))
+    .filter(Boolean) as typeof PROPERTY_UPGRADES[number][];
+  const renovationCostRaw = selectedRenovations.reduce((sum, r) => sum + Math.round((r.costMin + r.costMax) / 2), 0);
+  const renovationCost = Math.round(renovationCostRaw * finishConfig.costMultiplier);
+  const renovationWeeks = selectedRenovations.reduce((sum, r) => sum + r.timelineWeeks, 0);
+  const renovationRentBoostPct = selectedRenovations.reduce((sum, r) => sum + r.rentImpactPct, 0);
+  const renovationArvBoostPct = selectedRenovations.reduce((sum, r) => sum + r.saleImpactPct, 0);
   
   // Derive financing terms from LTV, with player-state-aware interest rate when available
   // weekNumber allows for market rate variability over time
@@ -443,10 +467,14 @@ export const calculateProForma = (
   const interestRate = baseInterestRate + constructionLoanPremium;
   const loanOriginationPct = getLoanFeesFromLTV(ltv);
 
+  // Combined rehab = repairs + renovations
+  const totalRehabBudget = rehabBudget + renovationCost;
+  const totalRehabWeeks = rehabWeeks + renovationWeeks;
+
   // When financeRehab is enabled, include rehab in the loan (acquisition + construction loan)
   // This allows players to finance both purchase and rehab with one loan
   const rehabWithContingencyForLoan = inputs.financeRehab 
-    ? rehabBudget * (1 + contingencyPct / 100) 
+    ? totalRehabBudget * (1 + contingencyPct / 100) 
     : 0;
   const loanBasis = property.price + rehabWithContingencyForLoan;
   
@@ -461,9 +489,10 @@ export const calculateProForma = (
     ? loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1)
     : 0;
 
-  // Apply luxury finish rent boost (luxury upgrades command higher rents)
-  const rentWithFinishBoost = rehabBudget > 0 
-    ? expectedRent * (1 + finishConfig.rentBoostPct / 100) 
+  // Apply luxury finish rent boost + renovation rent boosts
+  const totalRentBoostPct = (totalRehabBudget > 0 ? finishConfig.rentBoostPct : 0) + renovationRentBoostPct;
+  const rentWithFinishBoost = totalRentBoostPct > 0
+    ? expectedRent * (1 + totalRentBoostPct / 100)
     : expectedRent;
   const tenantPaysUtilitiesVacancyPenalty = inputs.utilities ? 0 : 1.92;
   const effectiveVacancyRate = vacancyRate + tenantPaysUtilitiesVacancyPenalty;
@@ -479,15 +508,15 @@ export const calculateProForma = (
   const noiMonthly = effectiveRent - monthlyOpEx;
   const cashFlowMonthly = noiMonthly - debtServiceMonthly;
 
-  // Calculate holding costs for flips (interest + taxes + insurance during rehab)
+  // Calculate holding costs for flips (interest + taxes + insurance during rehab + renovations)
   const holdingCostPerWeek = Math.round((property.price * (interestRate / 100) / 52) + 
     (taxesAnnual / 52) + (insuranceAnnual / 52));
-  const flipHoldingCosts = inputs.strategy === 'flip' ? holdingCostPerWeek * rehabWeeks : 0;
+  const flipHoldingCosts = inputs.strategy === 'flip' ? holdingCostPerWeek * totalRehabWeeks : 0;
 
   // Total cash invested = all cash out of pocket:
   // Down payment + Closing costs + Loan fees + Holding costs (flip) + Rehab with contingency
   // Note: If financeRehab is true, rehab is included in the loan, not paid upfront
-  const rehabWithContingency = rehabBudget * (1 + contingencyPct / 100);
+  const rehabWithContingency = totalRehabBudget * (1 + contingencyPct / 100);
   const rehabCashOutOfPocket = inputs.financeRehab ? 0 : rehabWithContingency;
   const totalCashInvested = downPaymentAmount + closingCosts + loanOriginationFees + flipHoldingCosts + rehabCashOutOfPocket;
   
@@ -498,11 +527,12 @@ export const calculateProForma = (
   // Calculate flip-specific metrics (profit and ROI)
   // These are only meaningful when strategy is 'flip', but we always calculate for consistency
   // Use player's ARV estimate if provided, otherwise use the midpoint of the ARV range
-  // Apply luxury finish ARV boost (luxury upgrades increase property value)
+  // Apply luxury finish ARV boost + renovation ARV boosts
   const arvMid = (property.arvMin + property.arvMax) / 2;
   const baseARV = inputs.arvEstimate !== null ? inputs.arvEstimate : arvMid;
-  const playerARV = rehabBudget > 0 
-    ? Math.round(baseARV * (1 + finishConfig.arvBoostPct / 100))
+  const totalArvBoostPct = (totalRehabBudget > 0 ? finishConfig.arvBoostPct : 0) + renovationArvBoostPct;
+  const playerARV = totalArvBoostPct > 0
+    ? Math.round(baseARV * (1 + totalArvBoostPct / 100))
     : baseARV;
   const sellingCostsPct = inputs.sellingCostsPct ?? 6;
   const sellingCosts = playerARV * (sellingCostsPct / 100);
@@ -524,12 +554,32 @@ export const calculateProForma = (
     loanTermMonths: numPayments,
     flipProfit,
     flipROI,
-    rehabBudgetAdjusted: rehabBudget,
+    rehabBudgetAdjusted: totalRehabBudget,
     finishLevelLabel: finishConfig.label,
     rentWithFinishBoost: Math.round(rentWithFinishBoost),
     arvWithFinishBoost: playerARV,
+    renovationCost,
+    renovationWeeks,
+    renovationRentBoostPct,
+    renovationArvBoostPct,
   };
 };
+
+export function applyPriceDrift<T extends { price: number; rentMin: number; rentMax: number; arvMin: number; arvMax: number }>(
+  property: T,
+  driftPct: number | null | undefined
+): T {
+  if (!driftPct || driftPct === 0) return property;
+  const mult = 1 + driftPct / 100;
+  return {
+    ...property,
+    price: Math.round(property.price * mult),
+    rentMin: Math.round(property.rentMin * mult),
+    rentMax: Math.round(property.rentMax * mult),
+    arvMin: Math.round(property.arvMin * mult),
+    arvMax: Math.round(property.arvMax * mult),
+  };
+}
 
 export const formatCurrency = (value: number): string => {
   const absValue = Math.abs(value);

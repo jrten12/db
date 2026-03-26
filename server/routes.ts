@@ -1372,8 +1372,9 @@ export async function registerRoutes(
           (item: any) => !completedRepairIds.includes(item.id)
         );
 
-        const property = await storage.getProperty(deal.propertyId);
+        const rawProperty = await storage.getProperty(deal.propertyId);
         const gameRun = await storage.getGameRun(gameRunId);
+        const property = (rawProperty && gameRun) ? gameMechanics.applyPriceDrift(rawProperty, gameRun.priceDriftPct ?? 0) : rawProperty;
         const completedUpgradeIds = ((deal.proFormaOutputs as any)?.completedUpgradeIds as string[]) || [];
         const upgradeItems = (property && gameRun) ? gameMechanics.generateUpgradeItems(
           property,

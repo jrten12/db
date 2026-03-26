@@ -92,11 +92,10 @@ export const globalLimiter = rateLimit({
 
 export const dealLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 10,
+  max: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  message: 'Too many deal attempts. Please wait before trying again.',
-  handler: createLimiterHandler('Too many deal attempts. Please wait a minute before trying again.'),
+  handler: createLimiterHandler('Too many deal attempts. Please wait a moment.', false),
 });
 
 export const ledgerLimiter = rateLimit({

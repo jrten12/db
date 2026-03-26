@@ -252,8 +252,11 @@ export const api = {
       body: JSON.stringify({ gameRunId }),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to sell rental');
+      const err = await res.json().catch(() => null);
+      if (res.status === 429) {
+        throw new Error(err?.message || 'Please wait a moment before trying again.');
+      }
+      throw new Error(err?.error || err?.message || 'Failed to sell rental');
     }
     return res.json();
   },
@@ -274,8 +277,11 @@ export const api = {
       body: JSON.stringify({ gameRunId }),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to sell flip property');
+      const err = await res.json().catch(() => null);
+      if (res.status === 429) {
+        throw new Error(err?.message || 'Please wait a moment before trying again.');
+      }
+      throw new Error(err?.error || err?.message || 'Failed to sell flip property');
     }
     return res.json();
   },

@@ -1,9 +1,41 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, Trophy, Star, Target, ChevronRight, Gauge, Award, DollarSign } from 'lucide-react';
 import dbLogoImage from '@assets/db_logo_64.webp';
 const heroBgPattern = '/hero-bg-pattern.webp';
 import { useMusic } from '@/hooks/useMusicPlayer';
+
+function AnimatedCounter({ target, prefix = '', suffix = '', duration = 2000 }: { target: number; prefix?: string; suffix?: string; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated) {
+          setHasAnimated(true);
+          const start = performance.now();
+          const animate = (now: number) => {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.floor(eased * target));
+            if (progress < 1) requestAnimationFrame(animate);
+          };
+          requestAnimationFrame(animate);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration, hasAnimated]);
+
+  return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
+}
 
 const GameShowcase = lazy(() => import('@/components/GameShowcase').then(m => ({ default: m.GameShowcase })));
 const Footer = lazy(() => import('@/components/Footer'));
@@ -56,9 +88,222 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 function StatCallout({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center px-3">
-      <div className="font-mono font-black text-xl sm:text-xl" style={{ color: '#d4af37' }}>{value}</div>
+      <div className="font-mono font-black text-xl sm:text-xl landing-stat-pulse" style={{ color: '#d4af37' }}>{value}</div>
       <div className="text-[11px] sm:text-[11px] leading-tight mt-1" style={{ color: 'rgba(225,220,205,0.45)' }}>{label}</div>
     </div>
+  );
+}
+
+function FloatingProfitParticles() {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+      <div className="absolute left-[15%] bottom-[20%] landing-profit-drift">
+        <span className="font-mono text-sm font-bold" style={{ color: 'rgba(16,185,129,0.6)' }}>+$4,200</span>
+      </div>
+      <div className="absolute right-[20%] bottom-[30%] landing-profit-drift-2">
+        <span className="font-mono text-xs font-bold" style={{ color: 'rgba(212,175,55,0.5)' }}>+$12,800</span>
+      </div>
+      <div className="absolute left-[40%] bottom-[15%] landing-profit-drift-3">
+        <span className="font-mono text-sm font-bold" style={{ color: 'rgba(16,185,129,0.4)' }}>+$8,500</span>
+      </div>
+      <div className="absolute right-[35%] bottom-[25%] landing-profit-drift" style={{ animationDelay: '2s' }}>
+        <span className="font-mono text-xs font-bold" style={{ color: 'rgba(74,222,128,0.4)' }}>+$24,300</span>
+      </div>
+    </div>
+  );
+}
+
+function PerformanceStatsShowcase() {
+  return (
+    <section
+      className="relative py-10 lg:py-16 px-5 overflow-hidden"
+      style={{ background: 'linear-gradient(180deg, #131316 0%, #141418 50%, #131316 100%)' }}
+      data-testid="section-performance-stats"
+    >
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full landing-glow-pulse" style={{ background: 'rgba(168,85,247,0.08)' }} />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full landing-glow-pulse" style={{ background: 'rgba(16,185,129,0.06)', animationDelay: '2s' }} />
+      </div>
+      <div className="absolute inset-x-0 top-0 h-[1px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.3), rgba(212,175,55,0.3), transparent)' }} />
+
+      <div className="relative z-10 max-w-5xl mx-auto">
+        <div className="text-center mb-8 lg:mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{ background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.15)' }}>
+            <Gauge className="w-3 h-3" style={{ color: 'rgba(168,85,247,0.7)' }} />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(168,85,247,0.8)' }}>Track Your Growth</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl lg:text-[2.5rem] font-serif mb-3 tracking-[-0.01em] leading-tight" style={{ color: '#f0e6d0' }}>
+            Every Deal Shapes Your <span className="landing-gold-shimmer">Investor Profile</span>
+          </h2>
+          <p className="text-sm sm:text-base max-w-2xl mx-auto leading-relaxed" style={{ color: 'rgba(225,220,205,0.55)' }}>
+            Real-time coaching, detailed scorecards, and benchmarks against other players. Track the metrics that matter — not just money, but the decisions behind it.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 mb-6">
+          <div className="perf-stats-card p-5 landing-float" data-testid="perf-card-profile">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.15), rgba(168,85,247,0.05))', border: '1px solid rgba(168,85,247,0.25)' }}>
+                <Star className="w-5 h-5" style={{ color: '#a855f7' }} />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm" style={{ color: '#f0e6d0' }}>Investor Profile</h3>
+                <p className="text-[10px]" style={{ color: 'rgba(225,220,205,0.4)' }}>Updates with every decision</p>
+              </div>
+            </div>
+            <div className="rounded-lg p-3 mb-3" style={{ background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.12)' }}>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)' }}>
+                  <TrendingUp className="w-3.5 h-3.5" style={{ color: '#10b981' }} />
+                </div>
+                <span className="font-bold text-sm" style={{ color: '#4ade80' }}>Savvy Investor</span>
+              </div>
+              <p className="text-[11px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                "Sharp underwriter who knows when to walk away."
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              {['Diligence-first approach', 'Accurate pro forma models', 'Strong risk awareness'].map((trait) => (
+                <div key={trait} className="flex items-center gap-2">
+                  <ChevronRight className="w-3 h-3 flex-shrink-0" style={{ color: 'rgba(168,85,247,0.5)' }} />
+                  <span className="text-[11px]" style={{ color: 'rgba(225,220,205,0.55)' }}>{trait}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="perf-stats-card p-5 landing-float-delayed" data-testid="perf-card-scorecard">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05))', border: '1px solid rgba(16,185,129,0.25)' }}>
+                <Target className="w-5 h-5" style={{ color: '#10b981' }} />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm" style={{ color: '#f0e6d0' }}>Deal Scorecard</h3>
+                <p className="text-[10px]" style={{ color: 'rgba(225,220,205,0.4)' }}>Graded on what matters</p>
+              </div>
+            </div>
+            <div className="space-y-2.5">
+              {[
+                { label: 'Underwriting Accuracy', value: 87, color: '#10b981' },
+                { label: 'Risk Management', value: 72, color: '#06b6d4' },
+                { label: 'Market Timing', value: 64, color: '#f59e0b' },
+                { label: 'Portfolio Balance', value: 91, color: '#a855f7' },
+              ].map((metric) => (
+                <div key={metric.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-medium" style={{ color: 'rgba(225,220,205,0.5)' }}>{metric.label}</span>
+                    <span className="font-mono text-[11px] font-bold" style={{ color: metric.color }}>{metric.value}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${metric.value}%`, background: `linear-gradient(90deg, ${metric.color}80, ${metric.color})` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="perf-stats-card p-5 landing-float" style={{ animationDelay: '0.5s' }} data-testid="perf-card-benchmarks">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))', border: '1px solid rgba(212,175,55,0.25)' }}>
+                <Award className="w-5 h-5" style={{ color: '#d4af37' }} />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm" style={{ color: '#f0e6d0' }}>Benchmarks</h3>
+                <p className="text-[10px]" style={{ color: 'rgba(225,220,205,0.4)' }}>Compare against all players</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {[
+                { label: 'Cash-on-Cash Return', you: '8.4%', avg: '5.2%', better: true },
+                { label: 'Diligence Depth', you: '4/4', avg: '2.1/4', better: true },
+                { label: 'Avg Hold Period', you: '14 mo', avg: '18 mo', better: true },
+                { label: 'Pro Forma Accuracy', you: 'B+', avg: 'C', better: true },
+              ].map((bench) => (
+                <div key={bench.label} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
+                  <span className="text-[10px]" style={{ color: 'rgba(225,220,205,0.45)' }}>{bench.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[10px] font-bold" style={{ color: bench.better ? '#4ade80' : '#f87171' }}>{bench.you}</span>
+                    <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                    <span className="font-mono text-[10px]" style={{ color: 'rgba(225,220,205,0.3)' }}>{bench.avg}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-2 text-center" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <span className="text-[10px] font-medium" style={{ color: 'rgba(212,175,55,0.5)' }}>You vs. Average Player</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.04), rgba(19,19,22,0.95), rgba(16,185,129,0.04))', border: '1px solid rgba(168,85,247,0.1)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)' }}>
+              <Trophy className="w-4 h-4" style={{ color: '#fbbf24' }} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: '#f0e6d0' }}>Personalized coaching after every deal</p>
+              <p className="text-[11px]" style={{ color: 'rgba(225,220,205,0.45)' }}>Suggestions adapt to your play style and weak spots</p>
+            </div>
+          </div>
+          <Link href="/game">
+            <button className="group flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all active:scale-[0.97]" style={{ background: 'rgba(168,85,247,0.12)', color: '#c084fc', border: '1px solid rgba(168,85,247,0.3)' }} data-testid="button-see-your-stats">
+              See Your Stats
+              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProfitPotentialStrip() {
+  return (
+    <section className="relative py-6 lg:py-8 px-5 overflow-hidden" data-testid="profit-potential-strip">
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div className="absolute top-0 left-1/3 w-96 h-32 landing-glow-pulse" style={{ background: 'rgba(16,185,129,0.06)', filter: 'blur(40px)' }} />
+        <div className="absolute bottom-0 right-1/3 w-80 h-24 landing-glow-pulse" style={{ background: 'rgba(212,175,55,0.05)', filter: 'blur(40px)', animationDelay: '2s' }} />
+      </div>
+      <div className="relative z-10 max-w-5xl mx-auto">
+        <div
+          className="rounded-2xl py-5 px-4 sm:px-8 landing-border-glow"
+          style={{
+            background: 'linear-gradient(135deg, rgba(16,185,129,0.03) 0%, rgba(12,12,16,0.98) 50%, rgba(212,175,55,0.03) 100%)',
+            border: '1px solid rgba(16,185,129,0.15)',
+          }}
+        >
+          <div className="text-center mb-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-1" style={{ color: 'rgba(16,185,129,0.6)' }}>Top Player Results</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6">
+            <div className="text-center">
+              <div className="font-mono font-black text-2xl sm:text-3xl landing-stat-pulse" style={{ color: '#10b981' }}>
+                <AnimatedCounter target={142} prefix="+$" suffix="K" />
+              </div>
+              <div className="text-[10px] mt-1" style={{ color: 'rgba(225,220,205,0.4)' }}>Best Portfolio Return</div>
+            </div>
+            <div className="text-center">
+              <div className="font-mono font-black text-2xl sm:text-3xl landing-stat-pulse" style={{ color: '#d4af37', animationDelay: '0.5s' }}>
+                <AnimatedCounter target={24} suffix="%" />
+              </div>
+              <div className="text-[10px] mt-1" style={{ color: 'rgba(225,220,205,0.4)' }}>Cash-on-Cash ROI</div>
+            </div>
+            <div className="text-center">
+              <div className="font-mono font-black text-2xl sm:text-3xl landing-stat-pulse" style={{ color: '#06b6d4', animationDelay: '1s' }}>
+                <AnimatedCounter target={38} prefix="$" suffix="K" />
+              </div>
+              <div className="text-[10px] mt-1" style={{ color: 'rgba(225,220,205,0.4)' }}>Single Flip Profit</div>
+            </div>
+            <div className="text-center">
+              <div className="font-mono font-black text-2xl sm:text-3xl landing-stat-pulse" style={{ color: '#a855f7', animationDelay: '1.5s' }}>
+                A+
+              </div>
+              <div className="text-[10px] mt-1" style={{ color: 'rgba(225,220,205,0.4)' }}>Highest Accuracy Grade</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -151,6 +396,7 @@ export default function Landing() {
           />
         </div>
 
+        <FloatingProfitParticles />
         <div
           className="absolute inset-x-0 bottom-0 h-px"
           style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.3), rgba(16,185,129,0.2), rgba(212,175,55,0.3), transparent)' }}
@@ -217,7 +463,7 @@ export default function Landing() {
             </div>
 
             {/* RIGHT: System dashboard panel */}
-            <div className="w-full lg:w-[400px] xl:w-[440px] flex-shrink-0">
+            <div className="w-full lg:w-[400px] xl:w-[440px] flex-shrink-0 landing-float">
               <div
                 className="rounded-lg overflow-hidden"
                 style={{
@@ -444,10 +690,14 @@ export default function Landing() {
           </div>
         </div>
       </section>
+      {/* === PROFIT POTENTIAL STRIP === */}
+      <ProfitPotentialStrip />
       {/* === GAME SHOWCASE (GAMEPLAY FIRST) === */}
       <Suspense fallback={<div className="py-16" />}>
         <GameShowcase />
       </Suspense>
+      {/* === PERFORMANCE STATS SHOWCASE === */}
+      <PerformanceStatsShowcase />
       {/* === THIS IS NOT A CALCULATOR === */}
       <section
         className="relative py-10 lg:py-16 overflow-hidden"

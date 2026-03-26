@@ -56,26 +56,29 @@ export function checkBlockedIP(req: Request, res: Response, next: NextFunction) 
   next();
 }
 
-const createLimiterHandler = (message: string) => (req: Request, res: Response) => {
+const createLimiterHandler = (message: string, addStrikes = true) => (req: Request, res: Response) => {
   const ip = getClientIP(req);
-  const isBlocked = addStrike(ip);
   
-  if (isBlocked) {
-    const record = blockedIPs.get(ip);
-    const remainingMs = record ? record.blockedUntil - Date.now() : BLOCK_DURATION_MS;
-    const remainingMins = Math.ceil(remainingMs / 60000);
-    return res.status(429).json({
-      error: 'Too Many Requests',
-      message: `Your access is temporarily blocked. Please try again in ${remainingMins} minutes.`,
-      retryAfter: Math.ceil(remainingMs / 1000),
-    });
+  if (addStrikes) {
+    const isBlocked = addStrike(ip);
+    
+    if (isBlocked) {
+      const record = blockedIPs.get(ip);
+      const remainingMs = record ? record.blockedUntil - Date.now() : BLOCK_DURATION_MS;
+      const remainingMins = Math.ceil(remainingMs / 60000);
+      return res.status(429).json({
+        error: 'Too Many Requests',
+        message: `Your access is temporarily blocked. Please try again in ${remainingMins} minutes.`,
+        retryAfter: Math.ceil(remainingMs / 1000),
+      });
+    }
   }
   
   log(`Rate limit exceeded for IP ${ip}`, 'security');
   return res.status(429).json({
     error: 'Too Many Requests',
     message,
-    retryAfter: 60,
+    retryAfter: 5,
   });
 };
 
@@ -106,10 +109,10 @@ export const ledgerLimiter = rateLimit({
 
 export const gameActionLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 20,
+  max: 120,
   standardHeaders: true,
   legacyHeaders: false,
-  handler: createLimiterHandler('Too many game actions. Please wait before trying again.'),
+  handler: createLimiterHandler('Too many game actions. Please wait a moment.', false),
 });
 
 export const authLimiter = rateLimit({

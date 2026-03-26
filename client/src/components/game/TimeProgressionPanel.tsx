@@ -5,7 +5,7 @@
  * Click on a property to see detailed financials
  */
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { playPurchaseConfirmSound } from '@/hooks/useClickSound';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -352,7 +352,12 @@ export function TimeProgressionPanel({
   const bankruptcyRisk = cashAfterExpenses < 0;
   const lowCashWarning = !bankruptcyRisk && cashAfterExpenses < 2000 && expenseEstimate.totalExpenses > 0;
 
+  const lastAdvanceRef = useRef(0);
   const handleAdvanceWeek = async () => {
+    const now = Date.now();
+    if (now - lastAdvanceRef.current < 400) return;
+    lastAdvanceRef.current = now;
+
     if (bankruptcyRisk && !showBankruptcyWarning) {
       setShowBankruptcyWarning(true);
       return;

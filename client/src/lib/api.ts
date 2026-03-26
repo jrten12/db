@@ -179,7 +179,13 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
-    if (!res.ok) throw new Error('Failed to advance game week');
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      if (res.status === 429) {
+        throw new Error(body?.message || 'Slow down — wait a moment before skipping again.');
+      }
+      throw new Error(body?.message || 'Failed to advance month');
+    }
     return res.json();
   },
 

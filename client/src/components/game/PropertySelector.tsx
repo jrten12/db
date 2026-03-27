@@ -67,64 +67,57 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
 
   return (
     <div className="space-y-6" data-testid="property-list">
-      {/* Header - Provocative framing */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-white tracking-wide">
+          <h2 className="font-display text-xl md:text-2xl font-bold text-white/90 tracking-wide">
             Property Market
           </h2>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur rounded-full border border-white/10">
-          <Eye className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-300">{filteredProperties.length} to investigate</span>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/6">
+          <Eye className="w-3.5 h-3.5 text-white/30" />
+          <span className="text-xs text-white/40">{filteredProperties.length} to investigate</span>
         </div>
       </div>
 
       {/* Location Filter Tabs - iOS style with proper touch targets */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scroll-smooth-ios scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
         <button
           onClick={() => onLocationFilterChange('all')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ios-spring touch-target-sm tap-scale flex-shrink-0 ${
+          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium transition-colors duration-150 flex-shrink-0 ${
             locationFilter === 'all'
-              ? 'bg-gold text-slate-900'
-              : 'bg-white/5 text-gray-300 hover:bg-white/10 active:bg-white/15 border border-white/10'
+              ? 'bg-white/10 text-white'
+              : 'text-white/40 hover:text-white/60 hover:bg-white/5'
           }`}
           data-testid="button-filter-all"
         >
           All
-          <span className={`text-xs px-1.5 py-0.5 rounded-full ${locationFilter === 'all' ? 'bg-slate-900/20' : 'bg-white/10'}`}>
-            {properties.length}
-          </span>
+          <span className="text-xs text-white/30">{properties.length}</span>
         </button>
         <button
           onClick={() => onLocationFilterChange('urban')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ios-spring touch-target-sm tap-scale flex-shrink-0 ${
+          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium transition-colors duration-150 flex-shrink-0 ${
             locationFilter === 'urban'
-              ? 'bg-blue-500 text-white'
-              : 'bg-white/5 text-gray-300 hover:bg-white/10 active:bg-white/15 border border-white/10'
+              ? 'bg-white/10 text-white'
+              : 'text-white/40 hover:text-white/60 hover:bg-white/5'
           }`}
           data-testid="button-filter-urban"
         >
-          <Building2 className="w-4 h-4" />
+          <Building2 className="w-3.5 h-3.5" />
           Urban
-          <span className={`text-xs px-1.5 py-0.5 rounded-full ${locationFilter === 'urban' ? 'bg-white/20' : 'bg-white/10'}`}>
-            {urbanCount}
-          </span>
+          <span className="text-xs text-white/30">{urbanCount}</span>
         </button>
         <button
           onClick={() => onLocationFilterChange('suburban')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ios-spring touch-target-sm tap-scale flex-shrink-0 ${
+          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium transition-colors duration-150 flex-shrink-0 ${
             locationFilter === 'suburban'
-              ? 'bg-emerald-500 text-white'
-              : 'bg-white/5 text-gray-300 hover:bg-white/10 active:bg-white/15 border border-white/10'
+              ? 'bg-white/10 text-white'
+              : 'text-white/40 hover:text-white/60 hover:bg-white/5'
           }`}
           data-testid="button-filter-suburban"
         >
-          <TreePine className="w-4 h-4" />
+          <TreePine className="w-3.5 h-3.5" />
           Suburban
-          <span className={`text-xs px-1.5 py-0.5 rounded-full ${locationFilter === 'suburban' ? 'bg-white/20' : 'bg-white/10'}`}>
-            {suburbanCount}
-          </span>
+          <span className="text-xs text-white/30">{suburbanCount}</span>
         </button>
       </div>
 
@@ -192,29 +185,24 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
               onClick={() => !isUnavailable && !canSell && onSelect(property.id)}
               role={isUnavailable ? undefined : "button"}
               tabIndex={isUnavailable ? undefined : 0}
-              className={`group relative rounded-2xl overflow-hidden text-left transition-all duration-300 card-3d card-shine ${
+              className={`group relative rounded-xl overflow-hidden text-left transition-all duration-200 ${
                 isUnavailable
-                  ? 'opacity-85 cursor-default'
+                  ? 'opacity-70 cursor-default'
                   : canSell
                     ? 'opacity-100'
                     : isSelected
-                      ? 'ring-2 ring-gold scale-[1.01] shadow-xl shadow-gold/20 cursor-pointer'
-                      : 'hover:shadow-xl hover:shadow-black/40 cursor-pointer'
+                      ? 'ring-1 ring-white/20 cursor-pointer'
+                      : 'hover:bg-white/[0.03] cursor-pointer'
               }`}
               data-testid={`property-card-${property.id}`}
-              style={{
-                transformStyle: 'preserve-3d',
-              }}
             >
-              {/* Card Background */}
-              <div className="absolute inset-0 bg-gradient-to-b from-slate-800/90 to-slate-900/95 backdrop-blur" />
+              <div className="absolute inset-0 bg-white/[0.02] border border-white/6 rounded-xl" />
               
-              {/* Corner Ribbon for Rehab In Progress */}
               {isInRehab && (
-                <div className="absolute top-0 right-0 z-20 overflow-hidden w-24 h-24">
-                  <div className="absolute top-3 -right-8 w-32 bg-orange-500 text-white text-xs font-bold py-1 text-center transform rotate-45 shadow-lg">
-                    RENOVATING
-                  </div>
+                <div className="absolute top-2 right-2 z-20">
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-amber-400/80 bg-black/50 px-2 py-0.5 rounded">
+                    Renovating
+                  </span>
                 </div>
               )}
               
@@ -229,48 +217,40 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                 />
                 
                 {/* Gradient overlays */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[hsl(220,14%,6%)] via-[hsl(220,14%,6%)]/30 to-transparent" />
                 
-                {/* Work in Progress Badge */}
                 {hasInvestigations && !isUnavailable && (
-                  <div className="absolute top-3 left-3">
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/90 backdrop-blur-md rounded-lg border border-amber-400/50 animate-pulse">
-                      <Wrench className="w-4 h-4 text-white" />
-                      <span className="text-xs font-semibold text-white">In Progress</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Question mark overlay - invites investigation */}
-                {!isUnavailable && (
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 cursor-help" title="Click to investigate this property and reveal hidden financial information">
-                      <HelpCircle className="w-4 h-4 text-amber-400" />
-                      <span className="text-xs text-white">Investigate</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Price & Size - bottom row over gradient */}
-                <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between gap-2">
-                  <div className="px-2.5 py-1 bg-black/70 backdrop-blur-md rounded-lg border border-white/10">
-                    <span className="text-lg font-bold text-white font-mono">
-                      {formatCurrency(property.price)}
+                  <div className="absolute top-2 left-2">
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-white/70 bg-black/50 px-2 py-0.5 rounded">
+                      In Progress
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 px-2 py-1 bg-black/70 backdrop-blur-md rounded-lg border border-white/10">
-                    <span className="text-sm font-bold text-white">{property.sizeSqft.toLocaleString()}</span>
-                    <span className="text-xs text-gray-400">sqft</span>
+                )}
+
+                {!isUnavailable && (
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                    <span className="text-[10px] text-white/50 bg-black/50 px-2 py-0.5 rounded">
+                      Investigate
+                    </span>
                   </div>
+                )}
+
+                <div className="absolute bottom-2 left-2.5 right-2.5 flex items-end justify-between gap-2">
+                  <span className="text-base font-semibold text-white font-mono bg-black/60 px-2 py-0.5 rounded" style={{ letterSpacing: '-0.03em' }}>
+                    {formatCurrency(property.price)}
+                  </span>
+                  <span className="text-xs text-white/60 bg-black/60 px-1.5 py-0.5 rounded font-mono" style={{ letterSpacing: '-0.02em' }}>
+                    {property.sizeSqft.toLocaleString()} sqft
+                  </span>
                 </div>
               </div>
 
               {/* Status Badge - at card level to avoid overflow clipping */}
               {statusBadge && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 z-10 gap-3 rounded-2xl">
-                  <div className={`flex items-center gap-2 px-4 py-2 ${statusBadge.color} rounded-lg border-2 shadow-lg transform -rotate-12`}>
-                    <statusBadge.icon className="w-5 h-5 text-white" />
-                    <span className="text-lg font-bold text-white uppercase tracking-wider">{statusBadge.label}</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 z-10 gap-3 rounded-xl">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/10">
+                    <statusBadge.icon className="w-4 h-4 text-white/70" />
+                    <span className="text-sm font-medium text-white/80 uppercase tracking-wider">{statusBadge.label}</span>
                   </div>
                   {dealInfo && (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && (
                     <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-[280px] sm:max-w-none">
@@ -283,11 +263,11 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                               e.preventDefault();
                               onContractorWalkthrough(dealInfo.dealId);
                             }}
-                            className="bg-amber-500 text-white font-bold text-xs shadow-lg border border-amber-300 px-2.5 sm:px-3"
+                            className="bg-amber-600/80 hover:bg-amber-600 text-white font-medium text-xs border-0 px-2.5 sm:px-3"
                             data-testid={`button-walkthrough-${property.id}`}
                           >
-                            <HardHat className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-                            INSPECT
+                            <HardHat className="w-3.5 h-3.5 mr-1" />
+                            Inspect
                           </Button>
                         ) : dealInfo.hasRemainingRepairs ? (
                           <Button
@@ -297,11 +277,11 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                               e.preventDefault();
                               onContractorWalkthrough(dealInfo.dealId);
                             }}
-                            className="bg-cyan-500 text-white font-bold text-xs shadow-lg border border-cyan-300 px-2.5 sm:px-3"
+                            className="bg-white/10 hover:bg-white/15 text-white/80 font-medium text-xs border-0 px-2.5 sm:px-3"
                             data-testid={`button-renovate-${property.id}`}
                           >
-                            <Wrench className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-                            RENOVATE
+                            <Wrench className="w-3.5 h-3.5 mr-1" />
+                            Renovate
                           </Button>
                         ) : null
                       )}
@@ -313,11 +293,11 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                             e.preventDefault();
                             onRefinanceProperty(dealInfo.dealId);
                           }}
-                          className="bg-blue-500 text-white font-bold text-xs shadow-lg border border-blue-300 px-2.5 sm:px-3"
+                          className="bg-white/10 hover:bg-white/15 text-white/80 font-medium text-xs border-0 px-2.5 sm:px-3"
                           data-testid={`button-refi-${property.id}`}
                         >
-                          <Landmark className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-                          REFI
+                          <Landmark className="w-3.5 h-3.5 mr-1" />
+                          Refi
                         </Button>
                       )}
                       {onSellProperty && (
@@ -328,11 +308,11 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                             e.preventDefault();
                             onSellProperty(dealInfo.dealId, dealInfo.strategy);
                           }}
-                          className="bg-emerald-500 text-white font-bold text-xs shadow-lg border border-emerald-300 px-2.5 sm:px-3"
+                          className="bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] text-white font-medium text-xs border-0 px-2.5 sm:px-3"
                           data-testid={`button-sell-${property.id}`}
                         >
-                          <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
-                          SELL
+                          <DollarSign className="w-3.5 h-3.5 mr-1" />
+                          Sell
                         </Button>
                       )}
                     </div>
@@ -340,60 +320,38 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                 </div>
               )}
 
-              {/* Property Info */}
-              <div className="relative p-4">
-                <h3 className="font-semibold text-lg text-white group-hover:text-gold transition-colors">
+              <div className="relative p-3">
+                <h3 className="font-medium text-sm text-white/90 group-hover:text-white transition-colors duration-150">
                   {property.name}
                 </h3>
                 
-                <div className="flex items-center gap-1.5 mt-1 text-gray-400">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span className="text-sm">{property.neighborhood}</span>
+                <div className="flex items-center gap-1.5 mt-1 text-white/30">
+                  <MapPin className="w-3 h-3" />
+                  <span className="text-xs">{property.neighborhood}</span>
                 </div>
                 
-                {/* Property Type + Location Badge + Unknown Financials Warning */}
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {/* Property Type Badge */}
-                  <div className={`property-type-badge ${typeConfig.className}`}>
-                    <TypeIcon className="w-3 h-3" />
-                    <span>{typeConfig.label}</span>
-                  </div>
-                  {/* Location Type Badge */}
-                  {property.locationType === 'urban' ? (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border text-blue-400 bg-blue-500/20 border-blue-500/30">
-                      <Building2 className="w-3 h-3" />
-                      <span>Urban</span>
-                    </div>
-                  ) : (
-                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border text-emerald-400 bg-emerald-500/20 border-emerald-500/30">
-                      <TreePine className="w-3 h-3" />
-                      <span>Suburban</span>
-                    </div>
-                  )}
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border text-gray-400 bg-gray-500/20 border-gray-500/30">
-                    <Lock className="w-3 h-3" />
-                    <span>Financials Unknown</span>
-                  </div>
+                <div className="mt-2.5 flex flex-wrap gap-1">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-white/40 bg-white/[0.04]">
+                    <TypeIcon className="w-2.5 h-2.5" />
+                    {typeConfig.label}
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-white/40 bg-white/[0.04]">
+                    {property.locationType === 'urban' ? <Building2 className="w-2.5 h-2.5" /> : <TreePine className="w-2.5 h-2.5" />}
+                    {property.locationType === 'urban' ? 'Urban' : 'Suburban'}
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-white/25 bg-white/[0.02]">
+                    <Lock className="w-2.5 h-2.5" />
+                    Unknown
+                  </span>
                 </div>
-
-                {/* Hover Indicator */}
-                <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-gold via-amber-400 to-gold transition-opacity duration-300 ${
-                  isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                }`} />
               </div>
-
-              {/* Selection Glow Effect */}
-              {isSelected && (
-                <div className="absolute inset-0 pointer-events-none border-2 border-gold rounded-2xl" />
-              )}
             </div>
           );
         })}
       </div>
 
-      {/* Bottom teaching note */}
       <div className="text-center py-4">
-        <p className="text-gray-500 text-sm italic">
+        <p className="text-white/20 text-xs">
           Before you build a pro forma, all deals look plausible.
         </p>
       </div>

@@ -191,7 +191,7 @@ export function MarketBar({ condition, className = '', compact = false }: Market
           onClick={() => setShowInfo(false)}
         >
           <div 
-            className="bg-slate-900 border border-slate-600 rounded-xl p-3 shadow-2xl"
+            className="bg-[hsl(220,14%,10%)] border border-white/8 rounded-xl p-3"
             style={{ 
               position: 'fixed',
               top: '50%', 
@@ -206,7 +206,7 @@ export function MarketBar({ condition, className = '', compact = false }: Market
               <h3 className="text-sm font-bold text-white">Market Conditions</h3>
               <button
                 onClick={() => setShowInfo(false)}
-                className="w-6 h-6 flex items-center justify-center bg-slate-700 hover:bg-slate-600 rounded-full flex-shrink-0"
+                className="w-6 h-6 flex items-center justify-center bg-white/8 hover:bg-white/12 rounded-full flex-shrink-0"
                 data-testid="button-close-market-info"
                 data-sound="close"
               >
@@ -246,7 +246,7 @@ export function MarketBar({ condition, className = '', compact = false }: Market
               </div>
             </div>
             
-            <p className="text-slate-500 text-xs mt-2 pt-2 border-t border-slate-700">
+            <p className="text-white/30 text-xs mt-2 pt-2 border-t border-white/6">
               Time your flip sales for better markets!
             </p>
           </div>

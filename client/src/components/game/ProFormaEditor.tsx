@@ -61,7 +61,7 @@ function InfoTooltip({ term }: { term: keyof typeof TERM_DEFINITIONS }) {
           <HelpCircle className="w-3.5 h-3.5" />
         </button>
       </PopoverTrigger>
-      <PopoverContent side="right" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3 z-[200]">
+      <PopoverContent side="right" className="max-w-xs bg-[hsl(220,14%,12%)] border-white/8 text-white/70 text-sm p-3 z-[200]">
         <p>{definition}</p>
       </PopoverContent>
     </Popover>
@@ -80,7 +80,7 @@ interface FieldRowProps {
 
 function FieldRow({ label, term, rangeGuidance, rangeColor = 'gray', children, isLocked, lockMessage }: FieldRowProps) {
   return (
-    <div className="flex flex-col md:grid md:grid-cols-[1fr,1fr,2fr] gap-2 md:gap-4 md:items-center py-4 md:py-3 border-b border-slate-700/50 hover:bg-slate-800/30 transition-colors px-4">
+    <div className="flex flex-col md:grid md:grid-cols-[1fr,1fr,2fr] gap-2 md:gap-4 md:items-center py-4 md:py-3 border-b border-white/4 hover:bg-white/[0.02] transition-colors duration-150 px-4">
       {/* Row 1 on mobile / Column 1 on desktop: Label + Guidance */}
       <div className="flex items-center justify-between md:justify-start gap-2">
         <div className="flex items-center gap-2">
@@ -194,7 +194,7 @@ function SliderInput({ value, onChange, min, max, step = 1, suffix = '', prefix 
         }}
         onChange={handleInputChange}
         onBlur={handleInputBlur}
-        className="w-20 md:w-24 bg-slate-800 border border-slate-600 rounded-lg px-2 md:px-3 py-2 md:py-1.5 text-white text-sm font-mono text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className="w-20 md:w-24 bg-white/[0.04] border border-white/8 rounded-lg px-2 md:px-3 py-2 md:py-1.5 text-white/80 text-sm font-mono text-right focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/15"
       />
       {(prefix || suffix) && (
         <span className="text-gray-400 text-sm font-mono w-8">{prefix}{suffix}</span>
@@ -259,7 +259,7 @@ function TextInput({ value, onChange, placeholder, prefix = '$', suffix }: TextI
         onChange={handleChange}
         onBlur={handleBlur}
         placeholder={placeholder}
-        className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-white text-sm font-mono text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-600"
+        className="flex-1 bg-white/[0.04] border border-white/8 rounded-lg px-3 py-1.5 text-white/80 text-sm font-mono text-right focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/15 placeholder:text-white/15"
       />
       {suffix && <span className="text-gray-400 text-sm font-mono">{suffix}</span>}
     </div>
@@ -345,66 +345,64 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-0 md:p-4">
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-t-2xl md:rounded-2xl shadow-2xl border-t-2 md:border-2 border-blue-500/30 max-w-6xl w-full max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+      <div className="bg-[hsl(220,14%,8%)] rounded-t-2xl md:rounded-xl border border-white/8 max-w-6xl w-full max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="px-4 md:px-6 py-3 md:py-4 flex items-center justify-between border-b border-white/6">
           <div className="flex-1 min-w-0">
-            <h2 className="text-white text-lg md:text-2xl font-bold truncate">{property.name}</h2>
-            <p className="text-blue-100 text-xs md:text-sm truncate">Purchase Price: {formatCurrency(property.price)} • bd / ba • {property.sizeSqft} sqft</p>
+            <h2 className="text-white/90 text-lg md:text-xl font-semibold truncate">{property.name}</h2>
+            <p className="text-white/40 text-xs md:text-sm truncate font-mono" style={{ letterSpacing: '-0.02em' }}>{formatCurrency(property.price)} · {property.sizeSqft} sqft</p>
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:text-white transition-colors p-3 rounded-full bg-slate-800/80 hover:bg-slate-700 active:bg-slate-600 flex-shrink-0 ml-2"
+            className="text-white/40 hover:text-white/70 transition-colors duration-150 p-2 rounded-lg hover:bg-white/5 flex-shrink-0 ml-2"
             data-sound="close"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Strategy Selector */}
-        <div className="px-4 md:px-6 py-3 md:py-4 border-b border-slate-700 bg-slate-900/50">
+        <div className="px-4 md:px-6 py-3 md:py-4 border-b border-white/6">
           <div className="flex items-center gap-3 md:gap-4">
-            <span className="text-gray-400 text-xs md:text-sm font-semibold">Strategy:</span>
+            <span className="text-white/30 text-[10px] md:text-xs font-medium uppercase tracking-wider">Strategy</span>
             <div className="flex gap-2">
               <button
                 onClick={() => handleChange('strategy', 'rent')}
-                className={`px-4 py-2 rounded-lg border transition-all flex items-center gap-2 ${
+                className={`px-3.5 py-1.5 rounded-lg border transition-colors duration-150 flex items-center gap-2 ${
                   inputs.strategy === 'rent'
-                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-500/20'
-                    : 'bg-slate-800/50 border-slate-700 text-gray-400 hover:border-slate-600'
+                    ? 'bg-white/10 border-white/15 text-white'
+                    : 'border-white/6 text-white/40 hover:text-white/60 hover:bg-white/[0.03]'
                 }`}
               >
-                <Home className="w-4 h-4" />
-                <span className="font-semibold text-sm">Rental</span>
+                <Home className="w-3.5 h-3.5" />
+                <span className="font-medium text-sm">Rental</span>
               </button>
               <button
                 onClick={() => handleChange('strategy', 'flip')}
-                className={`px-4 py-2 rounded-lg border transition-all flex items-center gap-2 ${
+                className={`px-3.5 py-1.5 rounded-lg border transition-colors duration-150 flex items-center gap-2 ${
                   inputs.strategy === 'flip'
-                    ? 'bg-amber-500/20 border-amber-500 text-amber-400 shadow-lg shadow-amber-500/20'
-                    : 'bg-slate-800/50 border-slate-700 text-gray-400 hover:border-slate-600'
+                    ? 'bg-white/10 border-white/15 text-white'
+                    : 'border-white/6 text-white/40 hover:text-white/60 hover:bg-white/[0.03]'
                 }`}
               >
-                <TrendingUp className="w-4 h-4" />
-                <span className="font-semibold text-sm">Flip</span>
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span className="font-medium text-sm">Flip</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Fixed Header Row */}
-        <div className="hidden md:grid grid-cols-[1fr,1fr,2fr] gap-4 px-4 py-3 bg-slate-700 border-b-2 border-slate-600">
-          <div className="text-gray-200 text-xs font-bold uppercase tracking-wider">Field</div>
-          <div className="text-gray-200 text-xs font-bold uppercase tracking-wider text-right">Market Data / Guidance</div>
-          <div className="text-gray-200 text-xs font-bold uppercase tracking-wider">Your Input</div>
+        <div className="hidden md:grid grid-cols-[1fr,1fr,2fr] gap-4 px-4 py-2.5 border-b border-white/6">
+          <div className="text-white/25 text-[10px] font-medium uppercase tracking-wider">Field</div>
+          <div className="text-white/25 text-[10px] font-medium uppercase tracking-wider text-right">Guidance</div>
+          <div className="text-white/25 text-[10px] font-medium uppercase tracking-wider">Your Input</div>
         </div>
         
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto overscroll-contain" style={{ scrollbarGutter: 'stable' }}>
 
           {/* SECTION: FINANCING */}
-          <div className="mx-3 md:mx-4 mt-3 md:mt-4 rounded-xl border border-amber-500/20 bg-slate-800/30 overflow-hidden">
-            <div className="px-4 py-3 md:py-4 bg-gradient-to-r from-amber-500/10 to-transparent border-b border-amber-500/20">
+          <div className="mx-3 md:mx-4 mt-3 md:mt-4 rounded-xl border border-white/6 overflow-hidden">
+            <div className="px-4 py-3 md:py-4 border-b border-white/6">
               <h3 className="text-amber-400 font-bold text-base md:text-lg flex items-center gap-2">
                 <DollarSign className="w-5 h-5" />
                 Financing
@@ -430,7 +428,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
             </FieldRow>
 
             {/* Derived values display */}
-            <div className="px-4 py-3 grid grid-cols-3 gap-3 bg-slate-900/50">
+            <div className="px-4 py-3 grid grid-cols-3 gap-3">
               <div className="text-center">
                 <div className="text-gray-500 text-xs md:text-sm">Down Payment</div>
                 <div className="text-white font-mono text-sm md:text-base font-semibold">{getDownPaymentFromLTV(inputs.ltv)}%</div>
@@ -444,7 +442,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                     </div>
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-64 p-3 bg-slate-900 border-slate-700 text-xs" side="bottom">
+                <PopoverContent className="w-64 p-3 bg-[hsl(220,14%,12%)] border-white/8 text-xs text-white/60" side="bottom">
                   {(() => {
                     if (!playerFinancials) return <p className="text-gray-400">Rate based on LTV only</p>;
                     const bd = getInterestRateBreakdown(inputs.ltv, playerFinancials, weekNumber);
@@ -468,7 +466,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                             </span>
                           </div>
                         ))}
-                        <div className="border-t border-slate-700 pt-1.5 flex justify-between font-semibold">
+                        <div className="border-t border-white/8 pt-1.5 flex justify-between font-semibold">
                           <span className="text-white">Your rate</span>
                           <span className="text-white font-mono">{bd.finalRate.toFixed(1)}%</span>
                         </div>
@@ -484,14 +482,14 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                 </div>
               </div>
             </div>
-            <div className="px-4 pb-2 bg-slate-900/50">
+            <div className="px-4 pb-2">
               <p className="text-[11px] md:text-xs text-gray-600">*Rate adjusts based on leverage, market conditions, your cash reserves, and income</p>
             </div>
           </div>
 
           {/* SECTION: ACQUISITION & REHAB */}
-          <div className="mx-3 md:mx-4 mt-3 md:mt-4 rounded-xl border border-blue-500/20 bg-slate-800/30 overflow-hidden">
-            <div className="px-4 py-3 md:py-4 bg-gradient-to-r from-blue-500/10 to-transparent border-b border-blue-500/20">
+          <div className="mx-3 md:mx-4 mt-3 md:mt-4 rounded-xl border border-white/6 overflow-hidden">
+            <div className="px-4 py-3 md:py-4 border-b border-white/6">
               <h3 className="text-blue-400 font-bold text-base md:text-lg flex items-center gap-2">
                 <Home className="w-5 h-5" />
                 Renovation & Costs
@@ -515,14 +513,14 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
             </FieldRow>
 
             {(inputs.rehabBudget ?? 0) > 0 && (
-              <div className="px-4 py-3 border-b border-slate-700/50">
+              <div className="px-4 py-3 border-b border-white/4">
                 <div className="flex items-center gap-2 mb-2.5">
                   <span className="text-gray-300 text-sm font-semibold">Rehab Finish Quality</span>
                   <Popover>
                     <PopoverTrigger>
                       <HelpCircle className="w-3.5 h-3.5 text-gray-500" />
                     </PopoverTrigger>
-                    <PopoverContent className="bg-slate-800 border-slate-700 text-white text-sm max-w-xs">
+                    <PopoverContent className="bg-[hsl(220,14%,12%)] border-white/8 text-white/70 text-sm max-w-xs">
                       <p className="font-semibold mb-1">Rehab Finish Quality</p>
                       <p className="text-gray-300">Choose the quality of materials and finishes for your rehab. Luxury finishes cost 40% more but boost rent by 10% and property value by 8%. Builder grade keeps costs down.</p>
                     </PopoverContent>
@@ -531,10 +529,10 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleChange('finishLevel', 'builder')}
-                    className={`flex-1 px-3 py-2.5 rounded-lg border transition-all text-left ${
+                    className={`flex-1 px-3 py-2.5 rounded-lg border transition-colors duration-150 text-left ${
                       inputs.finishLevel === 'builder'
-                        ? 'bg-blue-500/20 border-blue-500 text-blue-300 shadow-lg shadow-blue-500/10'
-                        : 'bg-slate-800/50 border-slate-700 text-gray-400 hover:border-slate-600'
+                        ? 'bg-white/10 border-white/15 text-white'
+                        : 'border-white/6 text-white/40 hover:text-white/60 hover:bg-white/[0.03]'
                     }`}
                     data-testid="button-finish-builder"
                   >
@@ -547,10 +545,10 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                   </button>
                   <button
                     onClick={() => handleChange('finishLevel', 'luxury')}
-                    className={`flex-1 px-3 py-2.5 rounded-lg border transition-all text-left ${
+                    className={`flex-1 px-3 py-2.5 rounded-lg border transition-colors duration-150 text-left ${
                       inputs.finishLevel === 'luxury'
-                        ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-lg shadow-amber-500/10'
-                        : 'bg-slate-800/50 border-slate-700 text-gray-400 hover:border-slate-600'
+                        ? 'bg-white/10 border-white/15 text-white'
+                        : 'border-white/6 text-white/40 hover:text-white/60 hover:bg-white/[0.03]'
                     }`}
                     data-testid="button-finish-luxury"
                   >
@@ -590,7 +588,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
 
             {/* Permit Costs Info */}
             {(inputs.rehabBudget ?? 0) > 0 && (
-              <div className="px-4 py-3 border-b border-slate-700/50 bg-slate-900/30">
+              <div className="px-4 py-3 border-b border-white/4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-400 text-sm">Permit & Inspection Fees</span>
@@ -600,7 +598,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                           <HelpCircle className="w-3.5 h-3.5" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent side="right" className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3 z-[200]">
+                      <PopoverContent side="right" className="max-w-xs bg-[hsl(220,14%,12%)] border-white/8 text-white/60 text-sm p-3 z-[200]">
                         <p>Building permits, inspection fees, and code compliance costs. Typically 1-3% of rehab budget. Already included in your contingency buffer.</p>
                       </PopoverContent>
                     </Popover>
@@ -634,7 +632,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
             )}
 
             {!isFlip && (inputs.rehabBudget ?? 0) > 0 && (inputs.rehabWeeks ?? 0) > 0 && (
-              <div className="px-4 py-2.5 border-b border-slate-700/50 bg-amber-900/10">
+              <div className="px-4 py-2.5 border-b border-white/4">
                 <p className="text-xs text-amber-400/80 flex items-center gap-1.5">
                   <AlertTriangle className="w-3 h-3 flex-shrink-0" />
                   No rental income during rehab. You'll pay carrying costs (mortgage, taxes, insurance) until work is done.
@@ -666,8 +664,8 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
 
           {/* SECTION: RENTAL OPERATIONS (only for rental strategy) */}
           {isRental && (
-            <div className="mx-3 md:mx-4 mt-3 md:mt-4 mb-3 md:mb-4 rounded-xl border border-emerald-500/20 bg-slate-800/30 overflow-hidden">
-              <div className="px-4 py-3 md:py-4 bg-gradient-to-r from-emerald-500/10 to-transparent border-b border-emerald-500/20">
+            <div className="mx-3 md:mx-4 mt-3 md:mt-4 mb-3 md:mb-4 rounded-xl border border-white/6 overflow-hidden">
+              <div className="px-4 py-3 md:py-4 border-b border-white/6">
                 <h3 className="text-emerald-400 font-bold text-base md:text-lg flex items-center gap-2">
                   <TrendingUp className="w-5 h-5" />
                   Rental Income & Expenses
@@ -768,7 +766,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
               </FieldRow>
 
               {/* Utilities toggle */}
-              <div className="flex flex-col gap-2 py-4 md:py-3 border-b border-slate-700/50 hover:bg-slate-800/30 transition-colors px-4">
+              <div className="flex flex-col gap-2 py-4 md:py-3 border-b border-white/4 hover:bg-white/[0.02] transition-colors duration-150 px-4">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-300 text-sm font-medium">Landlord Pays Utilities?</span>
@@ -779,20 +777,20 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                 <div className="flex items-center gap-2 mt-1">
                   <button
                     onClick={() => handleChange('utilities', true)}
-                    className={`flex-1 px-3 py-2 rounded-lg border transition-all text-sm ${
+                    className={`flex-1 px-3 py-2 rounded-lg border transition-colors duration-150 text-sm ${
                       inputs.utilities === true
-                        ? 'bg-blue-500/20 border-blue-500 text-blue-400'
-                        : 'bg-slate-800 border-slate-700 text-gray-400'
+                        ? 'bg-white/10 border-white/15 text-white'
+                        : 'border-white/6 text-white/40 hover:bg-white/[0.03]'
                     }`}
                   >
                     Yes (you pay)
                   </button>
                   <button
                     onClick={() => handleChange('utilities', false)}
-                    className={`flex-1 px-3 py-2 rounded-lg border transition-all text-sm ${
+                    className={`flex-1 px-3 py-2 rounded-lg border transition-colors duration-150 text-sm ${
                       inputs.utilities === false
-                        ? 'bg-blue-500/20 border-blue-500 text-blue-400'
-                        : 'bg-slate-800 border-slate-700 text-gray-400'
+                        ? 'bg-white/10 border-white/15 text-white'
+                        : 'border-white/6 text-white/40 hover:bg-white/[0.03]'
                     }`}
                   >
                     Tenant pays
@@ -816,7 +814,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
               )}
 
               {/* Property Management toggle */}
-              <div className="flex flex-col gap-2 py-4 md:py-3 border-b border-slate-700/50 hover:bg-slate-800/30 transition-colors px-4">
+              <div className="flex flex-col gap-2 py-4 md:py-3 border-b border-white/4 hover:bg-white/[0.02] transition-colors duration-150 px-4">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-300 text-sm font-medium">Hire Property Manager?</span>
@@ -827,20 +825,20 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                 <div className="flex items-center gap-2 mt-1">
                   <button
                     onClick={() => handleChange('propertyManagement', true)}
-                    className={`flex-1 px-3 py-2 rounded-lg border transition-all text-sm ${
+                    className={`flex-1 px-3 py-2 rounded-lg border transition-colors duration-150 text-sm ${
                       inputs.propertyManagement === true
-                        ? 'bg-blue-500/20 border-blue-500 text-blue-400'
-                        : 'bg-slate-800 border-slate-700 text-gray-400'
+                        ? 'bg-white/10 border-white/15 text-white'
+                        : 'border-white/6 text-white/40 hover:bg-white/[0.03]'
                     }`}
                   >
                     Yes (5% fee)
                   </button>
                   <button
                     onClick={() => handleChange('propertyManagement', false)}
-                    className={`flex-1 px-3 py-2 rounded-lg border transition-all text-sm ${
+                    className={`flex-1 px-3 py-2 rounded-lg border transition-colors duration-150 text-sm ${
                       inputs.propertyManagement === false
-                        ? 'bg-blue-500/20 border-blue-500 text-blue-400'
-                        : 'bg-slate-800 border-slate-700 text-gray-400'
+                        ? 'bg-white/10 border-white/15 text-white'
+                        : 'border-white/6 text-white/40 hover:bg-white/[0.03]'
                     }`}
                   >
                     Self-Manage
@@ -852,7 +850,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
         </div>
 
         {/* Footer - Summary */}
-        <div className="border-t-2 border-blue-500/30 bg-gradient-to-r from-slate-900 to-slate-800 px-4 md:px-6 py-4">
+        <div className="border-t border-white/6 bg-[hsl(220,14%,7%)] px-4 md:px-6 py-4">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             {/* Key Metrics */}
             <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -891,7 +889,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                         </div>
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3 z-[200]">
+                    <PopoverContent className="max-w-xs bg-[hsl(220,14%,12%)] border-white/8 text-white/70 text-sm p-3 z-[200]">
                       <p className="font-semibold mb-1">Cash-on-Cash Return</p>
                       <p className="text-gray-400 text-xs mb-2">Annual cash flow divided by your total cash invested. Shows how hard your money is working.</p>
                       <div className="space-y-1 text-xs">
@@ -935,7 +933,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
                         </div>
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="max-w-xs bg-slate-800 border-slate-600 text-gray-200 text-sm p-3 z-[200]">
+                    <PopoverContent className="max-w-xs bg-[hsl(220,14%,12%)] border-white/8 text-white/70 text-sm p-3 z-[200]">
                       <p className="font-semibold mb-1">Flip Return on Investment</p>
                       <p className="text-gray-400 text-xs mb-2">Your profit divided by cash invested. Higher is better, but watch out for risks.</p>
                       <div className="space-y-1 text-xs">
@@ -954,7 +952,7 @@ export function ProFormaEditor({ isOpen, onClose, property, inputs, onInputsChan
             <div className="flex-shrink-0">
               <button
                 onClick={onClose}
-                className="w-full md:w-auto px-6 md:px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                className="w-full md:w-auto px-6 md:px-8 py-3 bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] text-white font-medium rounded-lg transition-colors duration-150 flex items-center justify-center gap-2"
                 data-sound="close"
               >
                 <CheckCircle className="w-5 h-5" />

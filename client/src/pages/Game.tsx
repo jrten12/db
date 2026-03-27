@@ -1967,12 +1967,11 @@ export default function Game() {
   if (isLoadingGame && !gameRun) {
     return (
       <div 
-        className="min-h-screen bg-cover bg-center bg-fixed"
-        style={{ backgroundImage: `url(${woodTexture})` }}
+        className="min-h-screen bg-[hsl(220,14%,6%)]"
         data-game-area
       >
-        <div className="min-h-screen bg-black/50 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-gold" />
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-white/30" />
         </div>
       </div>
     );
@@ -1981,11 +1980,10 @@ export default function Game() {
   if (showNameEntry) {
     return (
       <div 
-        className="min-h-screen bg-cover bg-center bg-fixed"
-        style={{ backgroundImage: `url(${woodTexture})` }}
+        className="min-h-screen bg-[hsl(220,14%,6%)]"
         data-game-area
       >
-        <div className="min-h-screen bg-black/50">
+        <div className="min-h-screen">
           <PlayerNameModal
             isOpen={showNameEntry && !showHallOfFame}
             onSubmit={startNewGame}
@@ -2012,8 +2010,8 @@ export default function Game() {
             onClose={() => setShowHallOfFame(false)}
           />
           {isLoadingGame && (
-            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-              <Loader2 className="w-8 h-8 animate-spin text-gold" />
+            <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+              <Loader2 className="w-6 h-6 animate-spin text-white/30" />
             </div>
           )}
         </div>
@@ -2029,7 +2027,7 @@ export default function Game() {
           <p className="text-sm text-muted-foreground">{gameError.message}</p>
           <button 
             onClick={() => setShowNameEntry(true)}
-            className="mt-4 px-4 py-2 bg-gold text-black rounded-lg font-medium"
+            className="mt-4 px-4 py-2 bg-white/10 hover:bg-white/15 text-white/80 rounded-lg font-medium transition-colors duration-150"
           >
             Try Again
           </button>
@@ -2041,7 +2039,7 @@ export default function Game() {
   if (!gameRun) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-gold" />
+        <Loader2 className="w-6 h-6 animate-spin text-white/30" />
       </div>
     );
   }
@@ -2060,17 +2058,14 @@ export default function Game() {
 
   return (
     <div
-      className="bg-cover bg-center bg-fixed min-h-screen min-h-[100dvh]"
-      style={{ backgroundImage: `url(${woodTexture})` }}
+      className="bg-[hsl(220,14%,6%)] min-h-screen min-h-[100dvh]"
       data-testid="game-screen"
       data-game-area
     >
-      {/* Animated Background */}
-      <AnimatedBackground />
 
       {/* Fixed header at top of viewport - safe area handled by StatusBar */}
       {currentScreen !== 'home' && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-slate-900 pointer-events-auto overflow-hidden" style={{ isolation: 'isolate' }}>
+        <div className="fixed top-0 left-0 right-0 z-50 bg-[hsl(220,14%,8%)] border-b border-white/6 pointer-events-auto overflow-hidden" style={{ isolation: 'isolate' }}>
           <StatusBar
             cash={gameRun.cash}
             weeksRemaining={gameRun.weeksRemaining}
@@ -2100,7 +2095,7 @@ export default function Game() {
       )}
       
       {/* Main content with top padding to account for fixed header + safe area + market bar */}
-      <div ref={mainContentRef} className={`min-h-screen min-h-[100dvh] bg-black/30 ${currentScreen !== 'home' ? 'pt-36 md:pt-44' : ''} overflow-y-auto`}>
+      <div ref={mainContentRef} className={`min-h-screen min-h-[100dvh] ${currentScreen !== 'home' ? 'pt-36 md:pt-44' : ''} overflow-y-auto`}>
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">
@@ -2317,7 +2312,7 @@ export default function Game() {
             <button
               onClick={() => { playAdvanceWeekSound(); handleAdvanceWeek(); }}
               disabled={isAdvancingWeek}
-              className="touch-target flex items-center gap-2 px-5 py-3 bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-full shadow-lg shadow-blue-500/30 text-white font-semibold text-base transition-all duration-150"
+              className="touch-target flex items-center gap-2 px-5 py-3 bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] active:bg-[hsl(152,44%,38%)] disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed rounded-full text-white font-medium text-base transition-colors duration-150"
               data-testid="button-advance-week-floating"
               data-no-click-sound
             >
@@ -2478,49 +2473,49 @@ export default function Game() {
         
         {/* Sale Confirmation Dialog */}
         {pendingSale && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9998] p-4" data-testid="sale-confirmation-dialog">
-            <div className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-md p-5 md:p-6 shadow-2xl">
-              <h2 className="text-xl md:text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                <span>💰</span> Sell {pendingSale.propertyName}?
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9998] p-4" data-testid="sale-confirmation-dialog">
+            <div className="bg-[hsl(220,14%,10%)] border border-white/8 rounded-xl w-full max-w-md p-5 md:p-6">
+              <h2 className="text-lg md:text-xl font-semibold text-white/90 mb-4">
+                Sell {pendingSale.propertyName}?
               </h2>
               
-              <div className="bg-slate-800/50 rounded-xl p-4 mb-4 border border-slate-700">
-                <p className="text-sm md:text-base text-gray-300 mb-3">
+              <div className="rounded-lg p-4 mb-4 border border-white/6">
+                <p className="text-sm text-white/50 mb-3">
                   {pendingSale.strategy === 'rent' 
-                    ? "You're about to sell your rental property. This will end your rental income stream."
-                    : "You're about to list your flip for sale. The final price depends on market conditions."}
+                    ? "This will end your rental income stream."
+                    : "The final price depends on market conditions."}
                 </p>
                 
-                <div className="space-y-2.5">
-                  <div className="flex justify-between text-sm md:text-base">
-                    <span className="text-gray-400">You paid:</span>
-                    <span className="text-white font-mono font-semibold">${pendingSale.purchasePrice.toLocaleString()}</span>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/40">You paid</span>
+                    <span className="text-white/70 font-mono font-medium" style={{ letterSpacing: '-0.02em' }}>${pendingSale.purchasePrice.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-sm md:text-base">
-                    <span className="text-gray-400">Possible sale price:</span>
-                    <span className="text-amber-400 font-mono font-semibold">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-white/40">Possible sale price</span>
+                    <span className="text-white/70 font-mono font-medium" style={{ letterSpacing: '-0.02em' }}>
                       ${pendingSale.minSale.toLocaleString()} – ${pendingSale.maxSale.toLocaleString()}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm md:text-base border-t border-slate-600 pt-2.5 mt-2.5">
-                    <span className="text-gray-400">Potential outcome:</span>
-                    <span className="text-sm md:text-base">
-                      <span className="text-red-400 font-semibold">-${(pendingSale.purchasePrice - pendingSale.minSale).toLocaleString()}</span>
-                      <span className="text-gray-500"> to </span>
-                      <span className="text-emerald-400 font-semibold">+${(pendingSale.maxSale - pendingSale.purchasePrice).toLocaleString()}</span>
+                  <div className="flex justify-between text-sm border-t border-white/6 pt-2 mt-2">
+                    <span className="text-white/50">Potential outcome</span>
+                    <span className="text-sm font-mono" style={{ letterSpacing: '-0.02em' }}>
+                      <span className="text-red-400/70 font-medium">-${(pendingSale.purchasePrice - pendingSale.minSale).toLocaleString()}</span>
+                      <span className="text-white/20"> to </span>
+                      <span className="text-[hsl(152,44%,50%)] font-medium">+${(pendingSale.maxSale - pendingSale.purchasePrice).toLocaleString()}</span>
                     </span>
                   </div>
                 </div>
               </div>
               
-              <p className="text-sm text-gray-400 mb-4">
-                Sale takes 2 months. The final price is based on market conditions, property condition, and your due diligence.
+              <p className="text-xs text-white/30 mb-4">
+                Sale takes 2 months. Final price based on market, condition, and diligence.
               </p>
               
               <div className="flex gap-3">
                 <button
                   onClick={cancelSale}
-                  className="flex-1 px-4 py-4 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 text-white rounded-xl font-medium text-base transition-colors min-h-[52px] touch-manipulation disabled:opacity-50"
+                  className="flex-1 px-4 py-3.5 bg-white/5 hover:bg-white/8 text-white/70 rounded-lg font-medium text-sm transition-colors duration-150 touch-manipulation disabled:opacity-50"
                   data-testid="button-cancel-sale"
                   type="button"
                   disabled={isSelling}
@@ -2529,7 +2524,7 @@ export default function Game() {
                 </button>
                 <button
                   onClick={confirmSale}
-                  className="flex-1 px-4 py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-400 text-white rounded-xl font-bold text-base transition-colors min-h-[52px] touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-3.5 bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] text-white rounded-lg font-medium text-sm transition-colors duration-150 touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
                   data-testid="button-confirm-sale"
                   type="button"
                   disabled={isSelling}

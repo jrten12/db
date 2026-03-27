@@ -32,21 +32,15 @@ function AnimatedNumber({ value, prefix = '', suffix = '', className = '', varia
   variant?: 'default' | 'cash' | 'time' | 'goal';
 }) {
   const [isFlipping, setIsFlipping] = useState(false);
-  const [countDirection, setCountDirection] = useState<'up' | 'down' | null>(null);
   const prevValue = useRef(value);
 
   useEffect(() => {
-    const currentNum = typeof value === 'number' ? value : parseFloat(String(value).replace(/,/g, ''));
-    const prevNum = typeof prevValue.current === 'number' ? prevValue.current : parseFloat(String(prevValue.current).replace(/,/g, ''));
-
     if (String(value) !== String(prevValue.current)) {
       setIsFlipping(true);
-      setCountDirection(currentNum > prevNum ? 'up' : 'down');
       prevValue.current = value;
       const timeout = setTimeout(() => {
         setIsFlipping(false);
-        setCountDirection(null);
-      }, 400);
+      }, 250);
       return () => clearTimeout(timeout);
     }
   }, [value]);
@@ -54,17 +48,15 @@ function AnimatedNumber({ value, prefix = '', suffix = '', className = '', varia
   const valueStr = String(value);
   const digits = valueStr.split('');
 
-  const countClass = countDirection === 'up' ? 'count-up' : countDirection === 'down' ? 'count-down' : '';
-
   return (
-    <span className={`animated-number ${className} ${countClass}`}>
+    <span className={`animated-number ${className}`}>
       {prefix && <span className="number-prefix">{prefix}</span>}
       <span className={`flip-number-container ${isFlipping ? 'flipping' : ''}`}>
         {digits.map((digit, i) => (
           <span
             key={i}
             className="flip-digit"
-            style={{ animationDelay: `${i * 20}ms` }}
+            style={{ animationDelay: `${i * 15}ms` }}
           >
             {digit}
           </span>
@@ -93,24 +85,17 @@ function StatCard({
   pulse?: boolean;
 }) {
   const variants = {
-    default: 'stat-card-default',
+    default: '',
     cash: 'stat-card-cash',
     time: 'stat-card-time',
     goal: 'stat-card-goal'
-  };
-
-  const pulseVariants = {
-    default: '',
-    cash: 'hud-pulse-cash',
-    time: 'hud-pulse-time',
-    goal: 'hud-pulse-goal'
   };
 
   const Component = onClick ? 'button' : 'div';
 
   return (
     <Component
-      className={`stat-card ${variants[variant]} ${pulse ? pulseVariants[variant] : ''}`}
+      className={`stat-card ${variants[variant]}`}
       onClick={onClick}
       data-testid={testId}
     >
@@ -127,83 +112,43 @@ function StatCard({
 
 export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onViewStats, onAdvanceWeek, isAdvancingWeek, onNewGame, onGoHome }: StatusBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [cashPulse, setCashPulse] = useState(false);
-  const [timePulse, setTimePulse] = useState(false);
-  const [goalPulse, setGoalPulse] = useState(false);
-  const prevCash = useRef(cash);
-  const prevWeeks = useRef(weeksRemaining);
-  const prevDeals = useRef(profitableDeals);
   const { isPlaying: isMusicPlaying, toggleMusic } = useMusic();
-
-  // Detect value changes and trigger pulses
-  useEffect(() => {
-    if (cash !== prevCash.current) {
-      setCashPulse(true);
-      prevCash.current = cash;
-      const timeout = setTimeout(() => setCashPulse(false), 600);
-      return () => clearTimeout(timeout);
-    }
-  }, [cash]);
-
-  useEffect(() => {
-    if (weeksRemaining !== prevWeeks.current) {
-      setTimePulse(true);
-      prevWeeks.current = weeksRemaining;
-      const timeout = setTimeout(() => setTimePulse(false), 600);
-      return () => clearTimeout(timeout);
-    }
-  }, [weeksRemaining]);
-
-  useEffect(() => {
-    if (profitableDeals !== prevDeals.current) {
-      setGoalPulse(true);
-      prevDeals.current = profitableDeals;
-      const timeout = setTimeout(() => setGoalPulse(false), 800);
-      return () => clearTimeout(timeout);
-    }
-  }, [profitableDeals]);
 
   const cashDisplay = Math.floor(cash).toLocaleString();
 
   return (
     <>
       <div className="modern-status-bar safe-area-top safe-area-x sticky top-0 z-40" data-testid="status-bar">
-        <div className="max-w-7xl mx-auto px-3 py-1.5 md:px-4 md:py-2">
+        <div className="max-w-7xl mx-auto px-3 py-2 md:px-5 md:py-2.5">
           {/* Desktop Layout */}
-          <div className="hidden md:flex items-center gap-6">
-            {/* Logo + Home */}
-            <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-5">
+            <div className="flex items-center gap-3">
               <button
                 onClick={onGoHome}
                 className="relative group cursor-pointer"
                 data-testid="button-home-logo"
                 data-sound="swoosh"
               >
-                <div className="absolute -inset-1 bg-emerald-500/20 rounded-2xl blur-md group-hover:bg-emerald-500/30 transition-colors" />
                 <img
                   src={logo}
                   alt="Dealbreak: Real Estate Simulator"
-                  className="relative h-20 w-20 rounded-xl shadow-2xl transition-all duration-300 group-hover:scale-105"
-                  style={{
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 0 2px rgba(16,185,129,0.3)',
-                  }}
+                  className="h-12 w-12 rounded-lg transition-opacity duration-150 group-hover:opacity-80"
                   data-testid="game-logo"
                 />
               </button>
               {onGoHome && (
                 <button
                   onClick={onGoHome}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-lg text-sm text-gray-300 hover:text-white transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-white/40 hover:text-white/70 transition-colors duration-150"
                   data-testid="button-home-nav"
                   data-sound="swoosh"
                 >
-                  <Home className="w-4 h-4" />
+                  <Home className="w-3.5 h-3.5" />
                   <span className="hidden lg:inline">Home</span>
                 </button>
               )}
             </div>
 
-            {/* Stats */}
             <div className="flex items-center gap-3 flex-1">
               <StatCard
                 icon={Wallet}
@@ -211,40 +156,37 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 variant="cash"
                 onClick={onOpenLedger}
                 testId="status-cash"
-                pulse={cashPulse}
               >
                 <AnimatedNumber value={cashDisplay} prefix="$" className="cash-value" variant="cash" />
               </StatCard>
 
-              <StatCard icon={Clock} label={weeksRemaining <= 0 ? "OVERTIME" : "MONTHS LEFT"} variant="time" testId="status-time" pulse={timePulse}>
+              <StatCard icon={Clock} label={weeksRemaining <= 0 ? "OVERTIME" : "MONTHS LEFT"} variant="time" testId="status-time">
                 {weeksRemaining <= 0 ? (
-                  <span className="time-value text-amber-400">Overtime</span>
+                  <span className="text-amber-400/80">Overtime</span>
                 ) : (
-                  <AnimatedNumber value={weeksRemaining} suffix=" Months" className="time-value" variant="time" />
+                  <AnimatedNumber value={weeksRemaining} suffix=" mo" className="time-value" variant="time" />
                 )}
               </StatCard>
 
-              {/* Progress Ring for Goals */}
-              <div className={`stat-card stat-card-goal ${goalPulse ? 'hud-pulse-goal' : ''}`} data-testid="status-goal">
+              <div className="stat-card stat-card-goal" data-testid="status-goal">
                 <div className="flex items-center gap-3">
-                  <ProgressRing current={profitableDeals} total={goalDeals} size={48} strokeWidth={4} />
+                  <ProgressRing current={profitableDeals} total={goalDeals} size={40} strokeWidth={3} />
                   <div>
                     <div className="stat-card-header">
                       <Target className="stat-card-icon" />
                       <span className="stat-card-label">GOAL</span>
                     </div>
-                    <span className="text-sm text-gray-300">Profitable Deals</span>
+                    <span className="text-sm text-white/50">Profitable Deals</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Advance Week Button */}
             {onAdvanceWeek && (
               <button
                 onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
                 disabled={isAdvancingWeek}
-                className="touch-target flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-lg transition-all duration-150 ios-spring tap-scale disabled:tap-scale-none"
+                className="touch-target flex items-center gap-2 px-5 py-2.5 bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] disabled:bg-white/8 disabled:text-white/30 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-all duration-150 tap-scale"
                 data-testid="button-advance-week"
                 data-no-click-sound
               >
@@ -262,7 +204,6 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               </button>
             )}
 
-            {/* Menu Button */}
             <button
               onClick={() => setMenuOpen(true)}
               className="menu-button"
@@ -272,9 +213,8 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
             </button>
           </div>
 
-          {/* Mobile Layout - Condensed Single Row */}
+          {/* Mobile Layout */}
           <div className="md:hidden flex items-center gap-1.5">
-            {/* Menu Button */}
             <button
               onClick={() => setMenuOpen(true)}
               className="menu-button-mobile touch-target flex items-center justify-center tap-scale flex-shrink-0"
@@ -283,7 +223,6 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               <Menu className="w-5 h-5" />
             </button>
             
-            {/* Stats Row */}
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <button 
                 onClick={onOpenLedger}
@@ -297,10 +236,10 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <div className="stat-label-mobile-compact">Cash</div>
               </button>
               
-              <div className="stat-card-mobile-compact stat-card-mobile-time touch-target-sm flex-1 min-w-0" data-testid="status-time-mobile">
+              <div className="stat-card-mobile-compact touch-target-sm flex-1 min-w-0" data-testid="status-time-mobile">
                 <div className="whitespace-nowrap">
                   {weeksRemaining <= 0 ? (
-                    <span className="mobile-time-value-compact text-amber-400">OT</span>
+                    <span className="mobile-time-value-compact text-amber-400/80">OT</span>
                   ) : (
                     <AnimatedNumber value={weeksRemaining} className="mobile-time-value-compact" />
                   )}
@@ -308,9 +247,10 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <div className="stat-label-mobile-compact">{weeksRemaining <= 0 ? 'Overtime' : 'Months'}</div>
               </div>
               
-              <div className="stat-card-mobile-compact stat-card-mobile-goal touch-target-sm flex-1 min-w-0" data-testid="status-goal-mobile">
+              <div className="stat-card-mobile-compact touch-target-sm flex-1 min-w-0" data-testid="status-goal-mobile">
                 <span className="mobile-goal-value-compact whitespace-nowrap">
-                  <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
+                  <span className="text-[hsl(152,44%,50%)]">{profitableDeals}</span>
+                  <span className="text-white/20">/{goalDeals}</span>
                 </span>
                 <div className="stat-label-mobile-compact">Deals</div>
               </div>
@@ -321,42 +261,37 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
         </div>
       </div>
 
-      {/* Menu Overlay - rendered via portal to escape backdrop-filter containing block */}
       {menuOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md safe-area-all" data-testid="menu-overlay">
+        <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-xl safe-area-all" data-testid="menu-overlay">
           <div className="flex flex-col items-center justify-center min-h-screen min-h-[100dvh] p-4">
             <button
               onClick={() => setMenuOpen(false)}
-              className="absolute top-4 right-4 touch-target p-3 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-full text-white transition-all duration-150 ios-spring tap-scale safe-area-top safe-area-right"
+              className="absolute top-4 right-4 touch-target p-3 text-white/40 hover:text-white/70 transition-colors duration-150 safe-area-top safe-area-right"
               data-testid="button-close-menu"
               data-sound="close"
             >
               <X className="w-6 h-6" />
             </button>
 
-            <div className="relative mb-8">
-              <div className="absolute -inset-4 bg-emerald-500/20 rounded-3xl blur-xl" />
+            <div className="mb-10">
               <img 
                 src={logo} 
                 alt="Dealbreak" 
-                className="relative w-36 h-36 rounded-2xl shadow-2xl"
-                style={{
-                  boxShadow: '0 12px 60px rgba(0,0,0,0.6), 0 0 0 3px rgba(16,185,129,0.4)',
-                }}
+                className="w-24 h-24 rounded-2xl"
               />
             </div>
 
-            <div className="space-y-3 w-full max-w-xs">
+            <div className="space-y-2.5 w-full max-w-xs">
               <button
                 onClick={() => {
                   setMenuOpen(false);
                   onViewStats?.();
                 }}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-purple-500/20 to-indigo-600/20 hover:from-purple-500/30 hover:to-indigo-600/30 active:from-purple-500/40 active:to-indigo-600/40 backdrop-blur-md rounded-xl border border-purple-500/30 text-purple-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                className="w-full flex items-center justify-center gap-3 px-5 py-4 bg-white/4 hover:bg-white/8 rounded-lg border border-white/6 text-white/70 hover:text-white/90 font-medium transition-all duration-150 tap-scale touch-target"
                 data-testid="button-view-stats"
                 data-sound="swoosh"
               >
-                <BarChart3 className="w-5 h-5" />
+                <BarChart3 className="w-4.5 h-4.5" />
                 Performance Stats
               </button>
 
@@ -365,29 +300,29 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                   setMenuOpen(false);
                   onOpenHallOfFame?.();
                 }}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-amber-500/20 to-yellow-600/20 hover:from-amber-500/30 hover:to-yellow-600/30 active:from-amber-500/40 active:to-yellow-600/40 backdrop-blur-md rounded-xl border border-amber-500/30 text-amber-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                className="w-full flex items-center justify-center gap-3 px-5 py-4 bg-white/4 hover:bg-white/8 rounded-lg border border-white/6 text-white/70 hover:text-white/90 font-medium transition-all duration-150 tap-scale touch-target"
                 data-testid="button-hall-of-fame"
                 data-sound="swoosh"
               >
-                <Trophy className="w-5 h-5" />
+                <Trophy className="w-4.5 h-4.5" />
                 Hall of Fame
               </button>
 
               {onGoHome && (
                 <button
                   onClick={() => { setMenuOpen(false); onGoHome(); }}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-md rounded-xl border border-white/20 text-white font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                  className="w-full flex items-center justify-center gap-3 px-5 py-4 bg-white/4 hover:bg-white/8 rounded-lg border border-white/6 text-white/70 hover:text-white/90 font-medium transition-all duration-150 tap-scale touch-target"
                   data-testid="button-main-menu"
                   data-sound="swoosh"
                 >
-                  <Home className="w-5 h-5" />
+                  <Home className="w-4.5 h-4.5" />
                   Home
                 </button>
               )}
 
               <button
                 onClick={() => setMenuOpen(false)}
-                className="w-full px-6 py-4 bg-emerald-500/20 hover:bg-emerald-500/30 active:bg-emerald-500/40 backdrop-blur-md rounded-xl border border-emerald-500/30 text-emerald-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                className="w-full px-5 py-4 bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] rounded-lg text-white font-medium transition-all duration-150 tap-scale touch-target"
                 data-testid="button-resume-game"
               >
                 Resume Game
@@ -395,10 +330,10 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
 
               <button
                 onClick={toggleMusic}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-purple-500/20 hover:bg-purple-500/30 active:bg-purple-500/40 backdrop-blur-md rounded-xl border border-purple-500/30 text-purple-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                className="w-full flex items-center justify-center gap-3 px-5 py-4 bg-white/4 hover:bg-white/8 rounded-lg border border-white/6 text-white/70 hover:text-white/90 font-medium transition-all duration-150 tap-scale touch-target"
                 data-testid="button-toggle-music"
               >
-                {isMusicPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                {isMusicPlaying ? <Volume2 className="w-4.5 h-4.5" /> : <VolumeX className="w-4.5 h-4.5" />}
                 {isMusicPlaying ? 'Music On' : 'Music Off'}
               </button>
 
@@ -408,35 +343,35 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                     setMenuOpen(false);
                     onNewGame();
                   }}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-red-500/20 hover:bg-red-500/30 active:bg-red-500/40 backdrop-blur-md rounded-xl border border-red-500/30 text-red-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                  className="w-full flex items-center justify-center gap-3 px-5 py-4 bg-white/4 hover:bg-white/8 rounded-lg border border-white/6 text-red-400/70 hover:text-red-400/90 font-medium transition-all duration-150 tap-scale touch-target"
                   data-testid="button-new-game"
                 >
-                  <RotateCcw className="w-5 h-5" />
+                  <RotateCcw className="w-4.5 h-4.5" />
                   New Game
                 </button>
               )}
             </div>
 
-            <div className="mt-8 flex gap-4">
-              <div className="menu-stat-card">
-                <AnimatedNumber value={cashDisplay} prefix="$" className="menu-cash-value" />
-                <div className="text-gray-500 text-xs">Cash</div>
+            <div className="mt-10 flex gap-6">
+              <div className="text-center">
+                <div className="font-mono font-semibold text-[hsl(152,44%,50%)] text-lg" style={{ letterSpacing: '-0.03em' }}>${cashDisplay}</div>
+                <div className="text-white/25 text-[10px] uppercase tracking-widest mt-1">Cash</div>
               </div>
-              <div className="menu-stat-card">
-                <span className="menu-time-value">{weeksRemaining <= 0 ? 'OT' : `${weeksRemaining}M`}</span>
-                <div className="text-gray-500 text-xs">{weeksRemaining <= 0 ? 'Overtime' : 'Left'}</div>
+              <div className="text-center">
+                <div className="font-semibold text-white/80 text-lg">{weeksRemaining <= 0 ? 'OT' : `${weeksRemaining}`}</div>
+                <div className="text-white/25 text-[10px] uppercase tracking-widest mt-1">{weeksRemaining <= 0 ? 'Overtime' : 'Months'}</div>
               </div>
-              <div className="menu-stat-card">
-                <span className="menu-goal-value">
-                  <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
-                </span>
-                <div className="text-gray-500 text-xs">Deals</div>
+              <div className="text-center">
+                <div className="font-semibold text-lg">
+                  <span className="text-[hsl(152,44%,50%)]">{profitableDeals}</span>
+                  <span className="text-white/20">/{goalDeals}</span>
+                </div>
+                <div className="text-white/25 text-[10px] uppercase tracking-widest mt-1">Deals</div>
               </div>
             </div>
 
-            <div className="mt-6 text-center">
-              <p className="text-gray-600 text-[10px] tracking-wider uppercase">v3.15</p>
-              <p className="text-gray-700 text-[9px] tracking-wide mt-0.5">Built with Mechanical Harmonics Systems</p>
+            <div className="mt-8 text-center">
+              <p className="text-white/15 text-[10px] tracking-wider uppercase">v3.15</p>
             </div>
           </div>
         </div>,

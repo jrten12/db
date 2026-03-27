@@ -146,7 +146,7 @@ function FinancialTermInfo({ type, isKnown }: { type: keyof typeof FINANCIAL_TER
           onPointerDown={(e) => e.stopPropagation()}
         >
           <div 
-            className="max-w-sm w-full bg-slate-800 border border-slate-600 text-gray-200 text-sm p-5 rounded-2xl shadow-2xl"
+            className="max-w-sm w-full bg-[hsl(220,14%,10%)] border border-white/8 text-white/70 text-sm p-5 rounded-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="space-y-2">
@@ -159,7 +159,7 @@ function FinancialTermInfo({ type, isKnown }: { type: keyof typeof FINANCIAL_TER
             </div>
             <button 
               onClick={(e) => { e.stopPropagation(); setOpen(false); }}
-              className="mt-4 w-full py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded-xl text-white font-semibold text-sm transition-colors touch-target"
+              className="mt-4 w-full py-2.5 bg-white/8 hover:bg-white/12 rounded-lg text-white/70 font-medium text-sm transition-colors duration-150 touch-target"
               data-testid={`help-${type}-close`}
             >
               Got it
@@ -250,7 +250,7 @@ function DiligenceEducationTooltip({ diligenceId }: { diligenceId: string }) {
           onPointerDown={(e) => e.stopPropagation()}
         >
           <div 
-            className="max-w-sm w-full bg-slate-800 border border-blue-500/50 text-gray-200 text-sm p-5 rounded-2xl shadow-2xl"
+            className="max-w-sm w-full bg-[hsl(220,14%,10%)] border border-white/8 text-white/70 text-sm p-5 rounded-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="space-y-3">
@@ -267,7 +267,7 @@ function DiligenceEducationTooltip({ diligenceId }: { diligenceId: string }) {
             </div>
             <button 
               onClick={(e) => { e.stopPropagation(); setOpen(false); }}
-              className="mt-4 w-full py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded-xl text-white font-semibold text-sm transition-colors touch-target"
+              className="mt-4 w-full py-2.5 bg-white/8 hover:bg-white/12 rounded-lg text-white/70 font-medium text-sm transition-colors duration-150 touch-target"
               data-testid={`help-diligence-${diligenceId}-close`}
             >
               Got it
@@ -299,7 +299,7 @@ function FinancialEstimatesHelp() {
           onClick={(e) => { e.stopPropagation(); setOpen(false); }}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <div className="max-w-sm w-full bg-slate-800 border border-amber-500/50 text-gray-200 text-sm p-5 rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="max-w-sm w-full bg-[hsl(220,14%,10%)] border border-white/8 text-white/70 text-sm p-5 rounded-xl" onClick={(e) => e.stopPropagation()}>
             <div className="space-y-3">
               <p className="font-semibold text-amber-400 text-base">Why These Are Estimates</p>
               <p className="text-gray-300">These financial numbers are uncertain until you do your homework. In real estate, guessing wrong on rent, repair costs, or timeline can turn a "great deal" into a money pit.</p>
@@ -307,7 +307,7 @@ function FinancialEstimatesHelp() {
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setOpen(false); }}
-              className="mt-4 w-full py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded-xl text-white font-semibold text-sm transition-colors touch-target"
+              className="mt-4 w-full py-2.5 bg-white/8 hover:bg-white/12 rounded-lg text-white/70 font-medium text-sm transition-colors duration-150 touch-target"
               data-testid="help-financial-estimates-close"
             >
               Got it
@@ -347,7 +347,7 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
           onPointerDown={(e) => e.stopPropagation()}
         >
           <div 
-            className="max-w-sm w-full bg-slate-800 border border-amber-500/50 text-gray-200 text-sm p-5 rounded-2xl shadow-2xl"
+            className="max-w-sm w-full bg-[hsl(220,14%,10%)] border border-white/8 text-white/70 text-sm p-5 rounded-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="space-y-2">
@@ -357,7 +357,7 @@ function UnknownValueBadge({ type, isKnown, children }: { type: keyof typeof UNK
             </div>
             <button 
               onClick={(e) => { e.stopPropagation(); setOpen(false); }}
-              className="mt-4 w-full py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-500 rounded-xl text-white font-semibold text-sm transition-colors touch-target"
+              className="mt-4 w-full py-2.5 bg-white/8 hover:bg-white/12 rounded-lg text-white/70 font-medium text-sm transition-colors duration-150 touch-target"
               data-testid={`unknown-${type}-close`}
             >
               Got it
@@ -550,7 +550,7 @@ export function PropertyDetail({
   return (
     <div className="fixed inset-0 z-[60] flex flex-col items-center pt-[calc(env(safe-area-inset-top,0px)+60px)] md:pt-8 p-2 md:p-4 bg-black/80 backdrop-blur-sm safe-area-x" data-testid="property-detail-modal">
       {/* Fixed header bar - always visible at top */}
-      <div className="w-full max-w-6xl flex items-center justify-between gap-3 px-4 md:px-6 py-3 bg-slate-900 rounded-t-2xl border-b border-slate-700/50 flex-shrink-0">
+      <div className="w-full max-w-6xl flex items-center justify-between gap-3 px-4 md:px-6 py-3 bg-[hsl(220,14%,8%)] rounded-t-2xl border-b border-white/6 flex-shrink-0">
         <div className="flex items-center gap-2">
           <button 
             onClick={onClose}
@@ -578,7 +578,7 @@ export function PropertyDetail({
         </h2>
         <button 
           onClick={onClose}
-          className="touch-target p-3 bg-slate-800/80 hover:bg-slate-700 active:bg-slate-600 rounded-full text-white transition-all duration-150 ios-spring tap-scale"
+          className="touch-target p-2.5 bg-white/8 hover:bg-white/12 rounded-full text-white/60 transition-colors duration-150"
           data-testid="button-close-detail"
           data-sound="close"
         >
@@ -588,9 +588,8 @@ export function PropertyDetail({
       
       {/* Scrollable content */}
       <div 
-        className="w-full max-w-6xl flex-1 overflow-y-auto rounded-b-2xl shadow-2xl overscroll-contain touch-pan-y" 
+        className="w-full max-w-6xl flex-1 overflow-y-auto rounded-b-2xl overscroll-contain touch-pan-y bg-[hsl(220,14%,8%)]" 
         style={{
-          background: 'linear-gradient(145deg, #0f172a 0%, #1e293b 100%)',
           WebkitOverflowScrolling: 'touch',
           maxHeight: 'calc(100vh - env(safe-area-inset-top, 0px) - 140px)',
         }}
@@ -603,7 +602,7 @@ export function PropertyDetail({
               {/* Left: Image Gallery */}
               <div className="space-y-3">
               {/* Main Image Gallery */}
-              <div className="relative rounded-xl overflow-hidden aspect-video shadow-lg bg-slate-900">
+              <div className="relative rounded-xl overflow-hidden aspect-video bg-[hsl(220,14%,6%)]">
                 <img
                   src={currentImage.url}
                   alt={`${property.name} - ${currentImage.label}`}
@@ -621,7 +620,7 @@ export function PropertyDetail({
                 </div>
 
                 {/* Image Type Label */}
-                <div className={`absolute top-4 left-4 backdrop-blur-sm px-3 py-1 rounded-lg border ${currentImage.type === 'issue' ? 'bg-red-900/80 border-red-600/50' : 'bg-slate-900/80 border-slate-700'}`}>
+                <div className={`absolute top-4 left-4 backdrop-blur-sm px-3 py-1 rounded-lg border ${currentImage.type === 'issue' ? 'bg-red-900/60 border-red-500/30' : 'bg-black/60 border-white/10'}`}>
                   <span className={`text-sm font-semibold ${currentImage.type === 'issue' ? 'text-red-300' : 'text-white'}`}>
                     {currentImage.type === 'issue' && <AlertTriangle className="w-3.5 h-3.5 inline mr-1.5 -mt-0.5" />}
                     {currentImage.label}
@@ -637,7 +636,7 @@ export function PropertyDetail({
                         e.stopPropagation();
                         prevImage();
                       }}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-3 rounded-full border border-slate-700 transition-all z-10"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm p-2.5 rounded-full border border-white/10 transition-colors duration-150 z-10"
                       aria-label="Previous image"
                       type="button"
                       data-testid="button-prev-image"
@@ -650,7 +649,7 @@ export function PropertyDetail({
                         e.stopPropagation();
                         nextImage();
                       }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-sm p-3 rounded-full border border-slate-700 transition-all z-10"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 backdrop-blur-sm p-2.5 rounded-full border border-white/10 transition-colors duration-150 z-10"
                       aria-label="Next image"
                       type="button"
                       data-testid="button-next-image"
@@ -662,7 +661,7 @@ export function PropertyDetail({
 
                 {/* Image Counter */}
                 {allImages.length > 1 && (
-                  <div className="absolute bottom-4 right-4 bg-slate-900/80 backdrop-blur-sm px-3 py-1 rounded-lg border border-slate-700">
+                  <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm px-3 py-1 rounded-lg border border-white/10">
                     <span className="text-white text-sm font-mono">
                       {currentImageIndex + 1} / {allImages.length}
                     </span>
@@ -696,7 +695,7 @@ export function PropertyDetail({
                       className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                         index === currentImageIndex
                           ? (img.type === 'issue' ? 'border-red-500 scale-105' : 'border-emerald-500 scale-105')
-                          : (img.type === 'issue' ? 'border-red-800/50 hover:border-red-600 opacity-70 hover:opacity-100' : 'border-slate-700 hover:border-slate-600 opacity-70 hover:opacity-100')
+                          : (img.type === 'issue' ? 'border-red-800/50 hover:border-red-600 opacity-70 hover:opacity-100' : 'border-white/10 hover:border-white/20 opacity-70 hover:opacity-100')
                       }`}
                       type="button"
                       data-testid={`thumbnail-${index}`}
@@ -722,30 +721,21 @@ export function PropertyDetail({
               <div className="space-y-3">
                 {/* Hero Stats Row - Size, Beds, Baths */}
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-emerald-500/15 to-emerald-600/5 border border-emerald-500/30">
-                    <div className="absolute top-1 right-1 opacity-15">
-                      <Maximize className="w-8 h-8 text-emerald-400" />
-                    </div>
-                    <div className="text-emerald-400 text-xl font-bold font-mono tracking-tight">{property.sizeSqft.toLocaleString()}</div>
-                    <div className="text-emerald-300/60 text-xs font-medium flex items-center gap-1">
+                  <div className="rounded-lg p-3 bg-white/[0.03] border border-white/6">
+                    <div className="text-white text-xl font-bold font-mono tracking-[-0.03em]">{property.sizeSqft.toLocaleString()}</div>
+                    <div className="text-white/30 text-[10px] uppercase tracking-widest font-medium flex items-center gap-1">
                       <Ruler className="w-3 h-3" /> Sq Ft
                     </div>
                   </div>
-                  <div className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-sky-500/15 to-sky-600/5 border border-sky-500/30">
-                    <div className="absolute top-1 right-1 opacity-15">
-                      <BedDouble className="w-8 h-8 text-sky-400" />
-                    </div>
-                    <div className="text-sky-400 text-xl font-bold font-mono">{propChars.bedrooms}</div>
-                    <div className="text-sky-300/60 text-xs font-medium flex items-center gap-1">
+                  <div className="rounded-lg p-3 bg-white/[0.03] border border-white/6">
+                    <div className="text-white text-xl font-bold font-mono">{propChars.bedrooms}</div>
+                    <div className="text-white/30 text-[10px] uppercase tracking-widest font-medium flex items-center gap-1">
                       <BedDouble className="w-3 h-3" /> Beds
                     </div>
                   </div>
-                  <div className="relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-violet-500/15 to-violet-600/5 border border-violet-500/30">
-                    <div className="absolute top-1 right-1 opacity-15">
-                      <Bath className="w-8 h-8 text-violet-400" />
-                    </div>
-                    <div className="text-violet-400 text-xl font-bold font-mono">{propChars.bathrooms}</div>
-                    <div className="text-violet-300/60 text-xs font-medium flex items-center gap-1">
+                  <div className="rounded-lg p-3 bg-white/[0.03] border border-white/6">
+                    <div className="text-white text-xl font-bold font-mono">{propChars.bathrooms}</div>
+                    <div className="text-white/30 text-[10px] uppercase tracking-widest font-medium flex items-center gap-1">
                       <Bath className="w-3 h-3" /> Baths
                     </div>
                   </div>
@@ -753,7 +743,7 @@ export function PropertyDetail({
 
                 {/* Property Details Grid */}
                 <div className="grid grid-cols-2 gap-1.5">
-                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-white/[0.03] border border-white/6">
                     <div className="flex-shrink-0 w-7 h-7 rounded-md bg-blue-500/15 border border-blue-500/25 flex items-center justify-center">
                       <Building2 className="w-3.5 h-3.5 text-blue-400" />
                     </div>
@@ -762,7 +752,7 @@ export function PropertyDetail({
                       <div className="text-gray-500 text-[10px] uppercase tracking-wider">Type</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-white/[0.03] border border-white/6">
                     <div className={`flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center ${property.conditionTag === 'Excellent' ? 'bg-emerald-500/15 border border-emerald-500/25' : property.conditionTag === 'Good' ? 'bg-blue-500/15 border border-blue-500/25' : property.conditionTag === 'Fair' ? 'bg-amber-500/15 border border-amber-500/25' : 'bg-red-500/15 border border-red-500/25'}`}>
                       <Wrench className={`w-3.5 h-3.5 ${property.conditionTag === 'Excellent' ? 'text-emerald-400' : property.conditionTag === 'Good' ? 'text-blue-400' : property.conditionTag === 'Fair' ? 'text-amber-400' : 'text-red-400'}`} />
                     </div>
@@ -773,7 +763,7 @@ export function PropertyDetail({
                       <div className="text-gray-500 text-[10px] uppercase tracking-wider">Condition</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-white/[0.03] border border-white/6">
                     <div className="flex-shrink-0 w-7 h-7 rounded-md bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center">
                       <Droplets className="w-3.5 h-3.5 text-cyan-400" />
                     </div>
@@ -782,7 +772,7 @@ export function PropertyDetail({
                       <div className="text-gray-500 text-[10px] uppercase tracking-wider">Water</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-white/[0.03] border border-white/6">
                     <div className="flex-shrink-0 w-7 h-7 rounded-md bg-orange-500/15 border border-orange-500/25 flex items-center justify-center">
                       <Thermometer className="w-3.5 h-3.5 text-orange-400" />
                     </div>
@@ -791,7 +781,7 @@ export function PropertyDetail({
                       <div className="text-gray-500 text-[10px] uppercase tracking-wider">Heating</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-white/[0.03] border border-white/6">
                     <div className="flex-shrink-0 w-7 h-7 rounded-md bg-teal-500/15 border border-teal-500/25 flex items-center justify-center">
                       <MapPin className="w-3.5 h-3.5 text-teal-400" />
                     </div>
@@ -800,7 +790,7 @@ export function PropertyDetail({
                       <div className="text-gray-500 text-[10px] uppercase tracking-wider">Area</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg p-2 bg-slate-800/40 border border-slate-700/50">
+                  <div className="flex items-center gap-2 rounded-lg p-2 bg-white/[0.03] border border-white/6">
                     <div className="flex-shrink-0 w-7 h-7 rounded-md bg-amber-500/15 border border-amber-500/25 flex items-center justify-center">
                       <DollarSign className="w-3.5 h-3.5 text-amber-400" />
                     </div>
@@ -812,7 +802,7 @@ export function PropertyDetail({
                 </div>
 
               {/* Unknown Financials Section */}
-              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-600/50">
+              <div className="bg-white/[0.02] rounded-xl p-4 border border-white/6">
                 <h4 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
                   <FinancialEstimatesHelp />
                   Financial Estimates
@@ -873,10 +863,10 @@ export function PropertyDetail({
             </div>
 
             {/* SECTION 2: Due Diligence - FULL WIDTH */}
-              <div className="bg-gradient-to-br from-indigo-900/30 via-purple-900/20 to-slate-800/50 rounded-xl p-4 border border-indigo-500/30 shadow-lg shadow-indigo-500/10" data-testid="due-diligence-section">
-                <h3 className="text-indigo-300 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow shadow-indigo-500/50">
-                    <Search className="w-4 h-4 text-white" />
+              <div className="bg-white/[0.02] rounded-xl p-4 border border-white/6" data-testid="due-diligence-section">
+                <h3 className="text-white/50 text-[10px] font-semibold uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-white/8 flex items-center justify-center">
+                    <Search className="w-3.5 h-3.5 text-white/40" />
                   </div>
                   Due Diligence
                 </h3>
@@ -890,38 +880,18 @@ export function PropertyDetail({
                     
                     const getGradientClasses = () => {
                       if (isCompleted) {
-                        return 'bg-gradient-to-r from-emerald-600/30 to-green-600/20 border-emerald-500/50 shadow-lg shadow-emerald-500/20';
+                        return 'bg-white/[0.06] border-white/10';
                       }
                       if (!canAfford) {
-                        return 'bg-slate-800/40 border-slate-700 opacity-50 cursor-not-allowed';
+                        return 'bg-white/[0.02] border-white/4 opacity-40 cursor-not-allowed';
                       }
-                      if (option.id === 'market_study') {
-                        return 'bg-gradient-to-r from-blue-600/20 to-cyan-600/10 border-blue-500/40 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/20';
-                      }
-                      if (option.id === 'appraisal') {
-                        return 'bg-gradient-to-r from-violet-600/20 to-purple-600/10 border-violet-500/40 hover:border-violet-400 hover:shadow-lg hover:shadow-violet-500/20';
-                      }
-                      if (option.id === 'contractor_walkthrough') {
-                        return 'bg-gradient-to-r from-amber-600/20 to-orange-600/10 border-amber-500/40 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-500/20';
-                      }
-                      if (option.id === 'inspection') {
-                        return 'bg-gradient-to-r from-rose-600/20 to-pink-600/10 border-rose-500/40 hover:border-rose-400 hover:shadow-lg hover:shadow-rose-500/20';
-                      }
-                      if (option.id === 'title_search') {
-                        return 'bg-gradient-to-r from-teal-600/20 to-cyan-600/10 border-teal-500/40 hover:border-teal-400 hover:shadow-lg hover:shadow-teal-500/20';
-                      }
-                      return `bg-slate-700/30 ${primaryColor.border} ${primaryColor.borderHover}`;
+                      return 'bg-white/[0.03] border-white/6 hover:bg-white/[0.06] hover:border-white/10';
                     };
                     
                     const getIconColor = () => {
-                      if (isCompleted) return 'text-emerald-400';
-                      if (!canAfford) return 'text-gray-500';
-                      if (option.id === 'market_study') return 'text-blue-400';
-                      if (option.id === 'appraisal') return 'text-violet-400';
-                      if (option.id === 'contractor_walkthrough') return 'text-amber-400';
-                      if (option.id === 'inspection') return 'text-rose-400';
-                      if (option.id === 'title_search') return 'text-teal-400';
-                      return 'text-gray-400';
+                      if (isCompleted) return 'text-white/60';
+                      if (!canAfford) return 'text-white/20';
+                      return 'text-white/40';
                     };
                     
                     return (
@@ -929,14 +899,14 @@ export function PropertyDetail({
                         key={option.id}
                         onClick={() => handleDiligenceClick(option)}
                         disabled={isDisabled}
-                        className={`w-full text-left p-4 rounded-xl transition-all border-2 ${getGradientClasses()}`}
+                        className={`w-full text-left p-4 rounded-xl transition-colors duration-150 border-2 ${getGradientClasses()}`}
                         data-testid={`button-diligence-${option.id}`}
                         data-no-click-sound
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                              isCompleted ? 'bg-emerald-500/30' : 'bg-slate-700/50'
+                              isCompleted ? 'bg-white/10' : 'bg-white/[0.05]'
                             }`}>
                               {option.id === 'market_study' && <TrendingUp className={`w-5 h-5 ${getIconColor()}`} />}
                               {option.id === 'appraisal' && <DollarSign className={`w-5 h-5 ${getIconColor()}`} />}
@@ -946,16 +916,16 @@ export function PropertyDetail({
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className={`font-bold text-base ${isCompleted ? 'text-emerald-300' : 'text-white'}`}>{option.name}</span>
+                                <span className={`font-medium text-sm ${isCompleted ? 'text-white/60' : 'text-white'}`}>{option.name}</span>
                                 <DiligenceEducationTooltip diligenceId={option.id} />
                               </div>
                               <p className="text-sm text-gray-400 mt-0.5">{option.reveals}</p>
                             </div>
                           </div>
                           {isCompleted ? (
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/30 rounded-full">
-                              <Check className="w-4 h-4 text-emerald-400" />
-                              <span className="text-xs text-emerald-300 font-semibold">Done</span>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/8 rounded-full">
+                              <Check className="w-3.5 h-3.5 text-white/50" />
+                              <span className="text-[10px] text-white/40 font-medium uppercase tracking-wide">Done</span>
                             </div>
                           ) : (
                             <div className="text-right flex-shrink-0">
@@ -979,14 +949,14 @@ export function PropertyDetail({
               </div>
 
               {/* Financial Estimates Summary Panel */}
-              <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50" data-testid="financial-estimates-panel">
+              <div className="bg-white/[0.02] rounded-xl p-4 border border-white/6" data-testid="financial-estimates-panel">
                 <h3 className="text-gray-200 text-sm font-bold uppercase tracking-wider mb-1 flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-emerald-400" />
                   Financial Estimates
                 </h3>
                 <p className="text-xs text-gray-500 mb-3">These fill in as you complete your research above</p>
                 <div className="space-y-2">
-                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.rent.known ? `${FINANCIAL_COLORS.rent.bg} ${FINANCIAL_COLORS.rent.border}` : 'bg-slate-700/20 border-slate-700/30'}`}>
+                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.rent.known ? `${FINANCIAL_COLORS.rent.bg} ${FINANCIAL_COLORS.rent.border}` : 'bg-white/[0.03] border-white/6'}`}>
                     <span className={`text-xs font-semibold ${effectiveRanges.rent.known ? FINANCIAL_COLORS.rent.text : 'text-gray-400'}`}>Rent</span>
                     {effectiveRanges.rent.known ? (
                       <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.rent.text}`}>{formatCurrency(effectiveRanges.rent.min)} - {formatCurrency(effectiveRanges.rent.max)}/mo</span>
@@ -994,7 +964,7 @@ export function PropertyDetail({
                       <span className="text-xs text-gray-500 italic">Not yet investigated</span>
                     )}
                   </div>
-                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.arv.known ? `${FINANCIAL_COLORS.arv.bg} ${FINANCIAL_COLORS.arv.border}` : 'bg-slate-700/20 border-slate-700/30'}`}>
+                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.arv.known ? `${FINANCIAL_COLORS.arv.bg} ${FINANCIAL_COLORS.arv.border}` : 'bg-white/[0.03] border-white/6'}`}>
                     <span className={`text-xs font-semibold ${effectiveRanges.arv.known ? FINANCIAL_COLORS.arv.text : 'text-gray-400'}`}>After Repair Value</span>
                     {effectiveRanges.arv.known ? (
                       <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.arv.text}`}>{formatCurrency(effectiveRanges.arv.min)} - {formatCurrency(effectiveRanges.arv.max)}</span>
@@ -1002,7 +972,7 @@ export function PropertyDetail({
                       <span className="text-xs text-gray-500 italic">Not yet investigated</span>
                     )}
                   </div>
-                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.rehab.known ? `${FINANCIAL_COLORS.rehab.bg} ${FINANCIAL_COLORS.rehab.border}` : 'bg-slate-700/20 border-slate-700/30'}`}>
+                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.rehab.known ? `${FINANCIAL_COLORS.rehab.bg} ${FINANCIAL_COLORS.rehab.border}` : 'bg-white/[0.03] border-white/6'}`}>
                     <span className={`text-xs font-semibold ${effectiveRanges.rehab.known ? FINANCIAL_COLORS.rehab.text : 'text-gray-400'}`}>Rehab Costs</span>
                     {effectiveRanges.rehab.known ? (
                       <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.rehab.text}`}>{formatCurrency(effectiveRanges.rehab.min)} - {formatCurrency(effectiveRanges.rehab.max)}</span>
@@ -1010,7 +980,7 @@ export function PropertyDetail({
                       <span className="text-xs text-gray-500 italic">Not yet investigated</span>
                     )}
                   </div>
-                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.timeline.known ? `${FINANCIAL_COLORS.timeline.bg} ${FINANCIAL_COLORS.timeline.border}` : 'bg-slate-700/20 border-slate-700/30'}`}>
+                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.timeline.known ? `${FINANCIAL_COLORS.timeline.bg} ${FINANCIAL_COLORS.timeline.border}` : 'bg-white/[0.03] border-white/6'}`}>
                     <span className={`text-xs font-semibold ${effectiveRanges.timeline.known ? FINANCIAL_COLORS.timeline.text : 'text-gray-400'}`}>Timeline</span>
                     {effectiveRanges.timeline.known ? (
                       <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.timeline.text}`}>{effectiveRanges.timeline.min} - {effectiveRanges.timeline.max} months</span>
@@ -1023,15 +993,15 @@ export function PropertyDetail({
 
               {/* Revealed Issues */}
               {revealedIssues.length > 0 && (
-                <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
-                  <h3 className="text-red-400 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" /> Issues Discovered
+                <div className="bg-white/[0.02] rounded-xl p-4 border border-white/6">
+                  <h3 className="text-white/50 text-[10px] font-semibold uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <AlertTriangle className="w-3.5 h-3.5 text-red-400/60" /> Issues Discovered
                   </h3>
                   <div className="space-y-3">
                     {revealedIssues.map((issue) => {
                       const issueImg = getIssueImage(issue.id);
                       return (
-                        <div key={issue.id} className="bg-slate-900/50 rounded-lg p-3">
+                        <div key={issue.id} className="bg-white/[0.03] rounded-lg p-3">
                           <div className="flex gap-3">
                             {issueImg && (
                               <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border border-red-500/30">
@@ -1073,75 +1043,75 @@ export function PropertyDetail({
             {/* SECTION 5: Strategy + Contractor side by side on desktop */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
               {/* Strategy */}
-                <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
-                  <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3">Choose Your Strategy</h3>
+                <div className="bg-white/[0.02] rounded-xl p-4 border border-white/6">
+                  <h3 className="text-white/50 text-[10px] font-semibold uppercase tracking-widest mb-3">Choose Your Strategy</h3>
                   <div className="space-y-2">
                     <button onClick={() => setStrategy('rent')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${strategy === 'rent' ? 'bg-emerald-500/20 border-2 border-emerald-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
+                      className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors duration-150 ${strategy === 'rent' ? 'bg-white/10 border border-white/15' : 'border border-white/6 hover:bg-white/[0.04]'}`}
                       data-testid="button-strategy-rent">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${strategy === 'rent' ? 'bg-emerald-500' : 'bg-slate-600'}`}>
+                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${strategy === 'rent' ? 'bg-[hsl(152,44%,42%)]' : 'bg-white/8'}`}>
                         {strategy === 'rent' && <Check className="w-4 h-4 text-white" />}
                       </div>
                       <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Rental</div>
-                        <div className="text-xs text-gray-400">Calculate your cash flow</div>
+                        <div className="font-medium text-white text-sm">Rental</div>
+                        <div className="text-xs text-white/30">Calculate your cash flow</div>
                       </div>
-                      <Home className={`w-5 h-5 ${strategy === 'rent' ? 'text-emerald-400' : 'text-gray-500'}`} />
+                      <Home className={`w-5 h-5 ${strategy === 'rent' ? 'text-white/60' : 'text-white/20'}`} />
                     </button>
                     <button onClick={() => setStrategy('flip')}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${strategy === 'flip' ? 'bg-emerald-500/20 border-2 border-emerald-500' : 'bg-slate-700/30 border-2 border-transparent hover:border-slate-600'}`}
+                      className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors duration-150 ${strategy === 'flip' ? 'bg-white/10 border border-white/15' : 'border border-white/6 hover:bg-white/[0.04]'}`}
                       data-testid="button-strategy-flip">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${strategy === 'flip' ? 'bg-emerald-500' : 'bg-slate-600'}`}>
+                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${strategy === 'flip' ? 'bg-[hsl(152,44%,42%)]' : 'bg-white/8'}`}>
                         {strategy === 'flip' && <Check className="w-4 h-4 text-white" />}
                       </div>
                       <div className="text-left flex-1">
-                        <div className="font-semibold text-white">Flip</div>
-                        <div className="text-xs text-gray-400">Calculate your profit</div>
+                        <div className="font-medium text-white text-sm">Flip</div>
+                        <div className="text-xs text-white/30">Calculate your profit</div>
                       </div>
-                      <DollarSign className={`w-5 h-5 ${strategy === 'flip' ? 'text-emerald-400' : 'text-gray-500'}`} />
+                      <DollarSign className={`w-5 h-5 ${strategy === 'flip' ? 'text-white/60' : 'text-white/20'}`} />
                     </button>
                   </div>
                 </div>
 
               {/* Contractor Choice - Select before making offer */}
-              <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
-                <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <HardHat className="w-4 h-4" /> Contractor Choice
-                  <span className="text-xs font-normal text-amber-400">(Required before offer)</span>
+              <div className="bg-white/[0.02] rounded-xl p-4 border border-white/6">
+                <h3 className="text-white/50 text-[10px] font-semibold uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <HardHat className="w-3.5 h-3.5" /> Contractor Choice
+                  <span className="text-[10px] font-normal text-amber-400/60">(Required)</span>
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setContractor('cheap')}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-colors duration-150 ${
                       contractor === 'cheap'
-                        ? 'bg-blue-500/20 border-2 border-blue-400 shadow-lg shadow-blue-500/20'
-                        : 'bg-slate-700/30 border border-slate-600 hover:bg-slate-700/50'
+                        ? 'bg-white/10 border border-white/15'
+                        : 'border border-white/6 hover:bg-white/[0.04]'
                     }`}
                     type="button"
                   >
-                    <Clock className={`w-6 h-6 ${contractor === 'cheap' ? 'text-blue-400' : 'text-gray-500'}`} />
+                    <Clock className={`w-5 h-5 ${contractor === 'cheap' ? 'text-white/60' : 'text-white/20'}`} />
                     <div className="text-center">
-                      <div className={`font-semibold text-sm ${contractor === 'cheap' ? 'text-blue-300' : 'text-gray-400'}`}>Sole Operator</div>
-                      <div className="text-xs text-gray-400">One-man crew, does it all</div>
-                      <div className="text-xs text-amber-400">+2 months longer</div>
-                      <div className="text-xs text-emerald-400">Lower cost</div>
+                      <div className={`font-medium text-sm ${contractor === 'cheap' ? 'text-white' : 'text-white/40'}`}>Sole Operator</div>
+                      <div className="text-xs text-white/30">One-man crew, does it all</div>
+                      <div className="text-xs text-amber-400/60">+2 months longer</div>
+                      <div className="text-xs text-white/40">Lower cost</div>
                     </div>
                   </button>
                   <button
                     onClick={() => setContractor('fast')}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                    className={`flex flex-col items-center gap-2 p-3 rounded-lg transition-colors duration-150 ${
                       contractor === 'fast'
-                        ? 'bg-purple-500/20 border-2 border-purple-400 shadow-lg shadow-purple-500/20'
-                        : 'bg-slate-700/30 border border-slate-600 hover:bg-slate-700/50'
+                        ? 'bg-white/10 border border-white/15'
+                        : 'border border-white/6 hover:bg-white/[0.04]'
                     }`}
                     type="button"
                   >
-                    <Zap className={`w-6 h-6 ${contractor === 'fast' ? 'text-purple-400' : 'text-gray-500'}`} />
+                    <Zap className={`w-5 h-5 ${contractor === 'fast' ? 'text-white/60' : 'text-white/20'}`} />
                     <div className="text-center">
-                      <div className={`font-semibold text-sm ${contractor === 'fast' ? 'text-purple-300' : 'text-gray-400'}`}>Established Crew</div>
-                      <div className="text-xs text-gray-400">Full team, licensed & insured</div>
-                      <div className="text-xs text-emerald-400">On schedule</div>
-                      <div className="text-xs text-red-400">+25-40% rehab cost</div>
+                      <div className={`font-medium text-sm ${contractor === 'fast' ? 'text-white' : 'text-white/40'}`}>Established Crew</div>
+                      <div className="text-xs text-white/30">Full team, licensed & insured</div>
+                      <div className="text-xs text-white/40">On schedule</div>
+                      <div className="text-xs text-red-400/60">+25-40% rehab cost</div>
                     </div>
                   </button>
                 </div>
@@ -1149,16 +1119,16 @@ export function PropertyDetail({
             </div>
 
             {/* Timeline Risk Analysis - full width */}
-            <div className="bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700">
+            <div className="bg-white/[0.02] rounded-xl p-4 border border-white/6">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-gray-300 text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
-                  <Clock className="w-4 h-4" /> Timeline Risk Analysis
+                <h3 className="text-white/50 text-[10px] font-semibold uppercase tracking-widest flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5" /> Timeline Risk Analysis
                 </h3>
                 <span className={`text-sm font-semibold ${timelineRisk.color}`}>{timelineRisk.level}</span>
               </div>
-              <p className="text-sm text-gray-400">{timelineRisk.explanation}</p>
+              <p className="text-sm text-white/40">{timelineRisk.explanation}</p>
               {revealedIssues.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-slate-700">
+                <div className="mt-3 pt-3 border-t border-white/6">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Known repair timeline:</span>
                     <span className="text-amber-400 font-semibold">+{getTotalTimelineImpact(revealedIssues)} months</span>
@@ -1172,9 +1142,9 @@ export function PropertyDetail({
             </div>
 
             {/* SECTION 6: Deal Outcome + Action Buttons - FULL WIDTH */}
-            <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur rounded-xl p-4 border border-slate-600">
+            <div className="bg-white/[0.02] rounded-xl p-4 border border-white/6">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-white/8 flex items-center justify-center">
                   <Lock className="w-5 h-5 text-gray-400" />
                 </div>
                 <div>
@@ -1182,7 +1152,7 @@ export function PropertyDetail({
                   <p className="text-gray-400 text-xs">Build a pro forma to determine viability</p>
                 </div>
               </div>
-              <div className="space-y-2 mt-3 pt-3 border-t border-slate-700">
+              <div className="space-y-2 mt-3 pt-3 border-t border-white/6">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-300">Diligence completed:</span>
                   <span className="text-emerald-400 font-medium">{completedDiligence.length}/3</span>
@@ -1201,7 +1171,7 @@ export function PropertyDetail({
                   playProformaChime();
                   onOpenProForma(strategy, contractor);
                 }}
-                className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white rounded-xl font-bold text-base transition-all shadow-lg shadow-emerald-500/30"
+                className="w-full px-6 py-3.5 bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] text-white rounded-lg font-medium text-sm transition-colors duration-150"
                 data-testid="button-pro-forma"
               >
                 Build Pro Forma
@@ -1209,10 +1179,10 @@ export function PropertyDetail({
               
               <button 
                 disabled={!isProFormaComplete}
-                className={`w-full px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
+                className={`w-full px-6 py-3 rounded-lg font-medium text-sm transition-colors duration-150 flex items-center justify-center gap-2 ${
                   isProFormaComplete
-                    ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30'
-                    : 'bg-slate-700/30 text-gray-500 border border-slate-600 cursor-not-allowed'
+                    ? 'bg-white/8 hover:bg-white/12 text-white/70 border border-white/10'
+                    : 'bg-white/[0.02] text-white/20 border border-white/4 cursor-not-allowed'
                 }`}
                 data-testid="button-make-offer"
               >
@@ -1222,7 +1192,7 @@ export function PropertyDetail({
 
               <button 
                 onClick={onPass}
-                className="w-full px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-xl font-semibold text-sm transition-all"
+                className="w-full px-4 py-3 bg-white/[0.04] hover:bg-white/8 text-red-400/70 border border-white/6 rounded-lg font-medium text-sm transition-colors duration-150"
                 data-testid="button-pass"
               >
                 Pass on Property
@@ -1234,7 +1204,7 @@ export function PropertyDetail({
 
       {/* Confirmation Dialog for Due Diligence Purchase */}
       <AlertDialog open={!!pendingDiligence} onOpenChange={(open) => !open && handleCancelDiligence()}>
-        <AlertDialogContent className="bg-slate-900 border-slate-700 max-w-md">
+        <AlertDialogContent className="bg-[hsl(220,14%,10%)] border-white/8 max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white text-lg">
               Confirm Investigation
@@ -1245,7 +1215,7 @@ export function PropertyDetail({
           </AlertDialogHeader>
           {pendingDiligence && (
             <div className="space-y-4 mt-2">
-              <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+              <div className="bg-white/[0.04] rounded-lg p-4 border border-white/6">
                 <div className="font-semibold text-gray-200 mb-2">{pendingDiligence.name}</div>
                 <p className="text-sm text-gray-400 mb-3">{pendingDiligence.reveals}</p>
                 <div className="flex items-center justify-between text-sm">
@@ -1267,13 +1237,13 @@ export function PropertyDetail({
           <AlertDialogFooter className="gap-3">
             <AlertDialogCancel 
               onClick={handleCancelDiligence}
-              className="bg-slate-700 hover:bg-slate-600 text-gray-200 border-slate-600"
+              className="bg-white/8 hover:bg-white/12 text-white/60 border-white/6"
             >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirmDiligence}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white"
+              className="bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] text-white"
             >
               Confirm Purchase
             </AlertDialogAction>

@@ -122,56 +122,56 @@ function RentalFinancialDetails({ deal, propertyName, property }: {
   
   return (
     <div className="space-y-3 text-sm">
-      <div className="font-semibold text-white border-b border-white/20 pb-2">
+      <div className="font-medium text-white/90 border-b border-white/8 pb-2">
         {propertyName}
       </div>
       
       {hasNoRent && (
-        <div className="bg-red-900/40 border border-red-500/50 rounded px-2 py-1.5 text-xs text-red-300">
-          No rent income! You're only paying mortgage costs.
+        <div className="border border-red-500/15 rounded-lg px-2.5 py-1.5 text-xs text-red-300/80">
+          No rent income — only paying mortgage costs.
         </div>
       )}
 
       {hasProjectionDifference && (
         <div className={`rounded-lg p-2.5 border text-xs ${
           realityCheck.wasOptimistic 
-            ? 'bg-red-900/30 border-red-500/30' 
-            : 'bg-emerald-900/30 border-emerald-500/30'
+            ? 'border-red-500/15' 
+            : 'border-white/8'
         }`} data-testid="reality-check-comparison">
-          <div className="font-semibold mb-2 flex items-center gap-1.5">
-            <TrendingUp className="w-3.5 h-3.5" />
-            <span className={realityCheck.wasOptimistic ? 'text-red-300' : 'text-emerald-300'}>
+          <div className="font-medium mb-2 flex items-center gap-1.5">
+            <TrendingUp className="w-3.5 h-3.5 text-white/40" />
+            <span className={realityCheck.wasOptimistic ? 'text-red-300/80' : 'text-[hsl(152,44%,50%)]'}>
               Projection vs. Reality
             </span>
           </div>
           <div className="grid grid-cols-3 gap-1 text-xs mb-1.5">
-            <span className="text-gray-500"></span>
-            <span className="text-gray-400 text-center">You Said</span>
-            <span className="text-gray-400 text-center">Actual</span>
+            <span className="text-white/20"></span>
+            <span className="text-white/30 text-center">You Said</span>
+            <span className="text-white/30 text-center">Actual</span>
           </div>
           <div className="grid grid-cols-3 gap-1 text-xs">
-            <span className="text-gray-400">Rent</span>
-            <span className="text-center text-gray-300">${fmt(projectedRent)}</span>
-            <span className={`text-center font-medium ${monthlyRent > projectedRent ? 'text-emerald-400' : monthlyRent < projectedRent ? 'text-red-400' : 'text-gray-300'}`}>
+            <span className="text-white/40">Rent</span>
+            <span className="text-center text-white/50 font-mono" style={{ letterSpacing: '-0.02em' }}>${fmt(projectedRent)}</span>
+            <span className={`text-center font-mono font-medium ${monthlyRent > projectedRent ? 'text-[hsl(152,44%,50%)]' : monthlyRent < projectedRent ? 'text-red-400/80' : 'text-white/50'}`} style={{ letterSpacing: '-0.02em' }}>
               ${fmt(monthlyRent)}
             </span>
           </div>
           <div className="grid grid-cols-3 gap-1 text-xs mt-1">
-            <span className="text-gray-400">Vacancy</span>
-            <span className="text-center text-gray-300">{projectedVacancy}%</span>
-            <span className={`text-center font-medium ${Number(displayVacancyRate) < projectedVacancy ? 'text-emerald-400' : Number(displayVacancyRate) > projectedVacancy ? 'text-red-400' : 'text-gray-300'}`}>
+            <span className="text-white/40">Vacancy</span>
+            <span className="text-center text-white/50 font-mono" style={{ letterSpacing: '-0.02em' }}>{projectedVacancy}%</span>
+            <span className={`text-center font-mono font-medium ${Number(displayVacancyRate) < projectedVacancy ? 'text-[hsl(152,44%,50%)]' : Number(displayVacancyRate) > projectedVacancy ? 'text-red-400/80' : 'text-white/50'}`} style={{ letterSpacing: '-0.02em' }}>
               {displayVacancyRate}%
             </span>
           </div>
-          <div className="grid grid-cols-3 gap-1 text-xs mt-1 border-t border-white/10 pt-1.5">
-            <span className="text-gray-400">Cash Flow</span>
-            <span className="text-center text-gray-300">${fmt(realityCheck.projectedCashFlow)}</span>
-            <span className={`text-center font-bold ${realityCheck.actualCashFlow >= realityCheck.projectedCashFlow ? 'text-emerald-400' : 'text-red-400'}`}>
+          <div className="grid grid-cols-3 gap-1 text-xs mt-1 border-t border-white/8 pt-1.5">
+            <span className="text-white/50">Cash Flow</span>
+            <span className="text-center text-white/50 font-mono" style={{ letterSpacing: '-0.02em' }}>${fmt(realityCheck.projectedCashFlow)}</span>
+            <span className={`text-center font-mono font-semibold ${realityCheck.actualCashFlow >= realityCheck.projectedCashFlow ? 'text-[hsl(152,44%,50%)]' : 'text-red-400/80'}`} style={{ letterSpacing: '-0.02em' }}>
               ${fmt(realityCheck.actualCashFlow)}
             </span>
           </div>
           {realityCheck.explanation && (
-            <p className={`mt-2 text-xs leading-tight ${realityCheck.wasOptimistic ? 'text-red-400/70' : 'text-emerald-400/70'}`}>
+            <p className={`mt-2 text-xs leading-tight ${realityCheck.wasOptimistic ? 'text-red-400/60' : 'text-white/40'}`}>
               {realityCheck.explanation}
             </p>
           )}
@@ -180,44 +180,44 @@ function RentalFinancialDetails({ deal, propertyName, property }: {
       
       <div className="space-y-1.5">
         <div className="flex justify-between">
-          <span className="text-gray-400">Monthly Rent</span>
-          <span className={monthlyRent > 0 ? 'text-green-400 font-medium' : 'text-gray-500'}>
+          <span className="text-white/40">Monthly Rent</span>
+          <span className={`font-mono ${monthlyRent > 0 ? 'text-white/70 font-medium' : 'text-white/30'}`} style={{ letterSpacing: '-0.02em' }}>
             ${fmt(monthlyRent)}
           </span>
         </div>
         {monthlyVacancy > 0 && (
           <div className="flex justify-between">
-            <span className="text-gray-400">Vacancy ({displayVacancyRate}%)</span>
-            <span className="text-red-400">-${fmt(Math.abs(monthlyVacancy))}</span>
+            <span className="text-white/40">Vacancy ({displayVacancyRate}%)</span>
+            <span className="text-red-400/60 font-mono" style={{ letterSpacing: '-0.02em' }}>-${fmt(Math.abs(monthlyVacancy))}</span>
           </div>
         )}
         {monthlyOpEx > 0 && (
           <div className="flex justify-between">
-            <span className="text-gray-400">Operating Expenses</span>
-            <span className="text-red-400">-${fmt(Math.abs(monthlyOpEx))}</span>
+            <span className="text-white/40">Operating Expenses</span>
+            <span className="text-red-400/60 font-mono" style={{ letterSpacing: '-0.02em' }}>-${fmt(Math.abs(monthlyOpEx))}</span>
           </div>
         )}
         <div className="flex justify-between">
-          <span className="text-gray-400">Mortgage Payment</span>
-          <span className="text-red-400">-${fmt(Math.abs(monthlyDebt))}</span>
+          <span className="text-white/40">Mortgage Payment</span>
+          <span className="text-red-400/60 font-mono" style={{ letterSpacing: '-0.02em' }}>-${fmt(Math.abs(monthlyDebt))}</span>
         </div>
-        <div className="flex justify-between border-t border-white/10 pt-1.5 mt-1.5">
-          <span className="text-white font-medium">Monthly Cash Flow</span>
-          <span className={`font-bold ${Math.round(monthlyCashFlow) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+        <div className="flex justify-between border-t border-white/8 pt-1.5 mt-1.5">
+          <span className="text-white/70 font-medium">Monthly Cash Flow</span>
+          <span className={`font-mono font-semibold ${Math.round(monthlyCashFlow) >= 0 ? 'text-[hsl(152,44%,50%)]' : 'text-red-400/80'}`} style={{ letterSpacing: '-0.02em' }}>
             {Math.round(monthlyCashFlow) >= 0 ? '+' : ''}{fmt(monthlyCashFlow)}
           </span>
         </div>
       </div>
       
       {purchasePrice > 0 && (
-        <div className="text-xs text-gray-500 border-t border-white/10 pt-2 space-y-1">
+        <div className="text-xs text-white/30 border-t border-white/6 pt-2 space-y-1">
           <div className="flex justify-between">
             <span>Purchase Price</span>
-            <span>${fmt(purchasePrice)}</span>
+            <span className="font-mono" style={{ letterSpacing: '-0.02em' }}>${fmt(purchasePrice)}</span>
           </div>
           <div className="flex justify-between">
             <span>LTV</span>
-            <span>{ltv}%</span>
+            <span className="font-mono" style={{ letterSpacing: '-0.02em' }}>{ltv}%</span>
           </div>
         </div>
       )}
@@ -240,36 +240,36 @@ function FlipFinancialDetails({ deal, propertyName }: {
   
   return (
     <div className="space-y-3 text-sm">
-      <div className="font-semibold text-white border-b border-white/20 pb-2">
+      <div className="font-medium text-white/90 border-b border-white/8 pb-2">
         {propertyName}
       </div>
       
       <div className="space-y-1.5">
         {purchasePrice > 0 && (
           <div className="flex justify-between">
-            <span className="text-gray-400">Purchase Price</span>
-            <span className="text-white">${purchasePrice.toLocaleString()}</span>
+            <span className="text-white/40">Purchase Price</span>
+            <span className="text-white/70 font-mono" style={{ letterSpacing: '-0.02em' }}>${purchasePrice.toLocaleString()}</span>
           </div>
         )}
         <div className="flex justify-between">
-          <span className="text-gray-400">Rehab Budget</span>
-          <span className="text-white">${rehabBudget.toLocaleString()}</span>
+          <span className="text-white/40">Rehab Budget</span>
+          <span className="text-white/70 font-mono" style={{ letterSpacing: '-0.02em' }}>${rehabBudget.toLocaleString()}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-400">Contractor</span>
-          <span className="text-white capitalize">{contractorType}</span>
+          <span className="text-white/40">Contractor</span>
+          <span className="text-white/70 capitalize">{contractorType}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-gray-400">Timeline</span>
-          <span className="text-white">{rehabWeeks} months total</span>
+          <span className="text-white/40">Timeline</span>
+          <span className="text-white/70">{rehabWeeks} months total</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-amber-400 font-medium">Time Remaining</span>
-          <span className="text-amber-400 font-bold">{weeksLeft} months</span>
+          <span className="text-amber-400/60 font-medium">Time Remaining</span>
+          <span className="text-amber-400/70 font-mono font-semibold" style={{ letterSpacing: '-0.02em' }}>{weeksLeft} months</span>
         </div>
-        <div className="flex justify-between border-t border-white/10 pt-1.5 mt-1.5">
-          <span className="text-white font-medium">Projected Profit</span>
-          <span className={`font-bold ${projectedProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+        <div className="flex justify-between border-t border-white/8 pt-1.5 mt-1.5">
+          <span className="text-white/70 font-medium">Projected Profit</span>
+          <span className={`font-mono font-semibold ${projectedProfit >= 0 ? 'text-[hsl(152,44%,50%)]' : 'text-red-400/80'}`} style={{ letterSpacing: '-0.02em' }}>
             {projectedProfit >= 0 ? '+' : ''}${projectedProfit.toLocaleString()}
           </span>
         </div>
@@ -389,26 +389,25 @@ export function TimeProgressionPanel({
   const hasActiveProperties = activeRentals.length > 0 || flipsInRehab.length > 0 || flipsReadyToList.length > 0;
 
   return (
-    <div className="bg-slate-800/80 backdrop-blur rounded-lg border border-white/10 p-3" data-testid="time-progression-panel">
-      {/* Header Row - Time & Advance Button */}
+    <div className="rounded-lg border border-white/6 bg-white/[0.02] p-3" data-testid="time-progression-panel">
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-blue-400" />
-          <span className="text-sm md:text-base font-medium text-white">Month {gameRun.currentWeek}</span>
-          <span className="text-xs md:text-sm text-gray-400">• {gameRun.weeksRemaining} months left</span>
+          <Clock className="w-3.5 h-3.5 text-white/30" />
+          <span className="text-sm font-medium text-white/80">Month {gameRun.currentWeek}</span>
+          <span className="text-xs text-white/30">· {gameRun.weeksRemaining} left</span>
         </div>
         <Button
           onClick={handleAdvanceWeek}
           disabled={isAdvancing || gameRun.weeksRemaining <= 0}
           size="sm"
-          className="bg-blue-600 hover:bg-blue-700 h-9 px-3 text-sm"
+          className="bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] disabled:bg-white/6 disabled:text-white/25 h-8 px-3 text-xs font-medium border-0"
           data-no-click-sound
         >
           {isAdvancing ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
             <>
-              <Play className="w-3.5 h-3.5 mr-1" />
+              <Play className="w-3 h-3 mr-1" />
               Next Month
             </>
           )}
@@ -416,7 +415,7 @@ export function TimeProgressionPanel({
       </div>
 
       {showBankruptcyWarning && bankruptcyRisk && (
-        <div className="bg-red-950/80 border border-red-500/50 rounded-lg p-3 mb-3 animate-in fade-in duration-200" data-testid="bankruptcy-warning-dialog">
+        <div className="bg-red-950/40 border border-red-500/20 rounded-lg p-3 mb-3" data-testid="bankruptcy-warning-dialog">
           <div className="flex items-start gap-2 mb-2">
             <ShieldAlert className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
             <div>
@@ -446,7 +445,7 @@ export function TimeProgressionPanel({
               onClick={handleDismissWarning}
               size="sm"
               variant="outline"
-              className="flex-1 h-7 text-xs border-gray-600 text-gray-300 hover:bg-gray-800"
+              className="flex-1 h-7 text-xs border-white/10 text-white/60 hover:bg-white/5 hover:text-white/80"
               data-testid="button-dismiss-bankruptcy-warning"
             >
               Go Back
@@ -455,7 +454,7 @@ export function TimeProgressionPanel({
               onClick={handleAdvanceWeek}
               disabled={isAdvancing}
               size="sm"
-              className="flex-1 h-7 text-xs bg-red-700 hover:bg-red-600 text-white"
+              className="flex-1 h-7 text-xs bg-red-800/60 hover:bg-red-700/60 text-red-200 border-0"
               data-testid="button-proceed-despite-warning"
             >
               {isAdvancing ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Proceed Anyway'}
@@ -465,10 +464,10 @@ export function TimeProgressionPanel({
       )}
 
       {!showBankruptcyWarning && (bankruptcyRisk || lowCashWarning) && (
-        <div className={`flex items-center gap-2 rounded px-3 py-2 mb-3 ${
+        <div className={`flex items-center gap-2 rounded-lg px-3 py-2 mb-3 ${
           bankruptcyRisk 
-            ? 'bg-red-950/60 border border-red-500/40' 
-            : 'bg-yellow-950/40 border border-yellow-600/30'
+            ? 'bg-red-950/30 border border-red-500/15' 
+            : 'bg-amber-950/20 border border-amber-500/15'
         }`} data-testid="low-cash-warning-banner">
           <AlertTriangle className={`w-3.5 h-3.5 flex-shrink-0 ${bankruptcyRisk ? 'text-red-400' : 'text-yellow-400'}`} />
           <span className={`text-xs ${bankruptcyRisk ? 'text-red-300' : 'text-yellow-300'}`}>
@@ -482,15 +481,11 @@ export function TimeProgressionPanel({
 
       {/* Monthly Income Summary - Compact */}
       {totalMonthlyIncome !== 0 && (
-        <div className={`flex items-center justify-between rounded px-3 py-2 mb-3 ${
-          totalMonthlyIncome >= 0 
-            ? 'bg-green-900/30 border border-green-500/30' 
-            : 'bg-red-900/30 border border-red-500/30'
-        }`}>
-          <span className={`text-xs md:text-sm ${totalMonthlyIncome >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+        <div className="flex items-center justify-between px-3 py-2 mb-3">
+          <span className="text-xs text-white/40">
             Monthly {totalMonthlyIncome >= 0 ? 'Income' : 'Loss'}
           </span>
-          <span className={`text-sm md:text-base font-bold ${totalMonthlyIncome >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <span className={`text-sm font-mono font-semibold ${totalMonthlyIncome >= 0 ? 'text-[hsl(152,44%,50%)]' : 'text-red-400/80'}`} style={{ letterSpacing: '-0.03em' }}>
             {totalMonthlyIncome >= 0 ? '+' : ''}${totalMonthlyIncome.toLocaleString()}/mo
           </span>
         </div>
@@ -498,17 +493,17 @@ export function TimeProgressionPanel({
 
       {/* Portfolio Cycle Indicator - Shows investment progression */}
       {hasActiveProperties && (
-        <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mb-2 px-2">
-          <span className="text-emerald-400">Deal</span>
+        <div className="flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-wider text-white/20 mb-2 px-2">
+          <span className="text-white/40">Deal</span>
           <span>→</span>
-          <span className={totalMonthlyIncome > 0 ? 'text-green-400' : 'text-gray-400'}>Cash Flow</span>
+          <span className={totalMonthlyIncome > 0 ? 'text-white/40' : ''}>Cash Flow</span>
           <span>→</span>
           <span className={activeRentals.some(d => {
             const weeksHeld = gameRun.currentWeek - ((d as any).purchaseWeek ?? 0);
             return weeksHeld >= SEASONING_WEEKS;
-          }) ? 'text-blue-400' : 'text-gray-400'}>Refinance</span>
+          }) ? 'text-white/40' : ''}>Refinance</span>
           <span>→</span>
-          <span className="text-amber-400">Scale</span>
+          <span className="text-white/40">Scale</span>
         </div>
       )}
 
@@ -539,14 +534,14 @@ export function TimeProgressionPanel({
             return (
               <div
                 key={deal.id}
-                className="flex items-center justify-between bg-white/5 rounded px-2 py-1.5 border border-white/10"
+                className="flex items-center justify-between rounded-lg px-2.5 py-2 border border-white/6 bg-white/[0.02]"
                 data-testid={`rental-deal-${deal.id}`}
               >
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="flex items-center gap-2 min-w-0 hover:bg-white/10 rounded px-1 py-0.5 transition-colors cursor-pointer">
-                      <Home className={`w-3 h-3 flex-shrink-0 ${getMonthlyCashFlow(deal) >= 0 ? 'text-green-400' : 'text-red-400'}`} />
-                      <span className="text-xs md:text-sm text-white truncate">{propertyName}</span>
+                    <button className="flex items-center gap-2 min-w-0 hover:bg-white/5 rounded-md px-1 py-0.5 transition-colors duration-150 cursor-pointer">
+                      <Home className={`w-3 h-3 flex-shrink-0 ${getMonthlyCashFlow(deal) >= 0 ? 'text-[hsl(152,44%,50%)]' : 'text-red-400/70'}`} />
+                      <span className="text-xs md:text-sm text-white/80 truncate">{propertyName}</span>
                       {(() => {
                         const tenant = tenants.find(t => t.dealId === deal.id);
                         if (tenant && tenant.satisfaction != null) {
@@ -564,13 +559,13 @@ export function TimeProgressionPanel({
                         }
                         return null;
                       })()}
-                      <span className={`text-xs md:text-sm font-medium ${getMonthlyCashFlow(deal) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      <span className={`text-xs font-mono font-medium ${getMonthlyCashFlow(deal) >= 0 ? 'text-[hsl(152,44%,50%)]' : 'text-red-400/70'}`} style={{ letterSpacing: '-0.02em' }}>
                         {getMonthlyCashFlow(deal) >= 0 ? '+' : ''}${getMonthlyCashFlow(deal).toLocaleString()}/mo
                       </span>
-                      <Info className="w-3 h-3 text-gray-500" />
+                      <Info className="w-3 h-3 text-white/20" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-80 bg-slate-900 border-slate-700 text-white" align="start">
+                  <PopoverContent className="w-80 bg-[hsl(220,14%,10%)] border-white/8 text-white/80" align="start">
                     <RentalFinancialDetails
                       deal={deal}
                       propertyName={propertyName}
@@ -625,7 +620,7 @@ export function TimeProgressionPanel({
                   )}
                   <Button
                     size="sm"
-                    className="bg-orange-500 hover:bg-orange-600 text-white h-7 px-2.5 text-xs"
+                    className="bg-amber-600/80 hover:bg-amber-600 text-white h-7 px-2.5 text-xs font-medium border-0"
                     disabled={!canSell || sellingDealId === deal.id}
                     onClick={() => handleSellRental(deal.id)}
                     data-testid={`button-sell-rental-${deal.id}`}
@@ -653,23 +648,23 @@ export function TimeProgressionPanel({
               <Popover key={deal.id}>
                 <PopoverTrigger asChild>
                   <div
-                    className="bg-amber-900/20 border border-amber-500/30 rounded px-2 py-1.5 cursor-pointer hover:bg-amber-900/30 transition-colors"
+                    className="rounded-lg border border-white/6 bg-white/[0.02] px-2.5 py-2 cursor-pointer hover:bg-white/[0.04] transition-colors duration-150"
                     data-testid={`flip-deal-${deal.id}`}
                   >
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="w-3 h-3 text-amber-400" />
-                        <span className="text-xs text-white">{propertyName}</span>
-                        <Info className="w-3 h-3 text-gray-500" />
+                        <TrendingUp className="w-3 h-3 text-amber-400/70" />
+                        <span className="text-xs text-white/80">{propertyName}</span>
+                        <Info className="w-3 h-3 text-white/20" />
                       </div>
-                      <Badge variant="secondary" className="h-5 text-xs bg-amber-500/20 text-amber-300 border-amber-500/30">
+                      <span className="text-[10px] font-medium text-amber-400/70 uppercase tracking-wide">
                         {weeksLeft}mo left
-                      </Badge>
+                      </span>
                     </div>
-                    <Progress value={progress} className="h-1.5" />
+                    <Progress value={progress} className="h-1" />
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-80 bg-slate-900 border-slate-700 text-white" align="start">
+                <PopoverContent className="w-80 bg-[hsl(220,14%,10%)] border-white/8 text-white/80" align="start">
                   <FlipFinancialDetails
                     deal={deal}
                     propertyName={propertyName}
@@ -686,19 +681,19 @@ export function TimeProgressionPanel({
             return (
               <div
                 key={deal.id}
-                className="flex items-center justify-between bg-emerald-900/30 border border-emerald-500/40 rounded px-2 py-1.5"
+                className="flex items-center justify-between rounded-lg px-2.5 py-2 border border-white/6 bg-white/[0.02]"
                 data-testid={`flip-deal-${deal.id}`}
               >
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="flex items-center gap-2 min-w-0 hover:bg-white/10 rounded px-1 py-0.5 transition-colors cursor-pointer">
-                      <DollarSign className="w-3 h-3 text-emerald-400 flex-shrink-0" />
-                      <span className="text-xs md:text-sm text-white truncate">{getPropertyName(deal.propertyId)}</span>
-                      <Badge className="h-5 text-xs bg-emerald-500 text-white">READY</Badge>
-                      <Info className="w-3 h-3 text-gray-500" />
+                    <button className="flex items-center gap-2 min-w-0 hover:bg-white/5 rounded-md px-1 py-0.5 transition-colors duration-150 cursor-pointer">
+                      <DollarSign className="w-3 h-3 text-[hsl(152,44%,50%)] flex-shrink-0" />
+                      <span className="text-xs md:text-sm text-white/80 truncate">{getPropertyName(deal.propertyId)}</span>
+                      <span className="text-[10px] font-medium text-[hsl(152,44%,50%)] uppercase tracking-wide">READY</span>
+                      <Info className="w-3 h-3 text-white/20" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-80 bg-slate-900 border-slate-700 text-white" align="start">
+                  <PopoverContent className="w-80 bg-[hsl(220,14%,10%)] border-white/8 text-white/80" align="start">
                     <FlipFinancialDetails
                       deal={deal}
                       propertyName={getPropertyName(deal.propertyId)}
@@ -708,7 +703,7 @@ export function TimeProgressionPanel({
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <Button
                     size="sm"
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white h-7 px-2.5 text-xs font-semibold"
+                    className="bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] text-white h-7 px-3 text-xs font-medium border-0"
                     disabled={!canSell || sellingDealId === deal.id}
                     onClick={() => handleSellFlip(deal.id)}
                     data-testid={`button-sell-flip-${deal.id}`}
@@ -716,7 +711,7 @@ export function TimeProgressionPanel({
                     {sellingDealId === deal.id ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
                     ) : (
-                      'Sell!'
+                      'Sell'
                     )}
                   </Button>
                 </div>
@@ -732,12 +727,12 @@ export function TimeProgressionPanel({
       )}
 
       {gameRun.cash < 5000 && gameRun.weeksRemaining > 0 && !hasActiveProperties && (
-        <div className="mt-2 p-2.5 bg-amber-900/30 border border-amber-500/30 rounded-lg" data-testid="low-cash-hint">
+        <div className="mt-2 p-2.5 border border-white/6 rounded-lg" data-testid="low-cash-hint">
           <div className="flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-4 h-4 text-amber-400/70 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs text-amber-300 font-medium">Low on cash?</p>
-              <p className="text-xs text-amber-400/70 mt-0.5">
+              <p className="text-xs text-white/60 font-medium">Low on cash?</p>
+              <p className="text-xs text-white/30 mt-0.5">
                 You can still advance time — look for cheaper properties, or tap the menu to start a new game.
               </p>
             </div>
@@ -746,11 +741,11 @@ export function TimeProgressionPanel({
       )}
 
       {gameRun.cash < 5000 && hasActiveProperties && flipsReadyToList.length > 0 && (
-        <div className="mt-2 p-2.5 bg-emerald-900/30 border border-emerald-500/30 rounded-lg" data-testid="sell-flip-hint">
+        <div className="mt-2 p-2.5 border border-white/6 rounded-lg" data-testid="sell-flip-hint">
           <div className="flex items-start gap-2">
-            <DollarSign className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-emerald-300/80">
-              You have flips ready to sell! Tap the "Sell!" button above to cash out.
+            <DollarSign className="w-4 h-4 text-[hsl(152,44%,50%)] flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-white/50">
+              You have flips ready to sell. Tap "Sell" above to cash out.
             </p>
           </div>
         </div>

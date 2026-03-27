@@ -1,0 +1,144 @@
+You are refining an existing real estate simulation game (Deal Break Simulator). The game is functional. DO NOT change logic, systems, or mechanics.
+
+Your job is to redesign the UI/UX across the ENTIRE application to achieve:
+
+iOS-native quality + financial seriousness + cross-platform elegance
+
+This must feel like:
+	•	Apple built it (precision, restraint, clarity)
+	•	but for real financial decisions (weight, consequence)
+	•	and it must scale cleanly to desktop without feeling like a blown-up mobile app
+
+⸻
+
+CORE DESIGN PRINCIPLE
+
+Every element must feel inevitable, not assembled.
+
+If something looks like a reusable component or template, it must be refined or removed.
+
+⸻
+
+PLATFORM STRATEGY
+
+iOS (primary reference)
+	•	Use Apple-level spacing discipline
+	•	Large, legible numbers with perfect hierarchy
+	•	Tap targets feel natural, not cramped
+	•	Soft depth (subtle shadows, not heavy cards)
+	•	Fluid but restrained motion
+
+Desktop (not an afterthought)
+	•	Do NOT just stretch mobile layout
+	•	Introduce horizontal intelligence:
+	•	key metrics can sit side-by-side naturally
+	•	more whitespace, less stacking
+	•	Cursor interactions should feel precise (hover states subtle, not loud)
+
+⸻
+
+LAYOUT SYSTEM
+	1.	Move away from “card grid everywhere”
+	•	Cards are used sparingly, not as default containers
+	•	Key data can exist directly on the canvas
+	2.	Establish clear hierarchy
+	•	Primary: cash, deal status, time remaining
+	•	Secondary: supporting metrics
+	•	Tertiary: labels, metadata
+	3.	Use grouping, not boxing
+	•	Space and alignment define structure more than borders
+
+⸻
+
+TYPOGRAPHY (THIS IS CRITICAL)
+	•	Numbers are the product → they must feel premium and calm
+	•	Use:
+	•	Large, confident numerics (no gimmicks)
+	•	Tight, clean letter spacing
+	•	Labels:
+	•	small
+	•	quiet
+	•	never competing with numbers
+
+Avoid:
+	•	overly stylized fonts
+	•	“techy” fonts
+	•	anything that feels like a template
+
+⸻
+
+COLOR SYSTEM
+	•	Base: near-black / deep gray
+	•	Primary text: soft white (not pure white)
+	•	Accents:
+	•	muted green (not neon)
+	•	muted red (not warning-sign bright)
+	•	warm amber for attention
+
+Colors should feel like signals, not decorations
+
+⸻
+
+COMPONENT REFINEMENT
+
+Metrics (Cash, Cash Flow, etc.)
+	•	Remove heavy boxes where unnecessary
+	•	Let key numbers sit with breathing room
+	•	Subtle emphasis (weight, spacing), not color overload
+
+Active Issues
+	•	Should feel serious, not like notifications
+	•	More like “conditions” than “alerts”
+	•	Slightly denser, tighter spacing
+
+Buttons / Actions
+	•	Clean, minimal, slightly firm edges
+	•	No overly pill-shaped “startup buttons”
+	•	Clear hierarchy between primary and secondary actions
+
+⸻
+
+MOTION
+	•	Fast, subtle, precise
+	•	No bounce, no playfulness
+	•	Micro-transitions only:
+	•	opacity
+	•	slight position shifts
+	•	Should feel invisible but polished
+
+⸻
+
+DEPTH & MATERIAL
+	•	Very light layering
+	•	Minimal shadows, extremely soft
+	•	Optional subtle background gradient or noise for texture
+	•	Avoid “floating cards everywhere”
+
+⸻
+
+ANTI-AI / ANTI-TEMPLATE RULES
+
+Remove anything that resembles:
+	•	Tailwind UI defaults
+	•	generic dashboard layouts
+	•	crypto app styling
+	•	overly rounded everything
+	•	perfectly uniform spacing everywhere
+
+Introduce:
+	•	slight variation in spacing
+	•	intentional hierarchy shifts
+	•	moments of asymmetry (controlled, not chaotic)
+
+⸻
+
+FINAL STANDARD
+
+The app should feel like:
+
+a calm, high-stakes financial interface designed by Apple,
+not a startup dashboard, not a template, not AI-generated
+
+If it feels “nice” but generic, push further.
+
+If it feels slightly understated but unmistakably high-quality, you are correct.

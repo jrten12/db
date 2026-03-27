@@ -71,10 +71,10 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     relatedSlugs: ["cap-rates-cash-on-cash", "hidden-costs", "one-percent-rule"],
     sections: [
       { heading: "Your Deal's Truth Serum", content: "The spreadsheet is more important than the property. A gorgeous Victorian can bankrupt you if the numbers don't work. The pro forma strips away emotional appeal and reveals whether a property actually makes money." },
-      { heading: "The Anatomy of a Pro Forma", content: "Every pro forma has two sides — income vs. expenses. Gross rental income, vacancy loss, property taxes, insurance, maintenance reserves, and net operating income." },
-      { heading: "Why Your Assumptions Will Make or Break You", content: "The skill is knowing whether your inputs reflect reality. Bad vacancy or maintenance assumptions can flip a profitable deal into a cash drain." },
+      { heading: "The Anatomy of a Pro Forma", content: "Every pro forma has two sides — income vs. expenses. Gross rental income, vacancy loss, property taxes, insurance, maintenance reserves, and net operating income. Once you have NOI, you can calculate key metrics like <a href='/learn/cap-rates-cash-on-cash'>cap rates and cash-on-cash returns</a>." },
+      { heading: "Why Your Assumptions Will Make or Break You", content: "The skill is knowing whether your inputs reflect reality. Bad vacancy or maintenance assumptions can flip a profitable deal into a cash drain. Many beginners miss <a href='/learn/hidden-costs'>hidden costs</a> that represent 30-40% of gross rental income." },
       { heading: "Flip Pro Forma vs. Rental Pro Forma", content: "Rental pro formas model ongoing cash flow. Flip pro formas model a single transaction: purchase price plus renovation costs vs. sale price." },
-      { heading: "The Break-Even Occupancy Rate", content: "The percentage of the year your property needs to be rented just to cover costs. If it's 97%, one missed rent payment puts you underwater." }
+      { heading: "The Break-Even Occupancy Rate", content: "The percentage of the year your property needs to be rented just to cover costs. If it's 97%, one missed rent payment puts you underwater. Use <a href='/learn/one-percent-rule'>quick screening filters</a> to identify deals that have a healthy margin before building a full pro forma." }
     ]
   },
   "cap-rates-cash-on-cash": {
@@ -88,11 +88,11 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     keywords: ["cap rate real estate", "cash on cash return", "real estate ROI", "property investment returns", "capitalization rate formula"],
     relatedSlugs: ["what-is-a-pro-forma", "one-percent-rule", "ltv-financing"],
     sections: [
-      { heading: "The Metric That Ignores Your Wallet", content: "Cap rate doesn't care how you pay. Formula: NOI / Property Value. Perfect for comparing properties of wildly different sizes and prices." },
+      { heading: "The Metric That Ignores Your Wallet", content: "Cap rate doesn't care how you pay. Formula: NOI / Property Value. Perfect for comparing properties of wildly different sizes and prices. NOI comes from your <a href='/learn/what-is-a-pro-forma'>pro forma analysis</a>." },
       { heading: "The Cap Rate Spectrum", content: "3-4% in premium areas (appreciation play), 5-6% in solid neighborhoods, 7-8% sweet spot, 9-10% higher risk, 11%+ distressed areas." },
-      { heading: "Cash-on-Cash: What YOUR Money Earns", content: "Annual Pre-Tax Cash Flow / Total Cash Invested. A 7% cap rate deal can deliver 14% CoC return with smart financing." },
+      { heading: "Cash-on-Cash: What YOUR Money Earns", content: "Annual Pre-Tax Cash Flow / Total Cash Invested. A 7% cap rate deal can deliver 14% CoC return with smart financing. How much leverage you use — your <a href='/learn/ltv-financing'>LTV ratio</a> — dramatically changes this number." },
       { heading: "The Inverse Dance", content: "When investors pile into a market, prices rise and cap rates compress. Rapidly compressing cap rates are a warning sign." },
-      { heading: "Yield on Cost", content: "For value-add investors: projected NOI after improvements / total cost. How professionals find deals in competitive markets." }
+      { heading: "Yield on Cost", content: "For value-add investors: projected NOI after improvements / total cost. How professionals find deals in competitive markets. Pair this with <a href='/learn/one-percent-rule'>quick screening filters</a> to evaluate deals faster." }
     ]
   },
   "flip-vs-rent": {
@@ -106,10 +106,10 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     keywords: ["flip or rent property", "real estate strategy", "house flipping vs rental", "buy and hold vs flip", "real estate investment strategy"],
     relatedSlugs: ["rehab-budgets", "market-conditions", "tenant-management"],
     sections: [
-      { heading: "The Adrenaline Play: Flipping", content: "Buy, improve, sell within 3-6 months. A single flip can net $30K-$80K. But profit depends on renovation costs, timeline, and sale price — three variables you can't fully control." },
-      { heading: "The Wealth Engine: Renting", content: "Three simultaneous income streams: monthly cash flow, appreciation, and equity buildup. Over 20 years, one rental can generate more wealth than a dozen flips." },
+      { heading: "The Adrenaline Play: Flipping", content: "Buy, improve, sell within 3-6 months. A single flip can net $30K-$80K. But profit depends on renovation costs, timeline, and sale price — three variables you can't fully control. Understanding <a href='/learn/rehab-budgets'>rehab budgets</a> is critical for flip success." },
+      { heading: "The Wealth Engine: Renting", content: "Three simultaneous income streams: monthly cash flow, appreciation, and equity buildup. Over 20 years, one rental can generate more wealth than a dozen flips. Good <a href='/learn/tenant-management'>tenant management</a> is essential for rental success." },
       { heading: "Head-to-Head Comparison", content: "Time to profit, risk level, income type, capital needed, market sensitivity, and tax treatment all differ dramatically between strategies." },
-      { heading: "When the Market Picks for You", content: "Flip in hot markets, buy rentals in cold ones. Rising markets inflate flip margins; uncertain markets favor rental patience." },
+      { heading: "When the Market Picks for You", content: "Flip in hot markets, buy rentals in cold ones. Rising markets inflate flip margins; uncertain markets favor rental patience. Read more about <a href='/learn/market-conditions'>how to read market conditions</a>." },
       { heading: "The BRRRR Strategy", content: "Buy, Rehab, Rent, Refinance, Repeat — combines flipping's value-add with rental's long-term wealth while recycling investment capital." }
     ]
   },
@@ -124,11 +124,11 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     keywords: ["real estate due diligence", "property inspection", "title search real estate", "home inspection investment", "real estate appraisal"],
     relatedSlugs: ["hidden-costs", "common-mistakes", "rehab-budgets"],
     sections: [
-      { heading: "The Inspection That Pays for Itself 100x Over", content: "A $300-$500 inspection vs. a $30,000+ foundation repair. Every one of these is common in investment properties priced below market." },
+      { heading: "The Inspection That Pays for Itself 100x Over", content: "A $300-$500 inspection vs. a $30,000+ foundation repair. Every one of these is common in investment properties priced below market. Skipping due diligence is one of <a href='/learn/common-mistakes'>the top mistakes that bankrupt new investors</a>." },
       { heading: "Due Diligence Types", content: "Property inspection catches structural/mechanical issues. Title search reveals liens and disputes. Appraisal validates market value. Market study estimates realistic rent and sale prices." },
       { heading: "Title Searches: The Invisible Landmines", content: "Unpaid tax liens, mechanic's liens, easements, boundary disputes — all transfer to YOU when you buy." },
       { heading: "Comparable Sales Analysis", content: "Analyzing closed sales within a half-mile that match your property's characteristics. Adjusting for differences in condition, size, and lot." },
-      { heading: "The Skip-and-Pray Strategy", content: "Properties priced low often have problems. The seller knows. They priced it to attract buyers who won't look closely." }
+      { heading: "The Skip-and-Pray Strategy", content: "Properties priced low often have problems. The seller knows. They priced it to attract buyers who won't look closely. Factor in potential <a href='/learn/hidden-costs'>hidden costs</a> and <a href='/learn/rehab-budgets'>rehab budget overruns</a> when evaluating below-market deals." }
     ]
   },
   "ltv-financing": {
@@ -142,11 +142,11 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     keywords: ["loan to value ratio", "real estate leverage", "LTV mortgage", "real estate financing", "investment property loan"],
     relatedSlugs: ["cap-rates-cash-on-cash", "common-mistakes", "survive-market-crash"],
     sections: [
-      { heading: "Leverage: The Amplifier", content: "80% LTV means a 10% property appreciation gives you 50% return on your investment. But a 10% drop cuts your equity in half." },
-      { heading: "The Danger Zone", content: "Interest rates accelerate above 90% LTV. Tiny equity, massive payments, one bad month from trouble." },
+      { heading: "Leverage: The Amplifier", content: "80% LTV means a 10% property appreciation gives you 50% return on your investment. But a 10% drop cuts your equity in half. This is why leverage changes your <a href='/learn/cap-rates-cash-on-cash'>cash-on-cash return</a> so dramatically." },
+      { heading: "The Danger Zone", content: "Interest rates accelerate above 90% LTV. Tiny equity, massive payments, one bad month from trouble. This is one of the key <a href='/learn/common-mistakes'>mistakes that bankrupt new investors</a>." },
       { heading: "The Math That Changes Strategy", content: "Two investors, same property: 30% down at 6.5% vs 10% down at 9% = $563/month difference, $6,756/year extra cost." },
       { heading: "Matching Financing to Strategy", content: "Flips optimize for total loan cost over hold period. Rentals optimize for monthly cash flow with lower rates." },
-      { heading: "The Refinancing Power Move", content: "Buy with higher leverage, improve the property, refinance at better terms based on the new appraised value." }
+      { heading: "The Refinancing Power Move", content: "Buy with higher leverage, improve the property, refinance at better terms based on the new appraised value. Understanding how to <a href='/learn/survive-market-crash'>position your portfolio for downturns</a> means keeping leverage conservative." }
     ]
   },
   "market-conditions": {
@@ -160,11 +160,11 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     keywords: ["real estate market cycle", "property market conditions", "when to buy real estate", "real estate timing", "housing market analysis"],
     relatedSlugs: ["survive-market-crash", "flip-vs-rent", "portfolio-strategy"],
     sections: [
-      { heading: "The Four Seasons of Real Estate", content: "Recovery, Expansion, Hyper-Supply, Recession — markets follow 7-18 year cycles. The biggest mistake is buying at peak expansion." },
-      { heading: "Strategy Performance by Market", content: "Hot markets favor quick flips but compress margins. Cold markets offer cheap entry but higher vacancy risk. Recovery periods offer the best buying." },
+      { heading: "The Four Seasons of Real Estate", content: "Recovery, Expansion, Hyper-Supply, Recession — markets follow 7-18 year cycles. The biggest mistake is buying at peak expansion. Learn how to <a href='/learn/survive-market-crash'>survive and profit from market crashes</a>." },
+      { heading: "Strategy Performance by Market", content: "Hot markets favor quick flips but compress margins. Cold markets offer cheap entry but higher vacancy risk. Recovery periods offer the best buying. Your <a href='/learn/flip-vs-rent'>flip vs. rent decision</a> should be informed by current conditions." },
       { heading: "It's Not About National Headlines", content: "Focus on local indicators: Days on Market, Months of Inventory, Rental Vacancy Rate, and Job Growth." },
       { heading: "The Contrarian Edge", content: "During 2009-2012 recovery, investors who bought at 50 cents on the dollar built generational wealth. Direction matters more than timing precision." },
-      { heading: "Building Permits as Leading Indicator", content: "A surge in permits means new supply in 12-18 months. A drop means future supply constraints that push prices up." }
+      { heading: "Building Permits as Leading Indicator", content: "A surge in permits means new supply in 12-18 months. A drop means future supply constraints that push prices up. Think about this when <a href='/learn/portfolio-strategy'>building your portfolio strategy</a>." }
     ]
   },
   "rehab-budgets": {
@@ -178,10 +178,10 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     keywords: ["rehab budget real estate", "renovation costs investment property", "house flip renovation", "contractor management", "property renovation planning"],
     relatedSlugs: ["flip-vs-rent", "hidden-costs", "due-diligence"],
     sections: [
-      { heading: "The Budget That Always Lies", content: "Your initial rehab budget is wrong. Always. Add a 15-20% contingency buffer for hidden water damage, outdated wiring, and plumbing surprises." },
+      { heading: "The Budget That Always Lies", content: "Your initial rehab budget is wrong. Always. Add a 15-20% contingency buffer for hidden water damage, outdated wiring, and plumbing surprises. Thorough <a href='/learn/due-diligence'>due diligence</a> helps you uncover these issues before closing." },
       { heading: "Common Renovation Cost Ranges", content: "Kitchen $10K-$40K+, Bathroom $5K-$20K, Roof $8K-$25K, HVAC $5K-$15K, Cosmetic $3K-$8K, Paint+Flooring $2K-$6K." },
-      { heading: "Picking Your Contractor", content: "Budget, Standard, and Premium tiers. A premium contractor who finishes 6 weeks earlier might actually be cheaper due to reduced holding costs." },
-      { heading: "The No-Rehab Flip", content: "Target properties where the previous owner already improved but needs to sell quickly. Smaller margins, zero construction risk." },
+      { heading: "Picking Your Contractor", content: "Budget, Standard, and Premium tiers. A premium contractor who finishes 6 weeks earlier might actually be cheaper due to reduced holding costs. These are part of the <a href='/learn/hidden-costs'>hidden costs</a> many new investors miss." },
+      { heading: "The No-Rehab Flip", content: "Target properties where the previous owner already improved but needs to sell quickly. Smaller margins, zero construction risk. Learn more about the <a href='/learn/flip-vs-rent'>flip vs. rent strategy decision</a>." },
       { heading: "Cash vs. Finance Decision", content: "Paying cash for rehab keeps your loan smaller. Financing preserves cash reserves. Never finance rehab above 90% LTV." }
     ]
   },
@@ -197,9 +197,9 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     relatedSlugs: ["due-diligence", "hidden-costs", "ltv-financing"],
     sections: [
       { heading: "The Fantasy Rent Number", content: "Rental rates should be based on what similar properties are actually renting for RIGHT NOW — not aspirational listings sitting vacant for 3 months." },
-      { heading: "The Invisible Expenses", content: "Beyond mortgage+taxes+insurance: maintenance reserves, management fees, capex reserves, landscaping, pest control, legal, accounting." },
-      { heading: "The Leverage Trap", content: "70% LTV survives a 20% drop. 90% LTV goes underwater with just a 10% drop. 95% LTV is destroyed by a 5% decline." },
-      { heading: "Speed Over Safety", content: "Urgency is almost always manufactured. The properties that look like the best deals are often priced low because they have problems." },
+      { heading: "The Invisible Expenses", content: "Beyond mortgage+taxes+insurance: maintenance reserves, management fees, capex reserves, landscaping, pest control, legal, accounting. See our full breakdown of <a href='/learn/hidden-costs'>the hidden costs nobody tells you about</a>." },
+      { heading: "The Leverage Trap", content: "70% LTV survives a 20% drop. 90% LTV goes underwater with just a 10% drop. 95% LTV is destroyed by a 5% decline. Understand <a href='/learn/ltv-financing'>how LTV works</a> before choosing your financing." },
+      { heading: "Speed Over Safety", content: "Urgency is almost always manufactured. The properties that look like the best deals are often priced low because they have problems. Always complete your <a href='/learn/due-diligence'>due diligence</a> before committing." },
       { heading: "Running on Empty", content: "Without cash reserves, any common scenario forces a distressed sale. Keep 3-6 months of expenses per property in reserve." }
     ]
   },
@@ -214,10 +214,10 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     keywords: ["1 percent rule real estate", "property screening filters", "quick property analysis", "50 percent rule", "real estate rules of thumb"],
     relatedSlugs: ["what-is-a-pro-forma", "cap-rates-cash-on-cash", "common-mistakes"],
     sections: [
-      { heading: "Why You Need a Filter", content: "You can't build a detailed pro forma for every property. Quick filters eliminate properties that have no chance of working." },
+      { heading: "Why You Need a Filter", content: "You can't build a detailed <a href='/learn/what-is-a-pro-forma'>pro forma</a> for every property. Quick filters eliminate properties that have no chance of working." },
       { heading: "The Quick-Filter Toolkit", content: "1% Rule (rent ≥ 1% of price), 50% Rule (half of rent goes to expenses), 70% Rule for flips (≤70% of ARV minus repairs), 2% Rule (unusually strong if rent exceeds 2%)." },
       { heading: "When Rules of Thumb Fail", content: "Expensive coastal cities rarely pass the 1% test but still cash flow. Cheap rural markets always pass but have high vacancy." },
-      { heading: "Building Your Personal Filter Stack", content: "Layer filters: price range, neighborhoods, property types, bed/bath counts. Goal is to eliminate 90% of listings quickly." }
+      { heading: "Building Your Personal Filter Stack", content: "Layer filters: price range, neighborhoods, property types, bed/bath counts. Goal is to eliminate 90% of listings quickly. For deals that pass, calculate <a href='/learn/cap-rates-cash-on-cash'>cap rate and cash-on-cash return</a> to dig deeper. Watch out for <a href='/learn/common-mistakes'>common mistakes</a> that trip up beginners." }
     ]
   },
   "survive-market-crash": {
@@ -231,11 +231,11 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     keywords: ["survive real estate crash", "real estate downturn strategy", "recession proof investing", "buy during market crash", "real estate market crash"],
     relatedSlugs: ["market-conditions", "ltv-financing", "portfolio-strategy"],
     sections: [
-      { heading: "The Crash Is Coming", content: "Since 1900, significant downturns roughly every 15-20 years. The question isn't whether but whether you're positioned to survive it." },
+      { heading: "The Crash Is Coming", content: "Since 1900, significant downturns roughly every 15-20 years. The question isn't whether but whether you're positioned to survive it. Understanding <a href='/learn/market-conditions'>market cycles</a> helps you see it coming." },
       { heading: "The Bankruptcy Cascade", content: "Market drops → values below loans → rents soften → cash flow negative → reserves drain → forced sales at losses." },
-      { heading: "The Crash-Proof Portfolio", content: "Low leverage (70-80% LTV), strong cash reserves (6+ months per property), positive cash flow even if rent drops 10%." },
+      { heading: "The Crash-Proof Portfolio", content: "Low leverage (70-80% LTV), strong cash reserves (6+ months per property), positive cash flow even if rent drops 10%. Keep your <a href='/learn/ltv-financing'>LTV conservative</a> to survive downturns." },
       { heading: "Profiting During Panic", content: "During downturns, prices drop 30-50% below replacement cost. Properties that never cash flow at peak suddenly generate 12%+ cap rates." },
-      { heading: "Recession Indicators", content: "Inverted yield curve, rising delinquency rates, construction exceeding absorption, rapidly compressing cap rates." }
+      { heading: "Recession Indicators", content: "Inverted yield curve, rising delinquency rates, construction exceeding absorption, rapidly compressing cap rates. Build a diversified <a href='/learn/portfolio-strategy'>portfolio strategy</a> before the crash hits." }
     ]
   },
   "hidden-costs": {
@@ -249,11 +249,11 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     keywords: ["hidden costs real estate", "true cost property investment", "real estate expenses", "investment property costs", "landlord expenses"],
     relatedSlugs: ["what-is-a-pro-forma", "common-mistakes", "tenant-management"],
     sections: [
-      { heading: "The Costs You See and the 10 You Don't", content: "Below the obvious costs lurk expenses representing 30-40% of gross rental income. Missing even a few flips a profitable deal into a money pit." },
+      { heading: "The Costs You See and the 10 You Don't", content: "Below the obvious costs lurk expenses representing 30-40% of gross rental income. Missing even a few flips a profitable deal into a money pit. Your <a href='/learn/what-is-a-pro-forma'>pro forma</a> needs to capture all of them." },
       { heading: "The Full Expense Stack", content: "Maintenance, capital expenditures, property management, vacancy loss, closing costs, legal/accounting, pest control, landscaping." },
       { heading: "The Expense That Eats Flippers Alive", content: "Holding costs: mortgage interest, taxes, insurance, utilities per month. A flip stretching 3 extra months costs $5,700+ straight from profit." },
-      { heading: "The Self-Management Illusion", content: "Midnight plumbing emergencies, tenant showings, eviction research. Budget 5% of rent as self-management fee minimum." },
-      { heading: "Tax Implications", content: "Rental depreciation and interest deductions are good. Flips taxed as ordinary income (30%+) vs. capital gains (15-20%) is bad." }
+      { heading: "The Self-Management Illusion", content: "Midnight plumbing emergencies, tenant showings, eviction research. Budget 5% of rent as self-management fee minimum. See our guide on <a href='/learn/tenant-management'>tenant management</a> for more." },
+      { heading: "Tax Implications", content: "Rental depreciation and interest deductions are good. Flips taxed as ordinary income (30%+) vs. capital gains (15-20%) is bad. These are among the <a href='/learn/common-mistakes'>mistakes</a> that catch beginners off guard." }
     ]
   },
   "portfolio-strategy": {
@@ -267,11 +267,11 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     keywords: ["real estate portfolio strategy", "multiple investment properties", "scaling real estate", "BRRRR strategy", "real estate wealth building"],
     relatedSlugs: ["flip-vs-rent", "survive-market-crash", "market-conditions"],
     sections: [
-      { heading: "The Portfolio Mindset Shift", content: "Deal-by-deal vs. systems thinking. How does each property fit the portfolio? Does it diversify risk? Does it fund the next acquisition?" },
+      { heading: "The Portfolio Mindset Shift", content: "Deal-by-deal vs. systems thinking. How does each property fit the portfolio? Does it diversify risk? Does it fund the next acquisition? Understanding <a href='/learn/flip-vs-rent'>when to flip vs. rent</a> drives portfolio composition." },
       { heading: "The Wealth Compounding Cycle", content: "Acquire → Improve → Refinance → Repeat. Each cycle pulls equity out and redeploys into the next property." },
       { heading: "Diversification", content: "Mix property types, locations, strategies, and price points. When one market segment struggles, others carry the portfolio." },
       { heading: "The Cash Flow Tipping Point", content: "At 3-4 stabilized rentals, combined cash flow covers personal expenses. Financial independence from your day job." },
-      { heading: "Capital Recycling", content: "Selling underperformers and redeploying equity into better markets. Don't fall in love with properties — fall in love with returns." }
+      { heading: "Capital Recycling", content: "Selling underperformers and redeploying equity into better markets. Don't fall in love with properties — fall in love with returns. Know how to <a href='/learn/survive-market-crash'>survive a market crash</a> and <a href='/learn/market-conditions'>read market conditions</a> to time your moves." }
     ]
   },
   "tenant-management": {
@@ -285,10 +285,10 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
     keywords: ["tenant management", "landlord tips", "tenant screening", "rental property management", "dealing with tenants"],
     relatedSlugs: ["hidden-costs", "flip-vs-rent", "common-mistakes"],
     sections: [
-      { heading: "The Screening Mistake That Costs Thousands", content: "A bad tenant costs 10x more than a month of vacancy. Between unpaid rent, damage, and legal fees — one bad placement costs $10K-$20K." },
+      { heading: "The Screening Mistake That Costs Thousands", content: "A bad tenant costs 10x more than a month of vacancy. Between unpaid rent, damage, and legal fees — one bad placement costs $10K-$20K. This is one of the <a href='/learn/hidden-costs'>hidden costs</a> that can destroy a deal." },
       { heading: "The Communication Playbook", content: "Friendly but firm, responsive but boundaried. Respond within 24 hours. Document everything. Address late payments immediately." },
       { heading: "The Maintenance Balance", content: "Clean, safe, functional — not luxury. Maintain big-ticket items preventatively. A $200 HVAC tune-up prevents a $10,000 replacement." },
-      { heading: "When to Raise Rent", content: "Keep good tenants at slightly below-market rent. Turnover costs 1-2 months vacancy plus $500-2,000 in repairs. Raise 2-3% annually, stay 5-10% below market." }
+      { heading: "When to Raise Rent", content: "Keep good tenants at slightly below-market rent. Turnover costs 1-2 months vacancy plus $500-2,000 in repairs. Raise 2-3% annually, stay 5-10% below market. Consider the <a href='/learn/flip-vs-rent'>flip vs. rent trade-offs</a> and whether long-term renting still fits your <a href='/learn/common-mistakes'>risk profile</a>." }
     ]
   }
 };
@@ -816,11 +816,19 @@ export function injectSeoMeta(html: string, url: string, req: Request): string {
   return html;
 }
 
+interface SitemapUrl {
+  loc: string;
+  priority: string;
+  changefreq: string;
+  lastmod: string;
+  image?: string;
+}
+
 export function generateSitemap(baseUrl: string): string {
   const today = new Date().toISOString().split("T")[0];
   const ogImage = baseUrl + "/opengraph.jpg";
 
-  const staticUrls = [
+  const staticUrls: SitemapUrl[] = [
     { loc: "/", priority: "1.0", changefreq: "weekly", lastmod: today, image: ogImage },
     { loc: "/learn", priority: "0.9", changefreq: "weekly", lastmod: today },
     { loc: "/game", priority: "0.8", changefreq: "monthly", lastmod: today, image: ogImage },
@@ -832,15 +840,15 @@ export function generateSitemap(baseUrl: string): string {
     { loc: "/privacy", priority: "0.3", changefreq: "yearly", lastmod: "2025-06-01" },
   ];
 
-  const articleUrls = Object.entries(ARTICLE_DATA).map(([slug, article]) => ({
+  const articleUrls: SitemapUrl[] = Object.entries(ARTICLE_DATA).map(([slug, article]) => ({
     loc: `/learn/${slug}`,
     priority: "0.8",
-    changefreq: "monthly" as const,
+    changefreq: "monthly",
     lastmod: article.dateModified,
     image: ogImage
   }));
 
-  const allUrls = [...staticUrls, ...articleUrls];
+  const allUrls: SitemapUrl[] = [...staticUrls, ...articleUrls];
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -851,10 +859,10 @@ ${allUrls.map(u => {
     <lastmod>${u.lastmod}</lastmod>
     <changefreq>${u.changefreq}</changefreq>
     <priority>${u.priority}</priority>`;
-    if ((u as any).image) {
+    if (u.image) {
       entry += `
     <image:image>
-      <image:loc>${(u as any).image}</image:loc>
+      <image:loc>${u.image}</image:loc>
       <image:title>DealBreak Simulator - Real Estate Investing Game</image:title>
     </image:image>`;
     }

@@ -8,6 +8,7 @@ Allow: /tools/
 Allow: /what-is-dealbreak-simulator
 Allow: /terms
 Allow: /privacy
+Allow: /feed.xml
 
 Disallow: /api/
 
@@ -19,6 +20,7 @@ Allow: /learn/
 Allow: /tools/
 Allow: /llms.txt
 Allow: /llms-full.txt
+Allow: /feed.xml
 
 User-agent: ChatGPT-User
 Allow: /

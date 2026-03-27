@@ -1,6 +1,6 @@
 # DealBreak Simulator — Complete Reference
 
-> A free, browser-based real estate investing simulator game that teaches property deal analysis through interactive gameplay. No signup required.
+> A free, browser-based real estate investing simulator game that teaches property deal analysis through interactive gameplay. No signup required. Also available as an iOS app.
 
 ## What Is DealBreak Simulator?
 
@@ -11,7 +11,7 @@ The game emphasizes the cause-and-effect relationships between assumptions (rent
 ## Game Mechanics
 
 ### Property Analysis
-Players browse randomized investment properties with realistic attributes: purchase price, estimated rent, square footage, condition (Excellent/Good/Fair/Fixer-Upper), property type (house/condo/apartment/townhouse), and location. Each property has hidden issues that can be discovered through due diligence.
+Players browse randomized investment properties with realistic attributes: purchase price, estimated rent, square footage, condition (Excellent/Good/Fair/Fixer-Upper), property type (house/condo/apartment/townhouse/duplex/loft), and location. Each property has hidden issues that can be discovered through due diligence. Good/Turnkey/Excellent condition properties filter out cosmetic issues from issue pools.
 
 ### Pro Forma Financial Modeling
 The core educational mechanic. Players build a pro forma spreadsheet for each deal:
@@ -21,10 +21,11 @@ The core educational mechanic. Players build a pro forma spreadsheet for each de
 - Net Operating Income (NOI) and cash flow projections
 - Cap Rate and Cash-on-Cash return calculations
 - For flips: purchase price + renovation costs vs. projected sale price
+- Dual strategy display showing both Cash-on-Cash and Flip ROI simultaneously
 
 ### Strategy Selection
-- **Rent Strategy**: Buy a property, find tenants, collect monthly income, manage maintenance. Success measured by Cash-on-Cash return and total deal return over the holding period.
-- **Flip Strategy**: Buy a property, renovate it, sell for profit. Success depends on purchase price discipline, renovation budget accuracy, and market timing. Players choose a Rehab Finish Quality (Builder Grade to Luxury) that affects both costs and potential sale price.
+- **Rent Strategy**: Buy a property, find tenants, collect monthly income, manage maintenance. Success measured by Cash-on-Cash return and total deal return over the holding period. Rehab budget and timeline available before tenants move in.
+- **Flip Strategy**: Buy a property, renovate it, sell for profit. Success depends on purchase price discipline, renovation budget accuracy, and market timing. Players choose a Rehab Finish Quality (Builder Grade to Luxury) that affects both costs and potential sale price. Flip profits are tied to rehab effort + diligence depth.
 
 ### Due Diligence System
 Four types of due diligence, each revealing different property information:
@@ -33,7 +34,79 @@ Four types of due diligence, each revealing different property information:
 - **Comps Analysis**: Shows comparable sales data for pricing accuracy
 - **Title Search**: Uncovers liens, easements, or title defects
 
-More due diligence reduces risk and can earn rent premiums (better tenant screening, lease negotiation).
+More due diligence reduces risk and can earn rent premiums (1-3% for 2+ diligence types — better tenant screening, lease negotiation). Without comps, flip uncertainty range widens.
+
+### Contractor & Renovation System
+Players choose from Budget, Standard, and Premium contractor tiers via the Contractor Walkthrough Modal. The modal shows:
+- Per-repair annual yield percentage and payback period
+- Market condition banners (hot markets increase costs but also potential rent; soft markets offer cheaper labor but limited rent upside)
+- Itemized repairs panel with approximate rent impact for rental strategy repairs
+- Condition-aware AND property-type-aware upgrade recommendations (35+ upgrades organized by condition tier)
+
+Renovation upgrades include:
+- **Rough properties**: HVAC, windows, electrical panel, water heater, roof repair, security doors
+- **Mid-range properties**: Paint, flooring, appliances, garage door, exterior paint, fencing, laundry hookup
+- **Good properties**: Kitchen refresh, bathroom update, deck/patio, hardwood refinishing, closet systems
+- **Luxury properties**: Spa bathroom, custom finishes, wine bar, outdoor kitchen, home theater, premium smart home, designer landscaping
+
+Property-type-specific upgrades: HVAC/windows/roof (houses only), laundry hookup (condos/apartments), rooftop patio (urban units), balcony refresh (condos), separate utility meters (duplexes), exposed brick (lofts/townhouses), built-in storage (condos/apartments/lofts).
+
+### Tenant Satisfaction System
+Tenants have a satisfaction score (0-100, initialized 70-85):
+- Unfixed issues lower satisfaction each month (severity-weighted: mild -1, moderate -2, severe -4, capped at -12/month)
+- No issues: recovery +5/month
+- Mood indicator: Happy (≥65), Concerned (≥30), Unhappy (<30) shown with tooltip
+- Persistent unhappiness (below 30 for 3+ consecutive months AND active 4+ months) triggers departure risk (4% base + 3%/week over 3 unhappy, cap 22%)
+- Turnover costs $500-$1,500 with 1 month vacancy
+
+### Late Payment System
+Each tenant is assigned a payment ethic on creation:
+- Perfect (25%): 0% late chance
+- Good (40%): 3% late chance, pays 85-92%
+- Occasional (20%): 10% late chance, pays 85-92%
+- Chronic (15%): 25% late chance, pays 65-85%
+Late payment appears as "Late rent" debit in ledger. Tenant texts the player about being short. Property-managed rentals get deductions but no text messages.
+
+### Lease Renewal System
+Tenants have 6-month leases. At each renewal, rent adjusts based on:
+- Market conditions (terrible -6% to excellent +5% with randomness)
+- Tenant satisfaction (happy tenants accept increases, unhappy demand discounts)
+- Unfixed property issues (suppress rent growth)
+- Cosmetic upgrades (small bonus)
+- Change capped at ±8% per renewal, hard floor/ceiling at 70-135% of activation rent
+- Rent is stable between renewals — market shifts no longer adjust rent mid-lease
+
+### Progressive Expense Escalation
+Unfixed rental issues get worse over time:
+- Months 1-3: Normal
+- Months 4-6: Building (1.3x cost/probability)
+- Months 7-9: Serious (1.6x)
+- Months 10-12: Critical (2.0x)
+- Months 13+: Severe (2.5x)
+Multiple unfixed issues compound via severity factor.
+
+### Market-Driven Mechanics
+Market conditions influence:
+- Rent at lease renewal time (not mid-lease)
+- Renovation costs and potential rent impact
+- Property sale prices (6 factors: time held, diligence count, unfixed issues, tenant satisfaction, cosmetic upgrades, market variance)
+- Quick-flip penalty: selling within 2 months caps at 95% of purchase price
+
+### Flip Rebalancing
+- No-rehab flips cap below purchase price (wholesale deals)
+- Low rehab (<25%) caps gains at 8%
+- Spread capture uses completionFactor^0.7 curve
+- Rare 3% windfall for diligent rehabbers
+
+### Rental Sale Pricing (Multi-Factor)
+When selling a rental property, 6 factors determine price:
+1. Time held (0.4%/month appreciation, cap 10%)
+2. Diligence count (-2% for none up to +7% for all 4)
+3. Unfixed/undiscovered issue penalty (2-2.5% each)
+4. Tenant satisfaction bonus (+2% happy, -3% very unhappy)
+5. Cosmetic upgrade boost
+6. Market variance
+Floor at 60% of purchase price.
 
 ### Execution Phase
 After committing to a deal, players experience a month-by-month timeline with:
@@ -43,6 +116,7 @@ After committing to a deal, players experience a month-by-month timeline with:
 - Renovation opportunities with contractor options
 - Progressive expense escalation for unfixed issues
 - Surprise events and curveballs
+- Overtime mode for extended gameplay
 
 ### Post-Deal Analysis
 Every completed deal includes a detailed postmortem:
@@ -50,6 +124,7 @@ Every completed deal includes a detailed postmortem:
 - Letter grades (A+ through F) for prediction accuracy
 - Explanatory reasons for gaps between projections and reality
 - Shareable deal summary card
+- Rental Reality Reveal screen with phased animation and confetti for good grades
 
 ## Free Interactive Tools
 
@@ -86,25 +161,45 @@ Explains two metrics that tell completely different things about the same deal. 
 
 ### Flip vs. Rent: The Strategy Decision That Changes Everything
 URL: https://dealbreaksimulator.com/learn/flip-vs-rent
-Difficulty: Beginner | Read time: 5 min
+Difficulty: Beginner | Read time: 7 min
 Compares the two fundamental real estate strategies. Flipping = active income (like a job). Renting = passive income (like a business). Covers holding costs that eat flip profits, the rental cash flow flywheel, and market condition timing for each strategy.
 
-### Due Diligence: What You Don't Know Will Cost You
+### Due Diligence: The $500 That Saves You $50,000
 URL: https://dealbreaksimulator.com/learn/due-diligence
-Difficulty: Intermediate | Read time: 7 min
+Difficulty: Beginner | Read time: 6 min
 The four pillars of due diligence: inspection, appraisal, comps analysis, and title search. Each reveals different risks. Covers common inspection red flags ($500 inspection vs. $50,000 surprise), and why skipping any step is gambling.
 
-### Understanding LTV & Real Estate Financing
+### LTV & Financing: The Double-Edged Sword of Leverage
 URL: https://dealbreaksimulator.com/learn/ltv-financing
-Difficulty: Intermediate | Read time: 7 min
+Difficulty: Intermediate | Read time: 6 min
 Loan-to-Value ratio fundamentals, how down payments create leverage, the double-edged sword of high LTV (amplifies both gains and losses), and why lenders care about LTV thresholds (80%, 75%, 70%).
 
-### Market Conditions & Timing
+### Reading Market Conditions Like a Pro
 URL: https://dealbreaksimulator.com/learn/market-conditions
 Difficulty: Intermediate | Read time: 6 min
-How market cycles (terrible through excellent) affect every part of a deal: purchase prices, rents, renovation costs, days on market, and exit strategy viability. The five market phases and what each means for investors.
+How market cycles (terrible through excellent) affect every part of a deal: purchase prices, rents, renovation costs, days on market, and exit strategy viability. The four seasons of real estate and what each means for investors.
 
-### The Hidden Costs of Real Estate Investing
+### Rehab Budgets: Where Deals Go to Die (or Thrive)
+URL: https://dealbreaksimulator.com/learn/rehab-budgets
+Difficulty: Intermediate | Read time: 6 min
+How to plan renovations that actually add value. Covers common renovation cost ranges, contractor tier selection (Budget/Standard/Premium), the no-rehab flip strategy, and cash vs. finance decisions for renovation funding.
+
+### The 5 Mistakes That Bankrupt New Investors
+URL: https://dealbreaksimulator.com/learn/common-mistakes
+Difficulty: Beginner | Read time: 7 min
+Fantasy rent numbers, invisible expenses, the leverage trap, speed over safety, and running without cash reserves. Every one looks reasonable until it costs you everything.
+
+### The 1% Rule and Other Quick Screening Filters
+URL: https://dealbreaksimulator.com/learn/one-percent-rule
+Difficulty: Intermediate | Read time: 5 min
+How to evaluate 50 properties in an hour. The 1% Rule, 50% Rule, 70% Rule for flips, and when these rules of thumb fail. Building a personal filter stack to eliminate 90% of listings quickly.
+
+### How to Survive (and Profit From) a Market Crash
+URL: https://dealbreaksimulator.com/learn/survive-market-crash
+Difficulty: Advanced | Read time: 7 min
+The bankruptcy cascade, crash-proof portfolio structure, and how to profit during panic. Recession indicators and why direction matters more than timing precision.
+
+### The Hidden Costs Nobody Tells You About
 URL: https://dealbreaksimulator.com/learn/hidden-costs
 Difficulty: Intermediate | Read time: 6 min
 14 expenses that don't show up in the listing: maintenance, CapEx, property management, vacancy loss, closing costs, legal/accounting, pest control, landscaping, holding costs for flippers, and the self-management illusion. Also covers tax implications (rental depreciation vs. flip ordinary income).
@@ -126,6 +221,7 @@ Screening (a bad tenant costs 10x more than vacancy), communication playbook, ma
 - Cost: Free to play, no signup required
 - Optional: In-game boosts available for purchase (never required)
 - Technology: React, TypeScript, Node.js, PostgreSQL
+- RSS Feed: https://dealbreaksimulator.com/feed.xml
 
 ## Contact & Legal
 

@@ -2,17 +2,23 @@
 
 > A free, browser-based real estate investing simulator game that teaches property deal analysis through interactive gameplay.
 
-DealBreak Simulator is an educational game where players learn real estate underwriting by analyzing properties, building pro formas, managing tenants, and deciding whether to flip or rent investment properties. No signup required.
+DealBreak Simulator is an educational game where players learn real estate underwriting by analyzing properties, building pro formas, managing tenants, and deciding whether to flip or rent investment properties. No signup required. Also available as an iOS app.
 
 ## Core Game Features
 
 - Analyze randomized investment properties with realistic financials
-- Build pro forma financial models (income, expenses, cash flow)
+- Build pro forma financial models (income, expenses, cash flow, ROI metrics)
 - Choose between Flip (buy-renovate-sell) and Rent (buy-hold-collect) strategies
-- Conduct due diligence (inspections, appraisals, comps, title search)
-- Manage contractors, tenants, and market conditions over a 52-month timeline
-- Experience realistic events: maintenance issues, market shifts, tenant turnover
-- Post-deal analysis comparing your projections to actual outcomes
+- Conduct due diligence: inspections, appraisals, comps, title search
+- Manage contractors with Budget/Standard/Premium tiers and quality trade-offs
+- Track tenant satisfaction (0-100 score), lease renewals, and late payment patterns
+- Experience progressive expense escalation for unfixed property issues
+- Market-driven rent adjustments at lease renewal (not mid-lease)
+- Renovation yield system: per-repair annual yield %, payback period, market condition banners
+- Contractor walkthrough modal with itemized repairs and rent impact estimates
+- Property management toggle for hands-off rental management
+- Post-deal analysis comparing your projections to actual outcomes with letter grades (A+ through F)
+- 52-month gameplay timeline with dynamic market conditions
 
 ## Free Interactive Tools
 
@@ -27,6 +33,10 @@ DealBreak Simulator is an educational game where players learn real estate under
 - [Due Diligence Guide](https://dealbreaksimulator.com/learn/due-diligence)
 - [Understanding LTV & Financing](https://dealbreaksimulator.com/learn/ltv-financing)
 - [Market Conditions & Timing](https://dealbreaksimulator.com/learn/market-conditions)
+- [Rehab Budgets & Renovation Planning](https://dealbreaksimulator.com/learn/rehab-budgets)
+- [The 5 Mistakes That Bankrupt New Investors](https://dealbreaksimulator.com/learn/common-mistakes)
+- [The 1% Rule and Quick Screening Filters](https://dealbreaksimulator.com/learn/one-percent-rule)
+- [How to Survive a Market Crash](https://dealbreaksimulator.com/learn/survive-market-crash)
 - [Hidden Costs of Real Estate](https://dealbreaksimulator.com/learn/hidden-costs)
 - [Portfolio Strategy](https://dealbreaksimulator.com/learn/portfolio-strategy)
 - [Tenant Management](https://dealbreaksimulator.com/learn/tenant-management)
@@ -38,3 +48,4 @@ DealBreak Simulator is an educational game where players learn real estate under
 - About: https://dealbreaksimulator.com/what-is-dealbreak-simulator
 - Tools: https://dealbreaksimulator.com/tools
 - Learning Center: https://dealbreaksimulator.com/learn
+- RSS Feed: https://dealbreaksimulator.com/feed.xml

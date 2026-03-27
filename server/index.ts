@@ -7,7 +7,7 @@ import { globalLimiter, checkBlockedIP } from "./rateLimiter";
 import { runMigrations } from 'stripe-replit-sync';
 import { getStripeSync } from './stripeClient';
 import { WebhookHandlers } from './webhookHandlers';
-import { generateSitemap } from './seo';
+import { generateSitemap, generateRssFeed, getIndexNowKey, pingIndexNow } from './seo';
 
 const app = express();
 const httpServer = createServer(app);
@@ -151,6 +151,20 @@ app.use((req, res, next) => {
     res.send(generateSitemap(baseUrl));
   });
 
+  app.get('/feed.xml', (req, res) => {
+    const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
+    const host = req.headers["x-forwarded-host"] || req.headers.host || "dealbreaksimulator.com";
+    const baseUrl = `${proto}://${host}`;
+    res.set('Content-Type', 'application/rss+xml; charset=utf-8');
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.send(generateRssFeed(baseUrl));
+  });
+
+  app.get(`/${getIndexNowKey()}.txt`, (_req, res) => {
+    res.set('Content-Type', 'text/plain');
+    res.send(getIndexNowKey());
+  });
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
@@ -174,6 +188,15 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
+
+      if (process.env.NODE_ENV === "production") {
+        const prodDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+        if (prodDomain) {
+          setTimeout(() => {
+            pingIndexNow(`https://${prodDomain}`);
+          }, 10000);
+        }
+      }
     },
   );
 })();

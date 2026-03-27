@@ -300,10 +300,18 @@ const FAQ_DATA = [
   { question: "What strategies can I use?", answer: "You can flip properties (buy, renovate, sell for profit) or rent them out (buy, hold, collect monthly income). Each strategy has different risk-reward profiles, and the best players learn to mix both depending on market conditions and their financial position." }
 ];
 
+const ALLOWED_HOSTS = new Set(["dealbreaksimulator.com", "www.dealbreaksimulator.com"]);
+
 function getBaseUrl(req: Request): string {
+  const rawHost = (req.headers["x-forwarded-host"] || req.headers.host || "") as string;
+  const hostname = rawHost.split(":")[0];
+
+  if (process.env.NODE_ENV === "production" && !ALLOWED_HOSTS.has(hostname)) {
+    return BASE_URL;
+  }
+
   const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
-  const host = req.headers["x-forwarded-host"] || req.headers.host || "dealbreaksimulator.com";
-  return `${proto}://${host}`;
+  return `${proto}://${rawHost || "dealbreaksimulator.com"}`;
 }
 
 function getPageMeta(url: string, req: Request): PageMeta {
@@ -376,6 +384,18 @@ function getPageMeta(url: string, req: Request): PageMeta {
             "name": faq.question,
             "acceptedAnswer": { "@type": "Answer", "text": faq.answer }
           }))
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "DealBreak Simulator",
+          "operatingSystem": "iOS",
+          "applicationCategory": "EducationApplication",
+          "description": "A realistic real estate investing simulator for iOS. Analyze property deals, build pro formas, manage tenants, and learn investment strategies through interactive gameplay.",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+          "author": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl },
+          "screenshot": baseUrl + "/opengraph.jpg",
+          "softwareVersion": "1.0"
         }
       ]
     };
@@ -422,47 +442,91 @@ function getPageMeta(url: string, req: Request): PageMeta {
     const slug = articleMatch[1];
     const article = ARTICLE_DATA[slug];
     if (article) {
+      const articleSchemas: Record<string, unknown>[] = [
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": article.title,
+          "description": article.subtitle,
+          "url": baseUrl + "/learn/" + slug,
+          "datePublished": article.datePublished,
+          "dateModified": article.dateModified,
+          "author": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl },
+          "publisher": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl, "logo": { "@type": "ImageObject", "url": baseUrl + "/favicon-32.png" } },
+          "isPartOf": { "@type": "WebSite", "name": SITE_NAME, "url": baseUrl },
+          "image": baseUrl + "/opengraph.jpg",
+          "inLanguage": "en-US",
+          "articleSection": article.category,
+          "timeRequired": "PT" + parseInt(article.readTime) + "M",
+          "educationalLevel": article.difficulty,
+          "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": ["h1", ".article-subtitle", ".article-content p:first-of-type"]
+          },
+          "keywords": article.keywords.join(", "),
+          "about": {
+            "@type": "Thing",
+            "name": "Real Estate Investing",
+            "description": "Financial analysis and investment strategies for real estate properties"
+          },
+          "articleBody": article.sections.map(s => s.heading + ": " + s.content).join(" "),
+          ...(article.relatedSlugs.length > 0 ? {
+            "relatedLink": article.relatedSlugs
+              .filter(rs => ARTICLE_DATA[rs])
+              .map(rs => baseUrl + "/learn/" + rs)
+          } : {})
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": baseUrl },
+            { "@type": "ListItem", "position": 2, "name": "Learning Center", "item": baseUrl + "/learn" },
+            { "@type": "ListItem", "position": 3, "name": article.title, "item": baseUrl + "/learn/" + slug }
+          ]
+        }
+      ];
+
+      if (slug === "due-diligence") {
+        articleSchemas.push({
+          "@context": "https://schema.org",
+          "@type": "HowTo",
+          "name": "How to Conduct Due Diligence on an Investment Property",
+          "description": "A step-by-step guide to the four types of due diligence every real estate investor should complete before buying a property.",
+          "totalTime": "P7D",
+          "estimatedCost": { "@type": "MonetaryAmount", "currency": "USD", "value": "1500" },
+          "step": [
+            { "@type": "HowToStep", "position": 1, "name": "Order a Property Inspection", "text": "Hire a licensed inspector ($300-$500) to examine structural, mechanical, and cosmetic issues. This catches foundation problems, roof damage, HVAC failures, plumbing issues, and electrical hazards before you buy." },
+            { "@type": "HowToStep", "position": 2, "name": "Get an Appraisal", "text": "A licensed appraiser validates the property's market value independently. This confirms you're not overpaying and protects against inflated listing prices." },
+            { "@type": "HowToStep", "position": 3, "name": "Run Comparable Sales Analysis", "text": "Analyze closed sales within a half-mile that match your property's characteristics. Adjust for differences in condition, square footage, and lot size to estimate true market value." },
+            { "@type": "HowToStep", "position": 4, "name": "Conduct a Title Search", "text": "Search for unpaid tax liens, mechanic's liens, easements, and boundary disputes. All of these transfer to YOU when you buy the property." }
+          ]
+        });
+      }
+
+      if (slug === "what-is-a-pro-forma") {
+        articleSchemas.push({
+          "@context": "https://schema.org",
+          "@type": "HowTo",
+          "name": "How to Build a Real Estate Pro Forma",
+          "description": "Step-by-step guide to creating a pro forma financial model for evaluating rental or flip investment properties.",
+          "step": [
+            { "@type": "HowToStep", "position": 1, "name": "Estimate Gross Rental Income", "text": "Research comparable rental properties in the area to determine realistic monthly rent. Use actual rented units, not aspirational listing prices." },
+            { "@type": "HowToStep", "position": 2, "name": "Calculate Vacancy Loss", "text": "Deduct 5-10% of gross rent for expected vacancy periods between tenants. Higher vacancy rates apply in areas with more rental competition." },
+            { "@type": "HowToStep", "position": 3, "name": "Add Up Operating Expenses", "text": "Include property taxes, insurance, maintenance reserves (5-10% of rent), property management fees (8-10%), and capital expenditure reserves." },
+            { "@type": "HowToStep", "position": 4, "name": "Calculate Net Operating Income (NOI)", "text": "Subtract total operating expenses from effective gross income (rent minus vacancy). NOI is the property's income before financing costs." },
+            { "@type": "HowToStep", "position": 5, "name": "Factor in Financing Costs", "text": "Subtract annual mortgage payments from NOI to get pre-tax cash flow. This is the actual money you pocket each year." },
+            { "@type": "HowToStep", "position": 6, "name": "Calculate Return Metrics", "text": "Compute Cap Rate (NOI / Purchase Price) and Cash-on-Cash Return (Annual Cash Flow / Total Cash Invested) to evaluate the deal." }
+          ]
+        });
+      }
+
       return {
         title: article.title + " | " + SITE_NAME,
         description: article.subtitle + ". Learn real estate investing concepts with Dealbreak's free educational guides.",
         ogType: "article",
         canonical: baseUrl + "/learn/" + slug,
-        jsonLd: [
-          {
-            "@context": "https://schema.org",
-            "@type": "Article",
-            "headline": article.title,
-            "description": article.subtitle,
-            "url": baseUrl + "/learn/" + slug,
-            "author": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl },
-            "publisher": { "@type": "Organization", "name": "Dealbreak", "url": baseUrl },
-            "isPartOf": { "@type": "WebSite", "name": SITE_NAME, "url": baseUrl },
-            "inLanguage": "en-US",
-            "articleSection": article.category,
-            "timeRequired": "PT" + parseInt(article.readTime) + "M",
-            "educationalLevel": article.difficulty,
-            "speakable": {
-              "@type": "SpeakableSpecification",
-              "cssSelector": ["h1", ".article-subtitle", ".article-content p:first-of-type"]
-            },
-            "keywords": article.keywords.join(", "),
-            "about": {
-              "@type": "Thing",
-              "name": "Real Estate Investing",
-              "description": "Financial analysis and investment strategies for real estate properties"
-            },
-            "articleBody": article.sections.map(s => s.heading + ": " + s.content).join(" ")
-          },
-          {
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-              { "@type": "ListItem", "position": 1, "name": "Home", "item": baseUrl },
-              { "@type": "ListItem", "position": 2, "name": "Learning Center", "item": baseUrl + "/learn" },
-              { "@type": "ListItem", "position": 3, "name": article.title, "item": baseUrl + "/learn/" + slug }
-            ]
-          }
-        ]
+        jsonLd: articleSchemas
       };
     }
   }
@@ -733,6 +797,11 @@ export function injectSeoMeta(html: string, url: string, req: Request): string {
     html = html.replace('</head>', `    ${preloads.join('\n    ')}\n  </head>`);
   }
 
+  const rssLink = `<link rel="alternate" type="application/rss+xml" title="DealBreak Simulator — Real Estate Investing Guides" href="${getBaseUrl(req)}/feed.xml" />`;
+  if (!html.includes('application/rss+xml')) {
+    html = html.replace('</head>', `    ${rssLink}\n  </head>`);
+  }
+
   if (meta.jsonLd) {
     const existingJsonLd = /<script type="application\/ld\+json">[\s\S]*?<\/script>/g;
     html = html.replace(existingJsonLd, '');
@@ -748,34 +817,129 @@ export function injectSeoMeta(html: string, url: string, req: Request): string {
 }
 
 export function generateSitemap(baseUrl: string): string {
-  const urls = [
-    { loc: "/", priority: "1.0", changefreq: "weekly" },
-    { loc: "/learn", priority: "0.9", changefreq: "weekly" },
-    { loc: "/game", priority: "0.8", changefreq: "monthly" },
-    ...Object.keys(ARTICLE_DATA).map(slug => ({
-      loc: `/learn/${slug}`,
-      priority: "0.8",
-      changefreq: "monthly" as const
-    })),
-    { loc: "/what-is-dealbreak-simulator", priority: "0.9", changefreq: "monthly" },
-    { loc: "/tools", priority: "0.9", changefreq: "weekly" },
-    { loc: "/tools/flip-or-rent", priority: "0.9", changefreq: "monthly" },
-    { loc: "/tools/deal-scorecard", priority: "0.9", changefreq: "monthly" },
-    { loc: "/terms", priority: "0.3", changefreq: "yearly" },
-    { loc: "/privacy", priority: "0.3", changefreq: "yearly" },
+  const today = new Date().toISOString().split("T")[0];
+  const ogImage = baseUrl + "/opengraph.jpg";
+
+  const staticUrls = [
+    { loc: "/", priority: "1.0", changefreq: "weekly", lastmod: today, image: ogImage },
+    { loc: "/learn", priority: "0.9", changefreq: "weekly", lastmod: today },
+    { loc: "/game", priority: "0.8", changefreq: "monthly", lastmod: today, image: ogImage },
+    { loc: "/what-is-dealbreak-simulator", priority: "0.9", changefreq: "monthly", lastmod: "2026-03-20", image: ogImage },
+    { loc: "/tools", priority: "0.9", changefreq: "weekly", lastmod: today },
+    { loc: "/tools/flip-or-rent", priority: "0.9", changefreq: "monthly", lastmod: "2026-03-15" },
+    { loc: "/tools/deal-scorecard", priority: "0.9", changefreq: "monthly", lastmod: "2026-03-15" },
+    { loc: "/terms", priority: "0.3", changefreq: "yearly", lastmod: "2025-06-01" },
+    { loc: "/privacy", priority: "0.3", changefreq: "yearly", lastmod: "2025-06-01" },
   ];
 
-  const today = new Date().toISOString().split("T")[0];
+  const articleUrls = Object.entries(ARTICLE_DATA).map(([slug, article]) => ({
+    loc: `/learn/${slug}`,
+    priority: "0.8",
+    changefreq: "monthly" as const,
+    lastmod: article.dateModified,
+    image: ogImage
+  }));
+
+  const allUrls = [...staticUrls, ...articleUrls];
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(u => `  <url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${allUrls.map(u => {
+    let entry = `  <url>
     <loc>${baseUrl}${u.loc}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${u.lastmod}</lastmod>
     <changefreq>${u.changefreq}</changefreq>
-    <priority>${u.priority}</priority>
-  </url>`).join("\n")}
+    <priority>${u.priority}</priority>`;
+    if ((u as any).image) {
+      entry += `
+    <image:image>
+      <image:loc>${(u as any).image}</image:loc>
+      <image:title>DealBreak Simulator - Real Estate Investing Game</image:title>
+    </image:image>`;
+    }
+    entry += `
+  </url>`;
+    return entry;
+  }).join("\n")}
 </urlset>`;
+}
+
+export function generateRssFeed(baseUrl: string): string {
+  const articles = Object.entries(ARTICLE_DATA)
+    .sort(([, a], [, b]) => new Date(b.dateModified).getTime() - new Date(a.dateModified).getTime());
+
+  const buildDate = new Date().toUTCString();
+
+  const items = articles.map(([slug, article]) => {
+    const pubDate = new Date(article.datePublished).toUTCString();
+    const description = escapeXml(article.subtitle + ". " + article.sections[0].content);
+    return `    <item>
+      <title>${escapeXml(article.title)}</title>
+      <link>${baseUrl}/learn/${slug}</link>
+      <guid isPermaLink="true">${baseUrl}/learn/${slug}</guid>
+      <pubDate>${pubDate}</pubDate>
+      <description>${description}</description>
+      <category>${escapeXml(article.category)}</category>
+    </item>`;
+  }).join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>DealBreak Simulator — Real Estate Investing Guides</title>
+    <link>${baseUrl}/learn</link>
+    <description>Free educational guides on real estate investing fundamentals. Learn about pro formas, cap rates, financing, due diligence, and investment strategies.</description>
+    <language>en-us</language>
+    <lastBuildDate>${buildDate}</lastBuildDate>
+    <atom:link href="${baseUrl}/feed.xml" rel="self" type="application/rss+xml"/>
+    <image>
+      <url>${baseUrl}/favicon-32.png</url>
+      <title>DealBreak Simulator</title>
+      <link>${baseUrl}</link>
+    </image>
+${items}
+  </channel>
+</rss>`;
+}
+
+export function getArticleData() {
+  return ARTICLE_DATA;
+}
+
+const INDEXNOW_KEY = "dealbreak-indexnow-2026-key";
+
+export function getIndexNowKey(): string {
+  return INDEXNOW_KEY;
+}
+
+export function pingIndexNow(baseUrl: string): void {
+  const urls = [
+    baseUrl + "/",
+    baseUrl + "/learn",
+    baseUrl + "/tools",
+    baseUrl + "/tools/flip-or-rent",
+    baseUrl + "/tools/deal-scorecard",
+    baseUrl + "/what-is-dealbreak-simulator",
+    ...Object.keys(ARTICLE_DATA).map(slug => baseUrl + "/learn/" + slug)
+  ];
+
+  const payload = JSON.stringify({
+    host: new URL(baseUrl).hostname,
+    key: INDEXNOW_KEY,
+    keyLocation: baseUrl + "/" + INDEXNOW_KEY + ".txt",
+    urlList: urls
+  });
+
+  fetch("https://api.indexnow.org/indexnow", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: payload
+  }).then(res => {
+    console.log(`IndexNow ping: ${res.status} ${res.statusText}`);
+  }).catch(err => {
+    console.error("IndexNow ping failed:", err.message);
+  });
 }
 
 function escapeHtml(str: string): string {
@@ -784,4 +948,8 @@ function escapeHtml(str: string): string {
 
 function escapeAttr(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function escapeXml(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 }

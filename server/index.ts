@@ -152,9 +152,16 @@ app.use((req, res, next) => {
   });
 
   app.get('/feed.xml', (req, res) => {
-    const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
-    const host = req.headers["x-forwarded-host"] || req.headers.host || "dealbreaksimulator.com";
-    const baseUrl = `${proto}://${host}`;
+    const rawHost = (req.headers["x-forwarded-host"] || req.headers.host || "dealbreaksimulator.com") as string;
+    const hostname = rawHost.split(":")[0];
+    const allowedHosts = ["dealbreaksimulator.com", "www.dealbreaksimulator.com"];
+    let baseUrl: string;
+    if (process.env.NODE_ENV === "production" && !allowedHosts.includes(hostname)) {
+      baseUrl = "https://dealbreaksimulator.com";
+    } else {
+      const proto = req.headers["x-forwarded-proto"] || req.protocol || "https";
+      baseUrl = `${proto}://${rawHost}`;
+    }
     res.set('Content-Type', 'application/rss+xml; charset=utf-8');
     res.set('Cache-Control', 'public, max-age=3600');
     res.send(generateRssFeed(baseUrl));

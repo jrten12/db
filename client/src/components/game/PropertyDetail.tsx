@@ -548,9 +548,9 @@ export function PropertyDetail({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col items-center pt-[calc(env(safe-area-inset-top,0px)+60px)] md:pt-8 p-2 md:p-4 bg-black/80 backdrop-blur-sm safe-area-x" data-testid="property-detail-modal">
+    <div className="fixed inset-0 z-[60] flex flex-col items-center bg-[hsl(220,14%,6%)]" data-testid="property-detail-modal">
       {/* Fixed header bar - always visible at top */}
-      <div className="w-full max-w-6xl flex items-center justify-between gap-3 px-4 md:px-6 py-3 bg-[hsl(220,14%,8%)] rounded-t-2xl border-b border-white/6 flex-shrink-0">
+      <div className="w-full max-w-6xl flex items-center justify-between gap-3 px-4 md:px-6 py-3 pt-[calc(env(safe-area-inset-top,0px)+12px)] bg-[hsl(220,14%,8%)] md:rounded-t-2xl border-b border-white/6 flex-shrink-0">
         <div className="flex items-center gap-2">
           <button 
             onClick={onClose}
@@ -588,10 +588,9 @@ export function PropertyDetail({
       
       {/* Scrollable content */}
       <div 
-        className="w-full max-w-6xl flex-1 overflow-y-auto rounded-b-2xl overscroll-contain touch-pan-y bg-[hsl(220,14%,8%)]" 
+        className="w-full max-w-6xl flex-1 overflow-y-auto md:rounded-b-2xl overscroll-contain touch-pan-y bg-[hsl(220,14%,8%)]" 
         style={{
           WebkitOverflowScrolling: 'touch',
-          maxHeight: 'calc(100vh - env(safe-area-inset-top, 0px) - 140px)',
         }}
       >
         <div className="px-4 md:px-6 py-4 pb-6">

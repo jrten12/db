@@ -622,6 +622,7 @@ interface WeekProgressionResult {
   weeksRemaining: number;
   marketCondition: MarketCondition;
   marketChanged: boolean;
+  passiveIncomeMilestone?: number;
 }
 
 /**
@@ -2098,6 +2099,37 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   // Market rent adjustments now happen at lease renewal (every 6 months), not mid-lease
   // Store the current market condition for lease renewal calculations but don't change rent mid-lease
 
+  // Check for passive income milestones
+  let passiveIncomeMilestone: number | undefined;
+  const PASSIVE_THRESHOLDS = [250, 500, 1000, 1500, 2000, 3000, 5000];
+  const refreshedGameRun = await storage.getGameRun(gameRunId);
+  if (refreshedGameRun) {
+    const refreshedDeals = await storage.getDealsByGameRun(gameRunId);
+    const totalMonthlyPassive = refreshedDeals
+      .filter(d => d.status === 'active_rental' && !d.rentalRehabActive)
+      .reduce((sum, d) => sum + (d.weeklyIncome || 0), 0);
+
+    const alreadyHit = (refreshedGameRun.passiveIncomeMilestonesHit as number[] | null) || [];
+    let highestNewMilestone: number | undefined;
+
+    for (const threshold of PASSIVE_THRESHOLDS) {
+      if (totalMonthlyPassive >= threshold && !alreadyHit.includes(threshold)) {
+        highestNewMilestone = threshold;
+      }
+    }
+
+    if (highestNewMilestone !== undefined) {
+      const allNewlyHit = PASSIVE_THRESHOLDS.filter(
+        t => totalMonthlyPassive >= t && !alreadyHit.includes(t)
+      );
+      const updatedHit = [...alreadyHit, ...allNewlyHit];
+      await storage.updateGameRun(gameRunId, {
+        passiveIncomeMilestonesHit: updatedHit,
+      });
+      passiveIncomeMilestone = highestNewMilestone;
+    }
+  }
+
   return {
     rentalPayments,
     completedFlips,
@@ -2107,6 +2139,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     weeksRemaining: newWeeksRemaining,
     marketCondition: currentMarket,
     marketChanged,
+    passiveIncomeMilestone,
   };
 }
 

@@ -41,6 +41,7 @@ import { OperatingExpensesPopup } from '@/components/game/OperatingExpensesPopup
 import { DealCongratulations } from '@/components/game/DealCongratulations';
 import { RentalRealityReveal } from '@/components/game/RentalRealityReveal';
 import { PropertySoldAnimation } from '@/components/game/PropertySoldAnimation';
+import { PassiveIncomeMilestone } from '@/components/game/PassiveIncomeMilestone';
 import { DealShareCard } from '@/components/game/DealShareCard';
 import { useTutorial } from '@/contexts/TutorialContext';
 import { GameHomeScreen } from '@/components/game/GameHomeScreen';
@@ -165,6 +166,9 @@ export default function Game() {
   } | null>(null);
   const [isSelling, setIsSelling] = useState(false);
   
+  // Passive income milestone state
+  const [pendingMilestone, setPendingMilestone] = useState<number | null>(null);
+
   // Refinance modal state
   const [refinancingDeal, setRefinancingDeal] = useState<{
     deal: Deal;
@@ -1340,6 +1344,10 @@ export default function Game() {
         const hasRentals = deals.some(d => d.status === 'active_rental');
         const rentNote = hasRentals ? ' This will affect your next lease renewal.' : '';
         toast(`📊 Market shifted to ${label}.${rentNote}`, { duration: 4000 });
+      }
+
+      if (result.passiveIncomeMilestone) {
+        setPendingMilestone(result.passiveIncomeMilestone);
       }
 
       const updatedGameRun = await api.getGameRun(gameRun.id);
@@ -2594,6 +2602,14 @@ export default function Game() {
 
         {/* Construction Notifications */}
         <ConstructionNotification events={constructionEvents} onDismiss={dismissConstructionEvent} />
+
+        {/* Passive Income Milestone Celebration */}
+        {pendingMilestone !== null && (
+          <PassiveIncomeMilestone
+            threshold={pendingMilestone}
+            onDismiss={() => setPendingMilestone(null)}
+          />
+        )}
 
         {/* Trophy Unlock Notifications - paused when sold animation is showing */}
         <TrophyNotificationManager 

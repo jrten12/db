@@ -175,6 +175,9 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
           const canSell = onSellProperty && dealInfo && 
             (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list');
           
+          const isOwned = dealInfo && (dealInfo.status === 'active_rental' || dealInfo.status === 'in_rehab' || dealInfo.status === 'ready_to_list');
+          const isSold = dealInfo && (dealInfo.status === 'sold_rental' || dealInfo.status === 'completed');
+          
           const propertyType = getPropertyType(property.name);
           const typeConfig = PROPERTY_TYPE_CONFIG[propertyType] || PROPERTY_TYPE_CONFIG.house;
           const TypeIcon = typeConfig.icon;
@@ -186,19 +189,27 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
               role={isUnavailable ? undefined : "button"}
               tabIndex={isUnavailable ? undefined : 0}
               className={`group relative rounded-xl overflow-hidden text-left transition-all duration-200 ${
-                isUnavailable
-                  ? 'opacity-70 cursor-default'
-                  : canSell
-                    ? 'opacity-100'
+                isSold
+                  ? 'opacity-50 cursor-default'
+                  : isOwned
+                    ? 'cursor-default'
                     : isSelected
                       ? 'ring-1 ring-white/20 cursor-pointer'
                       : 'hover:bg-white/[0.03] cursor-pointer'
               }`}
               data-testid={`property-card-${property.id}`}
             >
-              <div className="absolute inset-0 bg-white/[0.02] border border-white/6 rounded-xl" />
+              <div className={`absolute inset-0 rounded-xl ${
+                isOwned && dealInfo?.status === 'active_rental' && !dealInfo?.rentalRehabActive
+                  ? 'bg-blue-500/[0.04] border border-blue-400/20'
+                  : isOwned && dealInfo?.status === 'ready_to_list'
+                    ? 'bg-emerald-500/[0.04] border border-emerald-400/20'
+                  : isOwned && isInRehab
+                    ? 'bg-amber-500/[0.04] border border-amber-400/15'
+                  : 'bg-white/[0.02] border border-white/6'
+              }`} />
               
-              {isInRehab && (
+              {isInRehab && !isOwned && (
                 <div className="absolute top-2 right-2 z-20">
                   <span className="text-[10px] font-medium uppercase tracking-wide text-amber-400/80 bg-black/50 px-2 py-0.5 rounded">
                     Renovating
@@ -245,15 +256,17 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                 </div>
               </div>
 
-              {/* Status Badge - at card level to avoid overflow clipping */}
-              {statusBadge && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 z-10 gap-3 rounded-xl">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/10">
-                    <statusBadge.icon className="w-4 h-4 text-white/70" />
-                    <span className="text-sm font-medium text-white/80 uppercase tracking-wider">{statusBadge.label}</span>
+              {/* Status Badge - owned properties get a top badge + bottom action bar, sold get full overlay */}
+              {statusBadge && isOwned && (
+                <>
+                  <div className="absolute top-2 left-2 z-20">
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider text-white shadow-lg ${statusBadge.color}`}>
+                      <statusBadge.icon className="w-3.5 h-3.5" />
+                      {statusBadge.label}
+                    </div>
                   </div>
                   {dealInfo && (dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && (
-                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap max-w-[280px] sm:max-w-none">
+                    <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-center gap-1.5 px-2 py-2 bg-gradient-to-t from-black/80 via-black/50 to-transparent rounded-b-xl">
                       {(dealInfo.status === 'active_rental' || dealInfo.status === 'ready_to_list') && onContractorWalkthrough && !dealInfo.rentalRehabActive && (
                         !dealInfo.contractorWalkthroughCompleted ? (
                           <Button
@@ -263,7 +276,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                               e.preventDefault();
                               onContractorWalkthrough(dealInfo.dealId);
                             }}
-                            className="bg-amber-600/80 hover:bg-amber-600 text-white font-medium text-xs border-0 px-2.5 sm:px-3"
+                            className="bg-amber-600/90 hover:bg-amber-600 text-white font-medium text-xs border-0 px-2.5 h-7"
                             data-testid={`button-walkthrough-${property.id}`}
                           >
                             <HardHat className="w-3.5 h-3.5 mr-1" />
@@ -277,7 +290,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                               e.preventDefault();
                               onContractorWalkthrough(dealInfo.dealId);
                             }}
-                            className="bg-white/10 hover:bg-white/15 text-white/80 font-medium text-xs border-0 px-2.5 sm:px-3"
+                            className="bg-white/15 hover:bg-white/25 text-white font-medium text-xs border-0 px-2.5 h-7"
                             data-testid={`button-renovate-${property.id}`}
                           >
                             <Wrench className="w-3.5 h-3.5 mr-1" />
@@ -293,7 +306,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                             e.preventDefault();
                             onRefinanceProperty(dealInfo.dealId);
                           }}
-                          className="bg-white/10 hover:bg-white/15 text-white/80 font-medium text-xs border-0 px-2.5 sm:px-3"
+                          className="bg-white/15 hover:bg-white/25 text-white font-medium text-xs border-0 px-2.5 h-7"
                           data-testid={`button-refi-${property.id}`}
                         >
                           <Landmark className="w-3.5 h-3.5 mr-1" />
@@ -308,7 +321,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                             e.preventDefault();
                             onSellProperty(dealInfo.dealId, dealInfo.strategy);
                           }}
-                          className="bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] text-white font-medium text-xs border-0 px-2.5 sm:px-3"
+                          className="bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] text-white font-medium text-xs border-0 px-2.5 h-7"
                           data-testid={`button-sell-${property.id}`}
                         >
                           <DollarSign className="w-3.5 h-3.5 mr-1" />
@@ -317,6 +330,14 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                       )}
                     </div>
                   )}
+                </>
+              )}
+              {statusBadge && !isOwned && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 z-10 rounded-xl">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/10">
+                    <statusBadge.icon className="w-4 h-4 text-white/70" />
+                    <span className="text-sm font-medium text-white/80 uppercase tracking-wider">{statusBadge.label}</span>
+                  </div>
                 </div>
               )}
 

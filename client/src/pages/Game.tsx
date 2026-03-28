@@ -209,27 +209,6 @@ export default function Game() {
   // Trophy notifications
   const { pendingTrophies, addTrophies, clearTrophies } = useTrophyNotifications();
 
-  // Dequeue milestones one at a time, only when no other overlays/notifications are active
-  const hasMilestoneBlockers = incomeEvents.length > 0 
-    || constructionEvents.length > 0 
-    || pendingTrophies.length > 0
-    || tenantTextPopup.isOpen
-    || propertySoldAnim.isOpen
-    || dealCongrats.isOpen;
-
-  useEffect(() => {
-    if (activeMilestone !== null) return;
-    if (milestoneQueue.length === 0) return;
-    if (hasMilestoneBlockers) return;
-
-    const timer = setTimeout(() => {
-      const [next, ...rest] = milestoneQueue;
-      setActiveMilestone(next);
-      setMilestoneQueue(rest);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [milestoneQueue, activeMilestone, hasMilestoneBlockers]);
-
   // Tutorial
   const { completeAction, startTutorial } = useTutorial();
 
@@ -1000,6 +979,27 @@ export default function Game() {
       roi: number;
     } | null;
   }>({ isOpen: false, data: null });
+
+  // Dequeue milestones one at a time, only when no other overlays/notifications are active
+  const hasMilestoneBlockers = incomeEvents.length > 0 
+    || constructionEvents.length > 0 
+    || pendingTrophies.length > 0
+    || tenantTextPopup.isOpen
+    || propertySoldAnim.isOpen
+    || dealCongrats.isOpen;
+
+  useEffect(() => {
+    if (activeMilestone !== null) return;
+    if (milestoneQueue.length === 0) return;
+    if (hasMilestoneBlockers) return;
+
+    const timer = setTimeout(() => {
+      const [next, ...rest] = milestoneQueue;
+      setActiveMilestone(next);
+      setMilestoneQueue(rest);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [milestoneQueue, activeMilestone, hasMilestoneBlockers]);
 
   const handleCommitDeal = useCallback(async () => {
     // Guard against double-clicks

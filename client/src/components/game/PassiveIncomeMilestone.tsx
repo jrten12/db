@@ -16,9 +16,17 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+interface WebkitWindow extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
+
 function playMilestoneChord(intensity: number) {
+  const AudioCtx = window.AudioContext || (window as WebkitWindow).webkitAudioContext;
+  if (!AudioCtx) return;
+
+  let ctx: AudioContext | null = null;
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    ctx = new AudioCtx();
     const baseFreqs = [261.6, 329.6, 392.0];
     if (intensity >= 3) baseFreqs.push(523.3);
     if (intensity >= 5) baseFreqs.push(659.3);
@@ -31,8 +39,8 @@ function playMilestoneChord(intensity: number) {
     masterGain.connect(ctx.destination);
 
     baseFreqs.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+      const osc = ctx!.createOscillator();
+      const gain = ctx!.createGain();
       osc.type = intensity >= 5 ? 'sine' : 'triangle';
       osc.frequency.setValueAtTime(freq * (intensity >= 4 ? 2 : 1), now);
       gain.gain.setValueAtTime(0.08, now + i * 0.08);
@@ -43,8 +51,12 @@ function playMilestoneChord(intensity: number) {
       osc.stop(now + 2.5);
     });
 
-    setTimeout(() => ctx.close(), 3000);
-  } catch {}
+    const ctxRef = ctx;
+    setTimeout(() => ctxRef.close(), 3000);
+  } catch (e) {
+    console.warn('Milestone audio failed:', e);
+    if (ctx) ctx.close();
+  }
 }
 
 function StreamParticles({ color, count }: { color: string; count: number }) {
@@ -126,11 +138,11 @@ export function PassiveIncomeMilestone({ threshold, onDismiss }: PassiveIncomeMi
   useEffect(() => {
     if (!config) return;
     playMilestoneChord(config.intensity);
-    const enterTimer = setTimeout(() => setPhase('visible'), 600);
+    const enterTimer = setTimeout(() => setPhase('visible'), 2000);
     dismissTimer.current = setTimeout(() => {
       setPhase('exit');
       setTimeout(onDismiss, 350);
-    }, 5000);
+    }, 6000);
     return () => {
       clearTimeout(enterTimer);
       if (dismissTimer.current) clearTimeout(dismissTimer.current);

@@ -210,7 +210,12 @@ export default function Game() {
   const { pendingTrophies, addTrophies, clearTrophies } = useTrophyNotifications();
 
   // Dequeue milestones one at a time, only when no other overlays/notifications are active
-  const hasMilestoneBlockers = incomeEvents.length > 0 || constructionEvents.length > 0 || pendingTrophies.length > 0;
+  const hasMilestoneBlockers = incomeEvents.length > 0 
+    || constructionEvents.length > 0 
+    || pendingTrophies.length > 0
+    || tenantTextPopup.isOpen
+    || propertySoldAnim.isOpen
+    || dealCongrats.isOpen;
 
   useEffect(() => {
     if (activeMilestone !== null) return;

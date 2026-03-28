@@ -209,11 +209,13 @@ export default function Game() {
   // Trophy notifications
   const { pendingTrophies, addTrophies, clearTrophies } = useTrophyNotifications();
 
-  // Dequeue milestones one at a time, only when no other overlays are active
+  // Dequeue milestones one at a time, only when no other overlays/notifications are active
+  const hasMilestoneBlockers = incomeEvents.length > 0 || constructionEvents.length > 0 || pendingTrophies.length > 0;
+
   useEffect(() => {
     if (activeMilestone !== null) return;
     if (milestoneQueue.length === 0) return;
-    if (incomeEvents.length > 0 || constructionEvents.length > 0 || pendingTrophies.length > 0) return;
+    if (hasMilestoneBlockers) return;
 
     const timer = setTimeout(() => {
       const [next, ...rest] = milestoneQueue;
@@ -221,7 +223,7 @@ export default function Game() {
       setMilestoneQueue(rest);
     }, 600);
     return () => clearTimeout(timer);
-  }, [milestoneQueue, activeMilestone, incomeEvents.length, constructionEvents.length, pendingTrophies.length]);
+  }, [milestoneQueue, activeMilestone, hasMilestoneBlockers]);
 
   // Tutorial
   const { completeAction, startTutorial } = useTutorial();

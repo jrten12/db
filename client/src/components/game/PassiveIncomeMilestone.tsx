@@ -154,7 +154,7 @@ export function PassiveIncomeMilestone({ threshold, onDismiss }: PassiveIncomeMi
         phase === 'exit' ? 'milestone-overlay-exit' : 'milestone-overlay-enter'
       }`}
       style={{ background: 'rgba(0,0,0,0.85)' }}
-      onClick={handleDismiss}
+      onClick={phase === 'visible' ? handleDismiss : undefined}
       data-testid="milestone-overlay"
     >
       <StreamParticles color={config.particleColor} count={particleCount} />
@@ -242,7 +242,9 @@ export function PassiveIncomeMilestone({ threshold, onDismiss }: PassiveIncomeMi
             </div>
 
             <button
-              className="text-[10px] font-sans text-white/30 hover:text-white/50 transition-colors"
+              className={`text-[10px] font-sans transition-colors ${
+                phase === 'visible' ? 'text-white/30 hover:text-white/50' : 'text-transparent pointer-events-none'
+              }`}
               onClick={handleDismiss}
               data-testid="milestone-dismiss"
             >

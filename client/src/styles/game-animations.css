@@ -770,7 +770,7 @@
 
 .milestone-progress-bar {
   transform-origin: left;
-  animation: milestone-progress-drain 4s linear 2s forwards;
+  animation: milestone-progress-drain 3.2s linear 1.8s forwards;
 }
 
 .milestone-stream-particle {

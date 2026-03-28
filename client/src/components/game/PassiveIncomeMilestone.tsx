@@ -138,11 +138,11 @@ export function PassiveIncomeMilestone({ threshold, onDismiss }: PassiveIncomeMi
   useEffect(() => {
     if (!config) return;
     playMilestoneChord(config.intensity);
-    const enterTimer = setTimeout(() => setPhase('visible'), 2000);
+    const enterTimer = setTimeout(() => setPhase('visible'), 1800);
     dismissTimer.current = setTimeout(() => {
       setPhase('exit');
       setTimeout(onDismiss, 350);
-    }, 6000);
+    }, 5000);
     return () => {
       clearTimeout(enterTimer);
       if (dismissTimer.current) clearTimeout(dismissTimer.current);

@@ -166,8 +166,9 @@ export default function Game() {
   } | null>(null);
   const [isSelling, setIsSelling] = useState(false);
   
-  // Passive income milestone state
-  const [pendingMilestone, setPendingMilestone] = useState<number | null>(null);
+  // Passive income milestone queue (played one at a time, after other notifications settle)
+  const [milestoneQueue, setMilestoneQueue] = useState<number[]>([]);
+  const [activeMilestone, setActiveMilestone] = useState<number | null>(null);
 
   // Refinance modal state
   const [refinancingDeal, setRefinancingDeal] = useState<{
@@ -207,6 +208,20 @@ export default function Game() {
   
   // Trophy notifications
   const { pendingTrophies, addTrophies, clearTrophies } = useTrophyNotifications();
+
+  // Dequeue milestones one at a time, only when no other overlays are active
+  useEffect(() => {
+    if (activeMilestone !== null) return;
+    if (milestoneQueue.length === 0) return;
+    if (incomeEvents.length > 0 || constructionEvents.length > 0 || pendingTrophies.length > 0) return;
+
+    const timer = setTimeout(() => {
+      const [next, ...rest] = milestoneQueue;
+      setActiveMilestone(next);
+      setMilestoneQueue(rest);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [milestoneQueue, activeMilestone, incomeEvents.length, constructionEvents.length, pendingTrophies.length]);
 
   // Tutorial
   const { completeAction, startTutorial } = useTutorial();
@@ -1346,8 +1361,8 @@ export default function Game() {
         toast(`📊 Market shifted to ${label}.${rentNote}`, { duration: 4000 });
       }
 
-      if (result.passiveIncomeMilestone) {
-        setPendingMilestone(result.passiveIncomeMilestone);
+      if (result.passiveIncomeMilestones && result.passiveIncomeMilestones.length > 0) {
+        setMilestoneQueue(prev => [...prev, ...result.passiveIncomeMilestones]);
       }
 
       const updatedGameRun = await api.getGameRun(gameRun.id);
@@ -2604,10 +2619,10 @@ export default function Game() {
         <ConstructionNotification events={constructionEvents} onDismiss={dismissConstructionEvent} />
 
         {/* Passive Income Milestone Celebration */}
-        {pendingMilestone !== null && (
+        {activeMilestone !== null && (
           <PassiveIncomeMilestone
-            threshold={pendingMilestone}
-            onDismiss={() => setPendingMilestone(null)}
+            threshold={activeMilestone}
+            onDismiss={() => setActiveMilestone(null)}
           />
         )}
 

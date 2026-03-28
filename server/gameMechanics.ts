@@ -622,7 +622,7 @@ interface WeekProgressionResult {
   weeksRemaining: number;
   marketCondition: MarketCondition;
   marketChanged: boolean;
-  passiveIncomeMilestone?: number;
+  passiveIncomeMilestones?: number[];
 }
 
 /**
@@ -2100,7 +2100,8 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   // Store the current market condition for lease renewal calculations but don't change rent mid-lease
 
   // Check for passive income milestones
-  let passiveIncomeMilestone: number | undefined;
+  // Note: weeklyIncome field is a legacy name — it stores monthly net cash flow (see calculateWeeklyIncome)
+  let passiveIncomeMilestones: number[] | undefined;
   const PASSIVE_THRESHOLDS = [250, 500, 1000, 1500, 2000, 3000, 5000];
   const refreshedGameRun = await storage.getGameRun(gameRunId);
   if (refreshedGameRun) {
@@ -2110,23 +2111,16 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
       .reduce((sum, d) => sum + (d.weeklyIncome || 0), 0);
 
     const alreadyHit = (refreshedGameRun.passiveIncomeMilestonesHit as number[] | null) || [];
-    let highestNewMilestone: number | undefined;
+    const newlyHit = PASSIVE_THRESHOLDS.filter(
+      t => totalMonthlyPassive >= t && !alreadyHit.includes(t)
+    );
 
-    for (const threshold of PASSIVE_THRESHOLDS) {
-      if (totalMonthlyPassive >= threshold && !alreadyHit.includes(threshold)) {
-        highestNewMilestone = threshold;
-      }
-    }
-
-    if (highestNewMilestone !== undefined) {
-      const allNewlyHit = PASSIVE_THRESHOLDS.filter(
-        t => totalMonthlyPassive >= t && !alreadyHit.includes(t)
-      );
-      const updatedHit = [...alreadyHit, ...allNewlyHit];
+    if (newlyHit.length > 0) {
+      const updatedHit = [...alreadyHit, ...newlyHit];
       await storage.updateGameRun(gameRunId, {
         passiveIncomeMilestonesHit: updatedHit,
       });
-      passiveIncomeMilestone = highestNewMilestone;
+      passiveIncomeMilestones = newlyHit;
     }
   }
 
@@ -2139,7 +2133,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     weeksRemaining: newWeeksRemaining,
     marketCondition: currentMarket,
     marketChanged,
-    passiveIncomeMilestone,
+    passiveIncomeMilestones,
   };
 }
 

@@ -1772,26 +1772,25 @@ export class DBStorage implements IStorage {
     }
 
 
-    const updatedProperties: string[] = [];
+    // Run all property updates in parallel — these are independent rows.
+    await Promise.all(
+      ALL_PROPERTIES.map((prop) =>
+        db
+          .update(schema.properties)
+          .set({
+            price: prop.price,
+            rentMin: prop.rentMin,
+            rentMax: prop.rentMax,
+            arvMin: prop.arvMin,
+            arvMax: prop.arvMax,
+            rehabMin: prop.rehabMin,
+            rehabMax: prop.rehabMax,
+          })
+          .where(eq(schema.properties.name, prop.name)),
+      ),
+    );
 
-    for (const prop of ALL_PROPERTIES) {
-      await db
-        .update(schema.properties)
-        .set({
-          price: prop.price,
-          rentMin: prop.rentMin,
-          rentMax: prop.rentMax,
-          arvMin: prop.arvMin,
-          arvMax: prop.arvMax,
-          rehabMin: prop.rehabMin,
-          rehabMax: prop.rehabMax,
-        })
-        .where(eq(schema.properties.name, prop.name));
-
-      updatedProperties.push(prop.name);
-      console.log(`Updated ${prop.name}: $${prop.price.toLocaleString()}`);
-    }
-
+    const updatedProperties = ALL_PROPERTIES.map((p) => p.name);
     return { updated: updatedProperties.length, properties: updatedProperties };
   }
 

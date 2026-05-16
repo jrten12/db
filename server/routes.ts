@@ -184,22 +184,25 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  // Initialize database with starter properties
+  // Initialize database with starter properties (no-op if already seeded).
+  // This MUST run before serving requests because /api/properties needs rows.
   await storage.seedProperties();
-  
-  // Add any new properties that were added after initial seeding
-  await storage.addNewUrbanProperties();
-  await storage.addNewLuxuryProperties();
-  
-  // Update location types for existing properties (fixes production data)
-  await storage.updatePropertyLocationTypes();
 
-  // Backfill bedrooms, bathrooms, water source, heat type for existing properties
-  await storage.backfillPropertyCharacteristics();
-
-  // Refresh property prices to new balanced economy values
-  await storage.refreshPropertyPrices();
-  console.log("Property prices refreshed to new balanced economy values");
+  // All remaining migrations are idempotent and can run in the background
+  // so the HTTP server starts accepting requests immediately. Property
+  // queries against the existing DB rows remain valid while these finish.
+  (async () => {
+    try {
+      await storage.addNewUrbanProperties();
+      await storage.addNewLuxuryProperties();
+      await storage.updatePropertyLocationTypes();
+      await storage.backfillPropertyCharacteristics();
+      await storage.refreshPropertyPrices();
+      console.log("Property prices refreshed to new balanced economy values");
+    } catch (err) {
+      console.error("Background property migrations failed:", err);
+    }
+  })();
 
   // Get all properties
   app.get("/api/properties", async (req, res) => {

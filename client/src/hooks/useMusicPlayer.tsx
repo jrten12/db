@@ -33,9 +33,17 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   const [shuffledTracks, setShuffledTracks] = useState<string[]>(() => shuffleArray(MUSIC_TRACKS));
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const hasInteracted = useRef(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const markInteracted = () => {
+    if (!hasInteracted) setHasInteracted(true);
+  };
 
   useEffect(() => {
+    // Defer Audio element creation until the user has interacted at least once.
+    // Creating it on mount kicks off a network request for the first MP3 on
+    // every page load (including the landing page), slowing perceived startup.
+    if (!hasInteracted) return;
+
     if (!audioRef.current) {
       audioRef.current = new Audio(shuffledTracks[0]);
       audioRef.current.volume = 0.3;
@@ -55,27 +63,27 @@ export function MusicProvider({ children }: { children: ReactNode }) {
         setCurrentTrackIndex(nextIndex);
         audio.src = shuffledTracks[nextIndex];
       }
-      if (isPlaying && hasInteracted.current) {
+      if (isPlaying && hasInteracted) {
         audio.play().catch(() => {});
       }
     };
 
     audio.addEventListener('ended', handleEnded);
     return () => audio.removeEventListener('ended', handleEnded);
-  }, [currentTrackIndex, shuffledTracks, isPlaying]);
+  }, [currentTrackIndex, shuffledTracks, isPlaying, hasInteracted]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (isPlaying && hasInteracted.current) {
+    if (isPlaying && hasInteracted) {
       audio.play().catch(() => {});
     } else {
       audio.pause();
     }
 
     localStorage.setItem('musicEnabled', String(isPlaying));
-  }, [isPlaying]);
+  }, [isPlaying, hasInteracted]);
 
   useEffect(() => {
     const handleFirstInteraction = (e: Event) => {
@@ -84,11 +92,8 @@ export function MusicProvider({ children }: { children: ReactNode }) {
       if (target.closest('[data-testid="splash-screen"]')) {
         return;
       }
-      
-      hasInteracted.current = true;
-      if (isPlaying && audioRef.current) {
-        audioRef.current.play().catch(() => {});
-      }
+
+      markInteracted();
       document.removeEventListener('click', handleFirstInteraction);
       document.removeEventListener('touchstart', handleFirstInteraction);
     };
@@ -100,23 +105,20 @@ export function MusicProvider({ children }: { children: ReactNode }) {
       document.removeEventListener('click', handleFirstInteraction);
       document.removeEventListener('touchstart', handleFirstInteraction);
     };
-  }, [isPlaying]);
+  }, []);
 
   const toggleMusic = () => {
-    hasInteracted.current = true;
+    markInteracted();
     setIsPlaying(prev => !prev);
   };
 
   const setPlaying = (playing: boolean) => {
-    hasInteracted.current = true;
+    markInteracted();
     setIsPlaying(playing);
   };
 
   const triggerInteraction = () => {
-    hasInteracted.current = true;
-    if (isPlaying && audioRef.current) {
-      audioRef.current.play().catch(() => {});
-    }
+    markInteracted();
   };
 
   return (

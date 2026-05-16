@@ -722,10 +722,31 @@ export class DBStorage implements IStorage {
 
   async deleteGameRun(id: number): Promise<void> {
     await db.transaction(async (tx) => {
+      // Tenants reference deals via dealId, so they must go before deals.
+      const dealsForRun = await tx
+        .select({ id: schema.deals.id })
+        .from(schema.deals)
+        .where(eq(schema.deals.gameRunId, id));
+      const dealIds = dealsForRun.map((d) => d.id);
+      if (dealIds.length > 0) {
+        await tx.delete(schema.tenants).where(inArray(schema.tenants.dealId, dealIds));
+      }
+
+      // All tables with a non-nullable FK to game_runs must be deleted first.
+      await tx.delete(schema.achievements).where(eq(schema.achievements.gameRunId, id));
+      await tx.delete(schema.couponRedemptions).where(eq(schema.couponRedemptions.gameRunId, id));
       await tx.delete(schema.curveballEvents).where(eq(schema.curveballEvents.gameRunId, id));
-      await tx.delete(schema.deals).where(eq(schema.deals.gameRunId, id));
       await tx.delete(schema.propertyInvestigations).where(eq(schema.propertyInvestigations.gameRunId, id));
       await tx.delete(schema.ledgerEntries).where(eq(schema.ledgerEntries.gameRunId, id));
+      await tx.delete(schema.deals).where(eq(schema.deals.gameRunId, id));
+
+      // playerTrophies has a nullable FK — keep the trophy record but detach it
+      // so the player's Hall of Fame trophies survive when the game is replaced.
+      await tx
+        .update(schema.playerTrophies)
+        .set({ gameRunId: null })
+        .where(eq(schema.playerTrophies.gameRunId, id));
+
       await tx.delete(schema.gameRuns).where(eq(schema.gameRuns.id, id));
     });
   }

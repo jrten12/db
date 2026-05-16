@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw, Smile, Meh, Frown, ShieldAlert } from 'lucide-react';
+import { Clock, Home, Play, Loader2, DollarSign, TrendingUp, Info, Landmark, AlertTriangle, RotateCcw, Smile, Meh, Frown, ShieldAlert, ArrowUp, ArrowDown, FileText, DoorOpen, Hammer } from 'lucide-react';
 import type { Deal, GameRun, Property, Tenant } from '@shared/schema';
 import { formatCurrency } from '@/lib/gameData';
 
@@ -67,6 +67,74 @@ function getTenantMood(satisfaction: number): { label: string; color: string; Ic
   if (satisfaction >= 65) return { label: 'Happy', color: 'text-green-400', Icon: Smile };
   if (satisfaction >= 30) return { label: 'Concerned', color: 'text-yellow-400', Icon: Meh };
   return { label: 'Unhappy', color: 'text-red-400', Icon: Frown };
+}
+
+/**
+ * Compute rental status hints (lease cycle, recent rent change, vacancy/move-out risk)
+ * from data already on the deal + tenant. Pure read — does not affect game mechanics.
+ */
+function getRentalStatus(deal: Deal, tenant: Tenant | undefined, currentWeek: number) {
+  const outputs = (deal.proFormaOutputs as any) || {};
+  const inputs = (deal.proFormaInputs as any) || {};
+
+  // Unresolved issues currently hurting the unit — mirrors server `getUnfixedIssues`
+  // (discoveredIssueIds and fixedIssueIds live on proFormaInputs, not on the deal row).
+  const discovered: string[] = Array.isArray(inputs.discoveredIssueIds) ? inputs.discoveredIssueIds : [];
+  const fixed: string[] = Array.isArray(inputs.fixedIssueIds) ? inputs.fixedIssueIds : [];
+  const unfixedCount = Math.max(0, discovered.filter((id: string) => !fixed.includes(id)).length);
+
+  // Lease cycle (6 month leases). Server processes renewal on the next tick using
+  // `(currentWeek + 1) - leaseStart`, so we mirror that here for accurate countdown.
+  const leaseStart: number | null =
+    tenant?.leaseStartWeek ??
+    outputs.lastLeaseRenewalWeek ??
+    (deal.firstIncomePaymentWeek ?? null);
+  let monthsUntilRenewal: number | null = null;
+  if (leaseStart != null) {
+    const monthsIn = Math.max(0, (currentWeek + 1) - leaseStart);
+    if (monthsIn === 0) {
+      monthsUntilRenewal = 6;
+    } else {
+      const remainder = monthsIn % 6;
+      monthsUntilRenewal = remainder === 0 ? 0 : 6 - remainder;
+    }
+  }
+
+  // Recent rent change (within the last month). Guard against negative/stale values.
+  const lastRenewalWeek: number | null = outputs.lastLeaseRenewalWeek ?? null;
+  const renewalAge = lastRenewalWeek != null ? currentWeek - lastRenewalWeek : -1;
+  const justRenewed = renewalAge >= 0 && renewalAge <= 1;
+  const preRenewalRent: number = outputs.preRenewalRent ?? 0;
+  const currentRent: number = outputs.monthlyGrossRent ?? 0;
+  const rentDelta = justRenewed && preRenewalRent > 0 ? currentRent - preRenewalRent : 0;
+
+  // Rent vs activation
+  const activationRent: number = outputs.activationMonthlyRent ?? currentRent;
+  const lifetimeRentDelta = currentRent - activationRent;
+
+  // Move-out risk — mirrors server rule (3+ months unhappy, satisfaction <30)
+  const satisfaction = tenant?.satisfaction ?? 75;
+  const weeksUnhappy = tenant?.weeksUnhappy ?? 0;
+  const moveOutRisk = satisfaction < 30 && weeksUnhappy >= 2;
+
+  // Vacancy: rental rehab phase OR no tenant
+  const inRehab = !!deal.rentalRehabActive;
+  const vacant = !inRehab && !tenant;
+
+  return {
+    unfixedCount,
+    monthsUntilRenewal,
+    justRenewed,
+    rentDelta,
+    currentRent,
+    activationRent,
+    lifetimeRentDelta,
+    moveOutRisk,
+    inRehab,
+    vacant,
+    satisfaction,
+    weeksUnhappy,
+  };
 }
 
 function getMonthlyCashFlow(deal: Deal): number {
@@ -514,6 +582,8 @@ export function TimeProgressionPanel({
           {activeRentals.map((deal) => {
             const canSell = !!onSellRental;
             const propertyName = getPropertyName(deal.propertyId);
+            const tenantForDeal = tenants.find(t => t.dealId === deal.id);
+            const status = getRentalStatus(deal, tenantForDeal, gameRun.currentWeek);
             
             // Refinancing check - use gameRun.currentWeek for consistency with server
             const currentWeek = gameRun.currentWeek;
@@ -531,26 +601,81 @@ export function TimeProgressionPanel({
               ? Math.max(0, REFINANCE_COOLDOWN - weeksSinceLastRefi)
               : Math.max(0, SEASONING_WEEKS - weeksHeld);
             
+            // Status banner content (one line above the row when noteworthy)
+            const statusBanner = (() => {
+              if (status.inRehab) {
+                return {
+                  Icon: Hammer,
+                  text: 'In rehab — no income yet. Tenant moves in when work completes.',
+                  cls: 'bg-amber-950/30 border-amber-500/15 text-amber-300',
+                };
+              }
+              if (status.vacant) {
+                return {
+                  Icon: DoorOpen,
+                  text: 'Vacant this month — turnover in progress. New tenant arrives next month.',
+                  cls: 'bg-orange-950/30 border-orange-500/15 text-orange-300',
+                };
+              }
+              if (status.moveOutRisk) {
+                return {
+                  Icon: AlertTriangle,
+                  text: `Tenant unhappy ${status.weeksUnhappy}mo — may move out soon. Fix issues to retain.`,
+                  cls: 'bg-red-950/30 border-red-500/15 text-red-300',
+                };
+              }
+              if (status.justRenewed && status.rentDelta !== 0) {
+                const up = status.rentDelta > 0;
+                return {
+                  Icon: up ? ArrowUp : ArrowDown,
+                  text: `Lease renewed: rent ${up ? 'up' : 'down'} $${Math.abs(status.rentDelta).toLocaleString()}/mo (now $${status.currentRent.toLocaleString()})`,
+                  cls: up ? 'bg-emerald-950/30 border-emerald-500/15 text-emerald-300' : 'bg-orange-950/30 border-orange-500/15 text-orange-300',
+                };
+              }
+              return null;
+            })();
+
+            // Lease countdown badge (only show when 0-2 months out)
+            const showLeaseBadge =
+              !status.inRehab && !status.vacant &&
+              status.monthsUntilRenewal != null && status.monthsUntilRenewal <= 2;
+            const leaseBadgeText = status.monthsUntilRenewal === 0
+              ? 'Renewing'
+              : `${status.monthsUntilRenewal}mo lease`;
+
             return (
               <div
                 key={deal.id}
-                className="flex items-center justify-between rounded-lg px-2.5 py-2 border border-white/6 bg-white/[0.02]"
+                className="rounded-lg border border-white/6 bg-white/[0.02] overflow-hidden"
                 data-testid={`rental-deal-${deal.id}`}
               >
+                {statusBanner && (
+                  <div
+                    className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] md:text-[11px] border-b ${statusBanner.cls}`}
+                    data-testid={`rental-status-banner-${deal.id}`}
+                  >
+                    <statusBanner.Icon className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">{statusBanner.text}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between px-2.5 py-2">
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="flex items-center gap-2 min-w-0 hover:bg-white/5 rounded-md px-1 py-0.5 transition-colors duration-150 cursor-pointer">
                       <Home className={`w-3 h-3 flex-shrink-0 ${getMonthlyCashFlow(deal) >= 0 ? 'text-[hsl(152,44%,50%)]' : 'text-red-400/70'}`} />
                       <span className="text-xs md:text-sm text-white/80 truncate">{propertyName}</span>
                       {(() => {
-                        const tenant = tenants.find(t => t.dealId === deal.id);
+                        const tenant = tenantForDeal;
                         if (tenant && tenant.satisfaction != null) {
                           const mood = getTenantMood(tenant.satisfaction);
+                          const issueNote = status.unfixedCount > 0
+                            ? ` · ${status.unfixedCount} unresolved issue${status.unfixedCount > 1 ? 's' : ''} hurting mood`
+                            : '';
                           const tip = tenant.satisfaction < 30
-                            ? `${mood.label} (${tenant.satisfaction}%) — At risk of leaving!`
+                            ? `${mood.label} (${tenant.satisfaction}%) — At risk of leaving!${issueNote}`
                             : tenant.satisfaction < 65
-                            ? `${mood.label} (${tenant.satisfaction}%) — Getting frustrated`
-                            : `${mood.label} (${tenant.satisfaction}%)`;
+                            ? `${mood.label} (${tenant.satisfaction}%) — Getting frustrated${issueNote}`
+                            : `${mood.label} (${tenant.satisfaction}%)${issueNote || ' · No outstanding issues'}`;
                           return (
                             <span className={`flex items-center ${mood.color}`} title={tip} data-testid={`tenant-mood-${deal.id}`}>
                               <mood.Icon className="w-3.5 h-3.5" />
@@ -559,6 +684,16 @@ export function TimeProgressionPanel({
                         }
                         return null;
                       })()}
+                      {showLeaseBadge && (
+                        <span
+                          className="hidden sm:inline-flex items-center gap-0.5 text-[9px] uppercase tracking-wider text-white/40 border border-white/10 rounded px-1 py-0.5"
+                          title={`Lease renews in ${status.monthsUntilRenewal} month${status.monthsUntilRenewal === 1 ? '' : 's'}. Rent may shift based on market, tenant happiness, and unit condition.`}
+                          data-testid={`lease-countdown-${deal.id}`}
+                        >
+                          <FileText className="w-2.5 h-2.5" />
+                          {leaseBadgeText}
+                        </span>
+                      )}
                       <span className={`text-xs font-mono font-medium ${getMonthlyCashFlow(deal) >= 0 ? 'text-[hsl(152,44%,50%)]' : 'text-red-400/70'}`} style={{ letterSpacing: '-0.02em' }}>
                         {getMonthlyCashFlow(deal) >= 0 ? '+' : ''}${getMonthlyCashFlow(deal).toLocaleString()}/mo
                       </span>
@@ -632,6 +767,7 @@ export function TimeProgressionPanel({
                       'Sell'
                     )}
                   </Button>
+                </div>
                 </div>
               </div>
             );

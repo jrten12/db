@@ -40,6 +40,10 @@ export function serveStatic(app: Express) {
     res.set("X-Content-Type-Options", "nosniff");
     res.set("X-Frame-Options", "SAMEORIGIN");
     res.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    // Explicit indexing directive — overrides any noindex inherited from a
+    // proxy or framework default. Lighthouse fails the "is-crawlable" audit
+    // unless the page is clearly marked as indexable.
+    res.set("X-Robots-Tag", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1");
     res.send(html);
   });
 }

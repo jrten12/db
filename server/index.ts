@@ -32,6 +32,20 @@ app.use((req, res, next) => {
 
 app.use(checkBlockedIP);
 
+// Ensure every non-API response advertises that the site IS indexable.
+// This overrides any noindex directive inherited from upstream proxies
+// (e.g. Replit dev previews) so Lighthouse's "is-crawlable" audit passes
+// across both production and preview environments.
+app.use((req, res, next) => {
+  if (!req.path.startsWith('/api')) {
+    res.setHeader(
+      'X-Robots-Tag',
+      'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
+    );
+  }
+  next();
+});
+
 app.use('/api', globalLimiter);
 
 // Stripe webhook route MUST be registered BEFORE express.json()

@@ -644,6 +644,191 @@ export const LEARN_ARTICLES: LearnArticle[] = [
     ],
     relatedSlugs: ["hidden-costs", "common-mistakes", "flip-vs-rent", "portfolio-strategy"],
     gameConnection: "Dealbreak features an interactive tenant communication system where different tenant personality types send you text messages about maintenance requests, complaints, and issues — teaching you to manage the human side of rental investing."
+  },
+  {
+    slug: "cap-rate-vs-cash-on-cash-math",
+    title: "The Hidden Math of Cap Rate vs Cash-on-Cash",
+    subtitle: "Same property, two metrics, two completely different stories.",
+    icon: "🧮",
+    category: "Financial Metrics",
+    readTime: "7 min",
+    difficulty: "intermediate",
+    heroImage: "learn_cap_vs_coc",
+    seoKeywords: [
+      "cap rate vs cash on cash",
+      "is cap rate or cash on cash more important",
+      "how does leverage change cash on cash return",
+      "real estate metrics explained",
+      "what does a 6% cap rate actually mean",
+      "cash on cash return formula",
+      "real estate underwriting metrics",
+    ],
+    sections: [
+      {
+        heading: "The Same Building, Two Different Truths",
+        content: "Picture a $500,000 fourplex throwing off $30,000 a year in NOI. To one investor, that's a 6% cap rate deal — fine, not exciting. To another, that same building is a 14% cash-on-cash machine. They're not arguing about the property. They're using two metrics that measure entirely different things, and the gap between them is where most of the misunderstandings in real estate happen. Cap rate measures the asset. Cash-on-cash measures what happened to your wallet."
+      },
+      {
+        heading: "Why Cap Rate Doesn't Care About Your Loan",
+        content: "Cap rate is NOI divided by purchase price. That's it — no mortgage, no down payment, no closing costs. This is its whole superpower: it lets you compare a $300K duplex against a $1.2M apartment building on equal footing, regardless of how either one is financed. Brokers use it because it strips out the financing noise and forces a comparison of the underlying real estate. If you ever find yourself comparing two properties and one looks dramatically better than the other, cap rate is the sanity check that tells you whether the building itself is actually a better asset."
+      },
+      {
+        heading: "Cash-on-Cash: Where Leverage Sneaks In",
+        type: "infographic",
+        content: "Watch what happens to the same $500K / $30K NOI fourplex as you change how you pay for it.",
+        infographicData: {
+          type: "comparison",
+          title: "Same Property, Different Financing",
+          items: [
+            { label: "All Cash ($500K in)", value: "6% CoC — equals the cap rate", color: "blue", percentage: 30 },
+            { label: "25% down ($125K + 6.5% loan)", value: "~10% CoC after debt service", color: "emerald", percentage: 50 },
+            { label: "20% down ($100K + 7% loan)", value: "~13% CoC — looks great", color: "emerald", percentage: 65 },
+            { label: "10% down ($50K + 7.5% loan)", value: "~22% CoC OR negative — depending on rates", color: "amber", percentage: 85 },
+            { label: "Over-leveraged (5% down)", value: "Often negative cash flow despite 'great' deal", color: "red", percentage: 95 }
+          ]
+        }
+      },
+      {
+        heading: "The Trap Nobody Warns Beginners About",
+        type: "warning",
+        content: "Chasing cash-on-cash by stacking leverage feels brilliant until rates move or one tenant leaves. A deal that pencils at 18% CoC with 90% LTV can flip to negative the month a HVAC compressor fails or your insurance renews 35% higher. The math that made you a genius on paper makes you a forced seller in real life. Pros use cash-on-cash to evaluate what their money is doing — but they stress-test it against vacancy, rate hikes, and a $15K surprise repair before they sign anything."
+      },
+      {
+        heading: "When to Use Which",
+        content: "Cap rate is the right metric when you're comparing properties, evaluating market trends, or trying to understand whether a neighborhood is overheating. If cap rates in your target market compressed from 7% to 4.5% in three years, the market is telling you something — usually that prices are getting ahead of fundamentals. Cash-on-cash is the right metric when you're deciding whether to actually pull the trigger. It answers the only question that matters at closing: 'Is this what my $80,000 will earn me, after the bank gets paid?'"
+      },
+      {
+        heading: "The Pro Move: Calculate Both, Always",
+        type: "tip",
+        content: "Experienced investors never look at one without the other. A 9% cap rate with a 4% cash-on-cash return is a warning — your financing is eating most of the returns. A 5% cap rate with a 14% cash-on-cash return means you're dependent on cheap debt and should ask what happens at refinance. The two numbers in conversation tell you the deal's whole story. The single number in isolation tells you what the seller wants you to hear."
+      }
+    ],
+    relatedSlugs: ["cap-rates-cash-on-cash", "ltv-financing", "what-is-a-pro-forma"],
+    gameConnection: "In Dealbreak, every pro forma shows both your cap rate and your cash-on-cash side by side, then watches what happens when financing assumptions or expenses move on you — turning the abstract math into a felt experience."
+  },
+  {
+    slug: "why-first-time-flippers-lose",
+    title: "Why Most First-Time Flippers Lose Money",
+    subtitle: "An honest postmortem of the seven habits that kill rookie flips.",
+    icon: "🪓",
+    category: "Strategy",
+    readTime: "8 min",
+    difficulty: "intermediate",
+    heroImage: "learn_flipper_failure",
+    seoKeywords: [
+      "why do flippers lose money",
+      "common house flipping mistakes",
+      "first time house flip lessons",
+      "house flipping ARV mistakes",
+      "how much do house flippers actually make",
+      "fix and flip risks",
+      "flipping houses for beginners reality",
+    ],
+    sections: [
+      {
+        heading: "The Industry Doesn't Talk About the Losers",
+        content: "HGTV doesn't run a show called 'Brad Lost $42,000 On His First Flip.' But that's the median first-time flipper experience once you net out the labor they didn't pay themselves for, the carrying costs they forgot, and the ARV they convinced themselves was real. ATTOM data on completed flips shows gross margins look great in headlines — net margins after honest accounting tell a much smaller story. The math isn't broken. The discipline is."
+      },
+      {
+        heading: "Failure Mode #1: ARV Anchoring",
+        content: "Beginners pull three comps from the MLS, pick the highest one, and call it the ARV. Pros pull twelve, throw out the top two and bottom two, and adjust the rest for square footage, lot size, condition, and time-on-market. Then they shave 5%. The difference between a 'top of comps' ARV and a realistic ARV on a $400K flip is usually $30-50K — which is also approximately the entire margin on the deal. If your spreadsheet only works at the optimistic ARV, you don't have a deal. You have a hope."
+      },
+      {
+        heading: "Failure Mode #2: The Rehab Number You Wanted to Hear",
+        type: "warning",
+        content: "First-time flippers underbid rehab by 30-40% on average. Not because the contractors lied, but because the bid covered the work they specified, not the work the house actually needed. The kitchen quote didn't include the rotted subfloor under the dishwasher. The bathroom quote didn't include the lead paint discovered after demo. The 'cosmetic only' assumption fell apart the moment they opened the wall. A working rule: take the contractor's number, add 20% for what they didn't see, and add another 10% for what nobody could see."
+      },
+      {
+        heading: "Failure Mode #3: Carrying Costs Are Real Money",
+        content: "Carrying costs on a $350K flip — mortgage interest, taxes, insurance, utilities, lawn care, HOA — typically run $3,000-5,000 a month. Beginners pencil in 'three months to renovate' on a project that takes seven, then sit on the market another two before accepting an offer. Nine months of carrying costs can vaporize $35,000 from a deal that already had thin margins. The clock is the second-largest enemy of a first-time flipper, right behind their own optimism."
+      },
+      {
+        heading: "Failure Mode #4: 'I'll Save Money Doing It Myself'",
+        type: "callout",
+        content: "DIY math looks beautiful on a spreadsheet and brutal in reality. Even if your hourly labor really is free, you're not faster than a crew. A pro tile setter does in two days what takes you three weekends. Three weekends = three more months of carrying costs while the project sits half-finished. The opportunity cost of DIY isn't your hourly rate — it's the carrying costs you accumulate while doing it slower than someone whose job it is. Most successful flippers hire out everything except project management."
+      },
+      {
+        heading: "Failure Mode #5: Buying In a Market That's About to Soften",
+        content: "Flips take 4-9 months from purchase to sale. A market that supported your ARV when you bought may have moved 5-10% by the time you list. Rising rates, increased inventory, or a regional employer announcing layoffs can crater your exit price in a window that feels random but is actually visible months in advance. Pros watch days-on-market trends, list-to-sale price ratios, and inventory levels weekly — and they walk away from deals when those signals start trending wrong, even if the property itself is fine."
+      },
+      {
+        heading: "The Discipline That Separates Pros",
+        type: "tip",
+        content: "Professional flippers underwrite 50-100 deals to buy one. They walk away from 95%+ of properties they look at. They have a maximum allowable offer formula — usually 70% of ARV minus rehab — and they don't negotiate it upward because they 'love the property.' Loving the property is exactly the disease this discipline cures. The rule isn't there because deals are hard to find. It's there because the alternative is being one bad deal away from a forced sale."
+      }
+    ],
+    relatedSlugs: ["flip-vs-rent", "due-diligence", "common-mistakes"],
+    gameConnection: "Dealbreak puts you through the full flip cycle — purchase, rehab, market timing, sale — and shows you the gap between your projected and actual outcomes after each deal, surfacing exactly which of these failure modes you walked into."
+  },
+  {
+    slug: "inspection-red-flags-30-seconds",
+    title: "Reading a Property: 7 Inspection Red Flags Pros Spot in 30 Seconds",
+    subtitle: "What experienced investors notice on the first walkthrough that beginners miss completely.",
+    icon: "🔍",
+    category: "Risk Management",
+    readTime: "7 min",
+    difficulty: "intermediate",
+    heroImage: "learn_inspection_red_flags",
+    seoKeywords: [
+      "what to look for inspecting a house",
+      "real estate red flags first walkthrough",
+      "Federal Pacific electrical panel danger",
+      "Zinsco panel replacement",
+      "foundation crack patterns to worry about",
+      "signs of basement water damage",
+      "how to inspect a house before buying",
+      "what does a roof tell you about a house",
+    ],
+    sections: [
+      {
+        heading: "Pros Walk a House Differently",
+        content: "Watch an experienced investor walk a property and you'll notice they barely look at the kitchen finishes everyone else is admiring. They're scanning floors for slope, ceilings for stain rings, baseboards for moisture line, and the electrical panel for a brand name. They're not being dramatic about it — they've just learned that the cheap-to-fix things scream while the expensive things whisper. Here are the seven whispers that change deals."
+      },
+      {
+        heading: "1. The Electrical Panel Brand",
+        type: "warning",
+        content: "Open the panel cover and read the label. Two names should make your stomach drop: Federal Pacific Electric (Stab-Lok) and Zinsco. Both have decades of failure history — breakers that don't trip during overloads, leading to fires. Insurance carriers increasingly refuse to write policies on houses with these panels, which means the next buyer will face the same forced replacement. Budget $2,500-5,000 for full panel swap and add it to your offer math, not your hopeful renovation list."
+      },
+      {
+        heading: "2. The Basement Smell",
+        content: "Walk into a basement and breathe before you turn the lights on. A faint mustiness means humidity. A real damp smell — that earthy, mineral, slightly sweet scent — means active water intrusion happening regularly. Look for efflorescence (white powder on block walls), rust on the bottom of metal supports, and the height of the paint line on wood framing. Water that's been there long enough to leave a tide mark has been there long enough to compromise everything between the slab and that mark."
+      },
+      {
+        heading: "3. Foundation Cracks: Which Patterns Matter",
+        type: "infographic",
+        content: "Not every foundation crack is a deal-killer. Some are completely normal. The pattern is what matters.",
+        infographicData: {
+          type: "scale",
+          title: "Foundation Crack Severity",
+          items: [
+            { label: "Hairline vertical, <1/8\"", value: "Normal settling — monitor only", color: "emerald", percentage: 15 },
+            { label: "Vertical 1/8\"-1/4\"", value: "Investigate, may need epoxy injection", color: "blue", percentage: 35 },
+            { label: "Diagonal at corners", value: "Differential settlement — engineer needed", color: "amber", percentage: 60 },
+            { label: "Horizontal across wall", value: "Lateral pressure failure — major structural", color: "red", percentage: 90 },
+            { label: "Stair-step in block, widening", value: "Active movement — walk away or get bid", color: "red", percentage: 95 }
+          ]
+        }
+      },
+      {
+        heading: "4. Granules in the Gutters",
+        content: "Open the downspout cleanout or peek into the gutter run. If you see a layer of asphalt sand-like granules, the roof is shedding its protective coating. Combined with shingles that look bald or curled at the edges, that roof has 1-3 years left. Get a quote before you write the offer — depending on the property, a tear-off and replace runs $9,000-25,000+. New roof needed isn't a deal-killer; new roof needed that you didn't budget for is."
+      },
+      {
+        heading: "5. The Marble Test on the Floor",
+        type: "tip",
+        content: "Bring a marble. Set it down in the middle of any room with hardwood or tile and watch what it does. Old houses settle a little — a marble that drifts slowly is normal. A marble that picks up speed across the room means you have meaningful slope, which usually means joist sag, foundation movement, or termite damage. Then check the doors in that room — if they don't close cleanly, the house is telling you the same story twice. Two stories that match deserve a structural engineer's opinion before you negotiate."
+      },
+      {
+        heading: "6. The Pipe at the Water Meter",
+        content: "Crouch down at the main water meter or the supply line entering the house and look at the metal. Bright copper means modern repipe — great. PEX (colored plastic) means somebody renovated recently — also fine. Galvanized steel (dull gray, often with crusty mineral buildup at joints) is the warning. Galvanized supply lines typically last 50-70 years, restrict flow as they age, and need full repipe — easily $8,000-20,000 in a single-family. If the visible pipe is galvanized, assume the rest of the house is too."
+      },
+      {
+        heading: "7. The HVAC Nameplate Date",
+        content: "Walk around the outdoor condenser unit and find the metal nameplate. There's a manufacture date stamped on it, sometimes encoded in the serial number. Anything over 12 years old is on borrowed time; anything over 18 should be priced as 'replace this year.' Look at the indoor air handler too — sometimes the outdoor unit was replaced but the indoor unit is the original from 1997. A full system swap on a 2,000 sqft house runs $8,000-15,000. Budget it now or be surprised in July."
+      }
+    ],
+    relatedSlugs: ["due-diligence", "hidden-costs", "common-mistakes"],
+    gameConnection: "Dealbreak's inspection and contractor walkthrough phases surface these exact issues — Federal Pacific panels, galvanized plumbing, foundation settling — and reward you for spending the diligence dollars to find them before you sign, just like the real walkthrough discipline pros develop."
   }
 ];
 

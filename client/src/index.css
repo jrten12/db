@@ -106,21 +106,21 @@
 }
 
 :root {
-  --button-outline: rgba(255,255,255, .06);
-  --badge-outline: rgba(255,255,255, .04);
+  --button-outline: rgba(255,255,255, .08);
+  --badge-outline: rgba(255,255,255, .06);
   --opaque-button-border-intensity: -8;
-  --elevate-1: rgba(255,255,255, .02);
-  --elevate-2: rgba(255,255,255, .04);
+  --elevate-1: rgba(255,255,255, .035);
+  --elevate-2: rgba(255,255,255, .06);
 
-  --background: 220 14% 6%;
-  --foreground: 220 10% 82%;
-  --border: 220 10% 15%;
-  --card: 220 12% 10%;
-  --card-foreground: 220 10% 82%;
-  --card-border: 220 10% 16%;
-  --popover: 220 14% 9%;
-  --popover-foreground: 220 10% 82%;
-  --popover-border: 220 10% 16%;
+  --background: 220 12% 10%;
+  --foreground: 220 10% 90%;
+  --border: 220 10% 18%;
+  --card: 220 12% 13%;
+  --card-foreground: 220 10% 90%;
+  --card-border: 220 10% 19%;
+  --popover: 220 12% 12%;
+  --popover-foreground: 220 10% 90%;
+  --popover-border: 220 10% 19%;
   --primary: 152 44% 42%;
   --primary-foreground: 0 0% 100%;
   --secondary: 220 10% 16%;

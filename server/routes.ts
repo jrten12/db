@@ -189,6 +189,7 @@ export async function registerRoutes(
   
   // Add any new properties that were added after initial seeding
   await storage.addNewUrbanProperties();
+  await storage.addNewLuxuryProperties();
   
   // Update location types for existing properties (fixes production data)
   await storage.updatePropertyLocationTypes();

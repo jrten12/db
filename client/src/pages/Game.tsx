@@ -1256,8 +1256,9 @@ export default function Game() {
     try {
       const result = await api.advanceGameWeek(gameRun.id);
 
-      const collectedAnyRent = (result.rentalPayments || []).some(
-        (p: any) => (p.grossRent || 0) > 0
+      const rentalPayments: Array<{ grossRent?: number }> = result.rentalPayments || [];
+      const collectedAnyRent = rentalPayments.some(
+        (p) => (p.grossRent ?? 0) > 0
       );
       if (collectedAnyRent) {
         setTimeout(() => playRentDayChime(), 280);

@@ -1261,7 +1261,7 @@ export default function Game() {
         (p) => (p.grossRent ?? 0) > 0
       );
       if (collectedAnyRent) {
-        setTimeout(() => playRentDayChime(), 280);
+        setTimeout(() => playRentDayChime(), 700);
       }
 
       // Show income notifications for rental payments

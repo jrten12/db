@@ -57,6 +57,22 @@
   src: url('/fonts/space-mono-700.woff2') format('woff2');
 }
 
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/cormorant-garamond-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/cormorant-garamond-700.woff2') format('woff2');
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -101,6 +117,7 @@
 
   --font-display: 'DM Serif Display', Georgia, serif;
   --font-serif: 'DM Serif Display', Georgia, serif;
+  --font-premium: 'Cormorant Garamond', 'DM Serif Display', Georgia, serif;
   --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
   --font-mono: 'Space Mono', monospace;
 }

@@ -132,7 +132,7 @@ function PerformanceStatsShowcase() {
             <Gauge className="w-3.5 h-3.5" style={{ color: 'rgba(168,85,247,0.7)' }} />
             <span className="text-[11px] lg:text-xs font-bold uppercase tracking-[0.2em]" style={{ color: 'rgba(168,85,247,0.8)' }}>Track Your Growth</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-[2.75rem] font-serif mb-3 tracking-[-0.01em] leading-tight" style={{ color: '#f0e6d0' }}>
+          <h2 className="text-2xl sm:text-3xl lg:text-[3rem] mb-3 tracking-[-0.015em] leading-[1.1]" style={{ color: '#f0e6d0', fontFamily: 'var(--font-premium)', fontWeight: 400 }}>
             Every Deal Shapes Your <span className="landing-gold-shimmer">Investor Profile</span>
           </h2>
           <p className="text-sm sm:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'rgba(225,220,205,0.65)' }}>
@@ -417,10 +417,12 @@ export default function Landing() {
               </div>
 
               <h1
-                className="text-[2.2rem] sm:text-[2.4rem] lg:text-[3.2rem] xl:text-[3.75rem] leading-[1.08] tracking-[-0.02em] mb-5 lg:mb-6 font-serif"
+                className="text-[2.4rem] sm:text-[2.6rem] lg:text-[3.5rem] xl:text-[4.1rem] leading-[1.05] tracking-[-0.02em] mb-5 lg:mb-6"
                 style={{
                   color: '#f5f0e0',
                   textShadow: '0 2px 20px rgba(0,0,0,0.5)',
+                  fontFamily: "var(--font-premium)",
+                  fontWeight: 400,
                 }}
               >
                 You closed on a duplex<br className="hidden sm:inline" /> in March.<br className="hidden sm:inline" />

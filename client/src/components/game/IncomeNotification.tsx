@@ -257,9 +257,10 @@ export function useIncomeNotifications() {
     totalExpenses: number,
     propertyName?: string
   ) => {
-    // Just show "Monthly cash flow" - the breakdown was confusing
+    // Show this is this-month's actual net (may differ from the card's baseline
+    // due to late rent, surprise repairs, or other one-off events).
     const description = netIncome >= 0 
-      ? 'Monthly cash flow after expenses'
+      ? 'This month\'s net (after expenses & one-offs)'
       : 'Expenses exceeded rent this month';
     addIncomeEvent({
       amount: netIncome,

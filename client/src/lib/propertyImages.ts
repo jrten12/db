@@ -23,6 +23,13 @@ const hudsonValleyFarmhouse = '/images/properties/upstate_farmhouse_exterior.jpg
 const skylinePenthouse = '/images/properties/penthouse_condo_building_exterior.jpg';
 const chestnutHillVictorian = '/images/properties/victorian_mansion_exterior.jpg';
 const lakefrontEstate = '/images/properties/waterfront_estate_exterior.jpg';
+const tudorManor = '/images/properties/tudor_manor_home_exterior.jpg';
+const colonialFederal = '/images/properties/colonial_home_front_view.jpg';
+const craftsmanEstate = '/images/properties/craftsman_bungalow_home_exterior.jpg';
+const historicDistrict = '/images/properties/historic_district_building.jpg';
+const downtownLoftBuilding = '/images/properties/downtown_loft_building_exterior.jpg';
+const northernLibertiesLoftBuilding = '/images/properties/northern_liberties_loft_building.jpg';
+const rusticRanchEstate = '/images/properties/rustic_ranch_home_exterior.jpg';
 
 const farmhouseInterior = '/images/properties/farmhouse_interior_living_room.jpg';
 const penthouseInterior = '/images/properties/penthouse_interior_living_space.jpg';
@@ -197,19 +204,19 @@ const propertyImages: Record<string, string> = {
   'Rittenhouse Square Condo': rittenhouseCondo,
   'Fairmount Rowhome': fairmountDuplex,
   'Society Hill Colonial': societyHillApartment,
-  'Old City Loft': oldCityBrownstone,
+  'Old City Loft': downtownLoftBuilding,
   'Hudson Valley Farmhouse': hudsonValleyFarmhouse,
   'Skyline Penthouse': skylinePenthouse,
   'Chestnut Hill Victorian': chestnutHillVictorian,
   'Lakefront Estate': lakefrontEstate,
-  'Old City Carriage House': chestnutHillVictorian,
-  'Society Hill Federal': chestnutHillVictorian,
-  'Main Line Manor': hudsonValleyFarmhouse,
-  'Rittenhouse Skyhouse': skylinePenthouse,
-  'Northern Liberties Brownstone': chestnutHillVictorian,
+  'Old City Carriage House': historicDistrict,
+  'Society Hill Federal': colonialFederal,
+  'Main Line Manor': tudorManor,
+  'Rittenhouse Skyhouse': northernLibertiesLoftBuilding,
+  'Northern Liberties Brownstone': oldCityBrownstone,
   'Delaware Waterfront Modern': lakefrontEstate,
-  'Rittenhouse Historic Mansion': chestnutHillVictorian,
-  'Wissahickon Architect Estate': hudsonValleyFarmhouse,
+  'Rittenhouse Historic Mansion': craftsmanEstate,
+  'Wissahickon Architect Estate': rusticRanchEstate,
 };
 
 export const issueImages: Record<string, string> = {

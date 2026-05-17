@@ -420,24 +420,28 @@ export function TimeProgressionPanel({
   const bankruptcyRisk = cashAfterExpenses < 0;
   const lowCashWarning = !bankruptcyRisk && cashAfterExpenses < 2000 && expenseEstimate.totalExpenses > 0;
 
-  const prevBankruptcyRiskRef = useRef(bankruptcyRisk);
+  // Audio danger-zone trigger: cash under $3,000 AND expenses outpacing income.
+  // Separate from the visual bankruptcyRisk so the drone fires in the low-cash
+  // warning window, not only when projections go negative.
+  const dangerZone = gameRun.cash < 3000 && expenseEstimate.netCashFlow < 0;
+  const prevDangerZoneRef = useRef(dangerZone);
   const prevMonthRef = useRef(gameRun.currentWeek);
   const droneMountedRef = useRef(false);
   useEffect(() => {
     if (!droneMountedRef.current) {
       droneMountedRef.current = true;
-      prevBankruptcyRiskRef.current = bankruptcyRisk;
+      prevDangerZoneRef.current = dangerZone;
       prevMonthRef.current = gameRun.currentWeek;
       return;
     }
     const monthChanged = gameRun.currentWeek !== prevMonthRef.current;
-    const transitionedIntoRisk = bankruptcyRisk && !prevBankruptcyRiskRef.current;
-    if (monthChanged && transitionedIntoRisk) {
+    const transitionedIntoDanger = dangerZone && !prevDangerZoneRef.current;
+    if (monthChanged && transitionedIntoDanger) {
       playBankruptcyRiskDrone();
     }
-    prevBankruptcyRiskRef.current = bankruptcyRisk;
+    prevDangerZoneRef.current = dangerZone;
     prevMonthRef.current = gameRun.currentWeek;
-  }, [bankruptcyRisk, gameRun.currentWeek]);
+  }, [dangerZone, gameRun.currentWeek]);
 
   const lastAdvanceRef = useRef(0);
   const handleAdvanceWeek = async () => {

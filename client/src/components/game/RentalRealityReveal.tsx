@@ -51,6 +51,15 @@ function getRevealGrade(
   projectedCF: number, actualCF: number,
   proFormaData?: { projectedRent: number; projectedVacancy: number; projectedExpenses: number }
 ): RevealGradeResult {
+  if (proFormaData && proFormaData.projectedRent === 0) {
+    return {
+      grade: '—',
+      color: 'text-gray-300',
+      bgColor: 'from-slate-700 to-slate-800',
+      emoji: '📋',
+      headline: 'Nothing to Compare',
+    };
+  }
   if (projectedCF === 0 && actualCF === 0) return { grade: '-', color: 'text-gray-400', bgColor: 'from-gray-600 to-gray-700', emoji: '', headline: 'No cash flow projected' };
   
   const diff = Math.abs(actualCF - projectedCF);
@@ -178,7 +187,8 @@ export function RentalRealityReveal({ isOpen, onClose, data }: RentalRealityReve
   });
   const rentDiff = data.actualRent - data.projectedRent;
   const cfDiff = data.actualCashFlow - data.projectedCashFlow;
-  const isGood = grade.grade === 'A+' || grade.grade === 'A' || grade.grade === 'B';
+  const noProForma = data.projectedRent === 0;
+  const isGood = !noProForma && (grade.grade === 'A+' || grade.grade === 'A' || grade.grade === 'B');
 
   return (
     <>
@@ -249,20 +259,26 @@ export function RentalRealityReveal({ isOpen, onClose, data }: RentalRealityReve
                   >
                     <div className="text-3xl mb-1">{grade.emoji}</div>
                     <h2 className="text-2xl font-black text-white mb-1">{grade.headline}</h2>
-                    <div className="flex items-center justify-center gap-3 mt-2">
-                      <div className="bg-white/15 backdrop-blur rounded-lg px-3 py-1.5">
-                        <span className={`text-2xl font-black ${grade.color}`}>{grade.grade}</span>
+                    {noProForma ? (
+                      <p className="text-white/70 text-xs mt-2 max-w-xs mx-auto leading-relaxed">
+                        You didn't fill in a pro forma, so there's nothing to grade against. Next time, project the rent before you buy.
+                      </p>
+                    ) : (
+                      <div className="flex items-center justify-center gap-3 mt-2">
+                        <div className="bg-white/15 backdrop-blur rounded-lg px-3 py-1.5">
+                          <span className={`text-2xl font-black ${grade.color}`}>{grade.grade}</span>
+                        </div>
+                        <div className="text-left">
+                          <p className="text-white/80 text-xs">
+                            {cfDiff >= 0 ? 'You earn' : 'Your cash flow is'} 
+                            <span className={`font-bold ${cfDiff >= 0 ? ' text-emerald-300' : ' text-red-300'}`}>
+                              {' '}${Math.abs(Math.round(cfDiff)).toLocaleString()}/mo {cfDiff >= 0 ? 'more' : 'less'}
+                            </span>
+                          </p>
+                          <p className="text-white/50 text-[10px]">than your pro forma projected</p>
+                        </div>
                       </div>
-                      <div className="text-left">
-                        <p className="text-white/80 text-xs">
-                          {cfDiff >= 0 ? 'You earn' : 'Your cash flow is'} 
-                          <span className={`font-bold ${cfDiff >= 0 ? ' text-emerald-300' : ' text-red-300'}`}>
-                            {' '}${Math.abs(Math.round(cfDiff)).toLocaleString()}/mo {cfDiff >= 0 ? 'more' : 'less'}
-                          </span>
-                        </p>
-                        <p className="text-white/50 text-[10px]">than your pro forma projected</p>
-                      </div>
-                    </div>
+                    )}
                   </motion.div>
                 )}
               </div>
@@ -338,7 +354,7 @@ export function RentalRealityReveal({ isOpen, onClose, data }: RentalRealityReve
                   </div>
                 </div>
 
-                {phase >= 4 && (
+                {phase >= 4 && !noProForma && (
                   <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -360,6 +376,22 @@ export function RentalRealityReveal({ isOpen, onClose, data }: RentalRealityReve
                   </motion.div>
                 )}
 
+                {phase >= 4 && noProForma && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="rounded-xl p-3 border bg-slate-800/40 border-slate-600/40"
+                  >
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        The pro forma is where you stress-test a deal before committing cash. Real numbers are below — use them as a baseline for your next analysis.
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+
                 {data.isInRehab && phase >= 4 && (
                   <motion.div
                     initial={{ opacity: 0 }}
@@ -377,7 +409,7 @@ export function RentalRealityReveal({ isOpen, onClose, data }: RentalRealityReve
                   </motion.div>
                 )}
 
-                {rentDiff !== 0 && phase >= 4 && (
+                {rentDiff !== 0 && phase >= 4 && !noProForma && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

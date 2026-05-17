@@ -269,7 +269,7 @@ export function HallOfFameModal({ isOpen, onClose }: HallOfFameModalProps) {
       <div className="flex flex-col items-center py-8 px-4 min-h-full overflow-x-hidden relative">
         <button
           onClick={onClose}
-          className="fixed top-[calc(env(safe-area-inset-top,0px)+16px)] right-4 p-3 bg-slate-800 hover:bg-slate-700 rounded-full text-white transition-all z-[80] min-w-[52px] min-h-[52px] flex items-center justify-center shadow-lg border border-white/20"
+          className="fixed top-[calc(env(safe-area-inset-top,0px)+68px)] right-4 p-3 bg-slate-800 hover:bg-slate-700 rounded-full text-white transition-all z-[80] min-w-[52px] min-h-[52px] flex items-center justify-center shadow-lg border border-white/20"
           data-testid="button-close-hall-of-fame"
           data-sound="close"
         >

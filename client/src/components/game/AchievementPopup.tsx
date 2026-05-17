@@ -85,7 +85,7 @@ export function AchievementPopup({ achievementId, onClose }: AchievementPopupPro
           exit={{ opacity: 0, y: -30 }}
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
           className="fixed left-1/2 -translate-x-1/2 z-[60] pointer-events-auto"
-          style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
+          style={{ top: 'calc(env(safe-area-inset-top, 0px) + 64px)' }}
         >
           <div 
             className={`

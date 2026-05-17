@@ -182,7 +182,7 @@ export function EndGameSummary({
         <button
           onClick={handleClose}
           className="fixed right-4 p-3 bg-red-500/30 hover:bg-red-500/50 border border-red-500/50 rounded-full text-white transition-all z-[100] min-w-[48px] min-h-[48px] flex items-center justify-center cursor-pointer"
-          style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
+          style={{ top: 'calc(env(safe-area-inset-top, 0px) + 68px)' }}
           data-testid="button-close-summary"
           data-sound="close"
           type="button"

@@ -90,7 +90,7 @@ export function BadgesModal({ isOpen, onClose, earnedTrophies }: BadgesModalProp
       >
         <button
           onClick={onClose}
-          className="fixed top-[calc(env(safe-area-inset-top,0px)+16px)] right-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all z-[100] min-w-[48px] min-h-[48px] flex items-center justify-center"
+          className="fixed top-[calc(env(safe-area-inset-top,0px)+68px)] right-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all z-[100] min-w-[48px] min-h-[48px] flex items-center justify-center"
           data-testid="button-close-badges"
         >
           <X className="w-6 h-6" />

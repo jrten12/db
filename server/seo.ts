@@ -274,6 +274,63 @@ const ARTICLE_DATA: Record<string, ArticleEntry> = {
       { heading: "Capital Recycling", content: "Selling underperformers and redeploying equity into better markets. Don't fall in love with properties — fall in love with returns. Know how to <a href='/learn/survive-market-crash'>survive a market crash</a> and <a href='/learn/market-conditions'>read market conditions</a> to time your moves." }
     ]
   },
+  "cap-rate-vs-cash-on-cash-math": {
+    title: "The Hidden Math of Cap Rate vs Cash-on-Cash",
+    subtitle: "Same property, two metrics, two completely different stories.",
+    category: "Financial Metrics",
+    readTime: "7 min",
+    difficulty: "Intermediate",
+    datePublished: "2026-05-17",
+    dateModified: "2026-05-17",
+    keywords: ["cap rate vs cash on cash", "real estate metrics explained", "leverage cash on cash return", "cap rate formula", "real estate underwriting metrics"],
+    relatedSlugs: ["cap-rates-cash-on-cash", "ltv-financing", "what-is-a-pro-forma"],
+    sections: [
+      { heading: "The Same Building, Two Different Truths", content: "A $500K fourplex with $30K NOI is a 6% cap rate deal to one investor and a 14% cash-on-cash deal to another. Cap rate measures the asset. Cash-on-cash measures what happened to your wallet." },
+      { heading: "Why Cap Rate Doesn't Care About Your Loan", content: "NOI divided by purchase price. Strips out financing noise so you can compare a $300K duplex against a $1.2M apartment on equal footing. The sanity check on whether the underlying real estate is actually a better asset." },
+      { heading: "Cash-on-Cash: Where Leverage Sneaks In", content: "All cash gets you a 6% return that equals the cap rate. 25% down nudges it to 10%. 10% down can push to 22% — or negative, depending on rates. Same building, different financing, completely different returns." },
+      { heading: "The Trap Nobody Warns Beginners About", content: "An 18% cash-on-cash deal at 90% LTV flips to negative the month a HVAC compressor fails or insurance renews 35% higher. Pros stress-test cash-on-cash against vacancy, rate hikes, and surprise repairs before they sign." },
+      { heading: "Calculate Both, Always", content: "A 9% cap rate with a 4% cash-on-cash is a warning — financing is eating your returns. A 5% cap rate with 14% cash-on-cash means you're dependent on cheap debt. The two numbers together tell the deal's full story." }
+    ]
+  },
+  "why-first-time-flippers-lose": {
+    title: "Why Most First-Time Flippers Lose Money",
+    subtitle: "An honest postmortem of the seven habits that kill rookie flips.",
+    category: "Strategy",
+    readTime: "8 min",
+    difficulty: "Intermediate",
+    datePublished: "2026-05-17",
+    dateModified: "2026-05-17",
+    keywords: ["why do flippers lose money", "house flipping mistakes", "first time flip lessons", "ARV mistakes", "fix and flip risks"],
+    relatedSlugs: ["flip-vs-rent", "due-diligence", "common-mistakes"],
+    sections: [
+      { heading: "The Industry Doesn't Talk About the Losers", content: "Median first-time flippers lose money after honest accounting — labor they didn't pay themselves for, carrying costs they forgot, ARVs they convinced themselves were real. The math isn't broken. The discipline is." },
+      { heading: "ARV Anchoring", content: "Beginners pull three comps, pick the highest, and call it the ARV. Pros pull twelve, throw out the extremes, adjust for differences, then shave 5%. The gap is often the entire deal margin." },
+      { heading: "The Rehab Number You Wanted to Hear", content: "First-time flippers underbid rehab by 30-40%. Not because contractors lied — because the bid covered specified work, not what the house actually needed. Take the contractor's number, add 20% for unseen, add 10% more for unknowable." },
+      { heading: "Carrying Costs Are Real Money", content: "A $350K flip carries $3K-5K/month in mortgage, taxes, insurance, utilities, HOA. Nine months of slippage vaporizes $35K from a deal with thin margins. The clock is the second-largest enemy after optimism." },
+      { heading: "DIY Math Looks Beautiful, Plays Brutal", content: "A pro tile setter does in two days what takes you three weekends. Those weekends are more carrying costs. The opportunity cost of DIY is the months you accumulate going slower than someone whose job it is." },
+      { heading: "The Discipline That Separates Pros", content: "Professional flippers underwrite 50-100 deals to buy one. They have a maximum allowable offer formula — 70% of ARV minus rehab — and they don't negotiate it upward because they love the property." }
+    ]
+  },
+  "inspection-red-flags-30-seconds": {
+    title: "Reading a Property: 7 Inspection Red Flags Pros Spot in 30 Seconds",
+    subtitle: "What experienced investors notice on the first walkthrough that beginners miss completely.",
+    category: "Risk Management",
+    readTime: "7 min",
+    difficulty: "Intermediate",
+    datePublished: "2026-05-17",
+    dateModified: "2026-05-17",
+    keywords: ["house inspection red flags", "first walkthrough checklist", "Federal Pacific panel", "Zinsco breaker", "foundation crack patterns", "galvanized plumbing signs"],
+    relatedSlugs: ["due-diligence", "hidden-costs", "common-mistakes"],
+    sections: [
+      { heading: "Pros Walk a House Differently", content: "Experienced investors barely look at kitchen finishes. They scan floors for slope, ceilings for stain rings, baseboards for moisture line, and the electrical panel brand. Cheap-to-fix things scream while expensive things whisper." },
+      { heading: "The Electrical Panel Brand", content: "Federal Pacific Electric (Stab-Lok) and Zinsco panels have decades of failure history. Insurance carriers increasingly refuse coverage. Budget $2,500-5,000 for full panel swap and add it to your offer math." },
+      { heading: "The Basement Smell", content: "Faint mustiness means humidity. A real damp earthy scent means active water intrusion. Look for efflorescence on block walls, rust on metal supports, and the paint tide line on wood framing." },
+      { heading: "Foundation Crack Patterns", content: "Hairline vertical cracks are normal settling. Diagonal at corners means differential settlement — get an engineer. Horizontal across a wall means lateral pressure failure — major structural. Stair-step in block that's widening means active movement." },
+      { heading: "Granules in the Gutters", content: "Asphalt sand-like granules in the gutter mean the roof is shedding its protective coating. Combined with bald or curled shingles, that roof has 1-3 years left. New roof needed that you didn't budget for is the problem." },
+      { heading: "The Marble Test", content: "Set a marble on hardwood and watch. Slow drift is normal old-house settling. Picking up speed means joist sag, foundation movement, or termite damage. Then check the doors — if they don't close cleanly, two stories that match deserve an engineer." },
+      { heading: "Galvanized Plumbing and HVAC Age", content: "Galvanized supply lines last 50-70 years and need full repipe ($8K-20K). HVAC over 12 years is on borrowed time; over 18 should be priced as 'replace this year' ($8K-15K)." }
+    ]
+  },
   "tenant-management": {
     title: "Tenant Management: The Human Side of Real Estate",
     subtitle: "Good tenants make you money. Bad tenants make you question your life choices.",

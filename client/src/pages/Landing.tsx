@@ -59,7 +59,7 @@ function MechanicCard({ Icon, accent, title, detail }: { Icon: any; accent: stri
         </div>
         <h3 className="font-semibold text-[15px] lg:text-base" style={{ color: '#f0e6d0' }}>{title}</h3>
       </div>
-      <p className="text-sm lg:text-[15px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.55)' }}>{detail}</p>
+      <p className="text-sm lg:text-[15px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.65)' }}>{detail}</p>
     </div>
   );
 }
@@ -78,7 +78,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
         {question}
         <ArrowRight className="w-4 h-4 transition-transform group-open:rotate-90 flex-shrink-0 ml-2" style={{ color: 'rgba(212,175,55,0.5)' }} />
       </summary>
-      <div className="px-4 pb-4 lg:px-5 lg:pb-5 text-sm lg:text-[15px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.55)' }}>
+      <div className="px-4 pb-4 lg:px-5 lg:pb-5 text-sm lg:text-[15px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.65)' }}>
         {answer}
       </div>
     </details>
@@ -89,7 +89,7 @@ function StatCallout({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center px-3 lg:px-5">
       <div className="font-mono font-black text-xl lg:text-2xl landing-stat-pulse" style={{ color: '#d4af37' }}>{value}</div>
-      <div className="text-[11px] lg:text-xs leading-tight mt-1" style={{ color: 'rgba(225,220,205,0.45)' }}>{label}</div>
+      <div className="text-[11px] lg:text-xs leading-tight mt-1" style={{ color: 'rgba(225,220,205,0.6)' }}>{label}</div>
     </div>
   );
 }
@@ -117,7 +117,7 @@ function PerformanceStatsShowcase() {
   return (
     <section
       className="relative py-10 lg:py-16 px-5 overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #131316 0%, #141418 50%, #131316 100%)' }}
+      style={{ background: 'linear-gradient(180deg, #1a1a1f 0%, #141418 50%, #1a1a1f 100%)' }}
       data-testid="section-performance-stats"
     >
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -135,7 +135,7 @@ function PerformanceStatsShowcase() {
           <h2 className="text-2xl sm:text-3xl lg:text-[2.75rem] font-serif mb-3 tracking-[-0.01em] leading-tight" style={{ color: '#f0e6d0' }}>
             Every Deal Shapes Your <span className="landing-gold-shimmer">Investor Profile</span>
           </h2>
-          <p className="text-sm sm:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'rgba(225,220,205,0.55)' }}>
+          <p className="text-sm sm:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'rgba(225,220,205,0.65)' }}>
             Real-time coaching, detailed scorecards, and benchmarks against other players. Track the metrics that matter — not just money, but the decisions behind it.
           </p>
         </div>
@@ -148,7 +148,7 @@ function PerformanceStatsShowcase() {
               </div>
               <div>
                 <h3 className="font-bold text-[15px] lg:text-base" style={{ color: '#f0e6d0' }}>Investor Profile</h3>
-                <p className="text-[11px] lg:text-xs" style={{ color: 'rgba(225,220,205,0.4)' }}>Updates with every decision</p>
+                <p className="text-[11px] lg:text-xs" style={{ color: 'rgba(225,220,205,0.58)' }}>Updates with every decision</p>
               </div>
             </div>
             <div className="rounded-lg p-3 mb-3" style={{ background: 'rgba(168,85,247,0.06)', border: '1px solid rgba(168,85,247,0.12)' }}>
@@ -158,7 +158,7 @@ function PerformanceStatsShowcase() {
                 </div>
                 <span className="font-bold text-sm lg:text-[15px]" style={{ color: '#4ade80' }}>Savvy Investor</span>
               </div>
-              <p className="text-[11px] lg:text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
+              <p className="text-[11px] lg:text-xs leading-relaxed" style={{ color: 'rgba(225,220,205,0.62)' }}>
                 "Sharp underwriter who knows when to walk away."
               </p>
             </div>
@@ -166,7 +166,7 @@ function PerformanceStatsShowcase() {
               {['Diligence-first approach', 'Accurate pro forma models', 'Strong risk awareness'].map((trait) => (
                 <div key={trait} className="flex items-center gap-2">
                   <ChevronRight className="w-3 h-3 flex-shrink-0" style={{ color: 'rgba(168,85,247,0.5)' }} />
-                  <span className="text-[11px] lg:text-[13px]" style={{ color: 'rgba(225,220,205,0.55)' }}>{trait}</span>
+                  <span className="text-[11px] lg:text-[13px]" style={{ color: 'rgba(225,220,205,0.65)' }}>{trait}</span>
                 </div>
               ))}
             </div>
@@ -179,7 +179,7 @@ function PerformanceStatsShowcase() {
               </div>
               <div>
                 <h3 className="font-bold text-[15px] lg:text-base" style={{ color: '#f0e6d0' }}>Deal Scorecard</h3>
-                <p className="text-[11px] lg:text-xs" style={{ color: 'rgba(225,220,205,0.4)' }}>Graded on what matters</p>
+                <p className="text-[11px] lg:text-xs" style={{ color: 'rgba(225,220,205,0.58)' }}>Graded on what matters</p>
               </div>
             </div>
             <div className="space-y-2.5">
@@ -191,7 +191,7 @@ function PerformanceStatsShowcase() {
               ].map((metric) => (
                 <div key={metric.label}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] lg:text-xs font-medium" style={{ color: 'rgba(225,220,205,0.5)' }}>{metric.label}</span>
+                    <span className="text-[11px] lg:text-xs font-medium" style={{ color: 'rgba(225,220,205,0.62)' }}>{metric.label}</span>
                     <span className="font-mono text-[11px] lg:text-[13px] font-bold" style={{ color: metric.color }}>{metric.value}%</span>
                   </div>
                   <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
@@ -209,7 +209,7 @@ function PerformanceStatsShowcase() {
               </div>
               <div>
                 <h3 className="font-bold text-[15px] lg:text-base" style={{ color: '#f0e6d0' }}>Benchmarks</h3>
-                <p className="text-[11px] lg:text-xs" style={{ color: 'rgba(225,220,205,0.4)' }}>Compare against all players</p>
+                <p className="text-[11px] lg:text-xs" style={{ color: 'rgba(225,220,205,0.58)' }}>Compare against all players</p>
               </div>
             </div>
             <div className="space-y-2">
@@ -220,7 +220,7 @@ function PerformanceStatsShowcase() {
                 { label: 'Pro Forma Accuracy', you: 'B+', avg: 'C', better: true },
               ].map((bench) => (
                 <div key={bench.label} className="flex items-center justify-between py-2 px-3 rounded-lg" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
-                  <span className="text-[11px] lg:text-xs" style={{ color: 'rgba(225,220,205,0.45)' }}>{bench.label}</span>
+                  <span className="text-[11px] lg:text-xs" style={{ color: 'rgba(225,220,205,0.6)' }}>{bench.label}</span>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-[11px] lg:text-xs font-bold" style={{ color: bench.better ? '#4ade80' : '#f87171' }}>{bench.you}</span>
                     <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.08)' }} />
@@ -242,7 +242,7 @@ function PerformanceStatsShowcase() {
             </div>
             <div>
               <p className="text-sm lg:text-base font-semibold" style={{ color: '#f0e6d0' }}>Personalized coaching after every deal</p>
-              <p className="text-[11px] lg:text-xs" style={{ color: 'rgba(225,220,205,0.45)' }}>Suggestions adapt to your play style and weak spots</p>
+              <p className="text-[11px] lg:text-xs" style={{ color: 'rgba(225,220,205,0.6)' }}>Suggestions adapt to your play style and weak spots</p>
             </div>
           </div>
           <Link href="/game">
@@ -280,25 +280,25 @@ function ProfitPotentialStrip() {
               <div className="font-mono font-black text-2xl sm:text-3xl lg:text-4xl landing-stat-pulse" style={{ color: '#10b981' }}>
                 <AnimatedCounter target={142} prefix="+$" suffix="K" />
               </div>
-              <div className="text-[10px] lg:text-xs mt-1" style={{ color: 'rgba(225,220,205,0.4)' }}>Best Portfolio Return</div>
+              <div className="text-[10px] lg:text-xs mt-1" style={{ color: 'rgba(225,220,205,0.58)' }}>Best Portfolio Return</div>
             </div>
             <div className="text-center">
               <div className="font-mono font-black text-2xl sm:text-3xl lg:text-4xl landing-stat-pulse" style={{ color: '#d4af37', animationDelay: '0.5s' }}>
                 <AnimatedCounter target={24} suffix="%" />
               </div>
-              <div className="text-[10px] lg:text-xs mt-1" style={{ color: 'rgba(225,220,205,0.4)' }}>Cash-on-Cash ROI</div>
+              <div className="text-[10px] lg:text-xs mt-1" style={{ color: 'rgba(225,220,205,0.58)' }}>Cash-on-Cash ROI</div>
             </div>
             <div className="text-center">
               <div className="font-mono font-black text-2xl sm:text-3xl lg:text-4xl landing-stat-pulse" style={{ color: '#06b6d4', animationDelay: '1s' }}>
                 <AnimatedCounter target={38} prefix="$" suffix="K" />
               </div>
-              <div className="text-[10px] lg:text-xs mt-1" style={{ color: 'rgba(225,220,205,0.4)' }}>Single Flip Profit</div>
+              <div className="text-[10px] lg:text-xs mt-1" style={{ color: 'rgba(225,220,205,0.58)' }}>Single Flip Profit</div>
             </div>
             <div className="text-center">
               <div className="font-mono font-black text-2xl sm:text-3xl lg:text-4xl landing-stat-pulse" style={{ color: '#a855f7', animationDelay: '1.5s' }}>
                 A+
               </div>
-              <div className="text-[10px] lg:text-xs mt-1" style={{ color: 'rgba(225,220,205,0.4)' }}>Highest Accuracy Grade</div>
+              <div className="text-[10px] lg:text-xs mt-1" style={{ color: 'rgba(225,220,205,0.58)' }}>Highest Accuracy Grade</div>
             </div>
           </div>
         </div>
@@ -313,7 +313,7 @@ export default function Landing() {
   return (
     <div
       className="min-h-screen min-h-[100dvh] overflow-x-hidden safe-area-x"
-      style={{ background: '#131316' }}
+      style={{ background: '#1a1a1f' }}
       data-testid="landing-page"
     >
       {/* === NAVIGATION BAR === */}
@@ -367,7 +367,7 @@ export default function Landing() {
               Final Testing Phase
             </span>
           </div>
-          <span className="text-[10px] sm:text-[11px]" style={{ color: 'rgba(225,220,205,0.4)' }}>
+          <span className="text-[10px] sm:text-[11px]" style={{ color: 'rgba(225,220,205,0.58)' }}>
             We're actively refining mechanics, squashing bugs, and polishing every detail. Thanks for your patience as we get this right.
           </span>
         </div>
@@ -429,7 +429,7 @@ export default function Landing() {
 
               <div className="space-y-2 mb-7 max-w-[520px]">
                 <p className="text-base lg:text-lg font-semibold" style={{ color: 'rgba(225,220,205,0.6)' }}>The numbers looked right on paper.</p>
-                <p className="text-[15px] lg:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.4)' }}>
+                <p className="text-[15px] lg:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.58)' }}>
                   52 months. $100K. Every choice compounds.
                 </p>
               </div>
@@ -477,7 +477,7 @@ export default function Landing() {
                 <div className="flex items-center justify-between px-4 lg:px-5 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                   <div className="flex items-center gap-2">
                     <Building2 className="w-3.5 h-3.5" style={{ color: 'rgba(212,175,55,0.5)' }} />
-                    <span className="font-mono text-[10px] lg:text-[11px] font-bold tracking-[0.12em]" style={{ color: 'rgba(225,220,205,0.5)' }}>DEAL OVERVIEW</span>
+                    <span className="font-mono text-[10px] lg:text-[11px] font-bold tracking-[0.12em]" style={{ color: 'rgba(225,220,205,0.62)' }}>DEAL OVERVIEW</span>
                   </div>
                   <span className="font-mono text-[10px] lg:text-[11px] tracking-wider" style={{ color: 'rgba(225,220,205,0.2)' }}>MO 3</span>
                 </div>
@@ -507,7 +507,7 @@ export default function Landing() {
                   </div>
                   <div className="px-4 lg:px-5 py-2.5 lg:py-3" style={{ background: 'rgba(8,8,11,0.97)' }}>
                     <div className="text-[9px] lg:text-[10px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash-on-Cash</div>
-                    <div className="font-mono text-[15px] lg:text-base font-bold tabular-nums" style={{ color: 'rgba(225,220,205,0.55)' }}>4.7%</div>
+                    <div className="font-mono text-[15px] lg:text-base font-bold tabular-nums" style={{ color: 'rgba(225,220,205,0.65)' }}>4.7%</div>
                   </div>
                 </div>
 
@@ -575,7 +575,7 @@ export default function Landing() {
             >
               What Happens When You Play
             </h2>
-            <p className="text-sm sm:text-base lg:text-lg max-w-xl mx-auto" style={{ color: 'rgba(225,220,205,0.5)' }}>
+            <p className="text-sm sm:text-base lg:text-lg max-w-xl mx-auto" style={{ color: 'rgba(225,220,205,0.62)' }}>
               Three decisions. One outcome you can't take back.
             </p>
           </div>
@@ -623,7 +623,7 @@ export default function Landing() {
               </div>
             </div>
             <div className="px-4 lg:px-5 py-3 text-center" style={{ background: 'rgba(19,19,22,0.95)' }}>
-              <p className="text-xs lg:text-sm" style={{ color: 'rgba(225,220,205,0.5)' }}>
+              <p className="text-xs lg:text-sm" style={{ color: 'rgba(225,220,205,0.62)' }}>
                 Skip the inspection and you won't know until it's too late. <span style={{ color: '#f87171' }}>This is how deals break.</span>
               </p>
             </div>
@@ -639,7 +639,7 @@ export default function Landing() {
               <p className="text-sm lg:text-base font-semibold mb-1" style={{ color: '#f0e6d0' }}>
                 "Looks like 8% cash-on-cash."
               </p>
-              <p className="text-xs lg:text-sm leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
+              <p className="text-xs lg:text-sm leading-relaxed" style={{ color: 'rgba(225,220,205,0.62)' }}>
                 Rent estimate, comps, condition — it all checks out. But the listing never tells the whole story.
               </p>
             </div>
@@ -652,7 +652,7 @@ export default function Landing() {
               <p className="text-sm lg:text-base font-semibold mb-1" style={{ color: '#f0e6d0' }}>
                 "Going in at 80% LTV."
               </p>
-              <p className="text-xs lg:text-sm leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
+              <p className="text-xs lg:text-sm leading-relaxed" style={{ color: 'rgba(225,220,205,0.62)' }}>
                 Down payment locked. Strategy chosen. Deal signed. The market doesn't care about your spreadsheet.
               </p>
             </div>
@@ -665,7 +665,7 @@ export default function Landing() {
               <p className="text-sm lg:text-base font-semibold mb-1" style={{ color: '#f0e6d0' }}>
                 "+$24,300. Grade: A."
               </p>
-              <p className="text-xs lg:text-sm leading-relaxed" style={{ color: 'rgba(225,220,205,0.5)' }}>
+              <p className="text-xs lg:text-sm leading-relaxed" style={{ color: 'rgba(225,220,205,0.62)' }}>
                 Or −$12,000. The postmortem shows what you got right, what you missed, and why.
               </p>
             </div>
@@ -701,7 +701,7 @@ export default function Landing() {
       {/* === THIS IS NOT A CALCULATOR === */}
       <section
         className="relative py-10 lg:py-16 overflow-hidden"
-        style={{ background: 'linear-gradient(180deg, #131316 0%, #15151a 50%, #131316 100%)' }}
+        style={{ background: 'linear-gradient(180deg, #1a1a1f 0%, #15151a 50%, #1a1a1f 100%)' }}
       >
         <div
           className="absolute inset-x-0 top-0 h-[1px]"
@@ -723,7 +723,7 @@ export default function Landing() {
             </h2>
             <p
               className="text-sm sm:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed"
-              style={{ color: 'rgba(225,220,205,0.55)' }}
+              style={{ color: 'rgba(225,220,205,0.65)' }}
             >
               You're not filling in a spreadsheet. You're making decisions with incomplete information, shifting conditions, and real consequences. Closer to poker than Excel.
             </p>
@@ -783,7 +783,7 @@ export default function Landing() {
             >
               Every Number Earns Its Place
             </h2>
-            <p className="text-sm sm:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'rgba(225,220,205,0.55)' }}>
+            <p className="text-sm sm:text-base lg:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'rgba(225,220,205,0.65)' }}>
               This isn't surface-level. Every mechanic models a real variable that shapes real deals. The deeper you look, the more you find.
             </p>
           </div>
@@ -803,7 +803,7 @@ export default function Landing() {
                   </div>
                   <h3 className="font-bold text-[15px] lg:text-base" style={{ color: '#f0e6d0' }}>Multi-Variable Underwriting</h3>
                 </div>
-                <p className="text-sm lg:text-[15px] leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                <p className="text-sm lg:text-[15px] leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.62)' }}>
                   Interest rates aren't random. A 6-factor model weighs your LTV, debt-to-income, cash reserves, net worth, market conditions, and track record — the same inputs a real lender evaluates.
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -820,7 +820,7 @@ export default function Landing() {
                   </div>
                   <h3 className="font-bold text-[15px] lg:text-base" style={{ color: '#f0e6d0' }}>Living Properties</h3>
                 </div>
-                <p className="text-sm lg:text-[15px] leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                <p className="text-sm lg:text-[15px] leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.62)' }}>
                   Properties aren't static assets. Unfixed issues escalate over time — mild in month two, critical by month ten. Tenant satisfaction tracks monthly, driving turnover risk. Market shifts adjust your rent in real time.
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -837,7 +837,7 @@ export default function Landing() {
                   </div>
                   <h3 className="font-bold text-[15px] lg:text-base" style={{ color: '#f0e6d0' }}>Precision Postmortems</h3>
                 </div>
-                <p className="text-sm lg:text-[15px] leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                <p className="text-sm lg:text-[15px] leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.62)' }}>
                   After every deal, a detailed breakdown compares your pro forma projections to actual outcomes line by line. Rent, vacancy, expenses, cash flow — each graded with an explanation of exactly where your assumptions held or broke down.
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -854,7 +854,7 @@ export default function Landing() {
                   </div>
                   <h3 className="font-bold text-[15px] lg:text-base" style={{ color: '#f0e6d0' }}>Branching Outcome Paths</h3>
                 </div>
-                <p className="text-sm lg:text-[15px] leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                <p className="text-sm lg:text-[15px] leading-relaxed mb-3" style={{ color: 'rgba(225,220,205,0.62)' }}>
                   Your diligence choices, contractor picks, repair selections, and financing structure all feed into outcome calculations. Renovation yields account for location, property type, market demand, and price tier — not just cost.
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -872,7 +872,7 @@ export default function Landing() {
                 borderTop: '1px solid rgba(16,185,129,0.08)',
               }}
             >
-              <p className="text-xs lg:text-sm leading-relaxed" style={{ color: 'rgba(225,220,205,0.45)' }}>
+              <p className="text-xs lg:text-sm leading-relaxed" style={{ color: 'rgba(225,220,205,0.6)' }}>
                 Dozens of interconnected variables. Every deal calculated from first principles.
                 <span className="ml-1 font-medium" style={{ color: 'rgba(16,185,129,0.7)' }}>The depth is the game.</span>
               </p>
@@ -903,7 +903,7 @@ export default function Landing() {
                   >
                     Every concept mirrors how real deals work.
                   </h2>
-                  <p className="text-sm lg:text-base leading-relaxed max-w-lg" style={{ color: 'rgba(225,220,205,0.55)' }}>
+                  <p className="text-sm lg:text-base leading-relaxed max-w-lg" style={{ color: 'rgba(225,220,205,0.65)' }}>
                     Pro forma modeling, cap rate analysis, LTV-based financing, due diligence trade-offs, market timing — the same framework professional investors use, taught through the deals you play.
                   </p>
                 </div>
@@ -1053,7 +1053,7 @@ export default function Landing() {
           >
             Think you can spot a bad deal?
           </h2>
-          <p className="text-sm sm:text-base lg:text-lg mb-2 max-w-xl mx-auto" style={{ color: 'rgba(225,220,205,0.5)' }}>
+          <p className="text-sm sm:text-base lg:text-lg mb-2 max-w-xl mx-auto" style={{ color: 'rgba(225,220,205,0.62)' }}>
             $100,000 starting cash. 52 months on the clock. Dozens of properties, each hiding something. One wrong assumption and the whole deal breaks.
           </p>
           <p className="text-xs lg:text-sm mb-2 max-w-lg mx-auto" style={{ color: 'rgba(225,220,205,0.35)' }}>

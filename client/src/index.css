@@ -112,7 +112,7 @@
   --elevate-1: rgba(255,255,255, .035);
   --elevate-2: rgba(255,255,255, .06);
 
-  --background: 220 12% 10%;
+  --background: 220 10% 12%;
   --foreground: 220 10% 90%;
   --border: 220 10% 18%;
   --card: 220 12% 13%;
@@ -1032,8 +1032,8 @@ input[type="range"]::-moz-range-track {
   50% { transform: translateY(-3px); }
 }
 @keyframes landing-glow-pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.5; }
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.28; }
 }
 @keyframes landing-gradient-shift {
   0% { background-position: 0% 50%; }

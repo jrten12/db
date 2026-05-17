@@ -4,7 +4,7 @@ import { formatCurrency, MARKET_DEFAULTS, getPropertyBasedDefaults } from '@/lib
 import { getPropertyImage, getConditionAdjustedInteriors, getIssueImage } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getRandomizedPropertyIssues, getRevealedRandomizedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { playProformaChime, playPurchaseConfirmSound } from '@/hooks/useClickSound';
+import { playProformaChime, playDealCommitChunk } from '@/hooks/useClickSound';
 import type { Property } from '@shared/schema';
 
 const FINANCIAL_COLORS = {
@@ -468,7 +468,7 @@ export function PropertyDetail({
 
   const handleConfirmDiligence = () => {
     if (pendingDiligence && onDiligencePurchase) {
-      playPurchaseConfirmSound();
+      playDealCommitChunk();
       onDiligencePurchase(property.id, pendingDiligence.id, pendingDiligence.cost, pendingDiligence.timeWeeks);
     }
     setPendingDiligence(null);

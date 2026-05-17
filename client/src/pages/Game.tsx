@@ -69,7 +69,7 @@ import type { GameRun, Property, LedgerEntry, Deal, HallOfFamePlayer } from '@sh
 import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.webp';
 import Footer from '@/components/Footer';
 import { Loader2, Play } from 'lucide-react';
-import { playAdvanceWeekSound } from '@/hooks/useClickSound';
+import { playAdvanceWeekSound, playRentDayChime } from '@/hooks/useClickSound';
 import { toast } from 'sonner';
 
 type GameScreen = 'home' | 'market' | 'detail' | 'proforma' | 'results';
@@ -1255,6 +1255,13 @@ export default function Game() {
     setIsAdvancingWeek(true);
     try {
       const result = await api.advanceGameWeek(gameRun.id);
+
+      const collectedAnyRent = (result.rentalPayments || []).some(
+        (p: any) => (p.grossRent || 0) > 0
+      );
+      if (collectedAnyRent) {
+        setTimeout(() => playRentDayChime(), 280);
+      }
 
       // Show income notifications for rental payments
       result.rentalPayments.forEach((payment: any) => {

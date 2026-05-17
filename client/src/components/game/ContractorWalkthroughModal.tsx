@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, HardHat, Wrench, AlertTriangle, CheckCircle2, DollarSign, Clock, ArrowRight, Info, TrendingUp, Check, XCircle, Sparkles } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
-import { playPurchaseConfirmSound } from '@/hooks/useClickSound';
+import { playDealCommitChunk } from '@/hooks/useClickSound';
 import type { Deal, Property, GameRun } from '@shared/schema';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '@/lib/gameData';
@@ -227,7 +227,7 @@ export function ContractorWalkthroughModal({
   };
 
   const handlePerformWalkthrough = async () => {
-    playPurchaseConfirmSound();
+    playDealCommitChunk();
     setViewState('performing');
     setError(null);
     

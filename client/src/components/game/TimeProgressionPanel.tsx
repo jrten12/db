@@ -5,8 +5,8 @@
  * Click on a property to see detailed financials
  */
 
-import { useState, useRef } from 'react';
-import { playPurchaseConfirmSound } from '@/hooks/useClickSound';
+import { useState, useRef, useEffect } from 'react';
+import { playPurchaseConfirmSound, playBankruptcyRiskDrone } from '@/hooks/useClickSound';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -419,6 +419,25 @@ export function TimeProgressionPanel({
   const cashAfterExpenses = gameRun.cash + expenseEstimate.netCashFlow;
   const bankruptcyRisk = cashAfterExpenses < 0;
   const lowCashWarning = !bankruptcyRisk && cashAfterExpenses < 2000 && expenseEstimate.totalExpenses > 0;
+
+  const prevBankruptcyRiskRef = useRef(bankruptcyRisk);
+  const prevMonthRef = useRef(gameRun.currentWeek);
+  const droneMountedRef = useRef(false);
+  useEffect(() => {
+    if (!droneMountedRef.current) {
+      droneMountedRef.current = true;
+      prevBankruptcyRiskRef.current = bankruptcyRisk;
+      prevMonthRef.current = gameRun.currentWeek;
+      return;
+    }
+    const monthChanged = gameRun.currentWeek !== prevMonthRef.current;
+    const transitionedIntoRisk = bankruptcyRisk && !prevBankruptcyRiskRef.current;
+    if (monthChanged && transitionedIntoRisk) {
+      playBankruptcyRiskDrone();
+    }
+    prevBankruptcyRiskRef.current = bankruptcyRisk;
+    prevMonthRef.current = gameRun.currentWeek;
+  }, [bankruptcyRisk, gameRun.currentWeek]);
 
   const lastAdvanceRef = useRef(0);
   const handleAdvanceWeek = async () => {

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Loader2, TrendingUp, DollarSign, Percent, Building2, AlertCircle, ArrowRight, Banknote, Calculator, Info } from 'lucide-react';
 import { api, type RefinanceOptions, type LtvOption } from '@/lib/api';
-import { playPurchaseConfirmSound } from '@/hooks/useClickSound';
+import { playDealCommitChunk } from '@/hooks/useClickSound';
 import type { Deal, Property, GameRun } from '@shared/schema';
 
 interface RefinanceModalProps {
@@ -47,7 +47,7 @@ export function RefinanceModal({ isOpen, onClose, deal, property, gameRun, onRef
   };
 
   const handleRefinance = async () => {
-    playPurchaseConfirmSound();
+    playDealCommitChunk();
     setSubmitting(true);
     try {
       await onRefinance(deal.id, selectedLtv);

@@ -94,6 +94,116 @@ export function playSwooshSound() {
   } catch (e) {}
 }
 
+export function playCommitChunkSound() {
+  try {
+    const ctx = getSharedAudioContext();
+    const now = ctx.currentTime;
+    const duration = 0.32;
+
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.exponentialRampToValueAtTime(55, now + 0.18);
+
+    const oscGain = ctx.createGain();
+    oscGain.gain.setValueAtTime(0, now);
+    oscGain.gain.linearRampToValueAtTime(0.28, now + 0.012);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    osc.connect(oscGain);
+    oscGain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + duration + 0.02);
+
+    const noiseDur = 0.06;
+    const bufferSize = Math.floor(ctx.sampleRate * noiseDur);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1);
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(900, now);
+    lp.Q.setValueAtTime(0.6, now);
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0, now);
+    noiseGain.gain.linearRampToValueAtTime(0.18, now + 0.008);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + noiseDur);
+
+    noise.connect(lp);
+    lp.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + noiseDur + 0.02);
+  } catch (e) {}
+}
+
+export function playRentDayPing() {
+  try {
+    const ctx = getSharedAudioContext();
+    const now = ctx.currentTime;
+    const notes = [
+      { freq: 1318.51, start: 0, dur: 0.09, gain: 0.12 },
+      { freq: 1760.00, start: 0.05, dur: 0.10, gain: 0.10 },
+      { freq: 2093.00, start: 0.10, dur: 0.14, gain: 0.08 },
+    ];
+    notes.forEach(n => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(n.freq, now + n.start);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, now + n.start);
+      g.gain.linearRampToValueAtTime(n.gain, now + n.start + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.001, now + n.start + n.dur);
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.start(now + n.start);
+      osc.stop(now + n.start + n.dur + 0.02);
+    });
+  } catch (e) {}
+}
+
+export function playBankruptcyDrone() {
+  try {
+    const ctx = getSharedAudioContext();
+    const now = ctx.currentTime;
+    const duration = 2.0;
+
+    const osc1 = ctx.createOscillator();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(55, now);
+
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(82.5, now);
+
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(800, now);
+    lp.frequency.exponentialRampToValueAtTime(180, now + duration);
+    lp.Q.setValueAtTime(2, now);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.14, now + 0.18);
+    gain.gain.setValueAtTime(0.14, now + duration - 0.6);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    osc1.connect(lp);
+    osc2.connect(lp);
+    lp.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + duration + 0.05);
+    osc2.stop(now + duration + 0.05);
+  } catch (e) {}
+}
+
 export function playCloseSound() {
   try {
     const ctx = getSharedAudioContext();

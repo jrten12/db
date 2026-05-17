@@ -1,5 +1,17 @@
 import { useEffect } from 'react';
-import { playSwooshSound, playCloseSound, playKeystrokeSound } from './useUISounds';
+import { playSwooshSound, playCloseSound, playKeystrokeSound, playCommitChunkSound, playRentDayPing, playBankruptcyDrone } from './useUISounds';
+
+export function playDealCommitChunk() {
+  playCommitChunkSound();
+}
+
+export function playRentDayChime() {
+  playRentDayPing();
+}
+
+export function playBankruptcyRiskDrone() {
+  playBankruptcyDrone();
+}
 
 const CLICK_SOUND_URL = '/click.wav';
 const PROFORMA_CHIME_URL = '/proforma-chime.wav';

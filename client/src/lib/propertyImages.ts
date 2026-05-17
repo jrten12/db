@@ -202,6 +202,14 @@ const propertyImages: Record<string, string> = {
   'Skyline Penthouse': skylinePenthouse,
   'Chestnut Hill Victorian': chestnutHillVictorian,
   'Lakefront Estate': lakefrontEstate,
+  'Old City Carriage House': chestnutHillVictorian,
+  'Society Hill Federal': chestnutHillVictorian,
+  'Main Line Manor': hudsonValleyFarmhouse,
+  'Rittenhouse Skyhouse': skylinePenthouse,
+  'Northern Liberties Brownstone': chestnutHillVictorian,
+  'Delaware Waterfront Modern': lakefrontEstate,
+  'Rittenhouse Historic Mansion': chestnutHillVictorian,
+  'Wissahickon Architect Estate': hudsonValleyFarmhouse,
 };
 
 export const issueImages: Record<string, string> = {
@@ -399,6 +407,50 @@ const propertySpecificInteriors: Record<string, Array<{ type: string; label: str
     { type: 'bathroom', label: 'Bathroom', url: oldCityLoftBathroom },
     { type: 'living', label: 'Living Room', url: oldCityLoftLiving },
     { type: 'basement', label: 'Basement', url: oldCityBasement },
+  ],
+  'Old City Carriage House': [
+    { type: 'kitchen', label: 'Kitchen', url: chestnutHillVictorianKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: chestnutHillVictorianBathroom },
+    { type: 'living', label: 'Grand Entry', url: chestnutHillVictorianLiving },
+    { type: 'basement', label: 'Basement', url: chestnutHillVictorianBasement },
+  ],
+  'Society Hill Federal': [
+    { type: 'kitchen', label: 'Kitchen', url: chestnutHillVictorianKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: chestnutHillVictorianBathroom },
+    { type: 'living', label: 'Living Room', url: chestnutHillVictorianLiving },
+    { type: 'basement', label: 'Basement', url: chestnutHillVictorianBasement },
+  ],
+  'Main Line Manor': [
+    { type: 'kitchen', label: 'Kitchen', url: hudsonValleyFarmhouseKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: hudsonValleyFarmhouseBathroom },
+    { type: 'living', label: 'Living Room', url: hudsonValleyFarmhouseLiving },
+  ],
+  'Rittenhouse Skyhouse': [
+    { type: 'kitchen', label: 'Kitchen', url: skylinePenthouseKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: skylinePenthouseBathroom },
+    { type: 'living', label: 'Living Room', url: skylinePenthouseLiving },
+  ],
+  'Northern Liberties Brownstone': [
+    { type: 'kitchen', label: 'Kitchen', url: chestnutHillVictorianKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: chestnutHillVictorianBathroom },
+    { type: 'living', label: 'Living Room', url: chestnutHillVictorianLiving },
+    { type: 'basement', label: 'Basement', url: chestnutHillVictorianBasement },
+  ],
+  'Delaware Waterfront Modern': [
+    { type: 'kitchen', label: 'Kitchen', url: lakefrontEstateKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: lakefrontEstateBathroom },
+    { type: 'living', label: 'Living Room', url: lakefrontEstateLiving },
+  ],
+  'Rittenhouse Historic Mansion': [
+    { type: 'kitchen', label: 'Kitchen', url: chestnutHillVictorianKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: chestnutHillVictorianBathroom },
+    { type: 'living', label: 'Grand Entry', url: chestnutHillVictorianLiving },
+    { type: 'basement', label: 'Basement', url: chestnutHillVictorianBasement },
+  ],
+  'Wissahickon Architect Estate': [
+    { type: 'kitchen', label: 'Kitchen', url: hudsonValleyFarmhouseKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: hudsonValleyFarmhouseBathroom },
+    { type: 'living', label: 'Living Room', url: hudsonValleyFarmhouseLiving },
   ],
 };
 

@@ -1458,6 +1458,7 @@ export class DBStorage implements IStorage {
       // Water: urban = public, suburban = well for rural properties, public for city-adjacent suburbs
       const WELL_WATER_PROPERTIES = new Set([
         'Hillside Retreat', 'Hudson Valley Farmhouse', 'Lakefront Estate',
+        'Delaware Waterfront Modern', 'Wissahickon Architect Estate', 'Main Line Manor',
       ]);
       const waterSource = location === 'urban' ? 'public' 
         : WELL_WATER_PROPERTIES.has(prop.name) ? 'well' 
@@ -1494,7 +1495,10 @@ export class DBStorage implements IStorage {
     }
 
     // Explicitly fix waterSource for properties that must have well/septic
-    const WELL_WATER_NAMES = ['Hillside Retreat', 'Hudson Valley Farmhouse', 'Lakefront Estate'];
+    const WELL_WATER_NAMES = [
+      'Hillside Retreat', 'Hudson Valley Farmhouse', 'Lakefront Estate',
+      'Delaware Waterfront Modern', 'Wissahickon Architect Estate', 'Main Line Manor',
+    ];
     for (const name of WELL_WATER_NAMES) {
       await db
         .update(schema.properties)

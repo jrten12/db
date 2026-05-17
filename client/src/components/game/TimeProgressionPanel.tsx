@@ -641,9 +641,13 @@ export function TimeProgressionPanel({
                 };
               }
               if (status.moveOutRisk) {
+                const monthsLabel = status.weeksUnhappy >= 12 ? '12+' : `${status.weeksUnhappy}`;
+                const urgency = status.weeksUnhappy >= 6
+                  ? 'high move-out risk — won\'t renew if issues aren\'t fixed.'
+                  : 'may move out soon. Fix issues to retain.';
                 return {
                   Icon: AlertTriangle,
-                  text: `Tenant unhappy ${status.weeksUnhappy}mo — may move out soon. Fix issues to retain.`,
+                  text: `Tenant unhappy ${monthsLabel}mo — ${urgency}`,
                   cls: 'bg-red-950/30 border-red-500/15 text-red-300',
                 };
               }

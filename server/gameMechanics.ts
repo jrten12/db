@@ -1619,7 +1619,26 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           // === LEASE RENEWAL CHECK (every 6 months) ===
           const leaseStart = currentTenant.leaseStartWeek ?? (deal.firstIncomePaymentWeek || deal.lastIncomePaymentWeek || 0);
           const monthsSinceLeaseStart = (gameRun.currentWeek + 1) - leaseStart;
-          if (monthsSinceLeaseStart > 0 && monthsSinceLeaseStart % 6 === 0 && property) {
+          const atRenewalPoint = monthsSinceLeaseStart > 0 && monthsSinceLeaseStart % 6 === 0;
+
+          // Very unhappy tenants refuse to renew their lease — forced move-out at lease end.
+          // This prevents a chronically miserable tenant from staying indefinitely.
+          if (atRenewalPoint && property && newSatisfaction < 25 && newWeeksUnhappy >= 4) {
+            const turnoverCost = 500 + Math.floor(Math.random() * 1001);
+            const tenantFirstName = (currentTenant.name || 'Tenant').split(' ')[0];
+            tenantLeavingEvent = {
+              id: 'tenant_nonrenewal',
+              name: 'Tenant Did Not Renew',
+              type: 'negative',
+              trigger: 'rental_monthly',
+              cashImpact: -turnoverCost,
+              rentMultiplier: 0,
+              description: `${tenantFirstName} chose not to renew the lease after ${newWeeksUnhappy} months of unresolved issues. Property vacant for 1 month. Turnover costs: $${turnoverCost.toLocaleString()}.`,
+              emoji: '📦',
+              color: 'red',
+              tenantIssue: true,
+            };
+          } else if (atRenewalPoint && property) {
             const leaseRenewalResult = await processLeaseRenewal(deal, property, currentTenant, gameMarket, gameRun.currentWeek + 1, unfixedIssueIds);
             if (leaseRenewalResult) {
               curveballs.push(leaseRenewalResult.event);
@@ -1631,10 +1650,12 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
             }
           }
 
-          if (newSatisfaction < 30 && newWeeksUnhappy >= 3 && monthsActive >= 4) {
+          if (!tenantLeavingEvent && newSatisfaction < 30 && newWeeksUnhappy >= 3 && monthsActive >= 4) {
+            // Escalating chance: starts at 4%, climbs ~4%/month of misery, capped higher than before
+            // so chronically unhappy tenants don't drag on for years.
             const baseLeaveChance = 4;
-            const unhappyBonus = Math.min(Math.max(0, newWeeksUnhappy - 3) * 3, 18);
-            const totalLeaveChance = Math.min(baseLeaveChance + unhappyBonus, 22);
+            const unhappyBonus = Math.max(0, newWeeksUnhappy - 3) * 4;
+            const totalLeaveChance = Math.min(baseLeaveChance + unhappyBonus, 45);
 
             if (Math.random() * 100 < totalLeaveChance) {
               const turnoverCost = 500 + Math.floor(Math.random() * 1001);

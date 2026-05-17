@@ -293,9 +293,10 @@ export default function Game() {
       clearSave();
     } catch (err) {
       setGameError(err as Error);
-    } finally {
       setIsLoadingGame(false);
+      throw err;
     }
+    setIsLoadingGame(false);
   }, [queryClient]);
 
   const continueSavedGame = useCallback(async () => {
@@ -2040,7 +2041,9 @@ export default function Game() {
             }}
             onNewGameReplace={async (name: string, existingGameId: number) => {
               await api.deleteGameRun(existingGameId);
-              startNewGame(name);
+              sessionStorage.removeItem('currentGameRunId');
+              setGameRun(null);
+              await startNewGame(name);
             }}
           />
           <HallOfFameModal

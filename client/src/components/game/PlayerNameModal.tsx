@@ -128,15 +128,30 @@ export function PlayerNameModal({
     }
   };
 
+  const [isReplacing, setIsReplacing] = useState(false);
+  const [replaceError, setReplaceError] = useState('');
+
   const handleResume = () => {
     if (existingGame && onResumeGame) {
       onResumeGame(existingGame);
     }
   };
 
-  const handleNewGame = () => {
-    if (existingGame && onNewGameReplace) {
-      onNewGameReplace(playerName.trim(), existingGame.id);
+  const handleNewGame = async () => {
+    if (!existingGame || !onNewGameReplace || isReplacing) return;
+    const nameToUse = (playerName.trim() || existingGame.playerName || '').trim();
+    if (nameToUse.length < 2) {
+      setReplaceError('Player name missing — go back and re-enter your name.');
+      return;
+    }
+    setIsReplacing(true);
+    setReplaceError('');
+    try {
+      await onNewGameReplace(nameToUse, existingGame.id);
+    } catch (err) {
+      console.error('Start Fresh failed:', err);
+      setReplaceError(err instanceof Error ? err.message : 'Could not start a fresh game. Please try again.');
+      setIsReplacing(false);
     }
   };
 
@@ -219,7 +234,8 @@ export function PlayerNameModal({
 
               <button
                 onClick={handleNewGame}
-                className="w-full py-3.5 rounded-xl font-bold text-base transition-all active:scale-[0.97] flex items-center justify-center gap-2.5"
+                disabled={isReplacing}
+                className="w-full py-3.5 rounded-xl font-bold text-base transition-all active:scale-[0.97] flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{
                   background: 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(245,158,11,0.25))',
                   border: '1.5px solid rgba(251,191,36,0.4)',
@@ -227,12 +243,27 @@ export function PlayerNameModal({
                 }}
                 data-testid="button-new-game"
               >
-                <RefreshCcw className="w-5 h-5" />
-                Start Fresh
+                {isReplacing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Starting fresh…
+                  </>
+                ) : (
+                  <>
+                    <RefreshCcw className="w-5 h-5" />
+                    Start Fresh
+                  </>
+                )}
               </button>
-              <p className="text-[11px] text-center text-white/35">
-                Starting fresh will erase current progress
-              </p>
+              {replaceError ? (
+                <p className="text-[11px] text-center text-red-400" data-testid="text-replace-error">
+                  {replaceError}
+                </p>
+              ) : (
+                <p className="text-[11px] text-center text-white/35">
+                  Starting fresh will erase current progress
+                </p>
+              )}
             </div>
 
             <button

@@ -175,6 +175,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
   },
   {
     name: "South Street Twin",
+    propertyType: "duplex",
     price: 279000,
     sizeSqft: 1400,
     neighborhood: "South Street",
@@ -213,6 +214,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
   },
   {
     name: "Port Richmond Duplex",
+    propertyType: "duplex",
     price: 399000,
     sizeSqft: 2200,
     neighborhood: "Port Richmond",
@@ -1003,6 +1005,7 @@ export class DBStorage implements IStorage {
       },
       {
         name: "South Street Twin",
+        propertyType: "duplex",
         price: 248000,
         sizeSqft: 1400,
         neighborhood: "South Street",
@@ -1041,6 +1044,7 @@ export class DBStorage implements IStorage {
       },
       {
         name: "Port Richmond Duplex",
+        propertyType: "duplex",
         price: 353000,
         sizeSqft: 2200,
         neighborhood: "Port Richmond",
@@ -1512,6 +1516,7 @@ export class DBStorage implements IStorage {
     const newUrbanProperties: InsertProperty[] = [
       {
         name: "South Street Twin",
+        propertyType: "duplex",
         price: 248000,
         sizeSqft: 1400,
         neighborhood: "South Street",
@@ -1550,6 +1555,7 @@ export class DBStorage implements IStorage {
       },
       {
         name: "Port Richmond Duplex",
+        propertyType: "duplex",
         price: 353000,
         sizeSqft: 2200,
         neighborhood: "Port Richmond",

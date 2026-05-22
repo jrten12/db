@@ -201,9 +201,18 @@ export function DealCongratulations({ isOpen, onClose, dealData }: DealCongratul
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: 50 }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            className="bg-slate-900/95 border border-slate-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl my-auto"
+            className="bg-slate-900/95 border border-slate-700 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl my-auto relative"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white/80 hover:text-white transition-colors"
+              aria-label="Close"
+              data-testid="button-close-congrats-x"
+              data-sound="close"
+            >
+              <span className="text-xl leading-none">×</span>
+            </button>
             <div className={`bg-gradient-to-br ${message.color} p-8 text-center`}>
               <motion.div
                 initial={{ scale: 0, rotate: -180 }}

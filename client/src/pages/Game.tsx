@@ -1354,12 +1354,27 @@ export default function Game() {
         const moveIns = result.curveballs.filter((c: any) => c.id === 'tenant_move_in');
         for (const moveIn of moveIns) {
           if (moveIn.type === 'positive') {
-            toast.success(`${moveIn.emoji} ${moveIn.description}`, { duration: 5000 });
+            toast.success(`${moveIn.emoji} ${moveIn.description}`, { duration: 6000 });
           } else if (moveIn.type === 'negative') {
-            toast.warning(`${moveIn.emoji} ${moveIn.description}`, { duration: 5000 });
+            toast.warning(`${moveIn.emoji} ${moveIn.description}`, { duration: 6000 });
           } else {
-            toast(`${moveIn.emoji} ${moveIn.description}`, { duration: 4000 });
+            toast(`${moveIn.emoji} ${moveIn.description}`, { duration: 5000 });
           }
+        }
+
+        // Tenant move-OUT events (departure, life change, non-renewal) — keep player informed
+        const departures = result.curveballs.filter((c: any) =>
+          c.id === 'tenant_departure_conditions' ||
+          c.id === 'tenant_departure_life' ||
+          c.id === 'tenant_nonrenewal'
+        );
+        for (const dep of departures) {
+          toast.warning(`${dep.emoji} ${dep.name}: ${dep.description}`, { duration: 7000 });
+        }
+        // If anyone moved out, force tenant cache refresh so names/personalities sync everywhere
+        if (departures.length > 0 || moveIns.length > 0) {
+          queryClient.invalidateQueries({ queryKey: ['tenants'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/game-runs', gameRun.id, 'tenants'] });
         }
       }
 
@@ -2247,17 +2262,17 @@ export default function Game() {
               variants={screenVariants}
               transition={screenTransition}
             >
-              <div className="flex gap-2 mb-4">
+              <div className="sticky top-36 md:top-44 z-30 -mx-4 lg:-mx-6 xl:-mx-8 px-4 lg:px-6 xl:px-8 py-2 mb-4 bg-[hsl(220,14%,6%)]/95 backdrop-blur-sm border-b border-white/5 flex flex-wrap gap-2">
                 <button 
                   onClick={handleReturnToProperty}
-                  className="px-4 py-2 bg-card hover:bg-muted text-foreground rounded-lg text-sm font-medium border border-border transition-colors"
+                  className="touch-target px-4 py-2.5 bg-card hover:bg-muted active:bg-muted/80 text-foreground rounded-lg text-sm font-medium border border-border transition-colors"
                   data-testid="button-back-to-property"
                 >
                   ← Back to Property
                 </button>
                 <button 
                   onClick={handleBackToMarket}
-                  className="px-4 py-2 bg-card hover:bg-muted text-foreground rounded-lg text-sm font-medium border border-border transition-colors"
+                  className="touch-target px-4 py-2.5 bg-card hover:bg-muted active:bg-muted/80 text-foreground rounded-lg text-sm font-medium border border-border transition-colors"
                   data-testid="button-back-to-market"
                 >
                   Back to Market

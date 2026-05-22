@@ -208,9 +208,17 @@ export function RentalRealityReveal({ isOpen, onClose, data }: RentalRealityReve
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.85, opacity: 0, y: 40 }}
               transition={{ type: 'spring', damping: 22, stiffness: 280 }}
-              className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl my-auto"
+              className="bg-slate-900/95 border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl my-auto relative"
               onClick={(e) => e.stopPropagation()}
             >
+              <button
+                onClick={onClose}
+                className="absolute top-2 right-2 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white/80 hover:text-white transition-colors"
+                aria-label="Close"
+                data-testid="button-close-reveal-x"
+              >
+                <span className="text-xl leading-none">×</span>
+              </button>
               <div className={`bg-gradient-to-br ${phase >= 3 ? grade.bgColor : 'from-slate-700 to-slate-800'} transition-all duration-700 p-5 text-center relative overflow-hidden`}>
                 {phase >= 3 && (
                   <motion.div

@@ -708,6 +708,7 @@ export interface IStorage {
   getTenantByDeal(dealId: number): Promise<Tenant | undefined>;
   getTenantsByGameRun(gameRunId: number): Promise<Tenant[]>;
   updateTenant(id: number, updates: Partial<InsertTenant>): Promise<Tenant | undefined>;
+  deleteTenant(id: number): Promise<void>;
   
   // Curveball methods
   getLastCurveballForDeal(dealId: number): Promise<string | undefined>;
@@ -2931,6 +2932,10 @@ export class DBStorage implements IStorage {
       .where(eq(schema.tenants.id, id))
       .returning();
     return updated;
+  }
+
+  async deleteTenant(id: number): Promise<void> {
+    await db.delete(schema.tenants).where(eq(schema.tenants.id, id));
   }
   
   async getLastCurveballForDeal(dealId: number): Promise<string | undefined> {

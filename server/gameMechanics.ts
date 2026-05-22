@@ -1788,6 +1788,22 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           
           const updatedRecentIds = updateRecentCurveballIds(recentCurveballIds, curveball.id);
           await storage.updateDeal(deal.id, { recentCurveballIds: updatedRecentIds });
+
+          // On any tenant departure, delete the tenant row so a fresh tenant
+          // (new name, new personality, new payment ethic) is created next month.
+          // Without this, the client's "create-if-missing" flow never fires and the
+          // UI keeps showing the old tenant's name/personality.
+          const isDeparture =
+            curveball.id === 'tenant_departure_conditions' ||
+            curveball.id === 'tenant_departure_life' ||
+            curveball.id === 'tenant_nonrenewal';
+          if (isDeparture && currentTenant) {
+            try {
+              await storage.deleteTenant(currentTenant.id);
+            } catch (err) {
+              console.error('Failed to delete departing tenant:', err);
+            }
+          }
         }
       }
     }

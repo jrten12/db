@@ -1113,6 +1113,16 @@ input[type="range"]::-moz-range-track {
   .landing-data-flicker { animation: none; }
 }
 
+/* Vertical event-log auto-scroll for hero ticker */
+@keyframes landing-event-scroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+.landing-event-scroll { animation: landing-event-scroll 18s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .landing-event-scroll { animation: none; }
+}
+
 /* Tilted dossier stamp — looks like a hand-pressed rubber stamp */
 .landing-stamp {
   position: absolute;

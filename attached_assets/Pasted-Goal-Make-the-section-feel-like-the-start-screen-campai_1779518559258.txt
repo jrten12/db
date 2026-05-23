@@ -1,0 +1,115 @@
+Goal
+
+Make the section feel like the start screen / campaign entry point for a real estate sim game.
+
+It should feel:
+
+Interactive
+High-stakes
+Strategic
+Realistic enough to be believable
+More like a game HUD than a generic landing page
+Replace the current vibe
+
+Avoid:
+
+Giant AI-looking headline text
+Overly dramatic random gradients
+Generic “AI SaaS” stats
+A disconnected floating dashboard card
+Anything that feels like a fake product demo
+
+Instead, make it feel like:
+
+A game scenario card
+A live campaign save file
+A management sim HUD
+A deal story the player is about to enter
+Suggested new structure
+
+Create a hero section with two connected zones:
+
+Left side: Scenario intro
+
+Use a smaller, game-like header:
+
+LIVE SCENARIO · MONTH 03 / 52
+
+Main title:
+
+Riverside Duplex
+
+Subtitle / scenario hook:
+
+You closed in March. Unit A is late on rent. A major repair warning just hit. You have 49 months to protect your cash, manage tenants, and build the portfolio.
+
+CTA buttons:
+
+Primary: Enter Scenario
+Secondary: How the Sim Works
+
+Add a compact scrolling ticker or event log under the buttons. The ticker should feel like in-game alerts, not marketing stats.
+
+Ticker examples:
+
+Rent event: Unit A overdue by 12 days
+Maintenance event: Water heater risk rising
+Cash flow update: +$284 this month
+Market event: Rates trending upward
+Decision pending: Contact tenant or wait
+Portfolio clock: 49 months remaining
+Right side: Game HUD panel
+
+Replace the current card with a more game-like “save file / mission HUD” panel.
+
+Panel title:
+
+Active Scenario
+Riverside Duplex · Philadelphia, PA
+
+Add a status badge:
+ACTIVE
+
+Show these modules:
+
+Month: 03 / 52
+Purchase: $293,000
+Cash Reserve: $41,200
+Monthly Cash Flow: +$284
+Cash-on-Cash: 4.7%
+
+Active events:
+
+Tenant late on rent
+Unit A · 12 days overdue · -$875
+Water heater failing
+Repair estimate · $2,800
+
+Decision queue:
+
+Choose tenant response
+Approve repair timing
+Review reserve impact
+
+Footer:
+
+49 months left
+Rates rising
+Scenario preview
+Visual style
+
+Make it look like a real game UI:
+
+Use HUD-style cards and event logs
+Add small icons, badges, progress indicators, and status chips
+Keep the dark background and gold accent language
+Use less oversized typography
+Use sharper information hierarchy
+Make the right panel feel attached to the section, not pasted on
+Add subtle motion to ticker/event log if the app already supports animation
+Keep it premium, but less cinematic and less “AI art”
+Important design constraint
+
+This section should still feel connected to the rest of the website, but it needs to be more engaging and more clearly game-like than the current version.
+
+Do not redesign the entire app. Only update this hero/opening simulation section.

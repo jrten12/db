@@ -464,128 +464,113 @@ export default function Landing() {
               />
 
               <div className="relative z-10">
-                {/* Modern eyebrow pill — green live dot + version-style label */}
-                <div className="inline-flex items-center gap-2.5 mb-6 lg:mb-7 px-3 py-1.5 rounded-full"
+                {/* Scenario tag — game HUD eyebrow */}
+                <div className="inline-flex items-center gap-2 mb-5 px-2.5 py-1 rounded-md"
                   style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    backdropFilter: 'blur(12px)',
+                    background: 'rgba(212,175,55,0.08)',
+                    border: '1px solid rgba(212,175,55,0.22)',
                   }}
                 >
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping" style={{ background: '#4ade80' }} />
-                    <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#4ade80' }} />
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping" style={{ background: '#d4af37' }} />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: '#d4af37' }} />
                   </span>
-                  <span className="text-[12px] font-semibold tracking-tight" style={{ color: 'rgba(225,220,205,0.9)' }}>Live simulation</span>
-                  <span className="w-px h-3" style={{ background: 'rgba(255,255,255,0.1)' }} />
-                  <span className="font-mono text-[11px] tabular-nums" style={{ color: 'rgba(225,220,205,0.5)' }}>Month 03 / 52</span>
+                  <span className="font-mono text-[10px] lg:text-[11px] font-bold tracking-[0.22em] uppercase" style={{ color: '#d4af37' }}>Live Scenario</span>
+                  <span className="w-px h-3" style={{ background: 'rgba(212,175,55,0.3)' }} />
+                  <span className="font-mono text-[10px] lg:text-[11px] tabular-nums tracking-wider" style={{ color: 'rgba(212,175,55,0.7)' }}>Month 03 / 52</span>
                 </div>
 
-                {/* Headline: clean modern editorial */}
-                <h1 className="mb-6 lg:mb-7" style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)' }}>
+                {/* Scenario title — property name as the campaign */}
+                <h1
+                  className="mb-3 text-[2.5rem] sm:text-[3rem] lg:text-[3.6rem] xl:text-[4.1rem] leading-[1.02] tracking-[-0.035em]"
+                  style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)', fontWeight: 800 }}
+                >
+                  Riverside{' '}
                   <span
-                    className="block text-[2.25rem] sm:text-[2.6rem] lg:text-[3.4rem] xl:text-[3.9rem] leading-[1.02] tracking-[-0.04em]"
-                    style={{ fontWeight: 800 }}
+                    style={{
+                      background: 'linear-gradient(180deg, #fef3c7 0%, #d4af37 60%, #b08e1f 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    }}
                   >
-                    You closed on a{' '}
-                    <span
-                      style={{
-                        background: 'linear-gradient(180deg, #fef3c7 0%, #d4af37 60%, #b08e1f 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
-                      }}
-                    >
-                      duplex
-                    </span>{' '}in March.
-                  </span>
-                  <span
-                    className="block mt-3 lg:mt-4 text-[1.9rem] sm:text-[2.3rem] lg:text-[2.9rem] xl:text-[3.3rem] leading-[1.0] tracking-[-0.025em]"
-                    style={{ fontWeight: 600, color: '#f87171' }}
-                  >
-                    One tenant is already late.
+                    Duplex
                   </span>
                 </h1>
 
-                {/* Modern subhead — clean tagline, no police-tape rule */}
-                <p className="text-[15px] lg:text-[17px] mb-8 max-w-[540px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.7)' }}>
-                  The numbers looked right on paper. <span className="font-semibold" style={{ color: '#f5f0e0' }}>52 months. $100K. Every choice compounds.</span>
+                {/* Scenario hook — narrative briefing */}
+                <p className="text-[15px] lg:text-[17px] mb-7 max-w-[560px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.78)' }}>
+                  You closed in March. <span className="font-semibold" style={{ color: '#fca5a5' }}>Unit A is late on rent.</span> A major repair warning just hit. You have <span className="font-semibold" style={{ color: '#f5f0e0' }}>49 months</span> to protect your cash, manage tenants, and build the portfolio.
                 </p>
 
-                {/* CTA + live stats */}
-                <div className="mb-7">
-                  <div className="flex flex-col sm:flex-row items-start gap-3 mb-4">
-                    <Link href="/game" className="w-full sm:w-auto">
-                      <button
-                        className="group relative w-full sm:w-auto min-w-[210px] py-3.5 lg:py-4 px-6 lg:px-7 font-semibold text-[15px] lg:text-base tracking-tight transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 min-h-[52px] sm:min-h-0 overflow-hidden"
-                        style={{
-                          background: 'linear-gradient(180deg, #f0c84a 0%, #d4af37 100%)',
-                          color: '#0a0a0d',
-                          borderRadius: '10px',
-                          boxShadow: '0 1px 0 rgba(255,255,255,0.35) inset, 0 8px 24px -4px rgba(212,175,55,0.45), 0 2px 6px rgba(0,0,0,0.2)',
-                        }}
-                        data-testid="button-play-simulator"
-                      >
-                        <span>Enter the Deal</span>
-                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2.5} />
-                      </button>
-                    </Link>
-                    <Link href="/methodology" className="w-full sm:w-auto">
-                      <button
-                        className="w-full sm:w-auto py-3.5 lg:py-4 px-5 lg:px-6 font-semibold text-[15px] lg:text-base tracking-tight transition-all duration-200 hover:bg-white/5 flex items-center justify-center gap-2"
-                        style={{
-                          color: 'rgba(225,220,205,0.8)',
-                          borderRadius: '10px',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                        }}
-                        data-testid="button-how-it-works"
-                      >
-                        How it works
-                      </button>
-                    </Link>
-                  </div>
-
-                  {/* Live stats row — modern dashboard widget */}
-                  <div className="flex items-center gap-5 lg:gap-7">
-                    <div className="flex items-center gap-2">
-                      <Radio className="w-3 h-3 landing-data-flicker" style={{ color: '#4ade80' }} />
-                      <span className="text-[11px] lg:text-xs font-semibold" style={{ color: 'rgba(225,220,205,0.5)' }}>Live now</span>
-                    </div>
-                    <div>
-                      <div className="font-mono text-sm lg:text-[15px] font-bold tabular-nums" style={{ color: '#f5f0e0' }}>3,247</div>
-                      <div className="text-[10px] lg:text-[11px]" style={{ color: 'rgba(225,220,205,0.4)' }}>deals today</div>
-                    </div>
-                    <div>
-                      <div className="font-mono text-sm lg:text-[15px] font-bold tabular-nums" style={{ color: '#d4af37' }}>$14.2M</div>
-                      <div className="text-[10px] lg:text-[11px]" style={{ color: 'rgba(225,220,205,0.4)' }}>moved</div>
-                    </div>
-                    <div>
-                      <div className="font-mono text-sm lg:text-[15px] font-bold tabular-nums" style={{ color: '#4ade80' }}>+21%</div>
-                      <div className="text-[10px] lg:text-[11px]" style={{ color: 'rgba(225,220,205,0.4)' }}>avg ROI</div>
-                    </div>
-                  </div>
+                {/* CTAs */}
+                <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-start gap-3">
+                  <Link href="/game" className="w-full sm:w-auto">
+                    <button
+                      className="group relative w-full sm:w-auto min-w-[210px] py-3.5 lg:py-4 px-6 lg:px-7 font-semibold text-[15px] lg:text-base tracking-tight transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 min-h-[52px] sm:min-h-0"
+                      style={{
+                        background: 'linear-gradient(180deg, #f0c84a 0%, #d4af37 100%)',
+                        color: '#0a0a0d',
+                        borderRadius: '10px',
+                        boxShadow: '0 1px 0 rgba(255,255,255,0.35) inset, 0 8px 24px -4px rgba(212,175,55,0.45), 0 2px 6px rgba(0,0,0,0.2)',
+                      }}
+                      data-testid="button-play-simulator"
+                    >
+                      <span>Enter Scenario</span>
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2.5} />
+                    </button>
+                  </Link>
+                  <Link href="/methodology" className="w-full sm:w-auto">
+                    <button
+                      className="w-full sm:w-auto py-3.5 lg:py-4 px-5 lg:px-6 font-semibold text-[15px] lg:text-base tracking-tight transition-all duration-200 hover:bg-white/5 flex items-center justify-center gap-2"
+                      style={{
+                        color: 'rgba(225,220,205,0.8)',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                      }}
+                      data-testid="button-how-it-works"
+                    >
+                      How the Sim Works
+                    </button>
+                  </Link>
                 </div>
 
-                {/* Feature pills — modern, no left-rule */}
-                <div className="flex flex-wrap items-center gap-2 max-w-[560px]">
-                  {[
-                    { Icon: SlidersHorizontal, label: 'Variable rates' },
-                    { Icon: Users, label: 'Tenant turnover' },
-                    { Icon: EyeOff, label: 'Hidden damage' },
-                    { Icon: Activity, label: 'Market shifts' },
-                  ].map(({ Icon, label }) => (
-                    <div
-                      key={label}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors hover:bg-white/[0.06]"
-                      style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.06)',
-                      }}
-                    >
-                      <Icon className="w-3 h-3" style={{ color: 'rgba(212,175,55,0.75)' }} />
-                      <span className="text-[12px] font-medium" style={{ color: 'rgba(225,220,205,0.7)' }}>{label}</span>
+                {/* In-game event log — vertical ticker of alerts */}
+                <div
+                  className="max-w-[560px] overflow-hidden rounded-xl"
+                  style={{
+                    background: 'rgba(0,0,0,0.35)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                  }}
+                >
+                  <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div className="flex items-center gap-2">
+                      <Radio className="w-3 h-3 landing-data-flicker" style={{ color: '#4ade80' }} />
+                      <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: '#4ade80' }}>Event Log</span>
                     </div>
-                  ))}
+                    <span className="font-mono text-[10px] tabular-nums" style={{ color: 'rgba(225,220,205,0.35)' }}>Wk 12</span>
+                  </div>
+                  <div className="relative h-[112px] overflow-hidden">
+                    <div className="landing-event-scroll absolute inset-x-0 top-0 space-y-0">
+                      {[
+                        { Icon: AlertTriangle, color: '#f87171', label: 'Unit A overdue by 12 days', meta: 'Rent · -$875' },
+                        { Icon: Wrench, color: '#fbbf24', label: 'Water heater risk rising', meta: 'Repair · est $2,800' },
+                        { Icon: TrendingUp, color: '#4ade80', label: 'Cash flow +$284 this month', meta: 'Net · operating' },
+                        { Icon: Activity, color: '#f59e0b', label: 'Rates trending upward', meta: 'Market · +0.25%' },
+                        { Icon: Users, color: '#60a5fa', label: 'Decision: contact tenant or wait', meta: 'Pending' },
+                        { Icon: Clock, color: '#a78bfa', label: '49 months remaining in run', meta: 'Portfolio clock' },
+                        { Icon: AlertTriangle, color: '#f87171', label: 'Unit A overdue by 12 days', meta: 'Rent · -$875' },
+                        { Icon: Wrench, color: '#fbbf24', label: 'Water heater risk rising', meta: 'Repair · est $2,800' },
+                      ].map((evt, i) => (
+                        <div key={i} className="flex items-center gap-2.5 px-3 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                          <evt.Icon className="w-3 h-3 flex-shrink-0" style={{ color: evt.color }} />
+                          <span className="text-[11px] flex-1 truncate" style={{ color: 'rgba(225,220,205,0.85)' }}>{evt.label}</span>
+                          <span className="font-mono text-[10px] tabular-nums flex-shrink-0" style={{ color: 'rgba(225,220,205,0.45)' }}>{evt.meta}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 h-6 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -700,6 +685,36 @@ export default function Landing() {
                   </div>
                 </div>
 
+                {/* Decision queue — pending player actions */}
+                <div className="px-5 pb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(225,220,205,0.4)' }}>Decision queue</span>
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md" style={{ color: '#d4af37', background: 'rgba(212,175,55,0.1)' }}>3</span>
+                  </div>
+                  <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    {[
+                      { label: 'Choose tenant response', meta: 'Late rent · Unit A' },
+                      { label: 'Approve repair timing', meta: 'Water heater' },
+                      { label: 'Review reserve impact', meta: 'Cash $41.2K' },
+                    ].map((d, i, arr) => (
+                      <div
+                        key={d.label}
+                        className="flex items-center gap-2.5 px-3 py-2 transition-colors hover:bg-white/[0.03]"
+                        style={i < arr.length - 1 ? { borderBottom: '1px solid rgba(255,255,255,0.04)' } : undefined}
+                      >
+                        <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.18)' }}>
+                          <span className="font-mono text-[10px] font-bold" style={{ color: '#d4af37' }}>{i + 1}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[12px] font-semibold truncate" style={{ color: '#f5f0e0' }}>{d.label}</div>
+                          <div className="text-[10px] truncate" style={{ color: 'rgba(225,220,205,0.4)' }}>{d.meta}</div>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(225,220,205,0.3)' }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Footer status bar */}
                 <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)' }}>
                   <div className="flex items-center gap-4">
@@ -712,7 +727,7 @@ export default function Landing() {
                       <span className="text-[11px] font-semibold" style={{ color: 'rgba(225,220,205,0.65)' }}>Rates rising</span>
                     </div>
                   </div>
-                  <span className="text-[11px] font-semibold" style={{ color: 'rgba(225,220,205,0.4)' }}>Demo preview</span>
+                  <span className="text-[11px] font-semibold" style={{ color: 'rgba(225,220,205,0.4)' }}>Scenario preview</span>
                 </div>
               </div>
             </div>

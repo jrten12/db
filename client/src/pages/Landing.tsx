@@ -97,17 +97,24 @@ function StatCallout({ value, label }: { value: string; label: string }) {
 // Looping ticker of mock deal closes — gives the page a "live tape" beat
 // without the AI-style floating-particle clutter. Pure CSS marquee, GPU-friendly.
 function DealTapeTicker() {
+  // Only uses neighborhoods that actually appear in the in-game property pool
+  // (Philadelphia + outlying PA markets — see server/storage.ts seed data).
   const items: { place: string; amount: number; label: string; tone: 'win' | 'loss' | 'flat' }[] = [
-    { place: 'Riverside Duplex · Philly', amount: 18420, label: 'Flip', tone: 'win' },
-    { place: 'Magnolia SFR · Atlanta', amount: -3200, label: 'Sold', tone: 'loss' },
-    { place: 'Eastlake Triplex · KCMO', amount: 41100, label: 'Cash-out refi', tone: 'win' },
-    { place: 'Bryn Mawr Condo · PA', amount: 6750, label: 'Rental sale', tone: 'win' },
-    { place: 'Roosevelt SFR · Tampa', amount: -8900, label: 'Bad reno', tone: 'loss' },
-    { place: 'Westside Duplex · Tucson', amount: 23800, label: 'Flip', tone: 'win' },
-    { place: 'Old North Townhome · STL', amount: 0, label: 'Walked away', tone: 'flat' },
-    { place: 'Lincoln Park SFR · OMA', amount: 12300, label: 'Rental sale', tone: 'win' },
-    { place: 'Beacon Heights Quad · CLE', amount: 31600, label: 'Flip', tone: 'win' },
-    { place: 'Maple Row Cottage · BHM', amount: -1450, label: 'Selling costs', tone: 'loss' },
+    { place: 'Riverside Duplex', amount: 18420, label: 'Flip', tone: 'win' },
+    { place: 'Fishtown Rowhome', amount: -3200, label: 'Sold short', tone: 'loss' },
+    { place: 'Northern Liberties Triplex', amount: 41100, label: 'Rental sale', tone: 'win' },
+    { place: 'Bryn Mawr Condo', amount: 6750, label: 'Flip', tone: 'win' },
+    { place: 'Kensington SFR', amount: -8900, label: 'Bad reno', tone: 'loss' },
+    { place: 'Old City Loft', amount: 23800, label: 'Flip', tone: 'win' },
+    { place: 'Port Richmond Duplex', amount: 0, label: 'Walked away', tone: 'flat' },
+    { place: 'Graduate Hospital SFR', amount: 12300, label: 'Rental sale', tone: 'win' },
+    { place: 'Rittenhouse Square Condo', amount: 31600, label: 'Flip', tone: 'win' },
+    { place: 'Queen Village Townhome', amount: -1450, label: 'Selling costs', tone: 'loss' },
+    { place: 'Society Hill Brownstone', amount: 27900, label: 'Flip', tone: 'win' },
+    { place: 'Fairmount Twin', amount: 9200, label: 'Rental sale', tone: 'win' },
+    { place: 'Chestnut Hill Cottage', amount: -2100, label: 'Tenant turnover', tone: 'loss' },
+    { place: 'Center City Studio', amount: 4800, label: 'Rental sale', tone: 'win' },
+    { place: 'South Street Duplex', amount: 16700, label: 'Flip', tone: 'win' },
   ];
   const reel = [...items, ...items];
   return (
@@ -445,38 +452,59 @@ export default function Landing() {
           <div className="flex flex-col lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
 
             {/* LEFT: Scenario entry */}
-            <div className="flex-1 mb-8 lg:mb-0 lg:pt-4">
-              <div className="flex items-center gap-3 mb-4 lg:mb-5">
-                <span className="font-mono text-[11px] lg:text-xs tracking-wide" style={{ color: 'rgba(225,220,205,0.35)' }}>Month 3 of 52</span>
-                <div className="w-px h-3" style={{ background: 'rgba(255,255,255,0.08)' }} />
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#f59e0b' }} />
-                  <span className="font-mono text-[11px] lg:text-xs" style={{ color: 'rgba(245,158,11,0.7)' }}>2 active issues</span>
-                </div>
+            <div className="flex-1 mb-8 lg:mb-0 lg:pt-2">
+              {/* Magazine-style case file eyebrow — gives the page edge and date stamp */}
+              <div className="inline-flex items-stretch mb-5 lg:mb-6 overflow-hidden rounded-sm" style={{ border: '1px solid rgba(212,175,55,0.35)' }}>
+                <span
+                  className="px-2.5 py-1 font-mono text-[10px] lg:text-[11px] font-black tracking-[0.22em]"
+                  style={{ background: '#d4af37', color: '#0e0e12' }}
+                >
+                  CASE 003
+                </span>
+                <span
+                  className="px-2.5 py-1 font-mono text-[10px] lg:text-[11px] tracking-[0.22em] uppercase"
+                  style={{ background: 'rgba(212,175,55,0.06)', color: 'rgba(225,220,205,0.6)' }}
+                >
+                  March · 49 mo left
+                </span>
+                <span className="flex items-center gap-1.5 px-2.5 py-1 border-l" style={{ borderColor: 'rgba(212,175,55,0.18)', background: 'rgba(248,113,113,0.06)' }}>
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#f87171' }} />
+                  <span className="font-mono text-[10px] lg:text-[11px] font-bold tracking-[0.18em] uppercase" style={{ color: 'rgba(252,165,165,0.95)' }}>2 issues live</span>
+                </span>
               </div>
 
+              {/* Headline: heavy editorial sans for the indictment, serif italic kicker
+                  on the punch line. No AI-trendy DM Serif body, no soft glow. */}
               <h1
-                className="text-[2.4rem] sm:text-[2.6rem] lg:text-[3.5rem] xl:text-[4.1rem] leading-[1.05] tracking-[-0.02em] mb-5 lg:mb-6"
-                style={{
-                  color: '#f5f0e0',
-                  textShadow: '0 2px 20px rgba(0,0,0,0.5)',
-                  fontFamily: "var(--font-premium)",
-                  fontWeight: 400,
-                }}
+                className="mb-5 lg:mb-7"
+                style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)' }}
               >
-                You closed on a duplex<br className="hidden sm:inline" /> in March.<br className="hidden sm:inline" />
-                <span style={{ color: 'rgba(248,113,113,0.9)' }}>One tenant is already late.</span>
+                <span
+                  className="block text-[2.3rem] sm:text-[2.7rem] lg:text-[3.6rem] xl:text-[4.2rem] leading-[0.98] tracking-[-0.035em]"
+                  style={{ fontWeight: 900, textShadow: '0 2px 22px rgba(0,0,0,0.55)' }}
+                >
+                  You closed on a duplex<br className="hidden sm:inline" /> in March.
+                </span>
+                <span
+                  className="block mt-2 lg:mt-3 text-[1.9rem] sm:text-[2.2rem] lg:text-[2.9rem] xl:text-[3.2rem] leading-[1.02] tracking-[-0.01em] italic"
+                  style={{
+                    fontFamily: 'Cormorant Garamond, Georgia, serif',
+                    fontWeight: 500,
+                    color: '#fca5a5',
+                    textShadow: '0 2px 22px rgba(0,0,0,0.55)',
+                  }}
+                >
+                  One tenant is already late.
+                </span>
               </h1>
 
-              <div className="space-y-2 mb-7 max-w-[520px]">
-                <p
-                  className="text-lg lg:text-xl leading-snug italic"
-                  style={{ color: 'rgba(225,220,205,0.78)', fontFamily: 'Cormorant Garamond, serif', fontWeight: 500 }}
-                >
+              {/* Knife-edge subhead — kicker quote with a colored stripe instead of a soft paragraph */}
+              <div className="mb-7 max-w-[540px] pl-4" style={{ borderLeft: '2px solid rgba(212,175,55,0.55)' }}>
+                <p className="text-[15px] lg:text-[17px] font-semibold uppercase tracking-[0.04em] mb-1" style={{ color: '#e8dfc8' }}>
                   The numbers looked right on paper.
                 </p>
-                <p className="text-[15px] lg:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.55)' }}>
-                  52 months. $100K. Every choice compounds.
+                <p className="font-mono text-[11px] lg:text-xs uppercase tracking-[0.18em]" style={{ color: 'rgba(212,175,55,0.7)' }}>
+                  52 months · $100K · every choice compounds
                 </p>
               </div>
 
@@ -508,52 +536,81 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* RIGHT: System dashboard panel */}
+            {/* RIGHT: System dashboard panel — terminal/dossier look, not generic-AI card */}
             <div className="w-full lg:w-[420px] xl:w-[480px] flex-shrink-0 landing-float">
               <div
-                className="rounded-lg overflow-hidden"
+                className="relative overflow-hidden"
                 style={{
-                  background: 'linear-gradient(180deg, rgba(12,12,16,0.97) 0%, rgba(8,8,11,0.99) 100%)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.3)',
+                  background: 'linear-gradient(180deg, #0d0d11 0%, #08080b 100%)',
+                  border: '1px solid rgba(212,175,55,0.22)',
+                  boxShadow: '0 32px 80px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.02)',
+                  borderRadius: '2px',
                 }}
                 data-testid="hero-dashboard-panel"
               >
-                {/* Panel header */}
-                <div className="flex items-center justify-between px-4 lg:px-5 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                {/* Top accent strip — terminal banding */}
+                <div className="flex h-1">
+                  <div className="flex-1" style={{ background: '#d4af37' }} />
+                  <div className="w-12" style={{ background: '#f87171' }} />
+                  <div className="w-6" style={{ background: 'rgba(212,175,55,0.4)' }} />
+                </div>
+
+                {/* Panel header — bracketed terminal label */}
+                <div
+                  className="flex items-center justify-between px-4 lg:px-5 py-2"
+                  style={{ borderBottom: '1px solid rgba(212,175,55,0.15)', background: 'rgba(212,175,55,0.04)' }}
+                >
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-3.5 h-3.5" style={{ color: 'rgba(212,175,55,0.5)' }} />
-                    <span className="font-mono text-[10px] lg:text-[11px] font-bold tracking-[0.12em]" style={{ color: 'rgba(225,220,205,0.62)' }}>DEAL OVERVIEW</span>
+                    <span className="font-mono text-[10px] lg:text-[11px] font-black tracking-[0.18em]" style={{ color: 'rgba(212,175,55,0.55)' }}>[</span>
+                    <Building2 className="w-3.5 h-3.5" style={{ color: '#d4af37' }} />
+                    <span className="font-mono text-[10px] lg:text-[11px] font-black tracking-[0.22em]" style={{ color: '#d4af37' }}>DEAL DOSSIER</span>
+                    <span className="font-mono text-[10px] lg:text-[11px] font-black tracking-[0.18em]" style={{ color: 'rgba(212,175,55,0.55)' }}>]</span>
                   </div>
-                  <span className="font-mono text-[10px] lg:text-[11px] tracking-wider" style={{ color: 'rgba(225,220,205,0.2)' }}>MO 3</span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#10b981', boxShadow: '0 0 6px rgba(16,185,129,0.6)' }} />
+                    <span className="font-mono text-[10px] lg:text-[11px] font-bold tracking-[0.15em]" style={{ color: 'rgba(225,220,205,0.45)' }}>MO 03/52</span>
+                  </div>
                 </div>
 
-                {/* Property info */}
-                <div className="px-4 lg:px-5 py-2.5 lg:py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-sm lg:text-[15px] font-semibold" style={{ color: '#e8dfc8' }}>Riverside Duplex</span>
-                    <span className="text-[9px] lg:text-[10px] px-1.5 py-0.5 rounded-sm font-mono font-bold tracking-wider" style={{ color: '#3b82f6', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)' }}>RENTAL</span>
+                {/* Property info — magazine record header */}
+                <div className="px-4 lg:px-5 pt-3 pb-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div className="flex items-baseline justify-between mb-1">
+                    <span
+                      className="text-base lg:text-lg font-black tracking-tight"
+                      style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)' }}
+                    >
+                      Riverside Duplex
+                    </span>
+                    <span
+                      className="text-[9px] lg:text-[10px] px-2 py-0.5 font-mono font-black tracking-[0.18em]"
+                      style={{ color: '#0e0e12', background: '#60a5fa', borderRadius: '2px' }}
+                    >
+                      RENTAL
+                    </span>
                   </div>
-                  <span className="text-[10px] lg:text-[11px] tracking-wide" style={{ color: 'rgba(225,220,205,0.3)' }}>Philadelphia, PA</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[9px] lg:text-[10px] tracking-[0.18em] uppercase" style={{ color: 'rgba(212,175,55,0.6)' }}>file</span>
+                    <span className="font-mono text-[10px] lg:text-[11px] tracking-wide" style={{ color: 'rgba(225,220,205,0.55)' }}>Riverside · Philadelphia, PA</span>
+                  </div>
                 </div>
 
-                {/* Financial grid */}
-                <div className="grid grid-cols-2 gap-px" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                  <div className="px-4 lg:px-5 py-2.5 lg:py-3" style={{ background: 'rgba(8,8,11,0.97)' }}>
-                    <div className="text-[9px] lg:text-[10px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Purchase</div>
-                    <div className="font-mono text-[15px] lg:text-base font-bold tabular-nums" style={{ color: '#e8dfc8' }}>$293,000</div>
+                {/* Financial grid — ledger cells with subtle vertical rule */}
+                <div className="grid grid-cols-2" style={{ background: 'rgba(212,175,55,0.06)', gap: '1px' }}>
+                  <div className="px-4 lg:px-5 py-3" style={{ background: '#0a0a0d' }}>
+                    <div className="font-mono text-[9px] lg:text-[10px] uppercase tracking-[0.2em] mb-1 font-bold" style={{ color: 'rgba(212,175,55,0.55)' }}>· Purchase</div>
+                    <div className="font-mono text-[16px] lg:text-[17px] font-black tabular-nums" style={{ color: '#f5f0e0' }}>$293,000</div>
                   </div>
-                  <div className="px-4 lg:px-5 py-2.5 lg:py-3" style={{ background: 'rgba(8,8,11,0.97)' }}>
-                    <div className="text-[9px] lg:text-[10px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash Left</div>
-                    <div className="font-mono text-[15px] lg:text-base font-bold tabular-nums" style={{ color: '#fbbf24' }}>$41,200</div>
+                  <div className="px-4 lg:px-5 py-3" style={{ background: '#0a0a0d' }}>
+                    <div className="font-mono text-[9px] lg:text-[10px] uppercase tracking-[0.2em] mb-1 font-bold" style={{ color: 'rgba(212,175,55,0.55)' }}>· Cash Left</div>
+                    <div className="font-mono text-[16px] lg:text-[17px] font-black tabular-nums" style={{ color: '#fbbf24' }}>$41,200</div>
                   </div>
-                  <div className="px-4 lg:px-5 py-2.5 lg:py-3" style={{ background: 'rgba(8,8,11,0.97)' }}>
-                    <div className="text-[9px] lg:text-[10px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash Flow</div>
-                    <div className="font-mono text-[15px] lg:text-base font-bold tabular-nums" style={{ color: '#10b981' }}>+$284/mo</div>
+                  <div className="px-4 lg:px-5 py-3" style={{ background: '#0a0a0d' }}>
+                    <div className="font-mono text-[9px] lg:text-[10px] uppercase tracking-[0.2em] mb-1 font-bold" style={{ color: 'rgba(212,175,55,0.55)' }}>· Cash Flow</div>
+                    <div className="font-mono text-[16px] lg:text-[17px] font-black tabular-nums" style={{ color: '#4ade80' }}>+$284<span className="text-[11px] font-bold" style={{ color: 'rgba(74,222,128,0.55)' }}> /mo</span></div>
                   </div>
-                  <div className="px-4 lg:px-5 py-2.5 lg:py-3" style={{ background: 'rgba(8,8,11,0.97)' }}>
-                    <div className="text-[9px] lg:text-[10px] uppercase tracking-[0.15em] mb-0.5 font-medium" style={{ color: 'rgba(225,220,205,0.25)' }}>Cash-on-Cash</div>
-                    <div className="font-mono text-[15px] lg:text-base font-bold tabular-nums" style={{ color: 'rgba(225,220,205,0.65)' }}>4.7%</div>
+                  <div className="px-4 lg:px-5 py-3" style={{ background: '#0a0a0d' }}>
+                    <div className="font-mono text-[9px] lg:text-[10px] uppercase tracking-[0.2em] mb-1 font-bold" style={{ color: 'rgba(212,175,55,0.55)' }}>· Cash-on-Cash</div>
+                    <div className="font-mono text-[16px] lg:text-[17px] font-black tabular-nums" style={{ color: '#f5f0e0' }}>4.7<span className="text-[11px] font-bold" style={{ color: 'rgba(225,220,205,0.4)' }}>%</span></div>
                   </div>
                 </div>
 

@@ -2364,8 +2364,8 @@ export default function Game() {
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 max-w-[1800px] mx-auto">
-                <div className="lg:col-span-9">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 max-w-[1800px] mx-auto md:pb-0 pb-28">
+                <div className="md:col-span-8 lg:col-span-9">
                   <ProFormaPanel
                     property={convertPropertyToGameProperty(selectedProperty)}
                     inputs={proFormaInputs}
@@ -2384,8 +2384,8 @@ export default function Game() {
                   />
                 </div>
 
-                <div className="lg:col-span-3 relative">
-                  <div className="lg:fixed lg:top-32 lg:w-[calc(25%-2rem)] lg:max-w-[280px]">
+                <div className="md:col-span-4 lg:col-span-3">
+                  <div className="md:sticky md:top-24 md:max-h-[calc(100vh-7rem)] md:overflow-y-auto md:pr-1 md:-mr-1 scroll-smooth">
                     <MetricsPanel 
                       outputs={proFormaOutputs}
                       isUnlocked={isProFormaComplete}
@@ -2400,6 +2400,34 @@ export default function Game() {
                 </div>
 
               </div>
+
+              {/* Mobile sticky commit CTA — only below md, only when proforma is unlocked */}
+              {isProFormaComplete && proFormaOutputs && (
+                <div
+                  className="md:hidden fixed left-0 right-0 bottom-0 z-40 px-4 pt-3 bg-gradient-to-t from-[hsl(220,14%,8%)] via-[hsl(220,14%,8%)]/95 to-transparent border-t border-white/8"
+                  style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
+                  data-testid="mobile-commit-bar"
+                >
+                  <div className="flex items-center justify-between mb-2 text-xs">
+                    <span className="text-white/55">Need <span className="font-mono text-amber-400 font-semibold">${Math.round(proFormaOutputs.totalCashInvested).toLocaleString()}</span></span>
+                    <span className="text-white/55">Have <span className={`font-mono font-semibold ${(gameRun?.cash ?? 0) >= proFormaOutputs.totalCashInvested ? 'text-emerald-400' : 'text-red-400'}`}>${Math.round(gameRun?.cash ?? 0).toLocaleString()}</span></span>
+                  </div>
+                  <button
+                    onClick={handleCommitDeal}
+                    disabled={isCommittingDeal || (gameRun?.cash ?? 0) < proFormaOutputs.totalCashInvested}
+                    className={`w-full py-3.5 rounded-xl font-bold text-base transition-colors shadow-lg ${
+                      isCommittingDeal
+                        ? 'bg-slate-700 text-slate-400'
+                        : (gameRun?.cash ?? 0) < proFormaOutputs.totalCashInvested
+                        ? 'bg-slate-700 text-slate-500'
+                        : 'bg-emerald-600 active:bg-emerald-700 text-white'
+                    }`}
+                    data-testid="button-commit-deal-mobile"
+                  >
+                    {isCommittingDeal ? 'Processing…' : 'Commit to Deal'}
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
 

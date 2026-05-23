@@ -541,11 +541,19 @@ export async function registerRoutes(
         return;
       }
       if (currentRun.weeksRemaining <= 0) {
+        // Hand the client everything it needs to render the Season Recap
+        // (no second round-trip required).
         res.status(409).json({
           code: 'season_ended',
           message: 'Season ended — unlock the next season to continue.',
           seasonsUnlocked: currentRun.seasonsUnlocked,
           currentWeek: currentRun.currentWeek,
+          seasonStats: currentRun.seasonStats,
+          currentStreak: currentRun.currentStreak,
+          bestStreak: currentRun.bestStreak,
+          xp: currentRun.xp,
+          cash: currentRun.cash,
+          profitableDeals: currentRun.profitableDeals,
         });
         return;
       }
@@ -588,11 +596,22 @@ export async function registerRoutes(
 
       // Season bonus: $5,000 cash + 52 fresh weeks. Stacks gracefully if cash is negative.
       const SEASON_BONUS = 5000;
+      // Snapshot the just-ended season's stats so we can return them for the
+      // celebration screen — then reset to a fresh tally for the new season.
+      const endedSeasonStats = gameRun.seasonStats;
       const updated = await storage.updateGameRun(gameRunId, {
         weeksRemaining: gameRun.weeksRemaining + 52,
         seasonsUnlocked: (gameRun.seasonsUnlocked ?? 1) + 1,
         adsWatchedForSeasons: (gameRun.adsWatchedForSeasons ?? 0) + 1,
         cash: gameRun.cash + SEASON_BONUS,
+        seasonStats: {
+          bestDealProfit: 0,
+          bestDealLabel: '',
+          totalCashFlow: 0,
+          dealsClosed: 0,
+          profitableThisSeason: 0,
+          xpEarnedThisSeason: 0,
+        },
       });
 
       // Ledger entry so the bonus shows up in the player's transaction history.
@@ -615,6 +634,7 @@ export async function registerRoutes(
         bonus: SEASON_BONUS,
         seasonsUnlocked: updated?.seasonsUnlocked,
         weeksRemaining: updated?.weeksRemaining,
+        endedSeasonStats, // so the celebrate phase can still reference what the player just did
         gameRun: updated,
       });
     } catch (error: any) {

@@ -1101,6 +1101,19 @@ input[type="range"]::-moz-range-track {
 .landing-profit-drift-2 { animation: landing-profit-drift 5s ease-out infinite 1.3s; }
 .landing-profit-drift-3 { animation: landing-profit-drift 6s ease-out infinite 2.8s; }
 
+/* Deal-tape marquee — GPU-only transform animation. */
+@keyframes deal-tape-scroll {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.deal-tape-marquee {
+  animation: deal-tape-scroll 50s linear infinite;
+}
+.deal-tape-marquee:hover { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .deal-tape-marquee { animation: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .landing-float,
   .landing-float-delayed,

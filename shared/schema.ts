@@ -39,6 +39,25 @@ export const gameRuns = pgTable("game_runs", {
   passiveIncomeMilestonesHit: jsonb("passive_income_milestones_hit").$type<number[]>().default([]),
   seasonsUnlocked: integer("seasons_unlocked").notNull().default(1),
   adsWatchedForSeasons: integer("ads_watched_for_seasons").notNull().default(0),
+  // Dopamine systems
+  currentStreak: integer("current_streak").notNull().default(0), // consecutive profitable deals
+  bestStreak: integer("best_streak").notNull().default(0),
+  xp: integer("xp").notNull().default(0), // career XP across all seasons
+  seasonStats: jsonb("season_stats").$type<{
+    bestDealProfit: number;
+    bestDealLabel: string;
+    totalCashFlow: number;
+    dealsClosed: number;
+    profitableThisSeason: number;
+    xpEarnedThisSeason: number;
+  }>().default({
+    bestDealProfit: 0,
+    bestDealLabel: '',
+    totalCashFlow: 0,
+    dealsClosed: 0,
+    profitableThisSeason: 0,
+    xpEarnedThisSeason: 0,
+  }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

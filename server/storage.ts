@@ -5,6 +5,51 @@ import { eq, and, desc, inArray, sql } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import type { MarketCondition } from "@shared/schema";
 import { getMarketMultipliers, calculateFlipSalePrice } from "./gameMechanics";
+import { calculateDealXp } from "@shared/streakTiers";
+
+// Compute the streak/XP/season-stats delta for a single deal close.
+// Pure function so it stays unit-testable and easy to reason about.
+function applyStreakAndXpUpdate(
+  gameRun: schema.GameRun,
+  profit: number,
+  basis: number,
+  dealLabel: string,
+): {
+  currentStreak: number;
+  bestStreak: number;
+  xp: number;
+  seasonStats: NonNullable<schema.GameRun['seasonStats']>;
+} {
+  const isProfitable = profit > 0;
+  const xpEarned = calculateDealXp(profit, basis);
+  const nextStreak = isProfitable ? (gameRun.currentStreak ?? 0) + 1 : 0;
+  const nextBest = Math.max(gameRun.bestStreak ?? 0, nextStreak);
+  const nextXp = (gameRun.xp ?? 0) + xpEarned;
+
+  const prev = gameRun.seasonStats ?? {
+    bestDealProfit: 0,
+    bestDealLabel: '',
+    totalCashFlow: 0,
+    dealsClosed: 0,
+    profitableThisSeason: 0,
+    xpEarnedThisSeason: 0,
+  };
+  const seasonStats = {
+    bestDealProfit: profit > prev.bestDealProfit ? profit : prev.bestDealProfit,
+    bestDealLabel: profit > prev.bestDealProfit ? dealLabel : prev.bestDealLabel,
+    totalCashFlow: prev.totalCashFlow + profit,
+    dealsClosed: prev.dealsClosed + 1,
+    profitableThisSeason: prev.profitableThisSeason + (isProfitable ? 1 : 0),
+    xpEarnedThisSeason: prev.xpEarnedThisSeason + xpEarned,
+  };
+
+  return {
+    currentStreak: nextStreak,
+    bestStreak: nextBest,
+    xp: nextXp,
+    seasonStats,
+  };
+}
 import type { 
   User, 
   InsertUser, 
@@ -2175,6 +2220,8 @@ export class DBStorage implements IStorage {
     const newCash = runningBalance;
     const isProfitable = saleProfit > 0 && gameRun.weeksRemaining > 0;
     const newProfitableDeals = isProfitable ? gameRun.profitableDeals + 1 : gameRun.profitableDeals;
+    const dealLabel = `Rental Exit · ${updatedDeal?.purchasePrice ? `$${Math.round(salePrice / 1000)}k` : 'Sale'}`;
+    const streakUpdate = applyStreakAndXpUpdate(gameRun, saleProfit, purchasePrice, dealLabel);
     
     const [updatedGameRun] = await db
       .update(schema.gameRuns)
@@ -2182,6 +2229,10 @@ export class DBStorage implements IStorage {
         weeksRemaining: newWeeksRemaining,
         cash: newCash,
         profitableDeals: newProfitableDeals,
+        currentStreak: streakUpdate.currentStreak,
+        bestStreak: streakUpdate.bestStreak,
+        xp: streakUpdate.xp,
+        seasonStats: streakUpdate.seasonStats,
         updatedAt: new Date(),
       })
       .where(eq(schema.gameRuns.id, gameRunId))
@@ -2391,6 +2442,8 @@ export class DBStorage implements IStorage {
     const newCash = runningBalance;
     const isProfitable = saleProfit > 0 && gameRun.weeksRemaining > 0;
     const newProfitableDeals = isProfitable ? gameRun.profitableDeals + 1 : gameRun.profitableDeals;
+    const dealLabel = `Flip · $${Math.round(saleProfit / 1000)}k profit`;
+    const streakUpdate = applyStreakAndXpUpdate(gameRun, saleProfit, purchasePrice, dealLabel);
     
     const [updatedGameRun] = await db
       .update(schema.gameRuns)
@@ -2398,6 +2451,10 @@ export class DBStorage implements IStorage {
         weeksRemaining: newWeeksRemaining,
         cash: newCash,
         profitableDeals: newProfitableDeals,
+        currentStreak: streakUpdate.currentStreak,
+        bestStreak: streakUpdate.bestStreak,
+        xp: streakUpdate.xp,
+        seasonStats: streakUpdate.seasonStats,
         updatedAt: new Date(),
       })
       .where(eq(schema.gameRuns.id, gameRunId))

@@ -1,6 +1,7 @@
 import { formatCurrency } from '@/lib/gameData';
 import { Link } from 'wouter';
-import { Menu, Home, X, Wallet, Clock, Target, Trophy, Play, Loader2, RotateCcw, Volume2, VolumeX, BarChart3 } from 'lucide-react';
+import { Menu, Home, X, Wallet, Clock, Target, Trophy, Play, Loader2, RotateCcw, Volume2, VolumeX, BarChart3, Flame } from 'lucide-react';
+import { getStreakTier } from '@shared/streakTiers';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ProgressRing } from './ProgressRing';
@@ -13,6 +14,7 @@ interface StatusBarProps {
   cash: number;
   weeksRemaining: number;
   seasonsUnlocked?: number;
+  currentStreak?: number;
   profitableDeals: number;
   goalDeals: number;
   onOpenLedger?: () => void;
@@ -111,7 +113,10 @@ function StatCard({
   );
 }
 
-export function StatusBar({ cash, weeksRemaining, seasonsUnlocked = 1, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onViewStats, onAdvanceWeek, isAdvancingWeek, onNewGame, onGoHome }: StatusBarProps) {
+export function StatusBar({ cash, weeksRemaining, seasonsUnlocked = 1, currentStreak = 0, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onViewStats, onAdvanceWeek, isAdvancingWeek, onNewGame, onGoHome }: StatusBarProps) {
+  // Streak tier for HUD badge. Hidden entirely below 2 — no badge clutter for new players.
+  const tier = getStreakTier(currentStreak);
+  const showStreak = currentStreak >= 2 && !!tier.title;
   const [menuOpen, setMenuOpen] = useState(false);
   const { isPlaying: isMusicPlaying, toggleMusic } = useMusic();
 
@@ -177,6 +182,20 @@ export function StatusBar({ cash, weeksRemaining, seasonsUnlocked = 1, profitabl
                   </div>
                 </div>
               </div>
+
+              {showStreak && (
+                <div
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.025] border border-amber-500/20"
+                  data-testid="status-streak"
+                  title={`${currentStreak} profitable closes in a row · ${tier.title}`}
+                >
+                  <Flame className={`w-3.5 h-3.5 ${tier.colorClass}`} />
+                  <div className="flex flex-col leading-none">
+                    <span className={`font-mono text-sm font-bold tabular-nums ${tier.colorClass}`}>×{currentStreak}</span>
+                    <span className="text-[9px] uppercase tracking-widest text-white/40 mt-0.5">{tier.title}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {onAdvanceWeek && (
@@ -239,6 +258,20 @@ export function StatusBar({ cash, weeksRemaining, seasonsUnlocked = 1, profitabl
                 </div>
                 <div className="stat-label-mobile-compact">S{seasonsUnlocked} · Mo</div>
               </div>
+
+              {showStreak && (
+                <div
+                  className="stat-card-mobile-compact touch-target-sm flex-shrink-0 flex flex-col items-center justify-center px-2"
+                  data-testid="status-streak-mobile"
+                  title={`${tier.title} · ${currentStreak} in a row`}
+                >
+                  <div className="flex items-center gap-1">
+                    <Flame className={`w-3 h-3 ${tier.colorClass}`} />
+                    <span className={`font-mono text-xs font-bold tabular-nums ${tier.colorClass}`}>×{currentStreak}</span>
+                  </div>
+                  <div className="stat-label-mobile-compact">Streak</div>
+                </div>
+              )}
               
               <div className="stat-card-mobile-compact touch-target-sm flex-1 min-w-0" data-testid="status-goal-mobile">
                 <span className="mobile-goal-value-compact whitespace-nowrap">

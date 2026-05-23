@@ -94,22 +94,65 @@ function StatCallout({ value, label }: { value: string; label: string }) {
   );
 }
 
-function FloatingProfitParticles() {
+// Looping ticker of mock deal closes — gives the page a "live tape" beat
+// without the AI-style floating-particle clutter. Pure CSS marquee, GPU-friendly.
+function DealTapeTicker() {
+  const items: { place: string; amount: number; label: string; tone: 'win' | 'loss' | 'flat' }[] = [
+    { place: 'Riverside Duplex · Philly', amount: 18420, label: 'Flip', tone: 'win' },
+    { place: 'Magnolia SFR · Atlanta', amount: -3200, label: 'Sold', tone: 'loss' },
+    { place: 'Eastlake Triplex · KCMO', amount: 41100, label: 'Cash-out refi', tone: 'win' },
+    { place: 'Bryn Mawr Condo · PA', amount: 6750, label: 'Rental sale', tone: 'win' },
+    { place: 'Roosevelt SFR · Tampa', amount: -8900, label: 'Bad reno', tone: 'loss' },
+    { place: 'Westside Duplex · Tucson', amount: 23800, label: 'Flip', tone: 'win' },
+    { place: 'Old North Townhome · STL', amount: 0, label: 'Walked away', tone: 'flat' },
+    { place: 'Lincoln Park SFR · OMA', amount: 12300, label: 'Rental sale', tone: 'win' },
+    { place: 'Beacon Heights Quad · CLE', amount: 31600, label: 'Flip', tone: 'win' },
+    { place: 'Maple Row Cottage · BHM', amount: -1450, label: 'Selling costs', tone: 'loss' },
+  ];
+  const reel = [...items, ...items];
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-      <div className="absolute left-[15%] bottom-[20%] landing-profit-drift">
-        <span className="font-mono text-sm font-bold" style={{ color: 'rgba(16,185,129,0.6)' }}>+$4,200</span>
+    <section
+      className="relative overflow-hidden border-y"
+      style={{ borderColor: 'rgba(212,175,55,0.12)', background: 'rgba(8,8,11,0.92)' }}
+      data-testid="section-deal-tape"
+      aria-label="Recent deal tape"
+    >
+      <div className="flex items-center gap-3 px-5 lg:px-8 py-2.5 border-b" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+        <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#d4af37' }} />
+        <span className="font-mono text-[10px] lg:text-[11px] tracking-[0.22em] uppercase" style={{ color: 'rgba(225,220,205,0.5)' }}>
+          Deal Tape · Last 24h of player closes
+        </span>
       </div>
-      <div className="absolute right-[20%] bottom-[30%] landing-profit-drift-2">
-        <span className="font-mono text-xs font-bold" style={{ color: 'rgba(212,175,55,0.5)' }}>+$12,800</span>
+      <div className="relative py-3" aria-hidden="true">
+        <div className="deal-tape-marquee flex gap-8 whitespace-nowrap will-change-transform">
+          {reel.map((it, i) => {
+            const tone =
+              it.tone === 'win' ? 'rgba(74,222,128,0.95)' :
+              it.tone === 'loss' ? 'rgba(248,113,113,0.9)' :
+              'rgba(225,220,205,0.6)';
+            const sign = it.amount > 0 ? '+' : it.amount < 0 ? '−' : '·';
+            const value = it.amount === 0 ? '—' : `$${Math.abs(it.amount).toLocaleString()}`;
+            return (
+              <div key={`${it.place}-${i}`} className="flex items-center gap-3 px-1">
+                <span className="font-mono text-[11px] lg:text-xs tracking-wider" style={{ color: 'rgba(225,220,205,0.5)' }}>
+                  {it.place}
+                </span>
+                <span className="text-[10px] lg:text-[11px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm" style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(225,220,205,0.45)' }}>
+                  {it.label}
+                </span>
+                <span className="font-mono text-sm lg:text-base font-bold tabular-nums" style={{ color: tone }}>
+                  {sign}{value}
+                </span>
+                <span className="text-white/15">·</span>
+              </div>
+            );
+          })}
+        </div>
+        {/* Edge fades */}
+        <div className="absolute inset-y-0 left-0 w-16 pointer-events-none" style={{ background: 'linear-gradient(90deg, rgba(8,8,11,1), transparent)' }} />
+        <div className="absolute inset-y-0 right-0 w-16 pointer-events-none" style={{ background: 'linear-gradient(270deg, rgba(8,8,11,1), transparent)' }} />
       </div>
-      <div className="absolute left-[40%] bottom-[15%] landing-profit-drift-3">
-        <span className="font-mono text-sm font-bold" style={{ color: 'rgba(16,185,129,0.4)' }}>+$8,500</span>
-      </div>
-      <div className="absolute right-[35%] bottom-[25%] landing-profit-drift" style={{ animationDelay: '2s' }}>
-        <span className="font-mono text-xs font-bold" style={{ color: 'rgba(74,222,128,0.4)' }}>+$24,300</span>
-      </div>
-    </div>
+    </section>
   );
 }
 
@@ -120,10 +163,7 @@ function PerformanceStatsShowcase() {
       style={{ background: 'linear-gradient(180deg, #1a1a1f 0%, #141418 50%, #1a1a1f 100%)' }}
       data-testid="section-performance-stats"
     >
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full landing-glow-pulse" style={{ background: 'rgba(168,85,247,0.08)' }} />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full landing-glow-pulse" style={{ background: 'rgba(16,185,129,0.06)', animationDelay: '2s' }} />
-      </div>
+      {/* AI-tell orbs removed — kept the seam line for separation only */}
       <div className="absolute inset-x-0 top-0 h-[1px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.3), rgba(212,175,55,0.3), transparent)' }} />
 
       <div className="relative z-10 max-w-6xl mx-auto">
@@ -261,8 +301,7 @@ function ProfitPotentialStrip() {
   return (
     <section className="relative py-6 lg:py-10 px-5 lg:px-8 overflow-hidden" data-testid="profit-potential-strip">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-0 left-1/3 w-96 h-32 landing-glow-pulse" style={{ background: 'rgba(16,185,129,0.06)', filter: 'blur(40px)' }} />
-        <div className="absolute bottom-0 right-1/3 w-80 h-24 landing-glow-pulse" style={{ background: 'rgba(212,175,55,0.05)', filter: 'blur(40px)', animationDelay: '2s' }} />
+        {/* AI-tell glow orbs removed */}
       </div>
       <div className="relative z-10 max-w-6xl mx-auto">
         <div
@@ -396,10 +435,10 @@ export default function Landing() {
           />
         </div>
 
-        <FloatingProfitParticles />
+        {/* Editorial calm above-fold — no floating profit particles, no green accent */}
         <div
           className="absolute inset-x-0 bottom-0 h-px"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.3), rgba(16,185,129,0.2), rgba(212,175,55,0.3), transparent)' }}
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.35), rgba(180,140,60,0.25), rgba(212,175,55,0.35), transparent)' }}
         />
 
         <div className="relative z-10 max-w-7xl mx-auto px-5 lg:px-8 py-8 sm:py-8 lg:py-16">
@@ -430,8 +469,13 @@ export default function Landing() {
               </h1>
 
               <div className="space-y-2 mb-7 max-w-[520px]">
-                <p className="text-base lg:text-lg font-semibold" style={{ color: 'rgba(225,220,205,0.6)' }}>The numbers looked right on paper.</p>
-                <p className="text-[15px] lg:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.58)' }}>
+                <p
+                  className="text-lg lg:text-xl leading-snug italic"
+                  style={{ color: 'rgba(225,220,205,0.78)', fontFamily: 'Cormorant Garamond, serif', fontWeight: 500 }}
+                >
+                  The numbers looked right on paper.
+                </p>
+                <p className="text-[15px] lg:text-base font-medium leading-relaxed" style={{ color: 'rgba(225,220,205,0.55)' }}>
                   52 months. $100K. Every choice compounds.
                 </p>
               </div>
@@ -439,12 +483,12 @@ export default function Landing() {
               <div className="flex flex-col sm:flex-row items-start gap-3 mb-6">
                 <Link href="/game" className="w-full sm:w-auto">
                   <button
-                    className="group w-full sm:w-auto min-w-[220px] py-4 sm:py-3.5 lg:py-4 px-8 lg:px-10 rounded-lg font-bold text-base lg:text-[17px] tracking-wide transition-all active:scale-[0.97] flex items-center justify-center gap-2.5 min-h-[52px] sm:min-h-0"
+                    className="group w-full sm:w-auto min-w-[220px] py-4 sm:py-3.5 lg:py-4 px-8 lg:px-10 rounded-lg font-bold text-base lg:text-[17px] tracking-wide transition-all active:scale-[0.97] flex items-center justify-center gap-2.5 min-h-[52px] sm:min-h-0 hover:brightness-110"
                     style={{
-                      background: 'linear-gradient(180deg, rgba(16,185,129,0.9) 0%, rgba(5,150,105,0.95) 100%)',
-                      color: '#fff',
-                      boxShadow: '0 4px 20px rgba(16,185,129,0.3), 0 1px 0 rgba(4,120,87,0.8)',
-                      border: '1px solid rgba(16,185,129,0.5)',
+                      background: '#d4af37',
+                      color: '#0e0e12',
+                      boxShadow: '0 4px 22px rgba(212,175,55,0.22), 0 1px 0 rgba(120,90,20,0.45)',
+                      border: '1px solid rgba(212,175,55,0.6)',
                     }}
                     data-testid="button-play-simulator"
                   >
@@ -567,6 +611,10 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* Live deal-tape ticker — below the fold, sets the "real game in motion" tone */}
+      <DealTapeTicker />
+
       {/* === WHAT HAPPENS WHEN YOU PLAY (DOPAMINE LAYER) === */}
       <section className="py-10 lg:py-16 px-5 lg:px-8">
         <div className="max-w-6xl mx-auto">

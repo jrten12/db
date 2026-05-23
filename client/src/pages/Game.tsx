@@ -23,6 +23,7 @@ import { generateTenantName, getRandomPersonalityType, getSpeechPatterns, getRan
 import type { Tenant } from '@shared/schema';
 import { PremiumModal } from '@/components/game/PremiumModal';
 import { SeasonEndModal } from '@/components/game/SeasonEndModal';
+import { XpFlash, type XpFlashEvent } from '@/components/game/XpFlash';
 import { BadgesModal } from '@/components/game/BadgesModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
@@ -142,6 +143,24 @@ export default function Game() {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [premiumTriggerReason, setPremiumTriggerReason] = useState<'no_weeks' | 'low_cash' | 'manual'>('manual');
   const [showSeasonEndModal, setShowSeasonEndModal] = useState(false);
+  // Snapshot of the just-ended season — captured from the 409 response so the
+  // recap modal can render real numbers (server resets these on unlock).
+  type SeasonEndSnapshot = {
+    seasonStats: {
+      bestDealProfit: number;
+      bestDealLabel: string;
+      totalCashFlow: number;
+      dealsClosed: number;
+      profitableThisSeason: number;
+      xpEarnedThisSeason: number;
+    };
+    currentStreak: number;
+    bestStreak: number;
+    cash: number;
+  };
+  const [seasonEndSnapshot, setSeasonEndSnapshot] = useState<SeasonEndSnapshot | null>(null);
+  // Single XP/tier-up flash event slot. Setting it shows the flash; clearing hides it.
+  const [xpFlash, setXpFlash] = useState<XpFlashEvent | null>(null);
   const [hasShownNoWeeksPopup, setHasShownNoWeeksPopup] = useState(false);
   const [hasShownLowCashPopup, setHasShownLowCashPopup] = useState(false);
   const [showHallOfFame, setShowHallOfFame] = useState(false);
@@ -1574,6 +1593,16 @@ export default function Game() {
       // Season gate — server says player has used all 52 weeks of the current season.
       // Open the SeasonEndModal which lets the player watch a sponsor video to unlock more.
       if (error?.code === 'season_ended') {
+        // Capture the recap snapshot before opening — server resets these on unlock.
+        setSeasonEndSnapshot({
+          seasonStats: error.seasonStats ?? {
+            bestDealProfit: 0, bestDealLabel: '', totalCashFlow: 0,
+            dealsClosed: 0, profitableThisSeason: 0, xpEarnedThisSeason: 0,
+          },
+          currentStreak: error.currentStreak ?? 0,
+          bestStreak: error.bestStreak ?? 0,
+          cash: error.cash ?? gameRun.cash,
+        });
         setShowSeasonEndModal(true);
       } else {
         toast.error(error.message || 'Failed to advance month');
@@ -1595,7 +1624,7 @@ export default function Game() {
     setGameRun(result.gameRun);
     queryClient.invalidateQueries({ queryKey: ['ledger'] });
     queryClient.invalidateQueries({ queryKey: ['/api/game-runs', gameRun.id] });
-    return result;
+    return { bonus: result.bonus, nextSeason: result.seasonsUnlocked };
   }, [gameRun, queryClient]);
 
   const handleSellRental = useCallback(async (dealId: number) => {
@@ -1603,8 +1632,24 @@ export default function Game() {
       throw new Error('No active game found');
     }
     
+    const prevXp = gameRun.xp ?? 0;
+    const prevStreak = gameRun.currentStreak ?? 0;
     const result = await api.sellRental(dealId, gameRun.id);
-    
+
+    // Fire XP/tier-up flash if the server awarded XP for this close.
+    const nextXp = result.gameRun.xp ?? prevXp;
+    const xpGained = nextXp - prevXp;
+    if (xpGained > 0) {
+      setXpFlash({
+        id: Date.now(),
+        xpGained,
+        newXp: nextXp,
+        prevXp,
+        newStreak: result.gameRun.currentStreak ?? 0,
+        prevStreak,
+      });
+    }
+
     setGameRun(result.gameRun);
     
     const deal = deals.find(d => d.id === dealId);
@@ -1664,8 +1709,23 @@ export default function Game() {
       throw new Error('No active game found');
     }
     
+    const prevXp = gameRun.xp ?? 0;
+    const prevStreak = gameRun.currentStreak ?? 0;
     const result = await api.sellFlip(dealId, gameRun.id);
-    
+
+    const nextXp = result.gameRun.xp ?? prevXp;
+    const xpGained = nextXp - prevXp;
+    if (xpGained > 0) {
+      setXpFlash({
+        id: Date.now(),
+        xpGained,
+        newXp: nextXp,
+        prevXp,
+        newStreak: result.gameRun.currentStreak ?? 0,
+        prevStreak,
+      });
+    }
+
     setGameRun(result.gameRun);
     
     const deal = deals.find(d => d.id === dealId);
@@ -2141,6 +2201,7 @@ export default function Game() {
             cash={gameRun.cash}
             weeksRemaining={gameRun.weeksRemaining}
             seasonsUnlocked={gameRun.seasonsUnlocked ?? 1}
+            currentStreak={gameRun.currentStreak ?? 0}
             profitableDeals={gameRun.profitableDeals}
             goalDeals={gameRun.goalDeals}
             onOpenLedger={() => setShowLedger(true)}
@@ -2638,14 +2699,17 @@ export default function Game() {
         <SeasonEndModal
           isOpen={showSeasonEndModal}
           onClose={() => setShowSeasonEndModal(false)}
-          onSeasonUnlocked={async () => {
-            const result = await handleSeasonUnlocked();
-            toast.success(`Season ${result.seasonsUnlocked} unlocked — +$${result.bonus.toLocaleString()} bonus!`, { duration: 5000 });
-          }}
+          onSeasonUnlocked={handleSeasonUnlocked}
           currentSeason={gameRun.seasonsUnlocked ?? 1}
-          profitableDeals={gameRun.profitableDeals}
-          cash={gameRun.cash}
+          // Modal normalizes nullish/partial values internally — cast through unknown
+          // since the jsonb column is typed loosely on GameRun.
+          seasonStats={(seasonEndSnapshot?.seasonStats ?? gameRun.seasonStats) as unknown as never}
+          bestStreak={seasonEndSnapshot?.bestStreak ?? gameRun.bestStreak ?? 0}
+          cash={seasonEndSnapshot?.cash ?? gameRun.cash}
         />
+
+        {/* XP flash — fires after profitable deal close */}
+        <XpFlash event={xpFlash} onDone={() => setXpFlash(null)} />
 
         {/* Hall of Fame Modal */}
         <HallOfFameModal

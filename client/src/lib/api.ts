@@ -185,10 +185,18 @@ export const api = {
         throw new Error(body?.message || 'Slow down — wait a moment before skipping again.');
       }
       if (res.status === 409 && body?.code === 'season_ended') {
-        // Special error the caller can introspect to open the Season-End modal
+        // Special error the caller can introspect to open the Season-End modal.
+        // We piggyback the recap data on the error so the modal can render immediately
+        // without an extra round-trip.
         const err: any = new Error(body.message || 'Season ended');
         err.code = 'season_ended';
         err.seasonsUnlocked = body.seasonsUnlocked;
+        err.seasonStats = body.seasonStats;
+        err.currentStreak = body.currentStreak;
+        err.bestStreak = body.bestStreak;
+        err.xp = body.xp;
+        err.cash = body.cash;
+        err.profitableDeals = body.profitableDeals;
         throw err;
       }
       throw new Error(body?.message || 'Failed to advance month');
@@ -201,6 +209,7 @@ export const api = {
     bonus: number;
     seasonsUnlocked: number;
     weeksRemaining: number;
+    endedSeasonStats?: unknown;
     gameRun: GameRun;
   }> {
     const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/unlock-season`, {

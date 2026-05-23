@@ -22,6 +22,7 @@ import { AnimatedBackground } from '@/components/game/AnimatedBackground';
 import { generateTenantName, getRandomPersonalityType, getSpeechPatterns, getRandomMessage, getRandomPaymentEthic } from '@/lib/tenantGenerator';
 import type { Tenant } from '@shared/schema';
 import { PremiumModal } from '@/components/game/PremiumModal';
+import { SeasonEndModal } from '@/components/game/SeasonEndModal';
 import { BadgesModal } from '@/components/game/BadgesModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { HallOfFameModal } from '@/components/game/HallOfFameModal';
@@ -140,6 +141,7 @@ export default function Game() {
   const [moneyAnimationTrigger, setMoneyAnimationTrigger] = useState(0);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [premiumTriggerReason, setPremiumTriggerReason] = useState<'no_weeks' | 'low_cash' | 'manual'>('manual');
+  const [showSeasonEndModal, setShowSeasonEndModal] = useState(false);
   const [hasShownNoWeeksPopup, setHasShownNoWeeksPopup] = useState(false);
   const [hasShownLowCashPopup, setHasShownLowCashPopup] = useState(false);
   const [showHallOfFame, setShowHallOfFame] = useState(false);
@@ -1569,15 +1571,32 @@ export default function Game() {
         }, 2000);
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to advance month');
-      try {
-        const recoveredRun = await api.getGameRun(gameRun.id);
-        if (recoveredRun) setGameRun(recoveredRun);
-      } catch {}
+      // Season gate — server says player has used all 52 weeks of the current season.
+      // Open the SeasonEndModal which lets the player watch a sponsor video to unlock more.
+      if (error?.code === 'season_ended') {
+        setShowSeasonEndModal(true);
+      } else {
+        toast.error(error.message || 'Failed to advance month');
+        try {
+          const recoveredRun = await api.getGameRun(gameRun.id);
+          if (recoveredRun) setGameRun(recoveredRun);
+        } catch {}
+      }
     } finally {
       setIsAdvancingWeek(false);
     }
   }, [gameRun, queryClient, addRentalPayment, addFlipProceeds, properties, deals]);
+
+  // Called by SeasonEndModal after the rewarded video completes.
+  // Hits the unlock endpoint, refreshes local state, shows the bonus celebration.
+  const handleSeasonUnlocked = useCallback(async () => {
+    if (!gameRun) throw new Error('No active game');
+    const result = await api.unlockSeason(gameRun.id);
+    setGameRun(result.gameRun);
+    queryClient.invalidateQueries({ queryKey: ['ledger'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/game-runs', gameRun.id] });
+    return result;
+  }, [gameRun, queryClient]);
 
   const handleSellRental = useCallback(async (dealId: number) => {
     if (!gameRun) {
@@ -1856,10 +1875,6 @@ export default function Game() {
       }
     }
   }, [isBankrupt]);
-  
-  // Player is in overtime (past 52 weeks) - can keep playing but no new awards
-  const isOvertime = gameRun?.weeksRemaining !== undefined && gameRun.weeksRemaining <= 0;
-
   // Auto-show premium popup when cash is low (removed weeks freeze - players can keep playing)
   const hasActiveRehab = useMemo(() => {
     return deals.some(d => d.rentalRehabActive || d.status === 'in_rehab');
@@ -2125,6 +2140,7 @@ export default function Game() {
           <StatusBar
             cash={gameRun.cash}
             weeksRemaining={gameRun.weeksRemaining}
+            seasonsUnlocked={gameRun.seasonsUnlocked ?? 1}
             profitableDeals={gameRun.profitableDeals}
             goalDeals={gameRun.goalDeals}
             onOpenLedger={() => setShowLedger(true)}
@@ -2616,6 +2632,19 @@ export default function Game() {
           triggerReason={premiumTriggerReason}
           canClose={true}
           onEndGame={undefined}
+        />
+
+        {/* Season End Modal — gates progression past 52 weeks */}
+        <SeasonEndModal
+          isOpen={showSeasonEndModal}
+          onClose={() => setShowSeasonEndModal(false)}
+          onSeasonUnlocked={async () => {
+            const result = await handleSeasonUnlocked();
+            toast.success(`Season ${result.seasonsUnlocked} unlocked — +$${result.bonus.toLocaleString()} bonus!`, { duration: 5000 });
+          }}
+          currentSeason={gameRun.seasonsUnlocked ?? 1}
+          profitableDeals={gameRun.profitableDeals}
+          cash={gameRun.cash}
         />
 
         {/* Hall of Fame Modal */}

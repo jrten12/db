@@ -37,6 +37,8 @@ export const gameRuns = pgTable("game_runs", {
   lastMarketChangeWeek: integer("last_market_change_week").notNull().default(0), // Week when market last changed
   priceDriftPct: real("price_drift_pct").notNull().default(0), // Cumulative market-driven price drift percentage
   passiveIncomeMilestonesHit: jsonb("passive_income_milestones_hit").$type<number[]>().default([]),
+  seasonsUnlocked: integer("seasons_unlocked").notNull().default(1),
+  adsWatchedForSeasons: integer("ads_watched_for_seasons").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

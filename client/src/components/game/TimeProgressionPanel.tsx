@@ -489,7 +489,7 @@ export function TimeProgressionPanel({
         </div>
         <Button
           onClick={handleAdvanceWeek}
-          disabled={isAdvancing || gameRun.weeksRemaining <= 0}
+          disabled={isAdvancing}
           size="sm"
           className="bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] disabled:bg-white/6 disabled:text-white/25 h-8 px-3 text-xs font-medium border-0"
           data-no-click-sound

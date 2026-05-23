@@ -12,6 +12,7 @@ import logo from '@assets/new_icon_db_1772940176909.webp';
 interface StatusBarProps {
   cash: number;
   weeksRemaining: number;
+  seasonsUnlocked?: number;
   profitableDeals: number;
   goalDeals: number;
   onOpenLedger?: () => void;
@@ -110,7 +111,7 @@ function StatCard({
   );
 }
 
-export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onViewStats, onAdvanceWeek, isAdvancingWeek, onNewGame, onGoHome }: StatusBarProps) {
+export function StatusBar({ cash, weeksRemaining, seasonsUnlocked = 1, profitableDeals, goalDeals, onOpenLedger, onOpenPremium, onOpenHallOfFame, onViewStats, onAdvanceWeek, isAdvancingWeek, onNewGame, onGoHome }: StatusBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { isPlaying: isMusicPlaying, toggleMusic } = useMusic();
 
@@ -160,12 +161,8 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <AnimatedNumber value={cashDisplay} prefix="$" className="cash-value" variant="cash" />
               </StatCard>
 
-              <StatCard icon={Clock} label={weeksRemaining <= 0 ? "OVERTIME" : "MONTHS LEFT"} variant="time" testId="status-time">
-                {weeksRemaining <= 0 ? (
-                  <span className="text-amber-400/80">Overtime</span>
-                ) : (
-                  <AnimatedNumber value={weeksRemaining} suffix=" mo" className="time-value" variant="time" />
-                )}
+              <StatCard icon={Clock} label={`SEASON ${seasonsUnlocked} · MONTHS LEFT`} variant="time" testId="status-time">
+                <AnimatedNumber value={weeksRemaining} suffix=" mo" className="time-value" variant="time" />
               </StatCard>
 
               <div className="stat-card stat-card-goal" data-testid="status-goal">
@@ -238,13 +235,9 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               
               <div className="stat-card-mobile-compact touch-target-sm flex-1 min-w-0" data-testid="status-time-mobile">
                 <div className="whitespace-nowrap">
-                  {weeksRemaining <= 0 ? (
-                    <span className="mobile-time-value-compact text-amber-400/80">OT</span>
-                  ) : (
-                    <AnimatedNumber value={weeksRemaining} className="mobile-time-value-compact" />
-                  )}
+                  <AnimatedNumber value={weeksRemaining} className="mobile-time-value-compact" />
                 </div>
-                <div className="stat-label-mobile-compact">{weeksRemaining <= 0 ? 'Overtime' : 'Months'}</div>
+                <div className="stat-label-mobile-compact">S{seasonsUnlocked} · Mo</div>
               </div>
               
               <div className="stat-card-mobile-compact touch-target-sm flex-1 min-w-0" data-testid="status-goal-mobile">
@@ -358,8 +351,8 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <div className="text-white/25 text-[10px] uppercase tracking-widest mt-1">Cash</div>
               </div>
               <div className="text-center">
-                <div className="font-semibold text-white/80 text-lg">{weeksRemaining <= 0 ? 'OT' : `${weeksRemaining}`}</div>
-                <div className="text-white/25 text-[10px] uppercase tracking-widest mt-1">{weeksRemaining <= 0 ? 'Overtime' : 'Months'}</div>
+                <div className="font-semibold text-white/80 text-lg">{weeksRemaining}</div>
+                <div className="text-white/25 text-[10px] uppercase tracking-widest mt-1">S{seasonsUnlocked} · Months</div>
               </div>
               <div className="text-center">
                 <div className="font-semibold text-lg">

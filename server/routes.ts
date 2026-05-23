@@ -532,11 +532,96 @@ export async function registerRoutes(
   app.post("/api/game-runs/:id/advance-week", gameActionLimiter, async (req, res) => {
     try {
       const gameRunId = parseInt(req.params.id);
+
+      // Season gate: block advancing past the current allocation of weeks.
+      // Player must watch a sponsor message to unlock the next 52-week season.
+      const currentRun = await storage.getGameRun(gameRunId);
+      if (!currentRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+      if (currentRun.weeksRemaining <= 0) {
+        res.status(409).json({
+          code: 'season_ended',
+          message: 'Season ended — unlock the next season to continue.',
+          seasonsUnlocked: currentRun.seasonsUnlocked,
+          currentWeek: currentRun.currentWeek,
+        });
+        return;
+      }
+
       const result = await gameMechanics.advanceGameWeek(gameRunId);
       res.json(result);
     } catch (error: any) {
       console.error("Error advancing game week:", error);
       res.status(500).json({ error: error.message || "Failed to advance game week" });
+    }
+  });
+
+  // Unlock the next 52-week season after the player watches a rewarded video.
+  // The client guarantees the ad has completed before calling this endpoint.
+  // Awards a small cash bonus to make the unlock feel rewarding ("season bonus").
+  // Per-game-run in-flight lock so a double-click (or double-tap) on the
+  // sponsor reward can't grant the season bonus twice.
+  const unlockInFlight = new Set<number>();
+  app.post("/api/game-runs/:id/unlock-season", gameActionLimiter, async (req, res) => {
+    const gameRunId = parseInt(req.params.id);
+    if (unlockInFlight.has(gameRunId)) {
+      res.status(409).json({ error: "Season unlock already in progress." });
+      return;
+    }
+    unlockInFlight.add(gameRunId);
+    try {
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      // Only allow unlocking when the current season is actually exhausted.
+      // This is the primary idempotency guard — after a successful unlock,
+      // weeksRemaining jumps to 52 so a duplicate request short-circuits here.
+      if (gameRun.weeksRemaining > 0) {
+        res.status(400).json({ error: "Current season is not yet complete." });
+        return;
+      }
+
+      // Season bonus: $5,000 cash + 52 fresh weeks. Stacks gracefully if cash is negative.
+      const SEASON_BONUS = 5000;
+      const updated = await storage.updateGameRun(gameRunId, {
+        weeksRemaining: gameRun.weeksRemaining + 52,
+        seasonsUnlocked: (gameRun.seasonsUnlocked ?? 1) + 1,
+        adsWatchedForSeasons: (gameRun.adsWatchedForSeasons ?? 0) + 1,
+        cash: gameRun.cash + SEASON_BONUS,
+      });
+
+      // Ledger entry so the bonus shows up in the player's transaction history.
+      try {
+        await storage.createLedgerEntry({
+          gameRunId,
+          direction: 'credit',
+          category: 'income',
+          amount: SEASON_BONUS,
+          description: `Season ${(gameRun.seasonsUnlocked ?? 1) + 1} unlock bonus`,
+          gameWeek: gameRun.currentWeek,
+          balanceAfter: (updated?.cash ?? gameRun.cash + SEASON_BONUS),
+        });
+      } catch (err) {
+        console.error("Failed to write season-unlock ledger entry:", err);
+      }
+
+      res.json({
+        success: true,
+        bonus: SEASON_BONUS,
+        seasonsUnlocked: updated?.seasonsUnlocked,
+        weeksRemaining: updated?.weeksRemaining,
+        gameRun: updated,
+      });
+    } catch (error: any) {
+      console.error("Error unlocking season:", error);
+      res.status(500).json({ error: error.message || "Failed to unlock season" });
+    } finally {
+      unlockInFlight.delete(gameRunId);
     }
   });
 

@@ -184,7 +184,32 @@ export const api = {
       if (res.status === 429) {
         throw new Error(body?.message || 'Slow down — wait a moment before skipping again.');
       }
+      if (res.status === 409 && body?.code === 'season_ended') {
+        // Special error the caller can introspect to open the Season-End modal
+        const err: any = new Error(body.message || 'Season ended');
+        err.code = 'season_ended';
+        err.seasonsUnlocked = body.seasonsUnlocked;
+        throw err;
+      }
       throw new Error(body?.message || 'Failed to advance month');
+    }
+    return res.json();
+  },
+
+  async unlockSeason(gameRunId: number): Promise<{
+    success: boolean;
+    bonus: number;
+    seasonsUnlocked: number;
+    weeksRemaining: number;
+    gameRun: GameRun;
+  }> {
+    const res = await fetch(`${API_BASE}/game-runs/${gameRunId}/unlock-season`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      throw new Error(body?.error || body?.message || 'Failed to unlock season');
     }
     return res.json();
   },

@@ -49,8 +49,12 @@ function capGrade(result: RevealGradeResult, maxGrade: string): RevealGradeResul
 
 function getRevealGrade(
   projectedCF: number, actualCF: number,
-  proFormaData?: { projectedRent: number; projectedVacancy: number; projectedExpenses: number }
-): RevealGradeResult {
+  proFormaData?: {
+    projectedRent: number; actualRent: number;
+    projectedVacancy: number; actualVacancy: number;
+    projectedExpenses: number; actualExpenses: number;
+  }
+): RevealGradeResult & { errorsCanceled?: boolean } {
   if (proFormaData && proFormaData.projectedRent === 0) {
     return {
       grade: '—',
@@ -61,13 +65,13 @@ function getRevealGrade(
     };
   }
   if (projectedCF === 0 && actualCF === 0) return { grade: '-', color: 'text-gray-400', bgColor: 'from-gray-600 to-gray-700', emoji: '', headline: 'No cash flow projected' };
-  
+
   const diff = Math.abs(actualCF - projectedCF);
   const base = Math.max(Math.abs(projectedCF), 100);
   const pctOff = (diff / base) * 100;
   const better = actualCF >= projectedCF;
 
-  let result: RevealGradeResult;
+  let result: RevealGradeResult & { errorsCanceled?: boolean };
   if (pctOff <= 8) result = { ...GRADE_TIERS[0], headline: 'Nailed It!' };
   else if (pctOff <= 18) result = { ...GRADE_TIERS[1], headline: better ? 'Even Better Than Expected' : 'Sharp Analysis' };
   else if (pctOff <= 30) result = { ...GRADE_TIERS[2], headline: better ? 'Pleasant Surprise' : 'Close Enough' };
@@ -76,7 +80,7 @@ function getRevealGrade(
   else result = { ...GRADE_TIERS[5], headline: better ? 'Wildly Conservative' : 'Back to the Drawing Board' };
 
   if (proFormaData) {
-    const { projectedRent, projectedVacancy, projectedExpenses } = proFormaData;
+    const { projectedRent, actualRent, projectedVacancy, actualVacancy, projectedExpenses, actualExpenses } = proFormaData;
     const fieldsFilledCount = [
       projectedRent > 0,
       projectedVacancy > 0,
@@ -87,12 +91,29 @@ function getRevealGrade(
       result = capGrade(result, 'F');
       result.headline = 'You Skipped the Analysis';
       result.emoji = '📋';
-    } else if (fieldsFilledCount === 1) {
+      return result;
+    }
+    if (fieldsFilledCount === 1) {
       result = capGrade(result, 'D');
       result.headline = 'Incomplete Analysis';
       result.emoji = '📝';
-    } else if (fieldsFilledCount === 2) {
+      return result;
+    }
+    if (fieldsFilledCount === 2) {
       result = capGrade(result, 'B');
+    }
+
+    // Per-input accuracy check — net CF can hide big misses that cancel out
+    const rentOffPct = projectedRent > 0 ? Math.abs(actualRent - projectedRent) / projectedRent * 100 : 0;
+    const expOffPct = projectedExpenses > 0 ? Math.abs(actualExpenses - projectedExpenses) / projectedExpenses * 100 : 0;
+    const vacOffPts = Math.abs(actualVacancy - projectedVacancy);
+    const inputsOffCount = [rentOffPct > 15, expOffPct > 25, vacOffPts > 3].filter(Boolean).length;
+
+    // If net CF looks great but individual inputs are way off, you got lucky
+    if (pctOff <= 18 && inputsOffCount >= 2) {
+      result = { ...GRADE_TIERS[2], headline: 'Errors Canceled Out', emoji: '🎲', errorsCanceled: true };
+    } else if (pctOff <= 8 && inputsOffCount >= 1) {
+      result = { ...GRADE_TIERS[1], headline: 'Lucky Wash', emoji: '🎲', errorsCanceled: true };
     }
   }
 
@@ -182,13 +203,17 @@ export function RentalRealityReveal({ isOpen, onClose, data }: RentalRealityReve
 
   const grade = getRevealGrade(data.projectedCashFlow, data.actualCashFlow, {
     projectedRent: data.projectedRent,
+    actualRent: data.actualRent,
     projectedVacancy: data.projectedVacancy,
+    actualVacancy: data.actualVacancy,
     projectedExpenses: data.projectedExpenses,
+    actualExpenses: data.actualExpenses,
   });
   const rentDiff = data.actualRent - data.projectedRent;
   const cfDiff = data.actualCashFlow - data.projectedCashFlow;
   const noProForma = data.projectedRent === 0;
-  const isGood = !noProForma && (grade.grade === 'A+' || grade.grade === 'A' || grade.grade === 'B');
+  const errorsCanceled = grade.errorsCanceled === true;
+  const isGood = !noProForma && !errorsCanceled && (grade.grade === 'A+' || grade.grade === 'A' || grade.grade === 'B');
 
   return (
     <>
@@ -277,13 +302,24 @@ export function RentalRealityReveal({ isOpen, onClose, data }: RentalRealityReve
                           <span className={`text-2xl font-black ${grade.color}`}>{grade.grade}</span>
                         </div>
                         <div className="text-left">
-                          <p className="text-white/80 text-xs">
-                            {cfDiff >= 0 ? 'You earn' : 'Your cash flow is'} 
-                            <span className={`font-bold ${cfDiff >= 0 ? ' text-emerald-300' : ' text-red-300'}`}>
-                              {' '}${Math.abs(Math.round(cfDiff)).toLocaleString()}/mo {cfDiff >= 0 ? 'more' : 'less'}
-                            </span>
-                          </p>
-                          <p className="text-white/50 text-[10px]">than your pro forma projected</p>
+                          {Math.abs(cfDiff) < 1 ? (
+                            <>
+                              <p className="text-white/80 text-xs font-bold">Net cash flow matched</p>
+                              <p className="text-white/50 text-[10px]">
+                                {errorsCanceled ? 'but your inputs were off — they just canceled' : 'your pro forma projection'}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-white/80 text-xs">
+                                {cfDiff > 0 ? 'You earn' : 'Your cash flow is'}
+                                <span className={`font-bold ${cfDiff > 0 ? ' text-emerald-300' : ' text-red-300'}`}>
+                                  {' '}${Math.abs(Math.round(cfDiff)).toLocaleString()}/mo {cfDiff > 0 ? 'more' : 'less'}
+                                </span>
+                              </p>
+                              <p className="text-white/50 text-[10px]">than your pro forma projected</p>
+                            </>
+                          )}
                         </div>
                       </div>
                     )}
@@ -368,18 +404,28 @@ export function RentalRealityReveal({ isOpen, onClose, data }: RentalRealityReve
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                     className={`rounded-xl p-3 border ${
-                      isGood ? 'bg-emerald-900/15 border-emerald-500/20' : 'bg-amber-900/15 border-amber-500/20'
+                      errorsCanceled
+                        ? 'bg-amber-900/15 border-amber-500/20'
+                        : isGood
+                          ? 'bg-emerald-900/15 border-emerald-500/20'
+                          : 'bg-amber-900/15 border-amber-500/20'
                     }`}
                   >
                     <div className="flex items-start gap-2">
-                      {isGood ? (
+                      {errorsCanceled ? (
+                        <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                      ) : isGood ? (
                         <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
                       ) : cfDiff >= 0 ? (
                         <TrendingUp className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
                       ) : (
                         <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                       )}
-                      <p className="text-xs text-gray-300 leading-relaxed">{data.explanation}</p>
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        {errorsCanceled
+                          ? `Net cash flow happens to match, but your individual inputs were off. Rent came in $${Math.abs(Math.round(rentDiff)).toLocaleString()}/mo ${rentDiff < 0 ? 'lower' : 'higher'} and expenses ran $${Math.abs(Math.round(data.actualExpenses - data.projectedExpenses)).toLocaleString()}/mo ${data.actualExpenses > data.projectedExpenses ? 'higher' : 'lower'} — they just canceled out. Don't bank on getting that lucky twice.`
+                          : data.explanation}
+                      </p>
                     </div>
                   </motion.div>
                 )}

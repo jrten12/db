@@ -485,7 +485,7 @@ export default function Landing() {
                   className="mb-3 text-[2rem] sm:text-[2.4rem] lg:text-[2.9rem] xl:text-[3.3rem] leading-[1.05] tracking-[-0.03em]"
                   style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)', fontWeight: 700 }}
                 >
-                  Own a{' '}
+                  You closed on a{' '}
                   <span
                     style={{
                       background: 'linear-gradient(180deg, #fef3c7 0%, #d4af37 60%, #b08e1f 100%)',
@@ -495,13 +495,13 @@ export default function Landing() {
                     }}
                   >
                     duplex
-                  </span>{' '}for 52 months.<br />
+                  </span>.<br />
                   <span style={{ color: '#fca5a5', fontWeight: 600 }}>One tenant is already late.</span>
                 </h1>
 
-                {/* Hook — concise, no scenario language */}
+                {/* Hook — what the game actually is, no duration framing */}
                 <p className="text-[14px] lg:text-[15px] mb-6 max-w-[540px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.72)' }}>
-                  Buy real properties, run the pro forma, manage tenants and repairs, and see if you can build a portfolio in 52 in-game months. <span className="font-semibold" style={{ color: '#f5f0e0' }}>$100K to start. Every choice compounds.</span>
+                  Buy real properties, run the pro forma, manage tenants and repairs, and see how big a portfolio you can build before your decisions catch up to you. <span className="font-semibold" style={{ color: '#f5f0e0' }}>$100K to start. Every choice compounds.</span>
                 </p>
 
                 {/* CTAs */}

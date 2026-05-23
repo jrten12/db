@@ -416,9 +416,11 @@ export function LedgerPanel({ entries, startingCash, deals, properties, onClose,
       const totalIncome = dealEntries
         .filter(e => e.direction === 'credit')
         .reduce((sum, e) => sum + e.amount, 0);
-      
+
+      // Down payment is equity, not an expense — it builds your stake in the property.
+      // Exclude it from P&L so Net P&L reflects operating performance, not capital deployed.
       const totalExpenses = dealEntries
-        .filter(e => e.direction === 'debit')
+        .filter(e => e.direction === 'debit' && e.category !== 'down_payment')
         .reduce((sum, e) => sum + e.amount, 0);
       
       return {

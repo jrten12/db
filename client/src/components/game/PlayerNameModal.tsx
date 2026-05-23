@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Trophy, Save, PlayCircle, RefreshCcw, Loader2, TrendingUp, DollarSign, Building2, Briefcase, ArrowRight } from 'lucide-react';
 import type { GameRun } from '@shared/schema';
-import logo from '@assets/new_icon_db_1772940176909.webp';
+import logo from '@assets/dealbreak_brand_icon.png';
 
 let keyAudioPool: HTMLAudioElement[] = [];
 let keyPoolIndex = 0;
@@ -284,6 +284,26 @@ export function PlayerNameModal({
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%)' }} />
         <div className="absolute bottom-0 left-0 right-0 h-1/2" style={{ background: 'linear-gradient(180deg, transparent 0%, rgba(16,185,129,0.02) 100%)' }} />
+      </div>
+
+      <div className="absolute top-0 left-0 right-0 flex justify-center pt-3 pb-2 z-10 pointer-events-none">
+        <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.18em] text-white/40 pointer-events-auto">
+          <a
+            href="/terms"
+            className="hover:text-emerald-300 transition-colors"
+            data-testid="link-terms-top"
+          >
+            Terms of Service
+          </a>
+          <span className="text-white/20">·</span>
+          <a
+            href="/privacy"
+            className="hover:text-emerald-300 transition-colors"
+            data-testid="link-privacy-top"
+          >
+            Privacy Policy
+          </a>
+        </div>
       </div>
 
       <div

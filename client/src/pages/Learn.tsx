@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import { ArrowRight, BookOpen, ArrowLeft } from 'lucide-react';
 import { LEARN_ARTICLES } from '@/lib/learnArticles';
 import Footer from '@/components/Footer';
-import dbLogoImage from '@assets/new_icon_db_1772940176909.webp';
+import dbLogoImage from '@assets/dealbreak_brand_icon.png';
 
 import imgProForma from '@assets/generated_images/learn_pro_forma.webp';
 import imgCapRates from '@assets/generated_images/learn_cap_rates.webp';

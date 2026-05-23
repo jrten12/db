@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'wouter';
 import { ArrowLeft, Award, CheckCircle, XCircle, AlertTriangle, Info, ChevronDown, Copy, Check, ArrowRight } from 'lucide-react';
 import Footer from '@/components/Footer';
-import dbLogoImage from '@assets/new_icon_db_1772940176909.webp';
+import dbLogoImage from '@assets/dealbreak_brand_icon.png';
 
 interface Inputs {
   purchasePrice: string;

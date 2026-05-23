@@ -706,7 +706,13 @@ export async function registerRoutes(
         return;
       }
 
-      const updatedDeal = await gameMechanics.startFlipRehab(targetDeal, rehabWeeks);
+      const gameRun = await storage.getGameRun(gameRunId);
+      if (!gameRun) {
+        res.status(404).json({ error: "Game run not found" });
+        return;
+      }
+
+      const updatedDeal = await gameMechanics.startFlipRehab(targetDeal, rehabWeeks, gameRun);
       res.json(updatedDeal);
     } catch (error: any) {
       console.error("Error starting rehab:", error);

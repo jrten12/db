@@ -3259,6 +3259,7 @@ export async function activateRentalProperty(
     proFormaOutputs: updatedProFormaOutputs,
     purchasePrice: property?.price || 0,
     purchaseWeek: gameRun.currentWeek,
+    priceDriftAtPurchase: gameRun.priceDriftPct ?? 0,
     ...(hasPreTenantRehab ? {
       rentalRehabActive: true,
       rentalRehabWeeksRemaining: rehabWeeks,
@@ -3306,7 +3307,8 @@ export async function activateRentalProperty(
  */
 export async function startFlipRehab(
   deal: Deal,
-  rehabWeeks: number
+  rehabWeeks: number,
+  gameRun: GameRun
 ): Promise<Deal> {
   // If no rehab planned (0 weeks), skip straight to ready_to_list
   // Player can sell immediately but at reduced ARV (property wasn't improved)
@@ -3314,6 +3316,8 @@ export async function startFlipRehab(
     const updatedDeal = await storage.updateDeal(deal.id, {
       status: 'ready_to_list',
       weeksUntilCompletion: 0,
+      purchaseWeek: gameRun.currentWeek,
+      priceDriftAtPurchase: gameRun.priceDriftPct ?? 0,
     });
     return updatedDeal!;
   }
@@ -3322,6 +3326,8 @@ export async function startFlipRehab(
   const updatedDeal = await storage.updateDeal(deal.id, {
     status: 'in_rehab',
     weeksUntilCompletion: rehabWeeks,
+    purchaseWeek: gameRun.currentWeek,
+    priceDriftAtPurchase: gameRun.priceDriftPct ?? 0,
   });
 
   return updatedDeal!;

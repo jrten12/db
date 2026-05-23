@@ -2063,10 +2063,14 @@ export class DBStorage implements IStorage {
     const marketCondition = gameRun.marketCondition || 'good';
     const marketMult = getMarketMultipliers(marketCondition as MarketCondition);
     
-    // 1. TIME HELD — longer hold = more appreciation potential (but diminishing)
+    // 1. TIME HELD — longer hold = more organic appreciation (above market trend)
     //    Months 1-3: minimal (0-2%), 4-12: moderate (2-6%), 13-24: good (6-10%), 24+: caps at ~10%
-    const firstIncomeWeek = deal.firstIncomePaymentWeek || deal.lastIncomePaymentWeek || gameRun.currentWeek;
-    const monthsHeld = Math.max(1, gameRun.currentWeek - firstIncomeWeek);
+    //    Uses purchaseWeek (true acquisition date); falls back for legacy rows.
+    const purchaseWeek = deal.purchaseWeek
+      ?? deal.firstIncomePaymentWeek
+      ?? deal.lastIncomePaymentWeek
+      ?? gameRun.currentWeek;
+    const monthsHeld = Math.max(1, gameRun.currentWeek - purchaseWeek);
     const holdAppreciation = Math.min(0.10, monthsHeld * 0.004); // 0.4% per month, cap 10%
     
     // 2. DILIGENCE — did due diligence before buying? Better knowledge = better negotiation on sale
@@ -2125,20 +2129,34 @@ export class DBStorage implements IStorage {
     // 5. COSMETIC UPGRADE — renovation boost
     const cosmeticBoost = proFormaOutputs?.cosmeticUpgradeSaleBoost || 0;
     
-    // 6. MARKET VARIANCE — some randomness within market band
-    const marketVariance = marketMult.min + (Math.random() * (marketMult.max - marketMult.min));
+    // 6. MARKET TREND — multi-month accumulated drift since purchase (smooth, sustained)
+    //    The game tracks cumulative priceDriftPct that updates every ~4 weeks based on
+    //    market condition. A property held through good months gains; through bad months
+    //    loses. This avoids the "one bad month tanks the sale" problem by using the
+    //    accumulated trend, not a single-month snapshot.
+    const driftAtPurchase = (deal as any).priceDriftAtPurchase ?? 0;
+    const currentDrift = gameRun.priceDriftPct ?? 0;
+    const trendDelta = (currentDrift - driftAtPurchase) / 100; // e.g. +0.06 = +6%
+    // Cap the trend contribution to ±25% so extreme runs don't break balance
+    const cappedTrend = Math.max(-0.25, Math.min(0.25, trendDelta));
+    
+    // 7. BUYER MOOD — small single-month randomness based on current market band
+    //    (±2-3% noise; the heavy lifting is now done by the trend above)
+    const moodMid = (marketMult.min + marketMult.max) / 2 - 1; // center of band, relative to 1.0
+    const moodNoise = (Math.random() - 0.5) * 0.04; // ±2% noise
+    const buyerMood = 1 + (moodMid * 0.35) + moodNoise; // dampen mood by 65%, sustain via trend
     
     // === COMBINE ALL FACTORS ===
     // Base: purchase price
-    // Additive factors: hold appreciation, diligence, condition, tenant, cosmetic
-    // Multiplicative: market variance
+    // Additive factors: hold appreciation (organic), diligence, condition, tenant, cosmetic
+    // Multiplicative: trend (multi-month market) × buyer mood (current-month noise)
     const totalAdditivePct = holdAppreciation + diligenceBonus + fixedBonus - conditionPenalty + tenantBonus + cosmeticBoost;
     
-    // Base sale price before market
+    // Base sale price before market multipliers
     const baseSalePrice = purchasePrice * (1 + totalAdditivePct);
     
-    // Apply market conditions (multiplicative)
-    let salePrice = Math.round(baseSalePrice * marketVariance);
+    // Apply market trend (multi-month) then buyer mood (current-month noise)
+    let salePrice = Math.round(baseSalePrice * (1 + cappedTrend) * buyerMood);
     
     // Floor: never sell for less than 60% of purchase price
     salePrice = Math.max(salePrice, Math.round(purchasePrice * 0.60));

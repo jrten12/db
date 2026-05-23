@@ -126,6 +126,7 @@ export const deals = pgTable("deals", {
   loanTermMonths: integer("loan_term_months").default(360), // Loan term in months (default 30-year)
   // Refinancing fields
   purchaseWeek: integer("purchase_week"), // Week when rental was purchased (for seasoning period)
+  priceDriftAtPurchase: real("price_drift_at_purchase").default(0), // Snapshot of cumulative market drift % at purchase — used to compute market trend appreciation since purchase
   refinanceCount: integer("refinance_count").default(0), // How many times this property has been refinanced
   currentLoanBalance: integer("current_loan_balance"), // Current loan balance (updated after refinance/payments)
   lastRefinanceWeek: integer("last_refinance_week"), // Week of last refinance

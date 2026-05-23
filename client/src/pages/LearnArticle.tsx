@@ -289,9 +289,24 @@ export default function LearnArticle() {
       >
         <div className="flex items-center justify-between px-5 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] max-w-6xl mx-auto">
           <Link href="/">
-            <div className="flex items-center gap-2.5 cursor-pointer">
-              <img src={dbLogoImage} alt="Dealbreak" className="w-8 h-8 rounded-lg" />
-              <span className="font-bold text-lg tracking-wide" style={{ color: '#d4af37' }}>Dealbreak</span>
+            <div className="flex items-center gap-3 cursor-pointer group">
+              <img
+                src={dbLogoImage}
+                alt="Dealbreak"
+                className="w-11 h-11 rounded-xl ring-1 ring-amber-300/15 shadow-[0_1px_8px_rgba(212,175,55,0.18)] transition-transform duration-200 group-hover:scale-[1.04]"
+              />
+              <span
+                className="font-display text-[1.65rem] leading-none tracking-[-0.015em]"
+                style={{
+                  background: 'linear-gradient(180deg, #f0d27a 0%, #d4af37 55%, #a87d28 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  textShadow: '0 1px 0 rgba(0,0,0,0.25)',
+                }}
+              >
+                Dealbreak
+              </span>
             </div>
           </Link>
           <div className="flex items-center gap-4">

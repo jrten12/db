@@ -45,9 +45,24 @@ export default function Tools() {
         }}
       >
         <div className="flex items-center justify-between px-5 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] max-w-5xl mx-auto">
-          <Link href="/" className="flex items-center gap-2.5" data-testid="link-tools-home">
-            <img src={dbLogoImage} alt="Dealbreak" className="w-7 h-7 rounded-lg" />
-            <span className="font-bold text-base tracking-wide text-white/90">Dealbreak</span>
+          <Link href="/" className="flex items-center gap-3 group" data-testid="link-tools-home">
+            <img
+              src={dbLogoImage}
+              alt="Dealbreak"
+              className="w-11 h-11 rounded-xl ring-1 ring-amber-300/15 shadow-[0_1px_8px_rgba(212,175,55,0.18)] transition-transform duration-200 group-hover:scale-[1.04]"
+            />
+            <span
+              className="font-display text-[1.55rem] leading-none tracking-[-0.015em]"
+              style={{
+                background: 'linear-gradient(180deg, #f0d27a 0%, #d4af37 55%, #a87d28 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textShadow: '0 1px 0 rgba(0,0,0,0.25)',
+              }}
+            >
+              Dealbreak
+            </span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/learn" className="text-sm text-white/50 hover:text-white/80 transition-colors" data-testid="link-tools-learn">

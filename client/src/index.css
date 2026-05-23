@@ -1101,6 +1101,38 @@ input[type="range"]::-moz-range-track {
 .landing-profit-drift-2 { animation: landing-profit-drift 5s ease-out infinite 1.3s; }
 .landing-profit-drift-3 { animation: landing-profit-drift 6s ease-out infinite 2.8s; }
 
+/* Subtle data flicker for "LIVE" indicator — never strobe-fast (a11y) */
+@keyframes landing-data-flicker {
+  0%, 92%, 100% { opacity: 1; }
+  94% { opacity: 0.35; }
+  96% { opacity: 1; }
+  98% { opacity: 0.55; }
+}
+.landing-data-flicker { animation: landing-data-flicker 3.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .landing-data-flicker { animation: none; }
+}
+
+/* Tilted dossier stamp — looks like a hand-pressed rubber stamp */
+.landing-stamp {
+  position: absolute;
+  top: 50%;
+  right: -8px;
+  transform: translateY(-50%) rotate(-9deg);
+  padding: 6px 14px;
+  font-family: var(--font-sans);
+  font-weight: 900;
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  color: rgba(248,113,113,0.85);
+  border: 2.5px solid rgba(248,113,113,0.75);
+  border-radius: 2px;
+  background: rgba(20,8,8,0.55);
+  text-shadow: 0 0 8px rgba(248,113,113,0.25);
+  pointer-events: none;
+  opacity: 0.92;
+}
+
 /* Deal-tape marquee — GPU-only transform animation. */
 @keyframes deal-tape-scroll {
   from { transform: translate3d(0, 0, 0); }

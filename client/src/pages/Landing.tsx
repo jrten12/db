@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, Trophy, Star, Target, ChevronRight, Gauge, Award, DollarSign } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, Trophy, Star, Target, ChevronRight, Gauge, Award, DollarSign, Flame, AlertTriangle, Eye, Radio } from 'lucide-react';
 import dbLogoImage from '@assets/db_logo_64.webp';
 const heroBgPattern = '/hero-bg-pattern.webp';
 import { useMusic } from '@/hooks/useMusicPlayer';
@@ -451,88 +451,151 @@ export default function Landing() {
         <div className="relative z-10 max-w-7xl mx-auto px-5 lg:px-8 py-8 sm:py-8 lg:py-16">
           <div className="flex flex-col lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
 
-            {/* LEFT: Scenario entry */}
-            <div className="flex-1 mb-8 lg:mb-0 lg:pt-2">
-              {/* Magazine-style case file eyebrow — gives the page edge and date stamp */}
-              <div className="inline-flex items-stretch mb-5 lg:mb-6 overflow-hidden rounded-sm" style={{ border: '1px solid rgba(212,175,55,0.35)' }}>
-                <span
-                  className="px-2.5 py-1 font-mono text-[10px] lg:text-[11px] font-black tracking-[0.22em]"
-                  style={{ background: '#d4af37', color: '#0e0e12' }}
-                >
-                  CASE 003
-                </span>
-                <span
-                  className="px-2.5 py-1 font-mono text-[10px] lg:text-[11px] tracking-[0.22em] uppercase"
-                  style={{ background: 'rgba(212,175,55,0.06)', color: 'rgba(225,220,205,0.6)' }}
-                >
-                  March · 49 mo left
-                </span>
-                <span className="flex items-center gap-1.5 px-2.5 py-1 border-l" style={{ borderColor: 'rgba(212,175,55,0.18)', background: 'rgba(248,113,113,0.06)' }}>
-                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#f87171' }} />
-                  <span className="font-mono text-[10px] lg:text-[11px] font-bold tracking-[0.18em] uppercase" style={{ color: 'rgba(252,165,165,0.95)' }}>2 issues live</span>
-                </span>
-              </div>
-
-              {/* Headline: heavy editorial sans for the indictment, serif italic kicker
-                  on the punch line. No AI-trendy DM Serif body, no soft glow. */}
-              <h1
-                className="mb-5 lg:mb-7"
-                style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)' }}
+            {/* LEFT: Scenario entry — magazine cover energy, not a SaaS card */}
+            <div className="relative flex-1 mb-8 lg:mb-0 lg:pt-2">
+              {/* Giant ghost case number — typographic art behind the headline */}
+              <div
+                aria-hidden="true"
+                className="absolute pointer-events-none select-none hidden md:block"
+                style={{
+                  top: '-2.5rem',
+                  left: '-3rem',
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: 900,
+                  fontSize: 'clamp(14rem, 28vw, 26rem)',
+                  lineHeight: 0.8,
+                  color: 'transparent',
+                  WebkitTextStroke: '1px rgba(212,175,55,0.07)',
+                  letterSpacing: '-0.04em',
+                  zIndex: 0,
+                }}
               >
-                <span
-                  className="block text-[2.3rem] sm:text-[2.7rem] lg:text-[3.6rem] xl:text-[4.2rem] leading-[0.98] tracking-[-0.035em]"
-                  style={{ fontWeight: 900, textShadow: '0 2px 22px rgba(0,0,0,0.55)' }}
-                >
-                  You closed on a duplex<br className="hidden sm:inline" /> in March.
-                </span>
-                <span
-                  className="block mt-2 lg:mt-3 text-[1.9rem] sm:text-[2.2rem] lg:text-[2.9rem] xl:text-[3.2rem] leading-[1.02] tracking-[-0.01em] italic"
-                  style={{
-                    fontFamily: 'Cormorant Garamond, Georgia, serif',
-                    fontWeight: 500,
-                    color: '#fca5a5',
-                    textShadow: '0 2px 22px rgba(0,0,0,0.55)',
-                  }}
-                >
-                  One tenant is already late.
-                </span>
-              </h1>
-
-              {/* Knife-edge subhead — kicker quote with a colored stripe instead of a soft paragraph */}
-              <div className="mb-7 max-w-[540px] pl-4" style={{ borderLeft: '2px solid rgba(212,175,55,0.55)' }}>
-                <p className="text-[15px] lg:text-[17px] font-semibold uppercase tracking-[0.04em] mb-1" style={{ color: '#e8dfc8' }}>
-                  The numbers looked right on paper.
-                </p>
-                <p className="font-mono text-[11px] lg:text-xs uppercase tracking-[0.18em]" style={{ color: 'rgba(212,175,55,0.7)' }}>
-                  52 months · $100K · every choice compounds
-                </p>
+                003
               </div>
 
-              <div className="flex flex-col sm:flex-row items-start gap-3 mb-6">
-                <Link href="/game" className="w-full sm:w-auto">
-                  <button
-                    className="group w-full sm:w-auto min-w-[220px] py-4 sm:py-3.5 lg:py-4 px-8 lg:px-10 rounded-lg font-bold text-base lg:text-[17px] tracking-wide transition-all active:scale-[0.97] flex items-center justify-center gap-2.5 min-h-[52px] sm:min-h-0 hover:brightness-110"
+              <div className="relative z-10">
+                {/* Caution-tape eyebrow — diagonal stripes for that crime-scene/dossier punch */}
+                <div className="inline-flex items-stretch mb-5 lg:mb-6 overflow-hidden" style={{ borderRadius: '2px', filter: 'drop-shadow(0 4px 12px rgba(212,175,55,0.15))' }}>
+                  <span
+                    className="px-3 py-1.5 font-mono text-[10px] lg:text-[11px] font-black tracking-[0.28em]"
                     style={{
-                      background: '#d4af37',
+                      background: 'repeating-linear-gradient(135deg, #d4af37 0 10px, #1a1a1f 10px 14px)',
                       color: '#0e0e12',
-                      boxShadow: '0 4px 22px rgba(212,175,55,0.22), 0 1px 0 rgba(120,90,20,0.45)',
-                      border: '1px solid rgba(212,175,55,0.6)',
+                      textShadow: '0 0 4px #d4af37, 0 0 4px #d4af37',
                     }}
-                    data-testid="button-play-simulator"
                   >
-                    Enter the Deal
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                  </button>
-                </Link>
-                <span className="text-[11px] lg:text-xs font-medium self-center" style={{ color: 'rgba(225,220,205,0.3)' }}>No signup. Free to play.</span>
-              </div>
+                    CASE&nbsp;003
+                  </span>
+                  <span
+                    className="px-3 py-1.5 font-mono text-[10px] lg:text-[11px] tracking-[0.22em] uppercase font-bold"
+                    style={{ background: 'rgba(12,12,14,0.96)', color: 'rgba(225,220,205,0.78)', borderTop: '1px solid rgba(212,175,55,0.25)', borderBottom: '1px solid rgba(212,175,55,0.25)' }}
+                  >
+                    Filed · March
+                  </span>
+                  <span className="flex items-center gap-1.5 px-3 py-1.5" style={{ background: '#f87171', color: '#160505' }}>
+                    <Flame className="w-3 h-3" />
+                    <span className="font-mono text-[10px] lg:text-[11px] font-black tracking-[0.18em] uppercase">2 LIVE</span>
+                  </span>
+                </div>
 
-              {/* Depth signals */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5">
-                <span className="font-mono text-[10px] lg:text-[11px] uppercase tracking-widest w-full sm:w-auto" style={{ color: 'rgba(225,220,205,0.2)' }}>Simulation includes:</span>
-                {['Variable rates', 'Tenant turnover', 'Hidden damage', 'Market shifts'].map((s) => (
-                  <span key={s} className="text-[11px] lg:text-xs font-medium px-2.5 py-1 lg:px-3 lg:py-1.5 rounded" style={{ color: 'rgba(225,220,205,0.35)', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>{s}</span>
-                ))}
+                {/* Headline: massive sans with serif italic indictment, mixed scale on purpose */}
+                <h1 className="mb-6 lg:mb-7" style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)' }}>
+                  <span
+                    className="block text-[2.4rem] sm:text-[2.9rem] lg:text-[3.9rem] xl:text-[4.6rem] leading-[0.95] tracking-[-0.04em]"
+                    style={{ fontWeight: 900, textShadow: '0 2px 28px rgba(0,0,0,0.6)' }}
+                  >
+                    You closed on a<br className="hidden sm:inline" />{' '}
+                    <span style={{ background: 'linear-gradient(180deg, #f5f0e0 60%, #d4af37 60%, #d4af37 75%, #f5f0e0 75%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                      duplex
+                    </span>{' '}
+                    in March.
+                  </span>
+                  <span
+                    className="block mt-3 lg:mt-4 text-[2rem] sm:text-[2.4rem] lg:text-[3.1rem] xl:text-[3.5rem] leading-[1.0] tracking-[-0.015em] italic"
+                    style={{
+                      fontFamily: 'Cormorant Garamond, Georgia, serif',
+                      fontWeight: 500,
+                      color: '#fca5a5',
+                      textShadow: '0 2px 28px rgba(248,113,113,0.18), 0 2px 22px rgba(0,0,0,0.55)',
+                    }}
+                  >
+                    One tenant is <span style={{ textDecoration: 'underline', textDecorationStyle: 'wavy', textDecorationColor: '#f87171', textUnderlineOffset: '6px' }}>already late</span>.
+                  </span>
+                </h1>
+
+                {/* Knife-edge pull quote with bold gold rule */}
+                <div className="mb-7 max-w-[560px] pl-5 relative" style={{ borderLeft: '3px solid #d4af37' }}>
+                  <p className="text-[16px] lg:text-[19px] font-bold uppercase tracking-[0.02em] mb-1.5" style={{ color: '#f5f0e0' }}>
+                    The numbers looked right on paper.
+                  </p>
+                  <p className="font-mono text-[11px] lg:text-[12px] uppercase tracking-[0.22em] font-bold" style={{ color: 'rgba(212,175,55,0.85)' }}>
+                    52 months · $100K · every choice compounds
+                  </p>
+                </div>
+
+                {/* CTA stack — meaty button + live readout strip below */}
+                <div className="mb-6">
+                  <div className="flex flex-col sm:flex-row items-start gap-3 mb-2.5">
+                    <Link href="/game" className="w-full sm:w-auto">
+                      <button
+                        className="group relative w-full sm:w-auto min-w-[240px] py-4 sm:py-3.5 lg:py-[18px] px-7 lg:px-9 font-black text-base lg:text-[17px] tracking-[0.02em] transition-all active:translate-y-[2px] active:shadow-none flex items-center justify-center gap-3 min-h-[56px] sm:min-h-0 hover:brightness-[1.08]"
+                        style={{
+                          background: 'linear-gradient(180deg, #e9c44e 0%, #d4af37 55%, #b08e1f 100%)',
+                          color: '#0e0e12',
+                          borderRadius: '3px',
+                          boxShadow: '0 6px 0 #6f5512, 0 10px 28px rgba(212,175,55,0.35), inset 0 1px 0 rgba(255,255,255,0.4)',
+                          border: '1px solid rgba(0,0,0,0.4)',
+                          textShadow: '0 1px 0 rgba(255,255,255,0.25)',
+                        }}
+                        data-testid="button-play-simulator"
+                      >
+                        <span>Enter the Deal</span>
+                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" strokeWidth={3} />
+                      </button>
+                    </Link>
+                    <div className="flex flex-col self-center">
+                      <span className="font-mono text-[10px] lg:text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: 'rgba(212,175,55,0.7)' }}>Free · No signup</span>
+                      <span className="text-[11px] lg:text-xs" style={{ color: 'rgba(225,220,205,0.4)' }}>~2 min to your first close.</span>
+                    </div>
+                  </div>
+                  {/* Live broadcast strip */}
+                  <div
+                    className="inline-flex items-center gap-3 px-3 py-1.5 mt-1"
+                    style={{ borderRadius: '2px', background: 'rgba(8,8,11,0.7)', border: '1px solid rgba(74,222,128,0.18)' }}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Radio className="w-3 h-3 landing-data-flicker" style={{ color: '#4ade80' }} />
+                      <span className="font-mono text-[10px] font-black tracking-[0.2em]" style={{ color: '#4ade80' }}>LIVE</span>
+                    </span>
+                    <span className="w-px h-3" style={{ background: 'rgba(255,255,255,0.1)' }} />
+                    <span className="font-mono text-[10px] lg:text-[11px] tracking-wide" style={{ color: 'rgba(225,220,205,0.7)' }}>
+                      <span className="font-black" style={{ color: '#f5f0e0' }}>3,247</span> deals closed today · <span className="font-black" style={{ color: '#d4af37' }}>$14.2M</span> moved
+                    </span>
+                  </div>
+                </div>
+
+                {/* Hit-list — real warnings, not chip filler */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-w-[560px]">
+                  {[
+                    { Icon: SlidersHorizontal, label: 'Variable rates' },
+                    { Icon: Users, label: 'Tenant turnover' },
+                    { Icon: EyeOff, label: 'Hidden damage' },
+                    { Icon: Activity, label: 'Market shifts' },
+                  ].map(({ Icon, label }) => (
+                    <div
+                      key={label}
+                      className="flex items-center gap-2 px-2.5 py-2"
+                      style={{
+                        background: 'rgba(255,255,255,0.025)',
+                        borderLeft: '2px solid rgba(212,175,55,0.35)',
+                        borderRadius: '0 2px 2px 0',
+                      }}
+                    >
+                      <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(212,175,55,0.8)' }} />
+                      <span className="text-[11px] lg:text-[12px] font-semibold tracking-wide" style={{ color: 'rgba(225,220,205,0.75)' }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -571,6 +634,9 @@ export default function Landing() {
                     <span className="font-mono text-[10px] lg:text-[11px] font-bold tracking-[0.15em]" style={{ color: 'rgba(225,220,205,0.45)' }}>MO 03/52</span>
                   </div>
                 </div>
+
+                {/* Rubber-stamp verdict — hand-pressed feel, tilted */}
+                <div className="landing-stamp" aria-hidden="true">UNDER PRESSURE</div>
 
                 {/* Property info — magazine record header */}
                 <div className="px-4 lg:px-5 pt-3 pb-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>

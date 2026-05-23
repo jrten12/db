@@ -464,7 +464,7 @@ export default function Landing() {
               />
 
               <div className="relative z-10">
-                {/* Scenario tag — game HUD eyebrow */}
+                {/* Eyebrow tag — ultra-modern HUD chip */}
                 <div className="inline-flex items-center gap-2 mb-5 px-2.5 py-1 rounded-md"
                   style={{
                     background: 'rgba(212,175,55,0.08)',
@@ -475,17 +475,17 @@ export default function Landing() {
                     <span className="absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping" style={{ background: '#d4af37' }} />
                     <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: '#d4af37' }} />
                   </span>
-                  <span className="font-mono text-[10px] lg:text-[11px] font-bold tracking-[0.22em] uppercase" style={{ color: '#d4af37' }}>Live Scenario</span>
+                  <span className="font-mono text-[10px] lg:text-[11px] font-bold tracking-[0.22em] uppercase" style={{ color: '#d4af37' }}>Now Playing</span>
                   <span className="w-px h-3" style={{ background: 'rgba(212,175,55,0.3)' }} />
                   <span className="font-mono text-[10px] lg:text-[11px] tabular-nums tracking-wider" style={{ color: 'rgba(212,175,55,0.7)' }}>Month 03 / 52</span>
                 </div>
 
-                {/* Scenario title — property name as the campaign */}
+                {/* Headline — sharper, smaller, less AI-looking */}
                 <h1
-                  className="mb-3 text-[2.5rem] sm:text-[3rem] lg:text-[3.6rem] xl:text-[4.1rem] leading-[1.02] tracking-[-0.035em]"
-                  style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)', fontWeight: 800 }}
+                  className="mb-3 text-[2rem] sm:text-[2.4rem] lg:text-[2.9rem] xl:text-[3.3rem] leading-[1.05] tracking-[-0.03em]"
+                  style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)', fontWeight: 700 }}
                 >
-                  Riverside{' '}
+                  Own a{' '}
                   <span
                     style={{
                       background: 'linear-gradient(180deg, #fef3c7 0%, #d4af37 60%, #b08e1f 100%)',
@@ -494,13 +494,14 @@ export default function Landing() {
                       backgroundClip: 'text',
                     }}
                   >
-                    Duplex
-                  </span>
+                    duplex
+                  </span>{' '}for 52 months.<br />
+                  <span style={{ color: '#fca5a5', fontWeight: 600 }}>One tenant is already late.</span>
                 </h1>
 
-                {/* Scenario hook — narrative briefing */}
-                <p className="text-[15px] lg:text-[17px] mb-7 max-w-[560px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.78)' }}>
-                  You closed in March. <span className="font-semibold" style={{ color: '#fca5a5' }}>Unit A is late on rent.</span> A major repair warning just hit. You have <span className="font-semibold" style={{ color: '#f5f0e0' }}>49 months</span> to protect your cash, manage tenants, and build the portfolio.
+                {/* Hook — concise, no scenario language */}
+                <p className="text-[14px] lg:text-[15px] mb-6 max-w-[540px] leading-relaxed" style={{ color: 'rgba(225,220,205,0.72)' }}>
+                  Buy real properties, run the pro forma, manage tenants and repairs, and see if you can build a portfolio in 52 in-game months. <span className="font-semibold" style={{ color: '#f5f0e0' }}>$100K to start. Every choice compounds.</span>
                 </p>
 
                 {/* CTAs */}
@@ -516,8 +517,8 @@ export default function Landing() {
                       }}
                       data-testid="button-play-simulator"
                     >
-                      <span>Enter Scenario</span>
-                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2.5} />
+                      <span>Start New Game</span>
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
                     </button>
                   </Link>
                   <Link href="/methodology" className="w-full sm:w-auto">
@@ -530,7 +531,7 @@ export default function Landing() {
                       }}
                       data-testid="button-how-it-works"
                     >
-                      How the Sim Works
+                      How it works
                     </button>
                   </Link>
                 </div>
@@ -563,7 +564,7 @@ export default function Landing() {
                         { Icon: Wrench, color: '#fbbf24', label: 'Water heater risk rising', meta: 'Repair · est $2,800' },
                       ].map((evt, i) => (
                         <div key={i} className="flex items-center gap-2.5 px-3 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                          <evt.Icon className="w-3 h-3 flex-shrink-0" style={{ color: evt.color }} />
+                          <evt.Icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.75} style={{ color: evt.color }} />
                           <span className="text-[11px] flex-1 truncate" style={{ color: 'rgba(225,220,205,0.85)' }}>{evt.label}</span>
                           <span className="font-mono text-[10px] tabular-nums flex-shrink-0" style={{ color: 'rgba(225,220,205,0.45)' }}>{evt.meta}</span>
                         </div>
@@ -594,20 +595,20 @@ export default function Landing() {
                 {/* Panel header — modern app header */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.04))', border: '1px solid rgba(212,175,55,0.2)' }}>
-                      <Building2 className="w-4 h-4" style={{ color: '#d4af37' }} />
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.04))', border: '1px solid rgba(212,175,55,0.22)' }}>
+                      <Building2 className="w-3.5 h-3.5" strokeWidth={1.75} style={{ color: '#d4af37' }} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[15px] font-semibold tracking-tight" style={{ color: '#f5f0e0' }}>Riverside Duplex</span>
+                        <span className="text-[14px] font-semibold tracking-tight" style={{ color: '#f5f0e0' }}>Riverside Duplex</span>
                         <span
-                          className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold tracking-wide"
+                          className="text-[9px] px-1.5 py-0.5 rounded-md font-bold tracking-[0.1em] uppercase"
                           style={{ color: '#60a5fa', background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.2)' }}
                         >
                           Rental
                         </span>
                       </div>
-                      <div className="text-[11px] mt-0.5" style={{ color: 'rgba(225,220,205,0.45)' }}>Riverside · Philadelphia, PA</div>
+                      <div className="text-[10.5px] mt-0.5" style={{ color: 'rgba(225,220,205,0.45)' }}>Riverside · Philadelphia, PA</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 px-2 py-1 rounded-md" style={{ background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.18)' }}>
@@ -631,24 +632,24 @@ export default function Landing() {
                 <div className="px-5 pb-5">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div className="text-[10px] uppercase tracking-wider mb-1 font-semibold" style={{ color: 'rgba(225,220,205,0.4)' }}>Purchase</div>
-                      <div className="text-[18px] font-bold tabular-nums tracking-tight" style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)' }}>$293,000</div>
+                      <div className="text-[9.5px] uppercase tracking-[0.12em] mb-1 font-bold" style={{ color: 'rgba(225,220,205,0.4)' }}>Purchase</div>
+                      <div className="text-[17px] font-bold tabular-nums tracking-tight" style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)' }}>$293,000</div>
                     </div>
                     <div className="p-3 rounded-xl" style={{ background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.12)' }}>
-                      <div className="text-[10px] uppercase tracking-wider mb-1 font-semibold" style={{ color: 'rgba(251,191,36,0.65)' }}>Cash Left</div>
-                      <div className="text-[18px] font-bold tabular-nums tracking-tight" style={{ color: '#fbbf24', fontFamily: 'var(--font-sans)' }}>$41,200</div>
+                      <div className="text-[9.5px] uppercase tracking-[0.12em] mb-1 font-bold" style={{ color: 'rgba(251,191,36,0.65)' }}>Cash Left</div>
+                      <div className="text-[17px] font-bold tabular-nums tracking-tight" style={{ color: '#fbbf24', fontFamily: 'var(--font-sans)' }}>$41,200</div>
                     </div>
                     <div className="p-3 rounded-xl" style={{ background: 'rgba(74,222,128,0.04)', border: '1px solid rgba(74,222,128,0.15)' }}>
-                      <div className="text-[10px] uppercase tracking-wider mb-1 font-semibold flex items-center gap-1" style={{ color: 'rgba(74,222,128,0.65)' }}>
-                        <TrendingUp className="w-2.5 h-2.5" /> Cash Flow
+                      <div className="text-[9.5px] uppercase tracking-[0.12em] mb-1 font-bold flex items-center gap-1" style={{ color: 'rgba(74,222,128,0.65)' }}>
+                        <TrendingUp className="w-2.5 h-2.5" strokeWidth={2} /> Cash Flow
                       </div>
-                      <div className="text-[18px] font-bold tabular-nums tracking-tight" style={{ color: '#4ade80', fontFamily: 'var(--font-sans)' }}>
+                      <div className="text-[17px] font-bold tabular-nums tracking-tight" style={{ color: '#4ade80', fontFamily: 'var(--font-sans)' }}>
                         +$284<span className="text-[11px] ml-0.5" style={{ color: 'rgba(74,222,128,0.55)' }}>/mo</span>
                       </div>
                     </div>
                     <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div className="text-[10px] uppercase tracking-wider mb-1 font-semibold" style={{ color: 'rgba(225,220,205,0.4)' }}>Cash-on-Cash</div>
-                      <div className="text-[18px] font-bold tabular-nums tracking-tight" style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)' }}>
+                      <div className="text-[9.5px] uppercase tracking-[0.12em] mb-1 font-bold" style={{ color: 'rgba(225,220,205,0.4)' }}>Cash-on-Cash</div>
+                      <div className="text-[17px] font-bold tabular-nums tracking-tight" style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)' }}>
                         4.7<span className="text-[11px] ml-0.5" style={{ color: 'rgba(225,220,205,0.4)' }}>%</span>
                       </div>
                     </div>
@@ -681,7 +682,7 @@ export default function Landing() {
                       <div className="text-[12px] font-semibold" style={{ color: '#fbbf24' }}>Water heater failing</div>
                       <div className="text-[10px] mt-0.5" style={{ color: 'rgba(225,220,205,0.4)' }}>Repair estimate · $2,800</div>
                     </div>
-                    <Wrench className="w-3.5 h-3.5" style={{ color: 'rgba(245,158,11,0.6)' }} />
+                    <Wrench className="w-3.5 h-3.5" strokeWidth={1.75} style={{ color: 'rgba(245,158,11,0.6)' }} />
                   </div>
                 </div>
 
@@ -709,7 +710,7 @@ export default function Landing() {
                           <div className="text-[12px] font-semibold truncate" style={{ color: '#f5f0e0' }}>{d.label}</div>
                           <div className="text-[10px] truncate" style={{ color: 'rgba(225,220,205,0.4)' }}>{d.meta}</div>
                         </div>
-                        <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(225,220,205,0.3)' }} />
+                        <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.75} style={{ color: 'rgba(225,220,205,0.35)' }} />
                       </div>
                     ))}
                   </div>
@@ -719,15 +720,15 @@ export default function Landing() {
                 <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)' }}>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5">
-                      <Clock className="w-3 h-3" style={{ color: 'rgba(96,165,250,0.7)' }} />
-                      <span className="text-[11px] font-semibold" style={{ color: 'rgba(225,220,205,0.65)' }}>49 mo left</span>
+                      <Clock className="w-3 h-3" strokeWidth={1.75} style={{ color: 'rgba(96,165,250,0.7)' }} />
+                      <span className="text-[10.5px] font-semibold" style={{ color: 'rgba(225,220,205,0.65)' }}>49 mo left</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <TrendingUp className="w-3 h-3" style={{ color: '#f59e0b' }} />
-                      <span className="text-[11px] font-semibold" style={{ color: 'rgba(225,220,205,0.65)' }}>Rates rising</span>
+                      <TrendingUp className="w-3 h-3" strokeWidth={1.75} style={{ color: '#f59e0b' }} />
+                      <span className="text-[10.5px] font-semibold" style={{ color: 'rgba(225,220,205,0.65)' }}>Rates rising</span>
                     </div>
                   </div>
-                  <span className="text-[11px] font-semibold" style={{ color: 'rgba(225,220,205,0.4)' }}>Scenario preview</span>
+                  <span className="text-[10.5px] font-semibold" style={{ color: 'rgba(225,220,205,0.4)' }}>Game preview</span>
                 </div>
               </div>
             </div>

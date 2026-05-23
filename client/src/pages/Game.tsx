@@ -22,6 +22,7 @@ import { AnimatedBackground } from '@/components/game/AnimatedBackground';
 import { generateTenantName, getRandomPersonalityType, getSpeechPatterns, getRandomMessage, getRandomPaymentEthic } from '@/lib/tenantGenerator';
 import type { Tenant } from '@shared/schema';
 import { PremiumModal } from '@/components/game/PremiumModal';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { SeasonEndModal } from '@/components/game/SeasonEndModal';
 import { XpFlash, type XpFlashEvent } from '@/components/game/XpFlash';
 import { BadgesModal } from '@/components/game/BadgesModal';
@@ -141,6 +142,7 @@ export default function Game() {
   const [locationFilter, setLocationFilter] = useState<LocationFilter>('all');
   const [moneyAnimationTrigger, setMoneyAnimationTrigger] = useState(0);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [bankruptcyConfirm, setBankruptcyConfirm] = useState<{ required: number; cash: number; shortfall: number } | null>(null);
   const [premiumTriggerReason, setPremiumTriggerReason] = useState<'no_weeks' | 'low_cash' | 'manual'>('manual');
   const [showSeasonEndModal, setShowSeasonEndModal] = useState(false);
   // Snapshot of the just-ended season — captured from the 409 response so the
@@ -1023,7 +1025,7 @@ export default function Game() {
     return () => clearTimeout(timer);
   }, [milestoneQueue, activeMilestone, hasMilestoneBlockers]);
 
-  const handleCommitDeal = useCallback(async () => {
+  const handleCommitDeal = useCallback(async (skipBankruptcyCheck: boolean = false) => {
     // Guard against double-clicks
     if (isCommittingDeal) {
       return;
@@ -1042,14 +1044,20 @@ export default function Game() {
     // This includes: down payment + closing costs + loan fees + rehab + holding costs (for flips)
     const totalCashRequired = proFormaOutputs.totalCashInvested;
     
-    // CASH VALIDATION - Block if player doesn't have enough
-    if (totalCashRequired > gameRun.cash) {
-      toast.error(`Insufficient funds! You need $${totalCashRequired.toLocaleString()} but only have $${gameRun.cash.toLocaleString()}.`, { duration: 5000 });
+    // CASH VALIDATION - If purchase would push cash negative, surface a
+    // "hold up, this will bankrupt you" confirmation instead of silently
+    // letting the player proceed straight into a Game Over screen.
+    if (!skipBankruptcyCheck && totalCashRequired > gameRun.cash) {
+      setBankruptcyConfirm({
+        required: totalCashRequired,
+        cash: gameRun.cash,
+        shortfall: totalCashRequired - gameRun.cash,
+      });
       return;
     }
     
     const remainingAfterPurchase = gameRun.cash - totalCashRequired;
-    if (remainingAfterPurchase < 3000) {
+    if (!skipBankruptcyCheck && remainingAfterPurchase >= 0 && remainingAfterPurchase < 3000) {
       toast.warning(`After this purchase you'll only have $${remainingAfterPurchase.toLocaleString()} left. Monthly expenses could push you into bankruptcy — proceed carefully!`, { duration: 6000 });
     }
     
@@ -2668,6 +2676,50 @@ export default function Game() {
             </div>
           </div>
         )}
+
+        {/* Bankruptcy confirmation — purchase would push cash negative */}
+        <AlertDialog open={!!bankruptcyConfirm} onOpenChange={(open) => !open && setBankruptcyConfirm(null)}>
+          <AlertDialogContent className="bg-[hsl(220,14%,10%)] border-red-500/30 max-w-md" data-testid="dialog-bankruptcy-warning">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-red-400 text-xl flex items-center gap-2">
+                ⚠️ Hold up — this will bankrupt you
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-gray-300 space-y-2 pt-2">
+                {bankruptcyConfirm && (
+                  <>
+                    <span className="block">
+                      This deal needs <span className="text-white font-semibold">${bankruptcyConfirm.required.toLocaleString()}</span> upfront but you only have <span className="text-white font-semibold">${bankruptcyConfirm.cash.toLocaleString()}</span> in cash.
+                    </span>
+                    <span className="block text-red-300">
+                      You'd be <span className="font-semibold">${bankruptcyConfirm.shortfall.toLocaleString()}</span> short — committing now sends your account negative and ends the run immediately.
+                    </span>
+                    <span className="block text-gray-400 text-sm pt-2">
+                      Real investors never close a deal without reserves. Walk away, or push through anyway?
+                    </span>
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-3">
+              <AlertDialogCancel
+                className="bg-emerald-600 hover:bg-emerald-700 text-white border-0"
+                data-testid="button-bankruptcy-cancel"
+              >
+                Walk Away
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-600/80 hover:bg-red-600 text-white border border-red-500/40"
+                data-testid="button-bankruptcy-proceed"
+                onClick={() => {
+                  setBankruptcyConfirm(null);
+                  handleCommitDeal(true);
+                }}
+              >
+                Commit Anyway
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Premium Modal */}
         <PremiumModal

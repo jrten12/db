@@ -2339,7 +2339,7 @@ export default function Game() {
               variants={screenVariants}
               transition={screenTransition}
             >
-              <div className="sticky top-36 md:top-44 z-30 -mx-4 lg:-mx-6 xl:-mx-8 px-4 lg:px-6 xl:px-8 py-2 mb-4 bg-[hsl(220,14%,6%)]/95 backdrop-blur-sm border-b border-white/5 flex flex-wrap gap-2">
+              <div className="mb-4 flex flex-wrap gap-2">
                 <button 
                   onClick={handleReturnToProperty}
                   className="touch-target px-4 py-2.5 bg-card hover:bg-muted active:bg-muted/80 text-foreground rounded-lg text-sm font-medium border border-border transition-colors"

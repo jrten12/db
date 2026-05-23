@@ -293,9 +293,10 @@ interface ProFormaPanelProps {
   touchedFields?: Set<keyof ProFormaInputs>;
   onFieldTouch?: (fieldKey: keyof ProFormaInputs) => void;
   gameRunId?: number;
+  onStepChange?: (step: number) => void;
 }
 
-export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 100000, playerFinancials, weekNumber = 1, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false, touchedFields = new Set(), onFieldTouch, gameRunId }: ProFormaPanelProps) {
+export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, completedDiligence = [], playerCash = 100000, playerFinancials, weekNumber = 1, onReturnToProperty, onProceedWithoutDiligence, skippedDiligence = false, touchedFields = new Set(), onFieldTouch, gameRunId, onStepChange }: ProFormaPanelProps) {
   const propertyRanges = useMemo(() => getPropertyRanges(property.price, property.conditionTag), [property.price, property.conditionTag]);
   
   const effectiveRanges = useMemo(() => getEffectiveRanges(
@@ -554,9 +555,34 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   // Pro forma is only complete if all fields are filled AND all required fields have been touched
   const isFullyComplete = isComplete && allRequiredFieldsTouched;
 
+  // ────────────────────────────────────────────────────────────
+  // WIZARD STATE — 5-step flow (Strategy → Income → Scope → Financing → Review)
+  // ────────────────────────────────────────────────────────────
+  const stepStorageKey = useMemo(
+    () => (gameRunId && property?.id ? `pf-wizard-step-${gameRunId}-${property.id}` : null),
+    [gameRunId, property?.id]
+  );
+  const [currentStep, setCurrentStep] = useState<number>(() => {
+    if (typeof window === 'undefined' || !stepStorageKey) return 1;
+    const saved = window.sessionStorage.getItem(stepStorageKey);
+    const parsed = saved ? parseInt(saved, 10) : 1;
+    return Number.isFinite(parsed) && parsed >= 1 && parsed <= 5 ? parsed : 1;
+  });
+  useEffect(() => {
+    if (stepStorageKey && typeof window !== 'undefined') {
+      window.sessionStorage.setItem(stepStorageKey, String(currentStep));
+    }
+    onStepChange?.(currentStep);
+  }, [stepStorageKey, currentStep, onStepChange]);
+
+  const STEP_LABELS = ['Strategy', 'Income & Operating', 'Scope of Work', 'Financing', 'Review & Commit'];
+  const goNext = () => setCurrentStep((s) => Math.min(5, s + 1));
+  const goBack = () => setCurrentStep((s) => Math.max(1, s - 1));
+  const showOnStep = (n: number) => (currentStep === n ? '' : 'hidden');
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4" data-testid="pro-forma-panel">
-      <div className="xl:col-span-2 space-y-4">
+    <div className="space-y-4" data-testid="pro-forma-panel">
+      <div className="space-y-4">
         {/* COMPLETION PROGRESS BANNER */}
         <div className={`backdrop-blur rounded-xl border p-4 transition-all ${
           isFullyComplete
@@ -616,8 +642,48 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           </div>
         </div>
 
+        {/* WIZARD STEPPER */}
+        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3" data-testid="proforma-stepper">
+          <ol className="flex items-stretch gap-1 overflow-x-auto">
+            {STEP_LABELS.map((label, idx) => {
+              const step = idx + 1;
+              const isActive = currentStep === step;
+              const isDone = currentStep > step;
+              const isVisited = currentStep >= step;
+              return (
+                <li key={label} className="flex-1 min-w-[88px]">
+                  <button
+                    type="button"
+                    onClick={() => { if (isVisited) setCurrentStep(step); }}
+                    disabled={!isVisited}
+                    className={`w-full flex flex-col items-center gap-1 px-2 py-2 rounded-lg border transition-all ${
+                      isActive
+                        ? 'bg-cyan-500/15 border-cyan-400/60 text-cyan-200'
+                        : isDone
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/15 cursor-pointer'
+                        : 'bg-slate-800/40 border-slate-700/60 text-gray-500 cursor-not-allowed'
+                    }`}
+                    data-testid={`stepper-step-${step}`}
+                    aria-current={isActive ? 'step' : undefined}
+                  >
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
+                      isActive ? 'bg-cyan-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-gray-400'
+                    }`}>
+                      {isDone ? <CheckCircle className="w-3.5 h-3.5" /> : step}
+                    </div>
+                    <span className="text-[10px] sm:text-[11px] font-medium leading-tight text-center hidden sm:block">{label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+          <div className="mt-2 text-center text-xs text-cyan-300/80 sm:hidden font-medium">
+            Step {currentStep} of 5 — {STEP_LABELS[currentStep - 1]}
+          </div>
+        </div>
+
         {/* STRATEGY SELECTOR */}
-        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-4" data-testid="strategy-tabs">
+        <div className={`bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-4 ${showOnStep(1)}`} data-testid="strategy-tabs">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-white font-semibold">{property.name}</h2>
             <span className="text-gray-400 text-sm">{formatCurrency(property.price)}</span>
@@ -658,7 +724,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
         {/* UNIFIED RISK WARNING - combines risky assumptions and missing diligence */}
         {(riskyAssumptions.length > 0 || diligenceRiskLevel > 0) && (
-          <div className={`rounded-xl border p-4 ${
+          <div className={`${currentStep === 1 || currentStep === 5 ? '' : 'hidden'} rounded-xl border p-4 ${
             riskyAssumptions.some(r => r.severity === 'high') || diligenceRiskLevel >= 3 ? 'bg-red-500/10 border-red-500/50' :
             riskyAssumptions.length > 0 || diligenceRiskLevel >= 2 ? 'bg-amber-500/10 border-amber-500/50' :
             'bg-yellow-500/10 border-yellow-500/50'
@@ -718,7 +784,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
         )}
 
         {/* INLINE PRO FORMA - Soft blue theme with sliders and ranges */}
-        <div className="bg-gradient-to-br from-cyan-500/10 via-blue-500/10 to-sky-500/10 backdrop-blur rounded-2xl border-2 border-cyan-500/30 overflow-hidden shadow-2xl shadow-cyan-500/10">
+        <div className={`${currentStep >= 2 && currentStep <= 4 ? '' : 'hidden'} bg-gradient-to-br from-cyan-500/10 via-blue-500/10 to-sky-500/10 backdrop-blur rounded-2xl border-2 border-cyan-500/30 overflow-hidden shadow-2xl shadow-cyan-500/10`}>
           <div className="p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/40">
@@ -735,7 +801,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               {inputs.strategy === 'rent' ? (
                 <>
                   {/* Expected Rent - with range if market study done */}
-                  <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+                  <div className={`${showOnStep(2)} bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20`}>
                     <label className="text-cyan-300 text-sm font-medium mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)] flex items-center gap-2">
                       Expected Rent
                       <InfoTooltip term="expectedRent" />
@@ -807,7 +873,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   </div>
                   
                   {/* Vacancy Rate */}
-                  <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+                  <div className={`${showOnStep(2)} bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20`}>
                     <label className="text-cyan-300 text-sm font-medium mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)] flex items-center gap-2">
                       Vacancy Rate
                       <InfoTooltip term="vacancyRate" />
@@ -833,7 +899,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   </div>
 
                   {/* Rental Renovation - itemized when diligence done, slider fallback */}
-                  <div className="col-span-full">
+                  <div className={`${showOnStep(3)} col-span-full`}>
                     {hasDiligenceForIssues && revealedIssues.length > 0 ? (
                       <>
                         <ItemizedRepairsPanel
@@ -894,7 +960,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <>
                   {/* Itemized Repairs Panel - shows when diligence done */}
                   {hasDiligenceForIssues && revealedIssues.length > 0 ? (
-                    <div className="col-span-full">
+                    <div className={`${showOnStep(3)} col-span-full`}>
                       <ItemizedRepairsPanel
                         issues={revealedIssues}
                         selectedIssueIds={inputs.fixedIssueIds || []}
@@ -956,7 +1022,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   )}
                   
                   {/* Contingency */}
-                  <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+                  <div className={`${showOnStep(3)} bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20`}>
                     <label className="text-cyan-300 text-sm font-medium block mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">Contingency</label>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-cyan-100 text-2xl font-mono font-bold">{inputs.contingencyPct ?? 0}%</span>
@@ -981,7 +1047,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               )}
               
               {/* Finish Level Selector */}
-              <div className="col-span-full bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+              <div className={`${showOnStep(3)} col-span-full bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20`}>
                 <label className="text-cyan-300 text-base font-semibold mb-3 block drop-shadow-[0_0_8px_rgba(34,211,238,0.2)]">
                   Finish Level
                 </label>
@@ -1016,7 +1082,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               </div>
 
               {/* LTV Slider - always available */}
-              <div className="bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20">
+              <div className={`${showOnStep(4)} col-span-full bg-slate-800/60 rounded-xl p-4 border border-cyan-500/20`}>
                 <label className="text-cyan-300 text-base font-semibold mb-2 drop-shadow-[0_0_8px_rgba(34,211,238,0.2)] flex items-center gap-2">
                   Loan-to-Value (LTV)
                   <InfoTooltip term="ltv" />
@@ -1110,7 +1176,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               
               {/* Finance Rehab Toggle - requires contractor walkthrough and a rehab budget */}
               {(inputs.rehabBudget ?? 0) > 0 && completedDiligence.includes('contractor_walkthrough') && (
-                <div className="col-span-full">
+                <div className={`${showOnStep(4)} col-span-full`}>
                   <button
                     onClick={() => onInputsChange({ ...inputs, financeRehab: !inputs.financeRehab })}
                     className={`w-full rounded-xl p-3 border-2 transition-all ${
@@ -1154,7 +1220,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               )}
               
               {/* Total Cash Needed */}
-              <div className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl p-4 border border-cyan-400/40">
+              <div className={`${showOnStep(4)} col-span-full bg-gradient-to-br from-cyan-600/20 to-blue-600/20 rounded-xl p-4 border border-cyan-400/40`}>
                 <label className="text-cyan-200 text-base font-semibold mb-2 flex items-center gap-2">
                   Total Cash Needed
                   <InfoTooltip term="totalCashNeeded" />
@@ -1168,7 +1234,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
             {/* FLIP: Estimated Sale Price (ARV) */}
             {inputs.strategy === 'flip' && (
-              <div className="mt-4 pt-4 border-t border-amber-500/20">
+              <div className={`${showOnStep(2)} mt-4 pt-4 border-t border-amber-500/20`}>
                 <p className="text-amber-400/70 text-xs uppercase tracking-wider mb-3">Estimated Sale Price</p>
                 <div className="bg-gradient-to-r from-amber-900/30 to-orange-900/20 rounded-xl p-4 border border-amber-500/30">
                   <div className="flex items-center justify-between mb-2">
@@ -1216,7 +1282,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
             {/* RENTAL: Operating Costs - Taxes, Insurance, CapEx */}
             {inputs.strategy === 'rent' && (
-              <div className="mt-4 pt-4 border-t border-cyan-500/20">
+              <div className={`${showOnStep(2)} mt-4 pt-4 border-t border-cyan-500/20`}>
                 <p className="text-cyan-400/70 text-xs uppercase tracking-wider mb-3">Operating Costs</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Annual Taxes */}
@@ -1396,7 +1462,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           
           {/* FLIP: Permit costs (shown outside rental section) */}
           {inputs.strategy === 'flip' && (hasContractorWalkthrough || hasInspection) && (
-            <div className="mt-4 bg-amber-900/30 rounded-xl p-3 border border-amber-500/20">
+            <div className={`${showOnStep(4)} mt-4 bg-amber-900/30 rounded-xl p-3 border border-amber-500/20`}>
               <div className="flex items-center gap-2 mb-2">
                 <Landmark className="w-4 h-4 text-amber-400" />
                 <label className="text-amber-300 text-xs font-medium">Permit Costs (Required for Rehab)</label>
@@ -1411,13 +1477,18 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
       </div>
     </div>
 
-      {/* LAYER 5: LIVE OUTCOMES */}
-      <div className="xl:col-span-1">
-        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-4 sticky top-4">
-          <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-emerald-400" />
-            Pro Forma Flow
-          </h3>
+      {/* STEP 5: REVIEW — Pro Forma Flow waterfall */}
+      <div className={showOnStep(5)} data-testid="step-5-review">
+        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-4">
+          <div className="mb-4">
+            <h3 className="text-white font-semibold text-base flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-emerald-400" />
+              Review &amp; Commit
+            </h3>
+            <p className="text-gray-400 text-xs mt-1">
+              Final walkthrough of your assumptions. Use the <span className="text-emerald-400 font-semibold">Commit to Deal</span> button in the side panel to close.
+            </p>
+          </div>
 
           <div className="space-y-4">
             {/* RENTAL STRATEGY: Show Formula Waterfall */}

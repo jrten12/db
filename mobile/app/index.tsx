@@ -51,15 +51,15 @@ export default function App() {
   const handleLoadEnd = useCallback(() => {
     if (!hasFinishedFirstLoad.current) {
       hasFinishedFirstLoad.current = true;
-      setTimeout(() => {
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 400,
-          useNativeDriver: true,
-        }).start(() => {
-          setLoading(false);
-        });
-      }, 300);
+      // No artificial pre-fade delay — start the fade the instant the
+      // WebView reports content is ready so the splash never lingers.
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 320,
+        useNativeDriver: true,
+      }).start(() => {
+        setLoading(false);
+      });
     } else {
       setLoading(false);
     }
@@ -145,13 +145,30 @@ export default function App() {
         thirdPartyCookiesEnabled={true}
         cacheEnabled={true}
         overScrollMode="never"
-        decelerationRate="normal"
+        // Snappier momentum-scroll deceleration on iOS — feels closer to
+        // a real native list than the default "normal" curve.
+        decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         bounces={false}
         scrollEnabled={true}
         automaticallyAdjustContentInsets={false}
         contentInsetAdjustmentBehavior="never"
+        // Block iOS data-detector auto-linking so dollar amounts, phone-like
+        // numbers and addresses inside the game don't become tappable links.
+        dataDetectorTypes={['none']}
+        // Form fields focus immediately on tap (no synthetic user-gesture wait).
+        keyboardDisplayRequiresUserAction={false}
+        // Disable Android's legacy zoom controls + ensure smooth nested scroll
+        // and GPU-backed compositing for the WebView surface.
+        setBuiltInZoomControls={false}
+        setDisplayZoomControls={false}
+        nestedScrollEnabled={true}
+        androidLayerType="hardware"
+        // Prevent the WebView from spawning new windows (e.g. target="_blank"
+        // popups) — they get handled by the same view via standard navigation.
+        setSupportMultipleWindows={false}
+        originWhitelist={['*']}
         testID="webview-main"
       />
       <View style={{ height: insets.bottom, backgroundColor: '#0f172a' }} />

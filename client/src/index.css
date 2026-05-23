@@ -202,7 +202,11 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
     -webkit-tap-highlight-color: transparent;
-    overscroll-behavior-x: none;
+    /* `manipulation` removes the 300ms double-tap-zoom delay on iOS Safari
+       and most Android WebViews, making every button feel instantly responsive
+       while still allowing native pinch-zoom where it isn't disabled. */
+    touch-action: manipulation;
+    overscroll-behavior: none;
     min-height: 100vh;
     min-height: 100dvh;
     height: auto;
@@ -210,6 +214,8 @@
     overflow-y: visible;
     -webkit-overflow-scrolling: touch;
     letter-spacing: -0.01em;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 

@@ -5,6 +5,7 @@ import { eq, and, desc, inArray } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import type { MarketCondition } from "@shared/schema";
 import { getMarketMultipliers } from "./gameMechanics";
+import { getViabilityModifiers } from "@shared/viabilityProfile";
 import type { 
   User, 
   InsertUser, 
@@ -1147,12 +1148,12 @@ export class DBStorage implements IStorage {
     }
     
     let purchasePrice = deal.purchasePrice ?? 0;
+    const [property] = await db
+      .select()
+      .from(schema.properties)
+      .where(eq(schema.properties.id, deal.propertyId))
+      .limit(1);
     if (purchasePrice <= 0) {
-      const [property] = await db
-        .select()
-        .from(schema.properties)
-        .where(eq(schema.properties.id, deal.propertyId))
-        .limit(1);
       if (!property) throw new Error('Property not found');
       purchasePrice = property.price;
     }
@@ -1160,6 +1161,7 @@ export class DBStorage implements IStorage {
     // Get the CURRENT mortgage balance from the deal
     // This is the actual amount owed after any refinancing or principal paydown
     const proFormaOutputs = deal.proFormaOutputs as any;
+    const proFormaInputs = deal.proFormaInputs as any;
     const mortgagePayoff = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
     
     // Rental sale uses MARKET CONDITIONS for correlation with flips
@@ -1175,7 +1177,15 @@ export class DBStorage implements IStorage {
     const adjustedMax = baseMax * marketMult.max; // In excellent market: 1.15 * 1.15 = 1.32
     
     const saleMultiplier = adjustedMin + Math.random() * (adjustedMax - adjustedMin);
-    const salePrice = Math.round(purchasePrice * saleMultiplier);
+    const weeksHeld = deal.purchaseWeek != null
+      ? Math.max(0, gameRun.currentWeek - deal.purchaseWeek)
+      : 0;
+    const rentalLtv = proFormaInputs?.ltv ?? (100 - (proFormaInputs?.downPaymentPct || 25));
+    const viability = getViabilityModifiers(property?.viabilityProfile, {
+      weeksHeld,
+      ltv: rentalLtv,
+    });
+    const salePrice = Math.round(purchasePrice * saleMultiplier * viability.saleMult);
     
     // Net proceeds = gross sale price minus mortgage payoff
     // This is the actual cash the player receives
@@ -1242,15 +1252,13 @@ export class DBStorage implements IStorage {
     }
     
     const newCash = runningBalance;
-    const isProfitable = saleProfit > 0;
-    const newProfitableDeals = isProfitable ? gameRun.profitableDeals + 1 : gameRun.profitableDeals;
+    // Rentals already counted toward profitableDeals on activation — do not double-count on sale
     
     const [updatedGameRun] = await db
       .update(schema.gameRuns)
       .set({
         weeksRemaining: newWeeksRemaining,
         cash: newCash,
-        profitableDeals: newProfitableDeals,
         updatedAt: new Date(),
       })
       .where(eq(schema.gameRuns.id, gameRunId))
@@ -1339,7 +1347,12 @@ export class DBStorage implements IStorage {
     const adjustedMin = baseMin * marketMult.min; // In terrible market: 0.95 * 0.85 = 0.81
     const adjustedMax = baseMax * marketMult.max; // In excellent market: 1.10 * 1.15 = 1.27
     const marketVariance = adjustedMin + Math.random() * (adjustedMax - adjustedMin);
-    const salePrice = Math.round(baseSalePrice * marketVariance);
+    const flipLtv = proFormaInputs?.ltv ?? (100 - (proFormaInputs?.downPaymentPct || 25));
+    const flipViability = getViabilityModifiers(property.viabilityProfile, {
+      weeksHeld: deal.weeksSpent || deal.weeksUntilCompletion || 0,
+      ltv: flipLtv,
+    });
+    const salePrice = Math.round(baseSalePrice * marketVariance * flipViability.saleMult);
     const saleMultiplier = salePrice / purchasePrice;
     
     // Net proceeds = sale price minus mortgage payoff (this is what player receives in cash)
@@ -1589,12 +1602,15 @@ export class DBStorage implements IStorage {
     const numPayments = 360; // 30-year fixed
     const newMonthlyPayment = newLoanBalance * (newMonthlyRate * Math.pow(1 + newMonthlyRate, numPayments)) / (Math.pow(1 + newMonthlyRate, numPayments) - 1);
     
-    // Update proFormaOutputs with new monthly debt service
+    // Update proFormaOutputs with new monthly debt service + cash-out tracking for achievements
+    const previousCashOut = proFormaOutputs?.totalCashOut || 0;
     const updatedProFormaOutputs = {
       ...proFormaOutputs,
       monthlyDebtService: newMonthlyPayment,
       debtServiceMonthly: newMonthlyPayment,
       loanAmount: newLoanBalance,
+      lastCashOut: cashOut,
+      totalCashOut: previousCashOut + cashOut,
     };
     
     // Update deal with new loan info and reset debt tracking

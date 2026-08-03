@@ -16,6 +16,9 @@ import { db } from './storage';
 import { eq } from 'drizzle-orm';
 import { rollForCurveball, rollForCurveballWithIssues, type PropertyContext, type CurveballResult, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
 import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue, getPropertyIssues, getRandomizedPropertyIssues } from '@shared/propertyIssues';
+import { getViabilityModifiers } from '@shared/viabilityProfile';
+export type { ViabilityProfile, ViabilityModifiers } from '@shared/viabilityProfile';
+export { getViabilityModifiers };
 
 /**
  * Market Conditions System
@@ -299,6 +302,14 @@ function checkForTitleIssue(didTitleSearch: boolean): TitleIssueResult {
   };
 }
 
+const ALL_DILIGENCE_TYPES = [
+  'market_study',
+  'appraisal',
+  'contractor_walkthrough',
+  'inspection',
+  'title_search',
+] as const;
+
 /**
  * Check and award trophies based on game state
  * Returns array of newly awarded trophy IDs
@@ -321,14 +332,28 @@ export async function checkAndAwardTrophies(
   if (!gameRun) return awardedTrophies;
 
   const deals = await storage.getDealsByGameRun(gameRunId);
-  const completedDeals = deals.filter(d => d.status === 'completed' || d.status === 'active_rental');
-  const profitableDeals = completedDeals.filter(d => (d.actualProfit || 0) > 0 || d.status === 'active_rental');
-  const flipDeals = completedDeals.filter(d => d.strategy === 'flip');
+  const completedDeals = deals.filter(d =>
+    d.status === 'completed' || d.status === 'active_rental' || d.status === 'sold_rental'
+  );
+  const profitableDeals = completedDeals.filter(d =>
+    (d.actualProfit || 0) > 0 || d.status === 'active_rental' || d.status === 'sold_rental'
+  );
   const rentalDeals = deals.filter(d => d.status === 'active_rental');
 
   // Get all deals across all games for cross-game trophies
   const allPlayerDeals = await storage.getDealsByPlayerName(gameRun.playerName);
   const allCompletedFlips = allPlayerDeals.filter(d => d.status === 'completed' && d.strategy === 'flip');
+  const fundedStatuses = ['active_rental', 'completed', 'sold_rental', 'in_rehab', 'ready_to_list', 'leasing', 'listing'];
+  let totalSpend = 0;
+  for (const d of allPlayerDeals) {
+    if (!fundedStatuses.includes(d.status)) continue;
+    if (d.purchasePrice && d.purchasePrice > 0) {
+      totalSpend += d.purchasePrice;
+    } else {
+      const prop = await storage.getProperty(d.propertyId);
+      totalSpend += prop?.price || 0;
+    }
+  }
 
   // Helper to award trophy if not already earned
   const tryAward = async (trophyId: string): Promise<boolean> => {
@@ -361,6 +386,39 @@ export async function checkAndAwardTrophies(
     await tryAward('landlord');
   }
 
+  // Detective - Complete all due diligence on 5 properties
+  const investigations = await storage.getPropertyInvestigations(gameRunId);
+  const diligenceByProperty = new Map<number, Set<string>>();
+  for (const inv of investigations) {
+    if (!diligenceByProperty.has(inv.propertyId)) {
+      diligenceByProperty.set(inv.propertyId, new Set());
+    }
+    diligenceByProperty.get(inv.propertyId)!.add(inv.investigationType);
+  }
+  const fullyDiligentCount = Array.from(diligenceByProperty.values()).filter(types =>
+    ALL_DILIGENCE_TYPES.every(t => types.has(t))
+  ).length;
+  if (fullyDiligentCount >= 5) {
+    await tryAward('due_diligence');
+  }
+
+  // Big Spender - Spend over $750,000 on properties (cumulative purchase prices)
+  if (totalSpend >= 750000) {
+    await tryAward('big_spender');
+  }
+
+  // Urban Expert - Complete 5 deals in urban areas
+  let urbanDealCount = 0;
+  for (const d of completedDeals) {
+    const prop = await storage.getProperty(d.propertyId);
+    if (prop?.locationType === 'urban') {
+      urbanDealCount++;
+    }
+  }
+  if (urbanDealCount >= 5) {
+    await tryAward('urban_expert');
+  }
+
   // Game-end trophies
   if (context.gameEnded) {
     // Winner - Win the game
@@ -373,18 +431,25 @@ export async function checkAndAwardTrophies(
       await tryAward('speed_demon');
     }
 
-    // Millionaire - Earn $500K total profit across all games (cumulative)
+    // Survivor - Win with less than 2 weeks remaining
+    if (context.gameWon && (context.weeksRemaining || 0) < 2) {
+      await tryAward('survivor');
+    }
+
+    // Millionaire - Earn $750K total profit across all games (cumulative)
     const player = await storage.getOrCreatePlayer(gameRun.playerName);
     // Calculate new cumulative profit after this game
     const thisGameProfit = completedDeals.reduce((sum, d) => sum + (d.actualProfit || 0), 0);
     const cumulativeProfit = player.totalProfitEarned + Math.max(0, thisGameProfit);
-    if (cumulativeProfit >= 500000) {
+    if (cumulativeProfit >= 750000) {
       await tryAward('millionaire');
     }
 
     // Perfectionist - Win with all profitable deals (no losses)
     if (context.gameWon && completedDeals.length > 0) {
-      const allProfitable = completedDeals.every(d => (d.actualProfit || 0) >= 0 || d.status === 'active_rental');
+      const allProfitable = completedDeals.every(d =>
+        (d.actualProfit || 0) >= 0 || d.status === 'active_rental' || d.status === 'sold_rental'
+      );
       if (allProfitable) {
         await tryAward('perfectionist');
       }
@@ -516,6 +581,15 @@ export async function completeFlipDeal(
     surpriseCosts += titleIssue.cost;
     titleIssueName = titleIssue.issueName;
   }
+
+  // Viability trap profile: surprise costs, sale price, high-LTV stress
+  const flipLtv = proFormaInputs?.ltv ?? (100 - (proFormaInputs?.downPaymentPct || 25));
+  const weeksHeldFlip = deal.weeksSpent || deal.weeksUntilCompletion || proFormaInputs?.rehabWeeks || 0;
+  const flipViability = getViabilityModifiers(property?.viabilityProfile, {
+    weeksHeld: weeksHeldFlip,
+    ltv: flipLtv,
+  });
+  surpriseCosts = Math.round(surpriseCosts * flipViability.surpriseMult) + flipViability.highLtvSurprise;
   
   // Calculate sale price based on due diligence, rehab investment, AND market conditions
   // REALISTIC FLIP PRICING:
@@ -606,9 +680,11 @@ export async function completeFlipDeal(
     
     // Absolute floor: can't sell for less than 60% of purchase price
     salePrice = Math.max(salePrice, Math.round(purchasePrice * 0.6));
+    // Apply viability sale multiplier (trap listings sell worse)
+    salePrice = Math.round(salePrice * flipViability.saleMult);
   } else {
     // Fallback to pro forma ARV if property not found
-    salePrice = proFormaOutputs.arv || 0;
+    salePrice = Math.round((proFormaOutputs.arv || 0) * flipViability.saleMult);
   }
   
   let cashImpact = curveball?.cashImpact || 0;
@@ -854,10 +930,25 @@ export async function processRentalIncome(
   let cashImpact = curveball?.cashImpact || 0;
   const rentMultiplier = curveball?.rentMultiplier ?? 1;
   
+  // Time-bomb viability: late holds suffer weaker rent / higher vacancy
+  const propertyForViability = await storage.getProperty(deal.propertyId);
+  const weeksHeldRental = deal.purchaseWeek != null
+    ? Math.max(0, gameRun.currentWeek - deal.purchaseWeek)
+    : 0;
+  const lateViability = getViabilityModifiers(propertyForViability?.viabilityProfile, {
+    weeksHeld: weeksHeldRental,
+  });
+  const lateRentMult = propertyForViability?.viabilityProfile === 'time-bomb' && weeksHeldRental >= 12
+    ? lateViability.rentMult
+    : 1;
+  const lateVacancyBump = propertyForViability?.viabilityProfile === 'time-bomb' && weeksHeldRental >= 12
+    ? Math.round(weeklyGrossRent * (lateViability.vacancyAdd / 100))
+    : 0;
+
   // Apply rent multiplier to rent-related components only
   // This is economically correct: rent curveballs affect rent collection, not fixed costs
-  const scaledGrossRent = Math.round(weeklyGrossRent * rentMultiplier);
-  const scaledVacancyLoss = Math.round(weeklyVacancyLoss * rentMultiplier); // Vacancy tied to rent
+  const scaledGrossRent = Math.round(weeklyGrossRent * rentMultiplier * lateRentMult);
+  const scaledVacancyLoss = Math.round(weeklyVacancyLoss * rentMultiplier * lateRentMult) + lateVacancyBump;
   
   // Fixed costs don't change with rent curveballs
   const fixedOperatingExpenses = weeklyOperatingExpenses;
@@ -906,8 +997,8 @@ export async function processRentalIncome(
     }
   }
 
-  // Get property name for descriptions
-  const property = await storage.getProperty(deal.propertyId);
+  // Get property name for descriptions (may already be loaded for viability)
+  const property = propertyForViability ?? await storage.getProperty(deal.propertyId);
   const propertyName = property?.name || `Property #${deal.propertyId}`;
   
   // Create granular ledger entries for educational value
@@ -1659,11 +1750,17 @@ export async function activateRentalProperty(
   const absoluteCeiling = Math.round(property.rentMax * 1.10);
   actualRent = Math.max(absoluteFloor, Math.min(absoluteCeiling, actualRent));
 
+  // Apply viability trap profile (rent-mirage, etc.)
+  const downPaymentPctForLtv = proFormaInputs.downPaymentPct || 25;
+  const purchaseLtv = 100 - downPaymentPctForLtv;
+  const viability = getViabilityModifiers(property.viabilityProfile, { ltv: purchaseLtv });
+  actualRent = Math.round(actualRent * viability.rentMult);
+
   // Calculate ACTUAL cash flow using actual rent + player's expense assumptions
   // (We test their rent assumption but honor their other choices)
   const vacancyRate = proFormaInputs.vacancyRate || 8;
   const tenantPaysUtilitiesVacancyPenalty = proFormaInputs.utilities ? 0 : 1.92;
-  const effectiveVacancyRate = vacancyRate + tenantPaysUtilitiesVacancyPenalty;
+  const effectiveVacancyRate = vacancyRate + tenantPaysUtilitiesVacancyPenalty + viability.vacancyAdd;
   const effectiveRent = actualRent * (1 - effectiveVacancyRate / 100);
 
   // Operating expenses (use player's assumptions)
@@ -1702,29 +1799,44 @@ export async function activateRentalProperty(
   let titleIssueName: string | undefined;
   let titleCost = 0;
   if (titleIssue.hasIssue) {
-    titleCost = titleIssue.cost;
+    titleCost = Math.round(titleIssue.cost * viability.surpriseMult);
     titleIssueName = titleIssue.issueName;
   }
+  // Leverage-trap: high-LTV purchases take an immediate cash hit
+  const leverageSurprise = viability.highLtvSurprise;
   
-  // Only create ledger entry for title issues (immediate legal/ownership problem)
-  // Property condition issues will surface through maintenance mechanics
+  // Immediate costs: title issues + leverage-trap high-LTV stress
   let newCash = gameRun.cash;
-  if (titleCost > 0) {
-    const ledgerEntry: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'> = {
-      direction: 'debit',
-      category: 'expense',
-      amount: titleCost,
-      description: `📜 Title issue discovered: ${titleIssueName}`,
-      propertyId: deal.propertyId,
-      dealId: deal.id,
-    };
+  const immediateCosts = titleCost + leverageSurprise;
+  if (immediateCosts > 0) {
+    const ledgerEntries: Omit<InsertLedgerEntry, 'gameRunId' | 'balanceAfter'>[] = [];
+    if (titleCost > 0) {
+      ledgerEntries.push({
+        direction: 'debit',
+        category: 'expense',
+        amount: titleCost,
+        description: `📜 Title issue discovered: ${titleIssueName}`,
+        propertyId: deal.propertyId,
+        dealId: deal.id,
+      });
+    }
+    if (leverageSurprise > 0) {
+      ledgerEntries.push({
+        direction: 'debit',
+        category: 'expense',
+        amount: leverageSurprise,
+        description: `⚠️ High-LTV stress costs (leverage trap listing)`,
+        propertyId: deal.propertyId,
+        dealId: deal.id,
+      });
+    }
     
     const currentGameRun = await storage.getGameRun(gameRun.id);
     const currentCash = currentGameRun?.cash ?? gameRun.cash;
     
     const result = await storage.createLedgerEntriesWithCashUpdate(
       gameRun.id,
-      [ledgerEntry],
+      ledgerEntries,
       currentCash
     );
     newCash = result.newCash;
@@ -1778,11 +1890,11 @@ export async function activateRentalProperty(
     : 0;
   
   // Store expense breakdown for weekly processing
-  // Note: titleCost is the only immediate cost - property issues surface through maintenance
+  // Note: title + leverage surprises are immediate; property issues surface through maintenance
   const updatedProFormaOutputs = {
     ...proFormaOutputs,
-    surpriseCosts: titleCost, // Only title issues are immediate costs for rentals
-    totalCashInvested: (proFormaOutputs?.totalCashInvested || 0) + titleCost,
+    surpriseCosts: immediateCosts,
+    totalCashInvested: (proFormaOutputs?.totalCashInvested || 0) + immediateCosts,
     // Vacancy tracking (unique per property)
     playerBaseVacancyRate,
     utilityVacancyPenalty: storedUtilityVacancyPenalty,
@@ -1829,6 +1941,12 @@ export async function activateRentalProperty(
     refinanceCount: 0, // Initialize refinance count
   });
 
+  // Count rental toward win goal on activation (sale must not double-count)
+  const freshRun = await storage.getGameRun(gameRun.id);
+  await storage.updateGameRun(gameRun.id, {
+    profitableDeals: (freshRun?.profitableDeals ?? gameRun.profitableDeals) + 1,
+  });
+
   // Award trophies for rental activation
   try {
     const player = await storage.getOrCreatePlayer(gameRun.playerName);
@@ -1845,12 +1963,15 @@ export async function activateRentalProperty(
   if (titleIssueName) {
     allSurpriseIssues.push(`Title: ${titleIssueName}`);
   }
+  if (leverageSurprise > 0) {
+    allSurpriseIssues.push('High-LTV leverage trap costs');
+  }
 
   return {
     deal: updatedDeal!,
-    surpriseCosts: titleCost, // Only title issues cause immediate costs for rentals
+    surpriseCosts: immediateCosts,
     surpriseIssues: allSurpriseIssues,
-    titleIssue: titleIssue.hasIssue ? { name: titleIssueName!, cost: titleIssue.cost } : undefined,
+    titleIssue: titleIssue.hasIssue ? { name: titleIssueName!, cost: titleCost } : undefined,
     newCash,
     realityCheck,
   };
@@ -1865,12 +1986,16 @@ export async function startFlipRehab(
   deal: Deal,
   rehabWeeks: number
 ): Promise<Deal> {
+  const property = await storage.getProperty(deal.propertyId);
+  const purchasePrice = deal.purchasePrice || property?.price || 0;
+
   // If no rehab planned (0 weeks), skip straight to ready_to_list
   // Player can sell immediately but at reduced ARV (property wasn't improved)
   if (rehabWeeks <= 0) {
     const updatedDeal = await storage.updateDeal(deal.id, {
       status: 'ready_to_list',
       weeksUntilCompletion: 0,
+      purchasePrice,
     });
     return updatedDeal!;
   }
@@ -1879,6 +2004,7 @@ export async function startFlipRehab(
   const updatedDeal = await storage.updateDeal(deal.id, {
     status: 'in_rehab',
     weeksUntilCompletion: rehabWeeks,
+    purchasePrice,
   });
 
   return updatedDeal!;

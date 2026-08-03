@@ -1,4 +1,5 @@
-import { Trophy, Lock, Target, Zap, Home, DollarSign, Clock, MapPin, Star, Award, Crown } from 'lucide-react';
+import { Trophy, Lock, Target, Zap, Home, DollarSign, Clock, MapPin, Star, Award, Crown, Search, CreditCard } from 'lucide-react';
+import { trophyTypes } from '@shared/schema';
 
 interface TrophyInfo {
   id: string;
@@ -8,19 +9,28 @@ interface TrophyInfo {
   description: string;
 }
 
-const TROPHIES: TrophyInfo[] = [
-  { id: 'first_blood', name: 'First Blood', icon: Target, tier: 'bronze', description: 'Complete your first deal' },
-  { id: 'in_the_black', name: 'In the Black', icon: DollarSign, tier: 'bronze', description: 'Complete a profitable deal' },
-  { id: 'detective', name: 'Detective', icon: Zap, tier: 'bronze', description: 'Complete all due diligence on 5 properties' },
-  { id: 'flip_master', name: 'Flip Master', icon: Home, tier: 'silver', description: 'Complete 5 successful flips' },
-  { id: 'landlord', name: 'Landlord', icon: Home, tier: 'silver', description: 'Own 3 rental properties in one game' },
-  { id: 'big_spender', name: 'Big Spender', icon: DollarSign, tier: 'silver', description: 'Spend over $750,000 on properties' },
-  { id: 'survivor', name: 'Survivor', icon: Clock, tier: 'silver', description: 'Win with less than 2 months remaining' },
-  { id: 'urban_expert', name: 'Urban Expert', icon: MapPin, tier: 'silver', description: 'Complete 5 deals in urban areas' },
-  { id: 'speed_demon', name: 'Speed Demon', icon: Zap, tier: 'gold', description: 'Win a game with 20+ months remaining' },
-  { id: 'millionaire', name: 'Millionaire', icon: Crown, tier: 'gold', description: 'Earn $750,000 total profit across all games' },
-  { id: 'perfectionist', name: 'Perfectionist', icon: Star, tier: 'gold', description: 'Win without any failed deals' },
-];
+const ICON_BY_ID: Record<string, typeof Trophy> = {
+  first_deal: Target,
+  profitable_deal: DollarSign,
+  due_diligence: Search,
+  flip_master: Home,
+  landlord: Home,
+  big_spender: CreditCard,
+  survivor: Clock,
+  urban_expert: MapPin,
+  winner: Award,
+  speed_demon: Zap,
+  millionaire: Crown,
+  perfectionist: Star,
+};
+
+const TROPHIES: TrophyInfo[] = trophyTypes.map((t) => ({
+  id: t.id,
+  name: t.name,
+  description: t.description,
+  tier: t.tier,
+  icon: ICON_BY_ID[t.id] || Trophy,
+}));
 
 interface TrophyShelfProps {
   earnedTrophies?: string[];
@@ -36,7 +46,7 @@ export function TrophyShelf({ earnedTrophies = [], compact = false, className = 
   };
 
   const displayTrophies = compact ? TROPHIES.slice(0, 6) : TROPHIES;
-  const earnedCount = earnedTrophies.length;
+  const earnedCount = earnedTrophies.filter(id => TROPHIES.some(t => t.id === id)).length;
   const totalCount = TROPHIES.length;
 
   return (
@@ -75,6 +85,8 @@ export function TrophyShelf({ earnedTrophies = [], compact = false, className = 
     </div>
   );
 }
+
+export const TOTAL_TROPHY_COUNT = TROPHIES.length;
 
 // Progress indicator for specific trophy
 interface TrophyProgressProps {

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Play, Trophy, Award, BookOpen, Settings, Wallet, Clock, Target } from 'lucide-react';
-import { TrophyShelf } from './TrophyShelf';
+import { TrophyShelf, TOTAL_TROPHY_COUNT } from './TrophyShelf';
 import logo from '@assets/dealbreak_icon_sim_1767848951783.png';
 import { formatCurrency } from '@/lib/gameData';
 
@@ -33,7 +33,7 @@ export function GameHomeScreen({
   profitableDeals,
   goalDeals,
 }: GameHomeScreenProps) {
-  const totalTrophies = 11;
+  const totalTrophies = TOTAL_TROPHY_COUNT;
 
   return (
     <div className="min-h-screen min-h-[100dvh] flex flex-col items-center justify-start px-4 py-8 md:py-12 overflow-y-auto">

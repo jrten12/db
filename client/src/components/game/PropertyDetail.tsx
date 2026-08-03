@@ -479,7 +479,7 @@ export function PropertyDetail({
 
                 {/* Price Badge */}
                 <div className="absolute bottom-4 left-4">
-                  <span className="text-3xl font-bold text-white drop-shadow-lg">{formatCurrency(property.price)}</span>
+                  <span className="text-4xl md:text-5xl font-bold font-mono text-white drop-shadow-lg leading-none">{formatCurrency(property.price)}</span>
                 </div>
 
                 {/* Image Type Label */}
@@ -694,8 +694,8 @@ export function PropertyDetail({
 
               {/* Due Diligence Section - Enhanced with gradients and colors */}
               <div className="desk-panel rounded-lg p-4 border border-[rgba(180,140,70,0.28)]" data-testid="due-diligence-section">
-                <h3 className="text-[hsl(43_55%_68%)] text-sm font-display font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-[hsl(28_22%_18%)] border border-[rgba(212,175,55,0.35)] flex items-center justify-center">
+                <h3 className="text-[hsl(43_55%_68%)] text-base font-display font-bold uppercase tracking-[0.12em] mb-4 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-[hsl(28_22%_18%)] border border-[rgba(212,175,55,0.35)] flex items-center justify-center">
                     <Search className="w-4 h-4 text-white" />
                   </div>
                   Due Diligence

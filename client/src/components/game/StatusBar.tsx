@@ -168,11 +168,10 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
   return (
     <>
       <div className="modern-status-bar safe-area-top safe-area-x sticky top-0 z-40" data-testid="status-bar">
-        <div className="max-w-7xl mx-auto px-3 py-1.5 md:px-4 md:py-2">
+        <div className="max-w-7xl mx-auto px-3 py-2.5 md:px-4 md:py-3">
           {/* Desktop Layout */}
-          <div className="hidden md:flex items-center gap-6">
-            {/* Logo + Home */}
-            <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-5">
+            <div className="flex items-center gap-3">
               <button
                 onClick={onGoHome}
                 className="relative group cursor-pointer"
@@ -182,9 +181,9 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <img
                   src={logo}
                   alt="Dealbreak: Real Estate Simulator"
-                  className="relative h-16 w-16 rounded-xl transition-all duration-300 group-hover:scale-105"
+                  className="relative h-[4.5rem] w-[4.5rem] rounded-xl transition-all duration-300 group-hover:scale-105"
                   style={{
-                    boxShadow: '0 6px 20px rgba(0,0,0,0.45), 0 0 0 1px rgba(212,175,55,0.35)',
+                    boxShadow: '0 6px 20px rgba(0,0,0,0.45), 0 0 0 2px rgba(212,175,55,0.4), 0 4px 0 rgba(20,12,6,0.85)',
                   }}
                   data-testid="game-logo"
                 />
@@ -192,17 +191,16 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               {onGoHome && (
                 <button
                   onClick={onGoHome}
-                  className="flex items-center gap-1.5 px-3 py-1.5 desk-panel rounded-lg text-sm text-[hsl(38_30%_78%)] hover:text-[hsl(43_72%_62%)] transition-colors"
+                  className="flex flex-col items-start px-3 py-2 desk-panel rounded-xl border-2 border-[rgba(180,140,70,0.35)] text-[hsl(38_30%_78%)] hover:text-[hsl(43_72%_62%)] transition-colors"
                   data-testid="button-home-nav"
                   data-sound="swoosh"
                 >
-                  <Home className="w-4 h-4" />
-                  <span className="hidden lg:inline font-display">Dealbreak</span>
+                  <span className="font-display text-xl leading-none" style={{ color: '#d4af37' }}>Dealbreak</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-[hsl(35_15%_55%)] mt-1">Main Menu</span>
                 </button>
               )}
             </div>
 
-            {/* Stats */}
             <div className="flex items-center gap-3 flex-1">
               <StatCard
                 icon={Wallet}
@@ -219,79 +217,68 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <AnimatedNumber value={weeksRemaining} suffix=" Months" className="time-value" variant="time" />
               </StatCard>
 
-              {/* Progress Ring for Goals */}
               <div className={`stat-card stat-card-goal ${goalPulse ? 'hud-pulse-goal' : ''}`} data-testid="status-goal">
                 <div className="flex items-center gap-3">
-                  <ProgressRing current={profitableDeals} total={goalDeals} size={48} strokeWidth={4} />
+                  <ProgressRing current={profitableDeals} total={goalDeals} size={56} strokeWidth={5} />
                   <div>
                     <div className="stat-card-header">
                       <Target className="stat-card-icon" />
                       <span className="stat-card-label">GOAL</span>
                     </div>
-                    <span className="text-sm text-gray-300">Profitable Deals</span>
+                    <span className="text-base font-semibold text-[hsl(40_25%_82%)]">
+                      <span className="text-emerald-400 font-mono text-xl">{profitableDeals}</span>
+                      <span className="text-[hsl(35_12%_50%)]"> / {goalDeals}</span>
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Advance Week Button */}
             {onAdvanceWeek && (
               <button
                 onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
                 disabled={isAdvancingWeek || weeksRemaining <= 0}
-                className="touch-target flex items-center gap-2 px-5 py-2.5 bg-[hsl(145_48%_34%)] hover:bg-[hsl(145_50%_38%)] disabled:bg-[hsl(30_10%_28%)] disabled:cursor-not-allowed text-white font-semibold rounded-lg border border-[rgba(16,185,129,0.35)] shadow-md transition-all duration-150 ios-spring tap-scale disabled:tap-scale-none"
+                className="touch-target flex items-center gap-2 px-6 py-3.5 bg-[hsl(145_50%_34%)] hover:bg-[hsl(145_52%_38%)] disabled:bg-[hsl(30_10%_28%)] disabled:cursor-not-allowed text-white font-bold text-base uppercase tracking-wide rounded-xl border-2 border-[hsl(145_45%_26%)] shadow-[0_4px_0_hsl(145_60%_18%)] transition-all duration-150 ios-spring tap-scale disabled:tap-scale-none disabled:shadow-none"
                 data-testid="button-advance-week"
                 data-no-click-sound
               >
                 {isAdvancingWeek ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     <span>Advancing...</span>
                   </>
                 ) : (
                   <>
-                    <Play className="w-4 h-4" />
+                    <Play className="w-5 h-5" fill="currentColor" />
                     <span>Skip Month</span>
                   </>
                 )}
               </button>
             )}
 
-            {/* Menu Button */}
             <button
               onClick={() => setMenuOpen(true)}
-              className="menu-button"
+              className="menu-button border-2 border-[rgba(180,140,70,0.35)] rounded-xl p-3.5"
               data-testid="button-menu-desktop"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </button>
           </div>
 
-          {/* Mobile Layout - single scoreboard row + one advance control */}
-          <div className="md:hidden flex items-center gap-2">
-            {onGoHome && (
-              <button
-                onClick={onGoHome}
-                className="touch-target flex items-center justify-center desk-panel rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
-                data-testid="button-home-mobile"
-                data-sound="swoosh"
-              >
-                <Home className="w-5 h-5 text-[hsl(38_30%_78%)]" />
-              </button>
-            )}
-
+          {/* Mobile Layout — chunky game scoreboard */}
+          <div className="md:hidden flex items-center gap-2.5">
             <button
               onClick={() => setMenuOpen(true)}
-              className="menu-button-mobile touch-target flex items-center justify-center tap-scale flex-shrink-0"
+              className="menu-button-mobile touch-target flex items-center justify-center tap-scale flex-shrink-0 w-12 h-12 rounded-xl border-2 border-[rgba(180,140,70,0.4)]"
               data-testid="button-menu-mobile"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </button>
             
-            <div className="flex items-center gap-1.5 flex-1 min-w-0 desk-panel rounded-lg px-1 py-0.5">
+            <div className="hud-scoreboard-mobile">
               <button 
                 onClick={onOpenLedger}
-                className="stat-card-mobile-compact stat-card-mobile-cash touch-target-sm tap-scale flex-1 border-0 bg-transparent shadow-none"
+                className="stat-card-mobile-compact stat-card-mobile-cash touch-target tap-scale flex-1"
                 data-testid="status-cash-mobile"
                 data-sound="swoosh"
               >
@@ -299,14 +286,15 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <div className="stat-label-mobile-compact">Cash</div>
               </button>
               
-              <div className="stat-card-mobile-compact stat-card-mobile-time touch-target-sm flex-1 border-0 bg-transparent shadow-none" data-testid="status-time-mobile">
+              <div className="stat-card-mobile-compact stat-card-mobile-time touch-target flex-1" data-testid="status-time-mobile">
                 <AnimatedNumber value={weeksRemaining} suffix="M" className="mobile-time-value-compact" />
                 <div className="stat-label-mobile-compact">Time</div>
               </div>
               
-              <div className="stat-card-mobile-compact stat-card-mobile-goal touch-target-sm flex-1 border-0 bg-transparent shadow-none" data-testid="status-goal-mobile">
+              <div className="stat-card-mobile-compact stat-card-mobile-goal touch-target flex-1" data-testid="status-goal-mobile">
                 <span className="mobile-goal-value-compact">
-                  <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
+                  <span className="text-emerald-400">{profitableDeals}</span>
+                  <span className="text-[hsl(35_12%_55%)]">/{goalDeals}</span>
                 </span>
                 <div className="stat-label-mobile-compact">Deals</div>
               </div>
@@ -316,16 +304,16 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               <button
                 onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
                 disabled={isAdvancingWeek || weeksRemaining <= 0}
-                className="touch-target flex items-center justify-center bg-[hsl(145_48%_34%)] hover:bg-[hsl(145_50%_38%)] active:bg-[hsl(145_48%_30%)] disabled:bg-[hsl(30_10%_28%)] disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10 border border-[rgba(16,185,129,0.35)]"
+                className="touch-target flex items-center justify-center bg-[hsl(145_50%_34%)] hover:bg-[hsl(145_52%_38%)] active:bg-[hsl(145_48%_30%)] disabled:bg-[hsl(30_10%_28%)] disabled:cursor-not-allowed rounded-xl transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-12 h-12 border-2 border-[hsl(145_45%_26%)] shadow-[0_3px_0_hsl(145_60%_18%)]"
                 data-testid="button-advance-week-mobile"
                 data-no-click-sound
                 title="Skip ahead one month"
                 aria-label="Skip ahead one month"
               >
                 {isAdvancingWeek ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-white" />
+                  <Loader2 className="w-6 h-6 animate-spin text-white" />
                 ) : (
-                  <Play className="w-5 h-5 text-white" />
+                  <Play className="w-6 h-6 text-white" fill="currentColor" />
                 )}
               </button>
             )}
@@ -346,19 +334,25 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               <X className="w-6 h-6" />
             </button>
 
-            <div className="relative mb-6 text-center">
+            <div className="relative mb-7 text-center">
               <img 
                 src={logo} 
                 alt="Dealbreak" 
-                className="relative w-28 h-28 rounded-2xl mx-auto"
+                className="relative w-32 h-32 rounded-2xl mx-auto"
                 style={{
-                  boxShadow: '0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(212,175,55,0.35)',
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.55), 0 0 0 2px rgba(212,175,55,0.4), 0 6px 0 rgba(20,12,6,0.9)',
                 }}
               />
-              <h2 className="font-display text-2xl mt-3" style={{ color: '#d4af37' }}>Dealbreak</h2>
+              <h2
+                className="font-display text-4xl mt-4 leading-none"
+                style={{ color: '#d4af37', textShadow: '0 3px 0 rgba(80,55,10,0.85)' }}
+              >
+                Dealbreak
+              </h2>
+              <p className="text-sm font-bold uppercase tracking-[0.16em] text-[hsl(35_15%_55%)] mt-2">Pause Menu</p>
             </div>
 
-            <div className="space-y-2.5 w-full max-w-xs">
+            <div className="space-y-3 w-full max-w-sm">
               <button
                 onClick={() => {
                   setMenuOpen(false);
@@ -442,20 +436,21 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               )}
             </div>
 
-            <div className="mt-8 flex gap-4">
-              <div className="menu-stat-card">
-                <AnimatedNumber value={cashDisplay} prefix="$" className="menu-cash-value" />
-                <div className="text-gray-500 text-xs">Cash</div>
+            <div className="mt-8 w-full max-w-sm game-scoreboard">
+              <div className="game-scoreboard-cell">
+                <AnimatedNumber value={cashDisplay} prefix="$" className="game-scoreboard-value text-emerald-400" />
+                <div className="game-scoreboard-label">Cash</div>
               </div>
-              <div className="menu-stat-card">
-                <span className="menu-time-value">{weeksRemaining}M</span>
-                <div className="text-gray-500 text-xs">Left</div>
+              <div className="game-scoreboard-cell">
+                <span className="game-scoreboard-value text-[hsl(43_70%_72%)]">{weeksRemaining}M</span>
+                <div className="game-scoreboard-label">Left</div>
               </div>
-              <div className="menu-stat-card">
-                <span className="menu-goal-value">
-                  <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
+              <div className="game-scoreboard-cell">
+                <span className="game-scoreboard-value">
+                  <span className="text-emerald-400">{profitableDeals}</span>
+                  <span className="text-[hsl(35_15%_55%)]">/{goalDeals}</span>
                 </span>
-                <div className="text-gray-500 text-xs">Deals</div>
+                <div className="game-scoreboard-label">Deals</div>
               </div>
             </div>
           </div>

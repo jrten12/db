@@ -10,127 +10,49 @@
 
 import { storage, IStorage } from './storage';
 import type { GameRun, Deal, InsertLedgerEntry, InsertCurveballEvent, MarketCondition } from '@shared/schema';
-import { MARKET_CONDITIONS } from '@shared/schema';
 import * as schema from '@shared/schema';
 import { db } from './storage';
 import { eq } from 'drizzle-orm';
 import { rollForCurveball, rollForCurveballWithIssues, type PropertyContext, type CurveballResult, normalizeConditionTag, normalizePropertyType, normalizeLocationType } from '../client/src/lib/curveballs';
 import { getUndiscoveredIssues, calculateSurpriseCosts, PropertyIssue, getPropertyIssues, getRandomizedPropertyIssues } from '@shared/propertyIssues';
 import { getViabilityModifiers } from '@shared/viabilityProfile';
+import {
+  getMarketMultipliers,
+  getRandomStartingMarket,
+  progressMarketCondition,
+  shouldMarketChange as shouldMarketChangeBase,
+  getWeeklyRentGrowthRate,
+  getMarketVacancyAdjustment,
+  applyMarketToListing,
+  normalizeMarketCondition,
+  calculateMarketAppreciation,
+  type MarketMultipliers,
+} from '@shared/marketEconomy';
 export type { ViabilityProfile, ViabilityModifiers } from '@shared/viabilityProfile';
 export { getViabilityModifiers };
+export {
+  getMarketMultipliers,
+  getRandomStartingMarket,
+  progressMarketCondition,
+  applyMarketToListing,
+  calculateMarketAppreciation,
+  normalizeMarketCondition,
+  type MarketMultipliers,
+};
 
 /**
- * Market Conditions System
- * 
- * 5 levels: terrible, poor, neutral, good, excellent
- * Changes every 4 weeks (monthly) with gradual shifts (no extreme jumps)
- * 65% of the time should be "good" or "excellent"
- * 
- * Affects flip sale prices:
- * - Terrible: -15% to -5% (no upside)
- * - Poor: -10% to +2%
- * - Neutral: -5% to +5%
- * - Good: -3% to +10%
- * - Excellent: 0% to +15%
+ * Market Conditions System (living economy)
+ *
+ * 5 levels + soft listing drift, slow rent growth, vacancy-as-demand,
+ * and market-correlated refinance appreciation. See shared/marketEconomy.ts.
  */
 
-export interface MarketMultipliers {
-  min: number;
-  max: number;
-}
-
-export function getMarketMultipliers(condition: MarketCondition): MarketMultipliers {
-  switch (condition) {
-    case 'terrible':
-      return { min: 0.85, max: 0.95 };
-    case 'poor':
-      return { min: 0.90, max: 1.02 };
-    case 'neutral':
-      return { min: 0.95, max: 1.05 };
-    case 'good':
-      return { min: 0.97, max: 1.10 };
-    case 'excellent':
-      return { min: 1.00, max: 1.15 };
-    default:
-      return { min: 0.95, max: 1.05 };
-  }
-}
-
-/**
- * Randomize starting market condition (BAL-003 fix, BAL-004 rebalance)
- * Weighted distribution: any state is possible but slightly friendlier start
- * Weights: terrible 8%, poor 12%, neutral 25%, good 32%, excellent 23%
- */
-export function getRandomStartingMarket(): MarketCondition {
-  const rand = Math.random();
-  if (rand < 0.08) return 'terrible';
-  if (rand < 0.20) return 'poor';
-  if (rand < 0.45) return 'neutral';
-  if (rand < 0.77) return 'good';
-  return 'excellent';
-}
-
-/**
- * Progress market condition with rebalanced weights (BAL-003 fix)
- * Poor/Terrible probability weights increased by 25% vs original
- * 
- * Adjusted transition probabilities:
- * From terrible (0): 70% up, 30% stay (slower recovery, +25% stay weight)
- * From poor (1): 55% up, 20% stay, 25% down (stronger downward pull)
- * From neutral (2): 50% up, 20% stay, 30% down (more likely to dip)
- * From good (3): 25% up, 30% stay, 35% down to neutral, 10% CRASH to poor
- * From excellent (4): 40% stay, 45% down to good, 15% CRASH to neutral or worse
- */
-export function progressMarketCondition(currentCondition: MarketCondition): MarketCondition {
-  const currentIndex = MARKET_CONDITIONS.indexOf(currentCondition);
-  const rand = Math.random();
-  
-  let newIndex: number;
-  
-  switch (currentIndex) {
-    case 0: // terrible - slower recovery than before
-      newIndex = rand < 0.70 ? 1 : 0;
-      break;
-    case 1: // poor - weaker upward pull, stronger downward
-      if (rand < 0.55) newIndex = 2;
-      else if (rand < 0.75) newIndex = 1;
-      else newIndex = 0;
-      break;
-    case 2: // neutral - more balanced, easier to slip
-      if (rand < 0.50) newIndex = 3;
-      else if (rand < 0.70) newIndex = 2;
-      else newIndex = 1;
-      break;
-    case 3: // good - harder to stay, increased crash chance
-      if (rand < 0.25) newIndex = 4;
-      else if (rand < 0.55) newIndex = 3;
-      else if (rand < 0.90) newIndex = 2;
-      else newIndex = 1; // 10% crash to poor
-      break;
-    case 4: // excellent - more volatile, stronger downward pressure
-      if (rand < 0.40) newIndex = 4;
-      else if (rand < 0.85) newIndex = 3;
-      else if (rand < 0.95) newIndex = 2;
-      else newIndex = 1; // 5% crash all the way to poor
-      break;
-    default:
-      newIndex = 2; // Default to neutral (not good)
-  }
-  
-  return MARKET_CONDITIONS[newIndex];
-}
-
-/**
- * Check if market should change (every 4 weeks = monthly)
- * BAL-003: Force first transition by Month 4 (week 16) if none has occurred
- */
-export function shouldMarketChange(currentWeek: number, lastMarketChangeWeek: number): boolean {
-  // Normal monthly check
-  if (currentWeek - lastMarketChangeWeek >= 4) return true;
-  // Force first transition by week 16 if market has never changed (lastMarketChangeWeek is 0)
-  if (lastMarketChangeWeek === 0 && currentWeek >= 16) return true;
-  return false;
+export function shouldMarketChange(
+  currentWeek: number,
+  lastMarketChangeWeek: number,
+  gameRunId = 0
+): boolean {
+  return shouldMarketChangeBase(currentWeek, lastMarketChangeWeek, gameRunId);
 }
 
 /**
@@ -541,11 +463,10 @@ export async function completeFlipDeal(
   const proFormaOutputs = deal.proFormaOutputs as any;
   const proFormaInputs = deal.proFormaInputs as any;
 
-  // Get property to access ARV and rehab ranges
-  const property = await storage.getProperty(deal.propertyId);
-  
-  // Get market multipliers for current conditions
-  const market = marketCondition || (gameRun.marketCondition as MarketCondition) || 'good';
+  // Get property to access ARV and rehab ranges (soft-linked to living market)
+  const catalogProperty = await storage.getProperty(deal.propertyId);
+  const market = normalizeMarketCondition(marketCondition || gameRun.marketCondition);
+  const property = catalogProperty ? applyMarketToListing(catalogProperty, market) : undefined;
   const marketMult = getMarketMultipliers(market);
   
   // Check if player did due diligence (appraisal = comp analysis)
@@ -1478,12 +1399,12 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
   const newWeek = gameRun.currentWeek + 1;
   const newWeeksRemaining = gameRun.weeksRemaining - 1;
 
-  // Check if market should change (every 4 weeks = monthly)
-  let currentMarket = (gameRun.marketCondition as MarketCondition) || 'good';
+  // Check if market should change (~every 4 weeks with light jitter)
+  let currentMarket = normalizeMarketCondition(gameRun.marketCondition);
   const lastMarketChangeWeek = gameRun.lastMarketChangeWeek ?? 0;
   let marketChanged = false;
 
-  if (shouldMarketChange(newWeek, lastMarketChangeWeek)) {
+  if (shouldMarketChange(newWeek, lastMarketChangeWeek, gameRunId)) {
     const newMarket = progressMarketCondition(currentMarket);
     if (newMarket !== currentMarket) {
       currentMarket = newMarket;
@@ -1506,6 +1427,9 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     });
   }
 
+  // Gentle rent growth on owned active rentals (locked leases still feel alive over the year)
+  await applyWeeklyRentGrowth(gameRunId, deals, currentMarket, newWeek);
+
   return {
     rentalPayments,
     completedFlips,
@@ -1516,6 +1440,75 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     marketCondition: currentMarket,
     marketChanged,
   };
+}
+
+/**
+ * Apply small weekly market-scaled rent drift to active rentals.
+ * Skips rehabs (no tenant / lease frozen) and caps cumulative growth.
+ */
+async function applyWeeklyRentGrowth(
+  gameRunId: number,
+  deals: Deal[],
+  market: MarketCondition,
+  gameWeek: number
+): Promise<void> {
+  const growthRate = getWeeklyRentGrowthRate(market);
+  if (Math.abs(growthRate) < 0.00005) return;
+
+  for (const deal of deals) {
+    if (deal.status !== 'active_rental' || deal.rentalRehabActive) continue;
+
+    const proFormaOutputs = (deal.proFormaOutputs as any) || {};
+    const currentRent = proFormaOutputs.monthlyGrossRent;
+    if (!currentRent || currentRent <= 0) continue;
+
+    // Cap cumulative market rent drift at ±10% from activation rent
+    const baselineRent = proFormaOutputs.activationMonthlyRent || currentRent;
+    const maxRent = Math.round(baselineRent * 1.1);
+    const minRent = Math.round(baselineRent * 0.92);
+    const grownRent = Math.round(currentRent * (1 + growthRate));
+    const newMonthlyRent = Math.min(maxRent, Math.max(minRent, grownRent));
+    if (newMonthlyRent === currentRent) continue;
+
+    const effectiveVacancyRate = proFormaOutputs.effectiveVacancyRate ?? 7;
+    const newMonthlyVacancyLoss = newMonthlyRent * (effectiveVacancyRate / 100);
+    const proFormaInputs = (deal.proFormaInputs as any) || {};
+    const taxesAnnual = proFormaInputs.taxesAnnual || 0;
+    const insuranceAnnual = proFormaInputs.insuranceAnnual || 0;
+    const maintenancePct = proFormaInputs.maintenancePct || 5;
+    const capexPct = proFormaInputs.capexPct || proFormaInputs.capExPct || 5;
+    const hasPropertyMgmt = proFormaInputs.propertyManagement || false;
+    const propertyManagementPct = proFormaInputs.propertyManagementPct || 10;
+    const landlordPaysUtilities = proFormaInputs.utilities || false;
+    const utilitiesMonthly = proFormaInputs.utilitiesMonthly || 150;
+    const monthlyDebtService =
+      proFormaOutputs.monthlyDebtService || proFormaOutputs.debtServiceMonthly || 0;
+
+    const newMonthlyOperatingExpenses =
+      taxesAnnual / 12 +
+      insuranceAnnual / 12 +
+      newMonthlyRent * (maintenancePct / 100) +
+      newMonthlyRent * (capexPct / 100) +
+      (hasPropertyMgmt ? newMonthlyRent * (propertyManagementPct / 100) : 0) +
+      (landlordPaysUtilities ? utilitiesMonthly : 0);
+
+    const newNetMonthlyCashFlow =
+      newMonthlyRent - newMonthlyVacancyLoss - newMonthlyOperatingExpenses - monthlyDebtService;
+    const newWeeklyIncome = calculateWeeklyIncome(newNetMonthlyCashFlow);
+
+    await storage.updateDeal(deal.id, {
+      weeklyIncome: Math.max(0, newWeeklyIncome),
+      proFormaOutputs: {
+        ...proFormaOutputs,
+        activationMonthlyRent: baselineRent,
+        monthlyGrossRent: newMonthlyRent,
+        monthlyVacancyLoss: newMonthlyVacancyLoss,
+        monthlyOperatingExpenses: newMonthlyOperatingExpenses,
+        lastRentGrowthWeek: gameWeek,
+        marketRentGrowthApplied: true,
+      },
+    });
+  }
 }
 
 /**
@@ -1667,6 +1660,10 @@ export async function activateRentalProperty(
     .filter(inv => inv.propertyId === deal.propertyId)
     .map(inv => inv.investigationType);
 
+  // Soft-link catalog rents to current market weather before activation
+  const market = normalizeMarketCondition(gameRun.marketCondition);
+  const liveProperty = applyMarketToListing(property, market);
+
   // Calculate ACTUAL rent from property ground truth (not player's assumption!)
   // CRITICAL: Rent is tied to PROPERTY CONDITION (rehab investment), not just market study!
   // Uses SAME formula as flip sale price for consistency
@@ -1679,23 +1676,23 @@ export async function activateRentalProperty(
   const rehabBudget = proFormaInputs?.rehabBudget || 0;
   const contingencyPct = proFormaInputs?.contingencyPct || 0;
   const actualRehabSpend = rehabBudget * (1 + contingencyPct / 100);
-  const rehabRange = (property.rehabMax || 0) - (property.rehabMin || 0);
+  const rehabRange = (liveProperty.rehabMax || 0) - (liveProperty.rehabMin || 0);
   
   // SAME completion factor formula as flip logic for consistency
   // 0 = no rehab, 1 = full rehab at max end of range
   const rehabCompletionFactor = rehabRange > 0 
-    ? Math.max(0, Math.min(1, (actualRehabSpend - (property.rehabMin || 0)) / rehabRange))
+    ? Math.max(0, Math.min(1, (actualRehabSpend - (liveProperty.rehabMin || 0)) / rehabRange))
     : 1; // Property doesn't need significant rehab
   
   // ACTUAL RENT CALCULATION - tied to property condition (rehab) AND market knowledge
   let actualRent: number;
-  const rentRange = property.rentMax - property.rentMin;
+  const rentRange = liveProperty.rentMax - liveProperty.rentMin;
   
   if (didMarketStudy) {
     // WITH market study: Player knows the rent range, but actual rent depends on condition
     // Rehab completion determines WHERE in the range the rent lands
     // 0% rehab = rent at rentMin, 100% rehab = rent near rentMax
-    const conditionBasedRent = property.rentMin + (rehabCompletionFactor * rentRange);
+    const conditionBasedRent = liveProperty.rentMin + (rehabCompletionFactor * rentRange);
     
     // Small ±5% market variance (not a big swing since they did their homework)
     const marketVariance = 0.95 + (Math.random() * 0.10);
@@ -1704,7 +1701,7 @@ export async function activateRentalProperty(
     // If they skipped contractor walkthrough/inspection but property needs significant work,
     // they might not realize the property is in worse condition - "hidden damage" discovery
     // Same consequence concept as flip surprise costs, but applied to rent potential
-    if (!didContractorWalkthrough && !didInspection && (property.rehabMin || 0) > 5000) {
+    if (!didContractorWalkthrough && !didInspection && (liveProperty.rehabMin || 0) > 5000) {
       // "Surprise" - property condition is worse than assumed, tenants pay less
       const conditionPenalty = 0.85 + (Math.random() * 0.10); // 5-15% penalty
       actualRent = Math.round(actualRent * conditionPenalty);
@@ -1714,7 +1711,7 @@ export async function activateRentalProperty(
     // This is risky but NOT guaranteed failure - sometimes you get lucky
     
     // Base rent is condition-dependent but with uncertainty
-    const conditionBasedRent = property.rentMin + (rehabCompletionFactor * rentRange);
+    const conditionBasedRent = liveProperty.rentMin + (rehabCompletionFactor * rentRange);
     
     // Reality factor: Most of the time (75%) rent is lower due to ignorance
     // But ~25% of the time the property might perform at or above expectations (lucky!)
@@ -1734,7 +1731,7 @@ export async function activateRentalProperty(
     
     // If they ALSO skipped condition diligence on a property needing work,
     // additional penalty - but still not 100% guaranteed underwater
-    if (!didContractorWalkthrough && !didInspection && (property.rehabMin || 0) > 5000) {
+    if (!didContractorWalkthrough && !didInspection && (liveProperty.rehabMin || 0) > 5000) {
       // 80% chance of blindness penalty, 20% chance of no extra penalty
       if (Math.random() < 0.80) {
         const blindnessPenalty = 0.85 + (Math.random() * 0.12); // 3-15% additional penalty
@@ -1746,8 +1743,8 @@ export async function activateRentalProperty(
   // MINIMAL safety floor - allow true failure but prevent completely absurd values
   // Players CAN get underwater if they skip diligence and make wrong assumptions
   // Floor at 50% of rentMin (vs flip which has no floor) - this allows "trap" outcomes
-  const absoluteFloor = Math.round(property.rentMin * 0.50);
-  const absoluteCeiling = Math.round(property.rentMax * 1.10);
+  const absoluteFloor = Math.round(liveProperty.rentMin * 0.50);
+  const absoluteCeiling = Math.round(liveProperty.rentMax * 1.10);
   actualRent = Math.max(absoluteFloor, Math.min(absoluteCeiling, actualRent));
 
   // Apply viability trap profile (rent-mirage, etc.)
@@ -1758,9 +1755,14 @@ export async function activateRentalProperty(
 
   // Calculate ACTUAL cash flow using actual rent + player's expense assumptions
   // (We test their rent assumption but honor their other choices)
+  // Market demand shows up as vacancy, not contested inventory
   const vacancyRate = proFormaInputs.vacancyRate || 8;
   const tenantPaysUtilitiesVacancyPenalty = proFormaInputs.utilities ? 0 : 1.92;
-  const effectiveVacancyRate = vacancyRate + tenantPaysUtilitiesVacancyPenalty + viability.vacancyAdd;
+  const marketVacancyAdj = getMarketVacancyAdjustment(market);
+  const effectiveVacancyRate = Math.max(
+    2,
+    vacancyRate + tenantPaysUtilitiesVacancyPenalty + viability.vacancyAdd + marketVacancyAdj
+  );
   const effectiveRent = actualRent * (1 - effectiveVacancyRate / 100);
 
   // Operating expenses (use player's assumptions)
@@ -1857,7 +1859,7 @@ export async function activateRentalProperty(
   // Calculate reality check - compare player assumptions to market reality
   const playerProjectedCashFlow = (proFormaInputs?.expectedRent || proFormaInputs?.monthlyRent || 0) * (1 - (proFormaInputs?.vacancyRate || 5) / 100) - monthlyOpEx - debtServiceMonthly;
   const realityCheck = calculateRealityCheck(
-    { rentMin: property.rentMin, rentMax: property.rentMax, locationType: property.locationType },
+    { rentMin: liveProperty.rentMin, rentMax: liveProperty.rentMax, locationType: property.locationType },
     { monthlyRent: proFormaInputs?.expectedRent || proFormaInputs?.monthlyRent || 0, vacancyRate: proFormaInputs?.vacancyRate || 5 },
     playerProjectedCashFlow,
     completedDiligence
@@ -1865,7 +1867,8 @@ export async function activateRentalProperty(
 
   // === STORED VALUES FOR WEEKLY PROCESSING ===
   // Use stored versions to avoid redeclaring - these are for the updatedProFormaOutputs
-  const storedMarketVacancyRate = property?.locationType === 'urban' ? 7 : 5;
+  const storedMarketVacancyRate =
+    (property?.locationType === 'urban' ? 7 : 5) + marketVacancyAdj;
   const storedEffectiveVacancyRate = effectiveVacancyRate;
   const storedUtilityVacancyPenalty = tenantPaysUtilitiesVacancyPenalty;
   
@@ -1899,8 +1902,10 @@ export async function activateRentalProperty(
     playerBaseVacancyRate,
     utilityVacancyPenalty: storedUtilityVacancyPenalty,
     marketVacancyRate: storedMarketVacancyRate,
+    marketVacancyAdjustment: marketVacancyAdj,
     effectiveVacancyRate: storedEffectiveVacancyRate,
     monthlyVacancyLoss,
+    activationMonthlyRent: monthlyGrossRent,
     // Expense breakdown (separate categories)
     monthlyOperatingExpenses,  // taxes, insurance, maintenance, capex, mgmt, utilities
     monthlyDebtService: debtServiceMonthly,  // mortgage payment

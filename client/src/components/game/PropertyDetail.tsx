@@ -693,9 +693,9 @@ export function PropertyDetail({
               </div>
 
               {/* Due Diligence Section - Enhanced with gradients and colors */}
-              <div className="bg-gradient-to-br from-indigo-900/30 via-purple-900/20 to-slate-800/50 rounded-xl p-4 border border-indigo-500/30 shadow-lg shadow-indigo-500/10" data-testid="due-diligence-section">
-                <h3 className="text-indigo-300 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow shadow-indigo-500/50">
+              <div className="desk-panel rounded-lg p-4 border border-[rgba(180,140,70,0.28)]" data-testid="due-diligence-section">
+                <h3 className="text-[hsl(43_55%_68%)] text-sm font-display font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-[hsl(28_22%_18%)] border border-[rgba(212,175,55,0.35)] flex items-center justify-center">
                     <Search className="w-4 h-4 text-white" />
                   </div>
                   Due Diligence
@@ -710,27 +710,12 @@ export function PropertyDetail({
                     
                     const getGradientClasses = () => {
                       if (isCompleted) {
-                        return 'bg-gradient-to-r from-emerald-600/30 to-green-600/20 border-emerald-500/50 shadow-lg shadow-emerald-500/20';
+                        return 'bg-emerald-500/15 border-emerald-500/45';
                       }
                       if (!canAfford) {
-                        return 'bg-slate-800/40 border-slate-700 opacity-50 cursor-not-allowed';
+                        return 'bg-[hsl(25_15%_12%)] border-[hsl(25_12%_22%)] opacity-50 cursor-not-allowed';
                       }
-                      if (option.id === 'market_study') {
-                        return 'bg-gradient-to-r from-blue-600/20 to-cyan-600/10 border-blue-500/40 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/20';
-                      }
-                      if (option.id === 'appraisal') {
-                        return 'bg-gradient-to-r from-violet-600/20 to-purple-600/10 border-violet-500/40 hover:border-violet-400 hover:shadow-lg hover:shadow-violet-500/20';
-                      }
-                      if (option.id === 'contractor_walkthrough') {
-                        return 'bg-gradient-to-r from-amber-600/20 to-orange-600/10 border-amber-500/40 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-500/20';
-                      }
-                      if (option.id === 'inspection') {
-                        return 'bg-gradient-to-r from-rose-600/20 to-pink-600/10 border-rose-500/40 hover:border-rose-400 hover:shadow-lg hover:shadow-rose-500/20';
-                      }
-                      if (option.id === 'title_search') {
-                        return 'bg-gradient-to-r from-teal-600/20 to-cyan-600/10 border-teal-500/40 hover:border-teal-400 hover:shadow-lg hover:shadow-teal-500/20';
-                      }
-                      return `bg-slate-700/30 ${primaryColor.border} ${primaryColor.borderHover}`;
+                      return 'desk-panel border-[rgba(180,140,70,0.28)] hover:border-[rgba(212,175,55,0.45)]';
                     };
                     
                     const getIconColor = () => {
@@ -978,14 +963,14 @@ export function PropertyDetail({
                     onClick={() => setContractor('fast')}
                     className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
                       contractor === 'fast'
-                        ? 'bg-purple-500/20 border-2 border-purple-400 shadow-lg shadow-purple-500/20'
+                        ? 'bg-[rgba(212,175,55,0.12)] border-2 border-[rgba(212,175,55,0.45)]'
                         : 'bg-slate-700/30 border border-slate-600 hover:bg-slate-700/50'
                     }`}
                     type="button"
                   >
-                    <Zap className={`w-6 h-6 ${contractor === 'fast' ? 'text-purple-400' : 'text-gray-500'}`} />
+                    <Zap className={`w-6 h-6 ${contractor === 'fast' ? 'text-[hsl(43_72%_58%)]' : 'text-gray-500'}`} />
                     <div className="text-center">
-                      <div className={`font-semibold text-sm ${contractor === 'fast' ? 'text-purple-300' : 'text-gray-400'}`}>Established Crew</div>
+                      <div className={`font-semibold text-sm ${contractor === 'fast' ? 'text-[hsl(43_60%_70%)]' : 'text-gray-400'}`}>Established Crew</div>
                       <div className="text-xs text-gray-400">Full team, licensed & insured</div>
                       <div className="text-xs text-emerald-400">On schedule</div>
                       <div className="text-xs text-red-400">+25-40% rehab cost</div>

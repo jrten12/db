@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { StatusBar } from '@/components/game/StatusBar';
 import { MarketBar, MarketChangeNotification } from '@/components/game/MarketIndicator';
 import type { MarketCondition } from '@shared/schema';
+import { applyMarketToListing, normalizeMarketCondition } from '@shared/marketEconomy';
 import { ProFormaPanel } from '@/components/game/ProFormaPanel';
 import { MetricsPanel } from '@/components/game/MetricsPanel';
 import { PropertySelector, type LocationFilter, type PropertyDealInfo } from '@/components/game/PropertySelector';
@@ -371,12 +372,18 @@ export default function Game() {
     }
   }, [queryClient, refreshPlayerTrophies]);
 
-  const { data: properties = [], isLoading: isLoadingProps } = useQuery({
+  const { data: catalogProperties = [], isLoading: isLoadingProps } = useQuery({
     queryKey: ['properties'],
     queryFn: api.getProperties,
     staleTime: 0, // Always refetch properties to ensure we have the latest list
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes but always refetch
   });
+
+  // Soft-link listing ask/rent/ARV to current market weather (living economy)
+  const properties = useMemo(() => {
+    const market = normalizeMarketCondition(gameRun?.marketCondition);
+    return catalogProperties.map((p) => applyMarketToListing(p, market));
+  }, [catalogProperties, gameRun?.marketCondition]);
 
   const updateGameMutation = useMutation({
     mutationFn: ({ id, updates }: { id: number; updates: Partial<GameRun> }) =>

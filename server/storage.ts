@@ -4,7 +4,7 @@ const { Pool } = pkg;
 import { eq, and, desc, inArray } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import type { MarketCondition } from "@shared/schema";
-import { getMarketMultipliers } from "./gameMechanics";
+import { getMarketMultipliers, calculateMarketAppreciation, applyMarketToListing, normalizeMarketCondition } from "./gameMechanics";
 import { getViabilityModifiers } from "@shared/viabilityProfile";
 import type { 
   User, 
@@ -1164,28 +1164,33 @@ export class DBStorage implements IStorage {
     const proFormaInputs = deal.proFormaInputs as any;
     const mortgagePayoff = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
     
-    // Rental sale uses MARKET CONDITIONS for correlation with flips
-    // Market condition affects the range of sale prices (same as flip logic)
-    const marketCondition = gameRun.marketCondition || 'good';
-    const marketMult = getMarketMultipliers(marketCondition as MarketCondition);
-    
-    // Base rental appreciation range: -5% to +15% (rentals appreciate less volatilely than flips)
-    // Market condition shifts this range up or down
-    const baseMin = 0.95;
-    const baseMax = 1.15;
-    const adjustedMin = baseMin * marketMult.min; // In terrible market: 0.95 * 0.85 = 0.81
-    const adjustedMax = baseMax * marketMult.max; // In excellent market: 1.15 * 1.15 = 1.32
-    
-    const saleMultiplier = adjustedMin + Math.random() * (adjustedMax - adjustedMin);
+    // Rental sale: soft listing drift + market exit band + hold appreciation
+    const marketCondition = normalizeMarketCondition(gameRun.marketCondition);
+    const marketMult = getMarketMultipliers(marketCondition);
+    const liveListing = property ? applyMarketToListing(property, marketCondition) : null;
     const weeksHeld = deal.purchaseWeek != null
       ? Math.max(0, gameRun.currentWeek - deal.purchaseWeek)
       : 0;
+    const appreciation = calculateMarketAppreciation({
+      weeksHeld,
+      locationType: property?.locationType,
+      marketCondition,
+    });
+    
+    // Base rental exit band (tighter than flips) shifted by market multipliers
+    const baseMin = 0.96;
+    const baseMax = 1.12;
+    const adjustedMin = baseMin * marketMult.min;
+    const adjustedMax = baseMax * marketMult.max;
+    
+    const saleMultiplier = adjustedMin + Math.random() * (adjustedMax - adjustedMin);
     const rentalLtv = proFormaInputs?.ltv ?? (100 - (proFormaInputs?.downPaymentPct || 25));
     const viability = getViabilityModifiers(property?.viabilityProfile, {
       weeksHeld,
       ltv: rentalLtv,
     });
-    const salePrice = Math.round(purchasePrice * saleMultiplier * viability.saleMult);
+    const valueBasis = liveListing?.price ?? purchasePrice;
+    const salePrice = Math.round(valueBasis * appreciation * saleMultiplier * viability.saleMult);
     
     // Net proceeds = gross sale price minus mortgage payoff
     // This is the actual cash the player receives
@@ -1311,8 +1316,10 @@ export class DBStorage implements IStorage {
       .where(eq(schema.properties.id, deal.propertyId))
       .limit(1);
     if (!property) throw new Error('Property not found');
+
+    const liveProperty = applyMarketToListing(property, gameRun.marketCondition);
     
-    const purchasePrice = deal.purchasePrice ?? property.price;
+    const purchasePrice = deal.purchasePrice ?? liveProperty.price;
     const proFormaOutputs = deal.proFormaOutputs as any;
     const proFormaInputs = deal.proFormaInputs as any;
     
@@ -1326,19 +1333,19 @@ export class DBStorage implements IStorage {
     const actualRehabSpend = rehabBudget * (1 + contingencyPct / 100);
     
     // Calculate rehab completion factor (0 to 1) based on how much was invested
-    const rehabRange = property.rehabMax - property.rehabMin;
+    const rehabRange = liveProperty.rehabMax - liveProperty.rehabMin;
     const completionFactor = rehabRange > 0 
-      ? Math.max(0, Math.min(1, (actualRehabSpend - property.rehabMin) / rehabRange))
+      ? Math.max(0, Math.min(1, (actualRehabSpend - liveProperty.rehabMin) / rehabRange))
       : 0.5;
     
-    // Base sale price scales with rehab completion within the ARV range
-    const arvRange = property.arvMax - property.arvMin;
-    const baseSalePrice = property.arvMin + (completionFactor * arvRange);
+    // Base sale price scales with rehab completion within the soft-linked ARV range
+    const arvRange = liveProperty.arvMax - liveProperty.arvMin;
+    const baseSalePrice = liveProperty.arvMin + (completionFactor * arvRange);
     
     // Apply market conditions to flip sale price (same logic as rental sales)
     // This creates correlation between flip and rental markets
-    const marketCondition = gameRun.marketCondition || 'good';
-    const marketMult = getMarketMultipliers(marketCondition as MarketCondition);
+    const marketCondition = normalizeMarketCondition(gameRun.marketCondition);
+    const marketMult = getMarketMultipliers(marketCondition);
     
     // Base market variance: -5% to +10%
     // Market condition shifts this range up or down
@@ -1535,13 +1542,14 @@ export class DBStorage implements IStorage {
       throw new Error('Property not found');
     }
     
-    // Calculate current property value with appreciation (deterministic)
-    const monthsHeld = Math.floor(weeksHeld / 4.33);
-    const baseAppreciation = 0.02;
-    const timeAppreciation = Math.min(monthsHeld * 0.005, 0.10);
-    const locationBonus = property.locationType === 'urban' ? 0.015 : 0;
-    const totalAppreciation = 1 + baseAppreciation + timeAppreciation + locationBonus;
-    const currentPropertyValue = Math.round(property.price * totalAppreciation);
+    // Market-correlated appraisal (soft living economy — not free money in downturns)
+    const liveListing = applyMarketToListing(property, gameRun.marketCondition);
+    const totalAppreciation = calculateMarketAppreciation({
+      weeksHeld,
+      locationType: property.locationType,
+      marketCondition: gameRun.marketCondition,
+    });
+    const currentPropertyValue = Math.round(liveListing.price * totalAppreciation);
     
     const proFormaOutputs = deal.proFormaOutputs as any;
     const oldLoanBalance = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;

@@ -341,6 +341,12 @@ export const api = {
     return res.json();
   },
 
+  async getPlayerTrophies(playerId: number): Promise<PlayerTrophy[]> {
+    const res = await fetch(`${API_BASE}/players/${playerId}/trophies`);
+    if (!res.ok) throw new Error('Failed to fetch player trophies');
+    return res.json();
+  },
+
   async awardTrophy(playerId: number, trophyId: string, gameRunId?: number): Promise<{ trophy?: PlayerTrophy; alreadyHad: boolean }> {
     const res = await fetch(`${API_BASE}/players/${playerId}/trophies`, {
       method: 'POST',

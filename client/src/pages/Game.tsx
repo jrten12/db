@@ -144,6 +144,7 @@ export default function Game() {
   const [achievementsLoaded, setAchievementsLoaded] = useState(false);
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<HallOfFamePlayer | null>(null);
+  const [earnedPlayerTrophies, setEarnedPlayerTrophies] = useState<string[]>([]);
   const [showNameEntry, setShowNameEntry] = useState(true);
   
   // Sale confirmation dialog state
@@ -193,7 +194,27 @@ export default function Game() {
   } = useConstructionNotifications();
   
   // Trophy notifications
-  const { pendingTrophies, addTrophies, clearTrophies } = useTrophyNotifications();
+  const { pendingTrophies, addTrophies: enqueueTrophyNotifications, clearTrophies } = useTrophyNotifications();
+
+  const refreshPlayerTrophies = useCallback(async (playerId?: number) => {
+    const id = playerId ?? currentPlayer?.id;
+    if (!id) return;
+    try {
+      const trophies = await api.getPlayerTrophies(id);
+      setEarnedPlayerTrophies(trophies.map(t => t.trophyId));
+    } catch (err) {
+      console.error('Failed to load player trophies:', err);
+    }
+  }, [currentPlayer?.id]);
+
+  const addTrophies = useCallback((trophyIds: string[]) => {
+    enqueueTrophyNotifications(trophyIds);
+    setEarnedPlayerTrophies(prev => {
+      const next = new Set(prev);
+      trophyIds.forEach(id => next.add(id));
+      return Array.from(next);
+    });
+  }, [enqueueTrophyNotifications]);
 
   // Tutorial
   const { completeAction, startTutorial } = useTutorial();
@@ -231,6 +252,14 @@ export default function Game() {
             setGameRun(activeRun);
             setPlayerName(activeRun.playerName);
             setShowNameEntry(false);
+            try {
+              const player = await api.getOrCreatePlayer(activeRun.playerName);
+              setCurrentPlayer(player);
+              const trophies = await api.getPlayerTrophies(player.id);
+              setEarnedPlayerTrophies(trophies.map(t => t.trophyId));
+            } catch (trophyErr) {
+              console.error('Failed to load player trophies on resume:', trophyErr);
+            }
           }
         }
       } catch (err) {
@@ -249,6 +278,7 @@ export default function Game() {
       const player = await api.getOrCreatePlayer(name);
       setCurrentPlayer(player);
       setPlayerName(name);
+      await refreshPlayerTrophies(player.id);
       
       await api.updatePlayerStats(player.id, {
         totalGamesPlayed: player.totalGamesPlayed + 1,
@@ -282,7 +312,7 @@ export default function Game() {
     } finally {
       setIsLoadingGame(false);
     }
-  }, [queryClient]);
+  }, [queryClient, refreshPlayerTrophies]);
 
   const continueSavedGame = useCallback(async () => {
     const saved = loadGame();
@@ -295,6 +325,7 @@ export default function Game() {
     try {
       const player = await api.getOrCreatePlayer(saved.gameRun.playerName);
       setCurrentPlayer(player);
+      await refreshPlayerTrophies(player.id);
       
       const restoredRun = await api.createGameRun({
         playerName: saved.gameRun.playerName,
@@ -338,7 +369,7 @@ export default function Game() {
     } finally {
       setIsLoadingGame(false);
     }
-  }, [queryClient]);
+  }, [queryClient, refreshPlayerTrophies]);
 
   const { data: properties = [], isLoading: isLoadingProps } = useQuery({
     queryKey: ['properties'],
@@ -452,6 +483,15 @@ export default function Game() {
       completedFlips,
       weeksUsed: 52 - (gameRun.weeksRemaining || 0),
       unlockedAchievements,
+      investigations,
+      properties: properties.map(p => ({
+        id: p.id,
+        rehabMin: p.rehabMin,
+        conditionTag: p.conditionTag,
+      })),
+      profitableDeals: gameRun.profitableDeals,
+      goalDeals: gameRun.goalDeals,
+      weeksRemaining: gameRun.weeksRemaining,
     };
     
     const newAchievements = checkAchievements(context);
@@ -470,7 +510,7 @@ export default function Game() {
       setUnlockedAchievements(prev => [...prev, ...newAchievements]);
       setAchievementQueue(prev => [...prev, ...newAchievements]);
     }
-  }, [deals, gameRun?.cash, gameRun?.id, unlockedAchievements, achievementsLoaded]);
+  }, [deals, gameRun?.cash, gameRun?.id, gameRun?.profitableDeals, gameRun?.goalDeals, gameRun?.weeksRemaining, unlockedAchievements, achievementsLoaded, investigations, properties]);
 
   // Load existing achievements when game starts
   useEffect(() => {
@@ -1753,7 +1793,7 @@ export default function Game() {
                 onBadges={() => setShowHallOfFame(true)}
                 onTutorial={() => { startTutorial(); setCurrentScreen('market'); }}
                 onSettings={() => { setPremiumTriggerReason('manual'); setShowPremiumModal(true); }}
-                earnedTrophies={unlockedAchievements}
+                earnedTrophies={earnedPlayerTrophies}
                 cash={gameRun.cash}
                 weeksRemaining={gameRun.weeksRemaining}
                 profitableDeals={gameRun.profitableDeals}

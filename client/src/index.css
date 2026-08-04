@@ -43,7 +43,7 @@
   --color-wood: hsl(var(--wood));
   --color-wood-dark: hsl(var(--wood-dark));
 
-  --font-display: 'Sora', sans-serif;
+  --font-display: 'Fraunces', 'Cormorant Garamond', serif;
   --font-serif: 'Fraunces', serif;
   --font-sans: 'Space Grotesk', sans-serif;
   --font-mono: 'Space Mono', monospace;
@@ -81,17 +81,19 @@
   --chart-2: 40 80% 55%;
   --chart-3: 200 70% 50%;
   --chart-4: 0 70% 50%;
-  --chart-5: 280 60% 50%;
+  --chart-5: 38 70% 45%;
 
-  --gold: 43 85% 55%;
-  --gold-dark: 38 75% 40%;
-  --success: 145 60% 45%;
-  --warning: 38 90% 55%;
-  --danger: 0 70% 50%;
-  --paper: 40 30% 85%;
-  --paper-dark: 35 25% 75%;
-  --wood: 25 35% 25%;
-  --wood-dark: 25 40% 15%;
+  --gold: 43 72% 52%;
+  --gold-dark: 38 65% 38%;
+  --success: 145 55% 42%;
+  --warning: 38 85% 52%;
+  --danger: 0 65% 48%;
+  --paper: 38 28% 88%;
+  --paper-dark: 34 22% 78%;
+  --wood: 25 32% 22%;
+  --wood-dark: 25 38% 12%;
+  --brass: 38 55% 42%;
+  --ink: 30 18% 88%;
 
   --font-sans: 'Space Grotesk', sans-serif;
   --font-serif: 'Fraunces', serif;
@@ -136,6 +138,14 @@
     overflow-x: hidden;
     overflow-y: visible;
     -webkit-overflow-scrolling: touch;
+    font-size: 17px;
+    line-height: 1.45;
+  }
+
+  @media (min-width: 768px) {
+    body {
+      font-size: 18px;
+    }
   }
 }
 
@@ -245,6 +255,132 @@
 
   .font-display {
     font-family: var(--font-display);
+    font-optical-sizing: auto;
+    letter-spacing: -0.01em;
+  }
+
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+
+  .desk-surface {
+    background:
+      linear-gradient(180deg, rgba(40, 28, 18, 0.92) 0%, rgba(22, 16, 12, 0.96) 100%);
+    border: 1px solid rgba(180, 140, 70, 0.28);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 230, 170, 0.06),
+      0 8px 24px rgba(0, 0, 0, 0.45);
+  }
+
+  .desk-panel {
+    background: linear-gradient(165deg, hsl(28 22% 16%) 0%, hsl(25 28% 11%) 100%);
+    border: 1px solid rgba(180, 140, 70, 0.22);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .paper-sheet {
+    background:
+      linear-gradient(180deg, hsl(40 30% 90%) 0%, hsl(36 24% 84%) 100%);
+    color: hsl(25 30% 14%);
+    border: 1px solid hsl(34 20% 70%);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.35) inset,
+      0 10px 28px rgba(0, 0, 0, 0.35);
+  }
+
+  .brass-rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.55), transparent);
+  }
+
+  .menu-row {
+    @apply w-full flex items-center justify-center gap-3 px-6 rounded-xl font-bold transition-all duration-150 ios-spring tap-scale;
+    min-height: 56px;
+    font-size: 1.125rem;
+    letter-spacing: 0.02em;
+    background:
+      linear-gradient(180deg, hsl(30 22% 22%) 0%, hsl(25 26% 14%) 100%);
+    border: 2px solid rgba(180, 140, 70, 0.4);
+    color: hsl(40 40% 88%);
+    box-shadow:
+      0 4px 0 hsl(25 30% 8%),
+      0 8px 18px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 230, 170, 0.08);
+    text-transform: uppercase;
+  }
+  .menu-row:hover {
+    border-color: rgba(212, 175, 55, 0.65);
+    color: hsl(43 80% 68%);
+    transform: translateY(-1px);
+  }
+  .menu-row:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 1px 0 hsl(25 30% 8%),
+      0 3px 8px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 230, 170, 0.05);
+  }
+  .menu-row-primary {
+    background: linear-gradient(180deg, hsl(145 52% 42%) 0%, hsl(145 58% 28%) 100%);
+    border-color: hsl(145 50% 28%);
+    color: #f7fff9;
+    box-shadow:
+      0 4px 0 hsl(145 60% 18%),
+      0 8px 20px rgba(16, 185, 129, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    font-size: 1.25rem;
+    min-height: 64px;
+  }
+  .menu-row-primary:hover {
+    color: #ffffff;
+    border-color: hsl(145 55% 40%);
+  }
+
+  .game-scoreboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 2px solid rgba(180, 140, 70, 0.45);
+    border-radius: 0.85rem;
+    overflow: hidden;
+    background: linear-gradient(180deg, hsl(28 24% 14%) 0%, hsl(25 30% 9%) 100%);
+    box-shadow:
+      0 6px 0 hsl(25 35% 6%),
+      0 14px 28px rgba(0, 0, 0, 0.45),
+      inset 0 1px 0 rgba(255, 230, 170, 0.08);
+  }
+  .game-scoreboard-cell {
+    text-align: center;
+    padding: 0.85rem 0.5rem 0.75rem;
+    min-width: 0;
+  }
+  .game-scoreboard-cell + .game-scoreboard-cell {
+    border-left: 1px solid rgba(180, 140, 70, 0.28);
+  }
+  .game-scoreboard-value {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.35rem;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .game-scoreboard-label {
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(35 18% 58%);
+  }
+
+  @media (min-width: 768px) {
+    .game-scoreboard-value {
+      font-size: 1.65rem;
+    }
+    .game-scoreboard-label {
+      font-size: 0.78rem;
+    }
   }
 
   .scoreboard-value {
@@ -392,23 +528,25 @@
   }
 
   .modern-status-bar {
-    background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(10,10,10,0.98) 100%);
-    border-bottom: 1px solid rgba(16,185,129,0.2);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.8), inset 0 -1px 0 rgba(16,185,129,0.1);
-    backdrop-filter: blur(20px);
+    background: linear-gradient(180deg, hsl(25 34% 13%) 0%, hsl(25 40% 8%) 100%);
+    border-bottom: 3px solid rgba(180, 140, 70, 0.45);
+    box-shadow:
+      0 6px 0 rgba(0, 0, 0, 0.35),
+      0 12px 28px rgba(0,0,0,0.55),
+      inset 0 -1px 0 rgba(212,175,55,0.1);
   }
 
   .stat-card {
-    @apply px-5 py-3 rounded-xl text-left transition-all duration-300;
-    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.01) 100%);
-    border: 1.5px solid rgba(255,255,255,0.12);
+    @apply px-5 py-3.5 rounded-xl text-left transition-all duration-200;
+    background: linear-gradient(165deg, hsl(28 22% 18%) 0%, hsl(25 28% 11%) 100%);
+    border: 2px solid rgba(180, 140, 70, 0.32);
     box-shadow:
-      0 4px 16px rgba(0,0,0,0.4),
-      0 8px 32px rgba(0,0,0,0.2),
-      inset 0 1px 0 rgba(255,255,255,0.15),
-      inset 0 -1px 0 rgba(0,0,0,0.2);
+      0 3px 0 hsl(25 30% 7%),
+      0 6px 14px rgba(0,0,0,0.35),
+      inset 0 1px 0 rgba(255,255,255,0.06);
     position: relative;
     overflow: hidden;
+    min-width: 9.5rem;
   }
 
   .stat-card::before {
@@ -438,13 +576,12 @@
   }
 
   .stat-card-cash {
-    background: linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.12) 50%, rgba(16,185,129,0.06) 100%);
-    border: 1.5px solid rgba(16,185,129,0.4);
+    background: linear-gradient(135deg, rgba(16,185,129,0.22) 0%, rgba(16,185,129,0.12) 50%, rgba(16,185,129,0.06) 100%);
+    border: 2px solid rgba(16,185,129,0.42);
     box-shadow:
-      0 4px 16px rgba(16,185,129,0.3),
-      0 8px 32px rgba(16,185,129,0.15),
-      inset 0 1px 0 rgba(255,255,255,0.2),
-      inset 0 -1px 0 rgba(0,0,0,0.15);
+      0 3px 0 hsl(145 40% 14%),
+      0 6px 14px rgba(16,185,129,0.22),
+      inset 0 1px 0 rgba(255,255,255,0.15);
   }
   .stat-card-cash::before {
     background: linear-gradient(90deg, transparent, rgba(16,185,129,0.3), transparent);
@@ -461,50 +598,58 @@
   }
 
   .stat-card-time {
-    background: linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.08) 50%, rgba(59,130,246,0.03) 100%);
-    border: 1.5px solid rgba(59,130,246,0.25);
+    background: linear-gradient(135deg, rgba(180,140,70,0.18) 0%, rgba(120,90,40,0.1) 50%, rgba(80,55,20,0.05) 100%);
+    border: 2px solid rgba(180,140,70,0.38);
     box-shadow:
-      0 4px 16px rgba(59,130,246,0.2),
-      0 8px 32px rgba(59,130,246,0.1),
-      inset 0 1px 0 rgba(255,255,255,0.15),
-      inset 0 -1px 0 rgba(0,0,0,0.15);
+      0 3px 0 hsl(25 30% 7%),
+      0 6px 14px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,230,170,0.08);
   }
   .stat-card-time::before {
-    background: linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent);
   }
 
   .stat-card-goal {
-    background: linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(251,191,36,0.08) 50%, rgba(251,191,36,0.03) 100%);
-    border: 1.5px solid rgba(251,191,36,0.3);
+    background: linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(251,191,36,0.1) 50%, rgba(251,191,36,0.04) 100%);
+    border: 2px solid rgba(251,191,36,0.35);
     box-shadow:
-      0 4px 16px rgba(251,191,36,0.25),
-      0 8px 32px rgba(251,191,36,0.12),
-      inset 0 1px 0 rgba(255,255,255,0.2),
-      inset 0 -1px 0 rgba(0,0,0,0.15);
+      0 3px 0 hsl(25 30% 7%),
+      0 6px 14px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.12);
   }
   .stat-card-goal::before {
     background: linear-gradient(90deg, transparent, rgba(251,191,36,0.25), transparent);
   }
 
   .stat-card-header {
-    @apply flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider mb-1;
-    color: rgba(255,255,255,0.5);
+    @apply flex items-center gap-1.5 font-bold uppercase mb-1.5;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    color: rgba(255,255,255,0.55);
   }
 
   .stat-card-icon {
-    @apply w-3.5 h-3.5;
+    @apply w-4 h-4;
   }
 
   .stat-card-cash .stat-card-header {
-    color: rgba(16,185,129,0.7);
+    color: rgba(16,185,129,0.85);
   }
 
   .stat-card-cash .stat-card-icon {
-    color: rgba(16,185,129,0.8);
+    color: rgba(16,185,129,0.9);
   }
 
   .stat-card-value {
-    @apply text-xl sm:text-2xl font-bold;
+    @apply font-bold;
+    font-size: 1.65rem;
+    line-height: 1.1;
+  }
+
+  @media (min-width: 1024px) {
+    .stat-card-value {
+      font-size: 1.9rem;
+    }
   }
 
   .animated-number {
@@ -561,12 +706,21 @@
   }
 
   .number-suffix {
-    @apply ml-1 text-base font-normal;
-    color: rgba(255,255,255,0.5);
+    @apply ml-1.5 font-semibold;
+    font-size: 0.85em;
+    color: rgba(255,255,255,0.55);
   }
 
   .time-value {
-    color: white;
+    color: #f0e0b0;
+  }
+
+  .stat-card-time .stat-card-header {
+    color: rgba(212, 175, 55, 0.85);
+  }
+
+  .stat-card-time .stat-card-icon {
+    color: rgba(212, 175, 55, 0.9);
   }
 
   .goal-value {
@@ -682,34 +836,64 @@
     color: rgba(255,255,255,0.5);
   }
 
-  /* Compact Mobile Stats - Single Row Layout */
+  /* Mobile scoreboard cells — readable game HUD, not tiny web chips */
   .stat-card-mobile-compact {
-    @apply px-2 py-1.5 rounded-md text-center transition-all duration-300;
-    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
-    border: 1px solid rgba(255,255,255,0.1);
+    @apply px-1.5 py-2 rounded-none text-center transition-all duration-300;
+    background: transparent;
+    border: 0;
   }
 
   .stat-card-mobile-compact.stat-card-mobile-cash {
-    background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.05) 100%);
-    border: 1px solid rgba(16,185,129,0.25);
+    background: transparent;
+    border: 0;
   }
 
   .mobile-cash-value-compact {
-    @apply font-mono font-bold text-sm;
-    color: #10b981;
+    @apply font-mono font-bold;
+    font-size: 1.05rem;
+    line-height: 1.1;
+    color: #34d399;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.55);
   }
 
   .mobile-time-value-compact {
-    @apply font-bold text-sm text-white;
+    @apply font-bold;
+    font-size: 1.05rem;
+    line-height: 1.1;
+    color: #f5e6b8;
   }
 
   .mobile-goal-value-compact {
-    @apply font-bold text-sm;
+    @apply font-bold;
+    font-size: 1.05rem;
+    line-height: 1.1;
   }
 
   .stat-label-mobile-compact {
-    @apply text-[10px] leading-tight;
-    color: rgba(255,255,255,0.4);
+    margin-top: 0.2rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    color: rgba(232, 210, 160, 0.55);
+  }
+
+  .hud-scoreboard-mobile {
+    display: flex;
+    align-items: stretch;
+    flex: 1;
+    min-width: 0;
+    border: 2px solid rgba(180, 140, 70, 0.4);
+    border-radius: 0.75rem;
+    background: linear-gradient(180deg, hsl(28 24% 15%) 0%, hsl(25 32% 9%) 100%);
+    box-shadow:
+      0 3px 0 hsl(25 35% 6%),
+      inset 0 1px 0 rgba(255, 230, 170, 0.08);
+    overflow: hidden;
+  }
+  .hud-scoreboard-mobile > * + * {
+    border-left: 1px solid rgba(180, 140, 70, 0.25);
   }
 
   .menu-stat-card {
@@ -1231,9 +1415,9 @@ input[type="range"]::-moz-range-track {
   position: absolute;
   inset: -50%;
   background:
-    radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(251, 191, 36, 0.08) 0%, transparent 40%);
+    radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 80, 40, 0.12) 0%, transparent 40%);
   animation: bg-drift 20s ease-in-out infinite;
 }
 
@@ -1242,9 +1426,20 @@ input[type="range"]::-moz-range-track {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 60% 60%, rgba(16, 185, 129, 0.1) 0%, transparent 40%),
-    radial-gradient(circle at 30% 70%, rgba(139, 92, 246, 0.08) 0%, transparent 35%);
+    radial-gradient(circle at 60% 60%, rgba(16, 185, 129, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 30% 70%, rgba(180, 140, 70, 0.07) 0%, transparent 35%);
   animation: bg-drift-reverse 25s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animated-bg::before,
+  .animated-bg::after,
+  .particle {
+    animation: none !important;
+  }
+  .particle {
+    opacity: 0;
+  }
 }
 
 @keyframes bg-drift {
@@ -1265,10 +1460,20 @@ input[type="range"]::-moz-range-track {
   position: absolute;
   width: 4px;
   height: 4px;
-  background: rgba(16, 185, 129, 0.4);
+  background: rgba(212, 175, 55, 0.22);
   border-radius: 50%;
   animation: float-particle 15s ease-in-out infinite;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.12);
+}
+
+@media (max-width: 767px) {
+  .particle {
+    opacity: 0.35;
+  }
+  .animated-bg::before,
+  .animated-bg::after {
+    opacity: 0.7;
+  }
 }
 
 @keyframes float-particle {

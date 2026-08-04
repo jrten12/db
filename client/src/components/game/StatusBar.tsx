@@ -168,24 +168,22 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
   return (
     <>
       <div className="modern-status-bar safe-area-top safe-area-x sticky top-0 z-40" data-testid="status-bar">
-        <div className="max-w-7xl mx-auto px-3 py-1.5 md:px-4 md:py-2">
+        <div className="max-w-7xl mx-auto px-3 py-2.5 md:px-4 md:py-3">
           {/* Desktop Layout */}
-          <div className="hidden md:flex items-center gap-6">
-            {/* Logo + Home */}
-            <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-5">
+            <div className="flex items-center gap-3">
               <button
                 onClick={onGoHome}
                 className="relative group cursor-pointer"
                 data-testid="button-home-logo"
                 data-sound="swoosh"
               >
-                <div className="absolute -inset-1 bg-emerald-500/20 rounded-2xl blur-md group-hover:bg-emerald-500/30 transition-colors" />
                 <img
                   src={logo}
                   alt="Dealbreak: Real Estate Simulator"
-                  className="relative h-20 w-20 rounded-xl shadow-2xl transition-all duration-300 group-hover:scale-105"
+                  className="relative h-[4.5rem] w-[4.5rem] rounded-xl transition-all duration-300 group-hover:scale-105"
                   style={{
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 0 2px rgba(16,185,129,0.3)',
+                    boxShadow: '0 6px 20px rgba(0,0,0,0.45), 0 0 0 2px rgba(212,175,55,0.4), 0 4px 0 rgba(20,12,6,0.85)',
                   }}
                   data-testid="game-logo"
                 />
@@ -193,17 +191,16 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               {onGoHome && (
                 <button
                   onClick={onGoHome}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/50 hover:bg-slate-600/50 rounded-lg text-sm text-gray-300 hover:text-white transition-colors"
+                  className="flex flex-col items-start px-3 py-2 desk-panel rounded-xl border-2 border-[rgba(180,140,70,0.35)] text-[hsl(38_30%_78%)] hover:text-[hsl(43_72%_62%)] transition-colors"
                   data-testid="button-home-nav"
                   data-sound="swoosh"
                 >
-                  <Home className="w-4 h-4" />
-                  <span className="hidden lg:inline">Home</span>
+                  <span className="font-display text-xl leading-none" style={{ color: '#d4af37' }}>Dealbreak</span>
+                  <span className="text-xs font-bold uppercase tracking-[0.14em] text-[hsl(35_15%_55%)] mt-1">Main Menu</span>
                 </button>
               )}
             </div>
 
-            {/* Stats */}
             <div className="flex items-center gap-3 flex-1">
               <StatCard
                 icon={Wallet}
@@ -220,100 +217,68 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <AnimatedNumber value={weeksRemaining} suffix=" Months" className="time-value" variant="time" />
               </StatCard>
 
-              {/* Progress Ring for Goals */}
               <div className={`stat-card stat-card-goal ${goalPulse ? 'hud-pulse-goal' : ''}`} data-testid="status-goal">
                 <div className="flex items-center gap-3">
-                  <ProgressRing current={profitableDeals} total={goalDeals} size={48} strokeWidth={4} />
+                  <ProgressRing current={profitableDeals} total={goalDeals} size={56} strokeWidth={5} />
                   <div>
                     <div className="stat-card-header">
                       <Target className="stat-card-icon" />
                       <span className="stat-card-label">GOAL</span>
                     </div>
-                    <span className="text-sm text-gray-300">Profitable Deals</span>
+                    <span className="text-base font-semibold text-[hsl(40_25%_82%)]">
+                      <span className="text-emerald-400 font-mono text-xl">{profitableDeals}</span>
+                      <span className="text-[hsl(35_12%_50%)]"> / {goalDeals}</span>
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Advance Week Button */}
             {onAdvanceWeek && (
               <button
                 onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
                 disabled={isAdvancingWeek || weeksRemaining <= 0}
-                className="touch-target flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-lg transition-all duration-150 ios-spring tap-scale disabled:tap-scale-none"
+                className="touch-target flex items-center gap-2 px-6 py-3.5 bg-[hsl(145_50%_34%)] hover:bg-[hsl(145_52%_38%)] disabled:bg-[hsl(30_10%_28%)] disabled:cursor-not-allowed text-white font-bold text-base uppercase tracking-wide rounded-xl border-2 border-[hsl(145_45%_26%)] shadow-[0_4px_0_hsl(145_60%_18%)] transition-all duration-150 ios-spring tap-scale disabled:tap-scale-none disabled:shadow-none"
                 data-testid="button-advance-week"
                 data-no-click-sound
               >
                 {isAdvancingWeek ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     <span>Advancing...</span>
                   </>
                 ) : (
                   <>
-                    <Play className="w-4 h-4" />
+                    <Play className="w-5 h-5" fill="currentColor" />
                     <span>Skip Month</span>
                   </>
                 )}
               </button>
             )}
 
-            {/* Menu Button */}
             <button
               onClick={() => setMenuOpen(true)}
-              className="menu-button"
+              className="menu-button border-2 border-[rgba(180,140,70,0.35)] rounded-xl p-3.5"
               data-testid="button-menu-desktop"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </button>
           </div>
 
-          {/* Mobile Layout - Condensed Single Row */}
-          <div className="md:hidden flex items-center gap-2">
-            {/* Home Button - Mobile */}
-            {onGoHome && (
-              <button
-                onClick={onGoHome}
-                className="touch-target flex items-center justify-center bg-slate-700/60 hover:bg-slate-600/60 rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
-                data-testid="button-home-mobile"
-                data-sound="swoosh"
-              >
-                <Home className="w-5 h-5 text-gray-300" />
-              </button>
-            )}
-
-            {/* Advance Week Button - Mobile Left */}
-            {onAdvanceWeek && (
-              <button
-                onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
-                disabled={isAdvancingWeek || weeksRemaining <= 0}
-                className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
-                data-testid="button-advance-week-mobile-left"
-                data-no-click-sound
-                title="Skip ahead one month"
-              >
-                {isAdvancingWeek ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-white" />
-                ) : (
-                  <Play className="w-5 h-5 text-white" />
-                )}
-              </button>
-            )}
-
-            {/* Menu Button */}
+          {/* Mobile Layout — chunky game scoreboard */}
+          <div className="md:hidden flex items-center gap-2.5">
             <button
               onClick={() => setMenuOpen(true)}
-              className="menu-button-mobile touch-target flex items-center justify-center tap-scale flex-shrink-0"
+              className="menu-button-mobile touch-target flex items-center justify-center tap-scale flex-shrink-0 w-12 h-12 rounded-xl border-2 border-[rgba(180,140,70,0.4)]"
               data-testid="button-menu-mobile"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </button>
             
-            {/* Stats Row */}
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <div className="hud-scoreboard-mobile">
               <button 
                 onClick={onOpenLedger}
-                className="stat-card-mobile-compact stat-card-mobile-cash touch-target-sm tap-scale flex-1"
+                className="stat-card-mobile-compact stat-card-mobile-cash touch-target tap-scale flex-1"
                 data-testid="status-cash-mobile"
                 data-sound="swoosh"
               >
@@ -321,32 +286,34 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                 <div className="stat-label-mobile-compact">Cash</div>
               </button>
               
-              <div className="stat-card-mobile-compact stat-card-mobile-time touch-target-sm flex-1" data-testid="status-time-mobile">
+              <div className="stat-card-mobile-compact stat-card-mobile-time touch-target flex-1" data-testid="status-time-mobile">
                 <AnimatedNumber value={weeksRemaining} suffix="M" className="mobile-time-value-compact" />
                 <div className="stat-label-mobile-compact">Time</div>
               </div>
               
-              <div className="stat-card-mobile-compact stat-card-mobile-goal touch-target-sm flex-1" data-testid="status-goal-mobile">
+              <div className="stat-card-mobile-compact stat-card-mobile-goal touch-target flex-1" data-testid="status-goal-mobile">
                 <span className="mobile-goal-value-compact">
-                  <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
+                  <span className="text-emerald-400">{profitableDeals}</span>
+                  <span className="text-[hsl(35_12%_55%)]">/{goalDeals}</span>
                 </span>
                 <div className="stat-label-mobile-compact">Deals</div>
               </div>
             </div>
             
-            {/* Advance Week Button - Mobile Right */}
             {onAdvanceWeek && (
               <button
                 onClick={() => { playAdvanceWeekSound(); onAdvanceWeek(); }}
                 disabled={isAdvancingWeek || weeksRemaining <= 0}
-                className="touch-target flex items-center justify-center bg-blue-500 hover:bg-blue-400 active:bg-blue-600 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-10 h-10"
-                data-testid="button-advance-week-mobile-right"
+                className="touch-target flex items-center justify-center bg-[hsl(145_50%_34%)] hover:bg-[hsl(145_52%_38%)] active:bg-[hsl(145_48%_30%)] disabled:bg-[hsl(30_10%_28%)] disabled:cursor-not-allowed rounded-xl transition-all duration-150 ios-spring tap-scale flex-shrink-0 w-12 h-12 border-2 border-[hsl(145_45%_26%)] shadow-[0_3px_0_hsl(145_60%_18%)]"
+                data-testid="button-advance-week-mobile"
                 data-no-click-sound
+                title="Skip ahead one month"
+                aria-label="Skip ahead one month"
               >
                 {isAdvancingWeek ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-white" />
+                  <Loader2 className="w-6 h-6 animate-spin text-white" />
                 ) : (
-                  <Play className="w-5 h-5 text-white" />
+                  <Play className="w-6 h-6 text-white" fill="currentColor" />
                 )}
               </button>
             )}
@@ -367,25 +334,31 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               <X className="w-6 h-6" />
             </button>
 
-            <div className="relative mb-8">
-              <div className="absolute -inset-4 bg-emerald-500/20 rounded-3xl blur-xl" />
+            <div className="relative mb-7 text-center">
               <img 
                 src={logo} 
                 alt="Dealbreak" 
-                className="relative w-36 h-36 rounded-2xl shadow-2xl"
+                className="relative w-32 h-32 rounded-2xl mx-auto"
                 style={{
-                  boxShadow: '0 12px 60px rgba(0,0,0,0.6), 0 0 0 3px rgba(16,185,129,0.4)',
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.55), 0 0 0 2px rgba(212,175,55,0.4), 0 6px 0 rgba(20,12,6,0.9)',
                 }}
               />
+              <h2
+                className="font-display text-4xl mt-4 leading-none"
+                style={{ color: '#d4af37', textShadow: '0 3px 0 rgba(80,55,10,0.85)' }}
+              >
+                Dealbreak
+              </h2>
+              <p className="text-sm font-bold uppercase tracking-[0.16em] text-[hsl(35_15%_55%)] mt-2">Pause Menu</p>
             </div>
 
-            <div className="space-y-3 w-full max-w-xs">
+            <div className="space-y-3 w-full max-w-sm">
               <button
                 onClick={() => {
                   setMenuOpen(false);
                   onViewStats?.();
                 }}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-purple-500/20 to-indigo-600/20 hover:from-purple-500/30 hover:to-indigo-600/30 active:from-purple-500/40 active:to-indigo-600/40 backdrop-blur-md rounded-xl border border-purple-500/30 text-purple-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                className="menu-row"
                 data-testid="button-view-stats"
                 data-sound="swoosh"
               >
@@ -398,11 +371,11 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                   setMenuOpen(false);
                   onOpenHallOfFame?.();
                 }}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-amber-500/20 to-yellow-600/20 hover:from-amber-500/30 hover:to-yellow-600/30 active:from-amber-500/40 active:to-yellow-600/40 backdrop-blur-md rounded-xl border border-amber-500/30 text-amber-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                className="menu-row"
                 data-testid="button-hall-of-fame"
                 data-sound="swoosh"
               >
-                <Trophy className="w-5 h-5" />
+                <Trophy className="w-5 h-5 text-[hsl(43_72%_55%)]" />
                 Hall of Fame
               </button>
 
@@ -411,18 +384,18 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                   setMenuOpen(false);
                   onOpenPremium?.();
                 }}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 hover:from-yellow-500/30 hover:to-orange-500/30 active:from-yellow-500/40 active:to-orange-500/40 backdrop-blur-md rounded-xl border border-yellow-500/30 text-yellow-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                className="menu-row"
                 data-testid="button-premium"
                 data-sound="swoosh"
               >
-                <Sparkles className="w-5 h-5" />
+                <Sparkles className="w-5 h-5 text-[hsl(43_72%_55%)]" />
                 Premium Boosts
               </button>
 
               {onGoHome && (
                 <button
                   onClick={() => { setMenuOpen(false); onGoHome(); }}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-md rounded-xl border border-white/20 text-white font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                  className="menu-row"
                   data-testid="button-main-menu"
                   data-sound="swoosh"
                 >
@@ -433,7 +406,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
 
               <button
                 onClick={() => setMenuOpen(false)}
-                className="w-full px-6 py-4 bg-emerald-500/20 hover:bg-emerald-500/30 active:bg-emerald-500/40 backdrop-blur-md rounded-xl border border-emerald-500/30 text-emerald-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                className="menu-row menu-row-primary"
                 data-testid="button-resume-game"
               >
                 Resume Game
@@ -441,7 +414,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
 
               <button
                 onClick={toggleMusic}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-purple-500/20 hover:bg-purple-500/30 active:bg-purple-500/40 backdrop-blur-md rounded-xl border border-purple-500/30 text-purple-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                className="menu-row"
                 data-testid="button-toggle-music"
               >
                 {isMusicPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
@@ -454,7 +427,7 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
                     setMenuOpen(false);
                     onNewGame();
                   }}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-red-500/20 hover:bg-red-500/30 active:bg-red-500/40 backdrop-blur-md rounded-xl border border-red-500/30 text-red-400 font-semibold transition-all duration-150 ios-spring tap-scale touch-target"
+                  className="menu-row border-red-500/30 text-red-300 hover:text-red-200"
                   data-testid="button-new-game"
                 >
                   <RotateCcw className="w-5 h-5" />
@@ -463,20 +436,21 @@ export function StatusBar({ cash, weeksRemaining, profitableDeals, goalDeals, on
               )}
             </div>
 
-            <div className="mt-8 flex gap-4">
-              <div className="menu-stat-card">
-                <AnimatedNumber value={cashDisplay} prefix="$" className="menu-cash-value" />
-                <div className="text-gray-500 text-xs">Cash</div>
+            <div className="mt-8 w-full max-w-sm game-scoreboard">
+              <div className="game-scoreboard-cell">
+                <AnimatedNumber value={cashDisplay} prefix="$" className="game-scoreboard-value text-emerald-400" />
+                <div className="game-scoreboard-label">Cash</div>
               </div>
-              <div className="menu-stat-card">
-                <span className="menu-time-value">{weeksRemaining}M</span>
-                <div className="text-gray-500 text-xs">Left</div>
+              <div className="game-scoreboard-cell">
+                <span className="game-scoreboard-value text-[hsl(43_70%_72%)]">{weeksRemaining}M</span>
+                <div className="game-scoreboard-label">Left</div>
               </div>
-              <div className="menu-stat-card">
-                <span className="menu-goal-value">
-                  <span className="text-emerald-400">{profitableDeals}</span>/{goalDeals}
+              <div className="game-scoreboard-cell">
+                <span className="game-scoreboard-value">
+                  <span className="text-emerald-400">{profitableDeals}</span>
+                  <span className="text-[hsl(35_15%_55%)]">/{goalDeals}</span>
                 </span>
-                <div className="text-gray-500 text-xs">Deals</div>
+                <div className="game-scoreboard-label">Deals</div>
               </div>
             </div>
           </div>

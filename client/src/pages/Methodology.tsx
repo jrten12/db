@@ -169,18 +169,20 @@ export default function Methodology() {
 
             <SubSection title="Market Condition Dynamics">
               <p>
-                The simulator models a five-state market cycle — terrible, poor,
-                neutral, good, and excellent — with weighted probabilistic
-                transitions every four in-game weeks. Key behaviors include:
+                The simulator models a living five-state market cycle — terrible, poor,
+                neutral, good, and excellent — with gradual transitions about once a month
+                (±1 week jitter). The economy is dynamic without boom/bust chaos:
               </p>
               <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-                <li>"Excellent" markets carry a 15% crash probability per cycle</li>
-                <li>"Good" markets carry a 10% crash probability per cycle</li>
-                <li>Market state directly scales flip sale prices (–15% to +15% of ARV)</li>
+                <li>Ask prices, rents, and ARV soft-drift with current conditions (~±1–2% per state)</li>
+                <li>Owned rentals see gentle weekly rent growth scaled by the market (~2–4%/yr)</li>
+                <li>Softer markets raise vacancy; stronger markets tighten it</li>
+                <li>Refinance appraisals and flip/rental exits share the same market weather</li>
+                <li>Crash odds from excellent/good are uncommon, not routine</li>
               </ul>
               <p className="mt-2">
-                This models the real-world risk of "timing the market" — entering
-                during peak conditions and facing a correction before the exit.
+                This models timing risk without making every month a coin flip — underwriting
+                still matters more than luck.
               </p>
             </SubSection>
 

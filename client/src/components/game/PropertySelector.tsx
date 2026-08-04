@@ -233,8 +233,8 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                 
                 {/* Price Badge */}
                 <div className="absolute top-3 left-3">
-                  <div className="px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-white/10">
-                    <span className="text-xl md:text-2xl font-bold text-white font-mono">
+                  <div className="px-3 py-2 bg-black/70 rounded-xl border-2 border-[rgba(212,175,55,0.35)] shadow-[0_3px_0_rgba(0,0,0,0.45)]">
+                    <span className="text-2xl md:text-3xl font-bold text-white font-mono leading-none">
                       {formatCurrency(property.price)}
                     </span>
                   </div>
@@ -242,9 +242,9 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                 
                 {/* Size Badge - Clear sqft label */}
                 <div className="absolute top-3 right-3">
-                  <div className="flex items-center gap-1 px-2.5 py-1 bg-black/60 backdrop-blur-md rounded-lg border border-white/10">
-                    <span className="text-sm font-bold text-white">{property.sizeSqft.toLocaleString()}</span>
-                    <span className="text-xs text-gray-400">sqft</span>
+                  <div className="flex items-center gap-1 px-2.5 py-1.5 bg-black/70 rounded-xl border border-white/15">
+                    <span className="text-base font-bold text-white">{property.sizeSqft.toLocaleString()}</span>
+                    <span className="text-sm text-gray-300">sqft</span>
                   </div>
                 </div>
 
@@ -329,14 +329,14 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
               )}
 
               {/* Property Info */}
-              <div className="relative p-4">
-                <h3 className="font-semibold text-lg text-white group-hover:text-gold transition-colors">
+              <div className="relative p-4 md:p-5">
+                <h3 className="font-display font-semibold text-xl md:text-2xl text-white group-hover:text-gold transition-colors leading-tight">
                   {property.name}
                 </h3>
                 
-                <div className="flex items-center gap-1.5 mt-1 text-gray-400">
-                  <MapPin className="w-3.5 h-3.5" />
-                  <span className="text-sm">{property.neighborhood}</span>
+                <div className="flex items-center gap-1.5 mt-2 text-gray-300">
+                  <MapPin className="w-4 h-4" />
+                  <span className="text-base">{property.neighborhood}</span>
                 </div>
                 
                 {/* Property Type + Location Badge + Unknown Financials Warning */}

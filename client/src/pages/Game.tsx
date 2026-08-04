@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { StatusBar } from '@/components/game/StatusBar';
 import { MarketBar, MarketChangeNotification } from '@/components/game/MarketIndicator';
 import type { MarketCondition } from '@shared/schema';
+import { applyMarketToListing, normalizeMarketCondition } from '@shared/marketEconomy';
 import { ProFormaPanel } from '@/components/game/ProFormaPanel';
 import { MetricsPanel } from '@/components/game/MetricsPanel';
 import { PropertySelector, type LocationFilter, type PropertyDealInfo } from '@/components/game/PropertySelector';
@@ -371,12 +372,18 @@ export default function Game() {
     }
   }, [queryClient, refreshPlayerTrophies]);
 
-  const { data: properties = [], isLoading: isLoadingProps } = useQuery({
+  const { data: catalogProperties = [], isLoading: isLoadingProps } = useQuery({
     queryKey: ['properties'],
     queryFn: api.getProperties,
     staleTime: 0, // Always refetch properties to ensure we have the latest list
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes but always refetch
   });
+
+  // Soft-link listing ask/rent/ARV to current market weather (living economy)
+  const properties = useMemo(() => {
+    const market = normalizeMarketCondition(gameRun?.marketCondition);
+    return catalogProperties.map((p) => applyMarketToListing(p, market));
+  }, [catalogProperties, gameRun?.marketCondition]);
 
   const updateGameMutation = useMutation({
     mutationFn: ({ id, updates }: { id: number; updates: Partial<GameRun> }) =>
@@ -1771,7 +1778,7 @@ export default function Game() {
       )}
       
       {/* Main content with top padding to account for fixed header + safe area + market bar */}
-      <div ref={mainContentRef} className={`min-h-screen min-h-[100dvh] bg-black/30 ${currentScreen !== 'home' ? 'pt-36 md:pt-44' : ''} overflow-y-auto`}>
+      <div ref={mainContentRef} className={`min-h-screen min-h-[100dvh] bg-black/30 ${currentScreen !== 'home' ? 'pt-40 md:pt-48' : ''} overflow-y-auto`}>
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">

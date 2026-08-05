@@ -193,6 +193,8 @@
     @apply border-border;
   }
   html {
+    /* Larger base type scale — all rem-based (Tailwind) sizes scale up ~12.5% */
+    font-size: 112.5%;
     overflow-x: hidden;
     overflow-y: scroll;
     -webkit-text-size-adjust: 100%;

@@ -206,22 +206,20 @@ export default function Methodology() {
 
             <SubSection title="Market Condition Dynamics">
               <p>
-                The simulator models a five-state market cycle — terrible, poor,
-                neutral, good, and excellent — with weighted probabilistic
-                transitions every in-game month. Market conditions create
-                cascading effects across multiple game systems:
+                The simulator models a living five-state market cycle — terrible, poor,
+                neutral, good, and excellent — with gradual transitions about once a month
+                (±1 week jitter). The economy is dynamic without boom/bust chaos:
               </p>
               <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
-                <li>Overheated markets carry meaningful correction probabilities each cycle</li>
-                <li>Market state directly scales flip sale prices and rental income</li>
-                <li>Prevailing interest rates shift with market conditions (hot markets tighten, weak markets ease)</li>
-                <li>Renovation costs and potential returns scale with market heat</li>
+                <li>Ask prices, rents, and ARV soft-drift with current conditions (~±1–2% per state)</li>
+                <li>Owned rentals see gentle weekly rent growth scaled by the market (~2–4%/yr)</li>
+                <li>Softer markets raise vacancy; stronger markets tighten it</li>
+                <li>Refinance appraisals and flip/rental exits share the same market weather</li>
+                <li>Crash odds from excellent/good are uncommon, not routine</li>
               </ul>
               <p className="mt-2">
-                This models the real-world interconnection between monetary
-                policy, asset prices, and financing costs — entering during peak
-                conditions means higher acquisition costs, tighter financing, and
-                the risk of a correction before exit.
+                This models timing risk without making every month a coin flip — underwriting
+                still matters more than luck.
               </p>
             </SubSection>
 

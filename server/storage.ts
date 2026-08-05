@@ -4,7 +4,8 @@ const { Pool } = pkg;
 import { eq, and, desc, inArray, sql } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import type { MarketCondition } from "@shared/schema";
-import { getMarketMultipliers, calculateFlipSalePrice } from "./gameMechanics";
+import { getMarketMultipliers, calculateMarketAppreciation, applyMarketToListing, normalizeMarketCondition } from "./gameMechanics";
+import { getViabilityModifiers } from "@shared/viabilityProfile";
 import { calculateDealXp } from "@shared/streakTiers";
 
 // Compute the streak/XP/season-stats delta for a single deal close.
@@ -2053,121 +2054,36 @@ export class DBStorage implements IStorage {
     
     // Get the CURRENT mortgage balance from the deal
     const proFormaOutputs = deal.proFormaOutputs as any;
+    const proFormaInputs = deal.proFormaInputs as any;
     const mortgagePayoff = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
     
-    // === MULTI-FACTOR RENTAL SALE PRICE ===
-    // Sale price driven by: market, diligence, property condition, time held,
-    // tenant satisfaction, repairs done, and cosmetic upgrades
+    // Rental sale: soft listing drift + market exit band + hold appreciation
+    const marketCondition = normalizeMarketCondition(gameRun.marketCondition);
+    const marketMult = getMarketMultipliers(marketCondition);
+    const liveListing = property ? applyMarketToListing(property, marketCondition) : null;
+    const weeksHeld = deal.purchaseWeek != null
+      ? Math.max(0, gameRun.currentWeek - deal.purchaseWeek)
+      : 0;
+    const appreciation = calculateMarketAppreciation({
+      weeksHeld,
+      locationType: property?.locationType,
+      marketCondition,
+    });
     
-    const proFormaInputs = deal.proFormaInputs as any;
-    const marketCondition = gameRun.marketCondition || 'good';
-    const marketMult = getMarketMultipliers(marketCondition as MarketCondition);
+    // Base rental exit band (tighter than flips) shifted by market multipliers
+    const baseMin = 0.96;
+    const baseMax = 1.12;
+    const adjustedMin = baseMin * marketMult.min;
+    const adjustedMax = baseMax * marketMult.max;
     
-    // 1. TIME HELD — longer hold = more organic appreciation (above market trend)
-    //    Months 1-3: minimal (0-2%), 4-12: moderate (2-6%), 13-24: good (6-10%), 24+: caps at ~10%
-    //    Uses purchaseWeek (true acquisition date); falls back for legacy rows.
-    const purchaseWeek = deal.purchaseWeek
-      ?? deal.firstIncomePaymentWeek
-      ?? deal.lastIncomePaymentWeek
-      ?? gameRun.currentWeek;
-    const monthsHeld = Math.max(1, gameRun.currentWeek - purchaseWeek);
-    const holdAppreciation = Math.min(0.10, monthsHeld * 0.004); // 0.4% per month, cap 10%
-    
-    // 2. DILIGENCE — did due diligence before buying? Better knowledge = better negotiation on sale
-    const investigations = await db
-      .select()
-      .from(schema.propertyInvestigations)
-      .where(eq(schema.propertyInvestigations.gameRunId, gameRunId));
-    const completedDiligence = investigations
-      .filter(inv => inv.propertyId === deal.propertyId)
-      .map(inv => inv.investigationType);
-    const diligenceCount = ['appraisal', 'contractor_walkthrough', 'inspection', 'title_search']
-      .filter(d => completedDiligence.includes(d)).length;
-    const diligenceBonus = diligenceCount === 0 ? -0.02
-      : diligenceCount === 1 ? 0.01
-      : diligenceCount === 2 ? 0.03
-      : diligenceCount === 3 ? 0.05
-      : 0.07; // all 4
-    
-    // 3. PROPERTY CONDITION — unfixed issues reduce value, fixed issues boost it
-    const { getRandomizedPropertyIssues } = await import('@shared/propertyIssues');
-    const allIssues = getRandomizedPropertyIssues(
-      gameRunId, deal.propertyId,
-      property.propertyType, property.conditionTag,
-      property.waterSource || 'public'
-    );
-    const rawFixedIssueIds = proFormaInputs?.fixedIssueIds || [];
-    const fixedIssueIds = [...new Set(rawFixedIssueIds)].filter((id: string) => allIssues.some(i => i.id === id));
-    const undiscoveredIssues = allIssues.filter(issue =>
-      !issue.discoveredBy.some(method => completedDiligence.includes(method))
-    );
-    const discoveredButSkipped = allIssues.filter(issue =>
-      issue.discoveredBy.some(method => completedDiligence.includes(method)) &&
-      !fixedIssueIds.includes(issue.id)
-    );
-    // Unfixed issues are a drag on value (buyers find them during their inspection)
-    const conditionPenalty = (undiscoveredIssues.length * 0.025) + (discoveredButSkipped.length * 0.02);
-    const fixedBonus = fixedIssueIds.length > 0 ? Math.min(fixedIssueIds.length * 0.012, 0.06) : 0;
-    
-    // 4. TENANT SATISFACTION — well-managed property presents better to buyers
-    let tenantBonus = 0;
-    try {
-      const tenants = await db
-        .select()
-        .from(schema.tenants)
-        .where(eq(schema.tenants.dealId, dealId))
-        .limit(1);
-      if (tenants.length > 0) {
-        const satisfaction = tenants[0].satisfaction ?? 70;
-        if (satisfaction >= 80) tenantBonus = 0.02;       // Happy tenant = easier sale
-        else if (satisfaction >= 50) tenantBonus = 0.005;  // Neutral
-        else if (satisfaction >= 30) tenantBonus = -0.01;  // Unhappy tenant = buyer discount
-        else tenantBonus = -0.03;                          // Very unhappy = significant discount
-      }
-    } catch (e) { /* non-critical */ }
-    
-    // 5. COSMETIC UPGRADE — renovation boost
-    const cosmeticBoost = proFormaOutputs?.cosmeticUpgradeSaleBoost || 0;
-    
-    // 6. MARKET TREND — multi-month accumulated drift since purchase (smooth, sustained)
-    //    The game tracks cumulative priceDriftPct that updates every ~4 weeks based on
-    //    market condition. A property held through good months gains; through bad months
-    //    loses. This avoids the "one bad month tanks the sale" problem by using the
-    //    accumulated trend, not a single-month snapshot.
-    const driftAtPurchase = (deal as any).priceDriftAtPurchase ?? 0;
-    const currentDrift = gameRun.priceDriftPct ?? 0;
-    const trendDelta = (currentDrift - driftAtPurchase) / 100; // e.g. +0.06 = +6%
-    // Cap the trend contribution to ±25% so extreme runs don't break balance
-    const cappedTrend = Math.max(-0.25, Math.min(0.25, trendDelta));
-    
-    // 7. BUYER MOOD — small single-month randomness based on current market band
-    //    (±2-3% noise; the heavy lifting is now done by the trend above)
-    const moodMid = (marketMult.min + marketMult.max) / 2 - 1; // center of band, relative to 1.0
-    const moodNoise = (Math.random() - 0.5) * 0.04; // ±2% noise
-    const buyerMood = 1 + (moodMid * 0.35) + moodNoise; // dampen mood by 65%, sustain via trend
-    
-    // === COMBINE ALL FACTORS ===
-    // Base: purchase price
-    // Additive factors: hold appreciation (organic), diligence, condition, tenant, cosmetic
-    // Multiplicative: trend (multi-month market) × buyer mood (current-month noise)
-    const totalAdditivePct = holdAppreciation + diligenceBonus + fixedBonus - conditionPenalty + tenantBonus + cosmeticBoost;
-    
-    // Base sale price before market multipliers
-    const baseSalePrice = purchasePrice * (1 + totalAdditivePct);
-    
-    // Apply market trend (multi-month) then buyer mood (current-month noise)
-    let salePrice = Math.round(baseSalePrice * (1 + cappedTrend) * buyerMood);
-    
-    // Floor: never sell for less than 60% of purchase price
-    salePrice = Math.max(salePrice, Math.round(purchasePrice * 0.60));
-    
-    // Quick-flip penalty: buying and immediately selling (< 3 months) = wholesale discount
-    if (monthsHeld <= 2) {
-      const quickFlipCap = Math.round(purchasePrice * 0.95); // Lose at least 5% on immediate resale
-      salePrice = Math.min(salePrice, quickFlipCap);
-    }
-    
-    const saleMultiplier = salePrice / purchasePrice;
+    const saleMultiplier = adjustedMin + Math.random() * (adjustedMax - adjustedMin);
+    const rentalLtv = proFormaInputs?.ltv ?? (100 - (proFormaInputs?.downPaymentPct || 25));
+    const viability = getViabilityModifiers(property?.viabilityProfile, {
+      weeksHeld,
+      ltv: rentalLtv,
+    });
+    const valueBasis = liveListing?.price ?? purchasePrice;
+    const salePrice = Math.round(valueBasis * appreciation * saleMultiplier * viability.saleMult);
     
     // Net proceeds = gross sale price minus mortgage payoff
     // This is the actual cash the player receives
@@ -2303,8 +2219,10 @@ export class DBStorage implements IStorage {
       .where(eq(schema.properties.id, deal.propertyId))
       .limit(1);
     if (!property) throw new Error('Property not found');
+
+    const liveProperty = applyMarketToListing(property, gameRun.marketCondition);
     
-    const purchasePrice = deal.purchasePrice ?? property.price;
+    const purchasePrice = deal.purchasePrice ?? liveProperty.price;
     const proFormaOutputs = deal.proFormaOutputs as any;
     const proFormaInputs = deal.proFormaInputs as any;
     
@@ -2315,68 +2233,42 @@ export class DBStorage implements IStorage {
     const rehabBudget = proFormaInputs?.rehabBudget || 0;
     const contingencyPct = proFormaInputs?.contingencyPct || 10;
     
-    // Look up diligence for this deal
-    const investigations = await db
-      .select()
-      .from(schema.propertyInvestigations)
-      .where(eq(schema.propertyInvestigations.gameRunId, gameRunId));
-    const completedDiligence = investigations
-      .filter(inv => inv.propertyId === deal.propertyId)
-      .map(inv => inv.investigationType);
-    const didComps = completedDiligence.includes('appraisal');
+    // Calculate all-in rehab spend (used for both completion factor and profit)
+    const finishCostMult = (proFormaInputs?.finishLevel === 'luxury') ? 1.4 : 1.0;
+    const actualRehabSpend = Math.round(rehabBudget * finishCostMult) * (1 + contingencyPct / 100);
+
+    // Calculate rehab completion factor (0 to 1) based on how much was invested
+    const rehabRange = liveProperty.rehabMax - liveProperty.rehabMin;
+    const completionFactor = rehabRange > 0 
+      ? Math.max(0, Math.min(1, (actualRehabSpend - liveProperty.rehabMin) / rehabRange))
+      : 0.5;
     
-    const diligenceTypes = ['appraisal', 'contractor_walkthrough', 'inspection', 'title_search'];
-    const diligenceCount = diligenceTypes.filter(d => completedDiligence.includes(d)).length;
+    // Base sale price scales with rehab completion within the soft-linked ARV range
+    const arvRange = liveProperty.arvMax - liveProperty.arvMin;
+    const baseSalePrice = liveProperty.arvMin + (completionFactor * arvRange);
     
-    // Calculate condition penalty from unfixed issues (same as completeFlipDeal)
-    const { getRandomizedPropertyIssues } = await import('@shared/propertyIssues');
-    const allIssues = getRandomizedPropertyIssues(
-      gameRunId, deal.propertyId,
-      property.propertyType, property.conditionTag,
-      property.waterSource || 'public'
-    );
-    const rawFixedIssueIds = proFormaInputs?.fixedIssueIds || [];
-    const fixedIssueIds = [...new Set(rawFixedIssueIds)].filter((id: string) => allIssues.some(i => i.id === id));
-    const undiscoveredIssues = allIssues.filter(issue =>
-      !issue.discoveredBy.some(method => completedDiligence.includes(method))
-    );
-    const discoveredButSkipped = allIssues.filter(issue =>
-      issue.discoveredBy.some(method => completedDiligence.includes(method)) &&
-      !fixedIssueIds.includes(issue.id)
-    );
-    const conditionPenalty = (undiscoveredIssues.length * 0.02) + (discoveredButSkipped.length * 0.015);
-    const fixedBonus = fixedIssueIds.length > 0 ? Math.min(fixedIssueIds.length * 0.01, 0.05) : 0;
+    // Apply market conditions to flip sale price (same logic as rental sales)
+    // This creates correlation between flip and rental markets
+    const marketCondition = normalizeMarketCondition(gameRun.marketCondition);
+    const marketMult = getMarketMultipliers(marketCondition);
     
-    const marketCondition = gameRun.marketCondition || 'good';
-    const marketMult = getMarketMultipliers(marketCondition as MarketCondition);
-    
-    let salePrice = calculateFlipSalePrice({
-      purchasePrice,
-      rehabBudget,
-      finishLevel: proFormaInputs?.finishLevel || 'builder',
-      contingencyPct,
-      arvMin: property.arvMin,
-      arvMax: property.arvMax,
-      rehabMax: property.rehabMax,
-      playerArvEstimate: proFormaInputs?.arv,
-      didComps,
-      diligenceCount,
-      conditionPenalty,
-      fixedBonus,
-      marketMult,
+    // Base market variance: -5% to +10%
+    // Market condition shifts this range up or down
+    const baseMin = 0.95;
+    const baseMax = 1.10;
+    const adjustedMin = baseMin * marketMult.min; // In terrible market: 0.95 * 0.85 = 0.81
+    const adjustedMax = baseMax * marketMult.max; // In excellent market: 1.10 * 1.15 = 1.27
+    const marketVariance = adjustedMin + Math.random() * (adjustedMax - adjustedMin);
+    const flipLtv = proFormaInputs?.ltv ?? (100 - (proFormaInputs?.downPaymentPct || 25));
+    const flipViability = getViabilityModifiers(property.viabilityProfile, {
+      weeksHeld: deal.weeksSpent || deal.weeksUntilCompletion || 0,
+      ltv: flipLtv,
     });
-    const cosmeticSaleBoost = proFormaOutputs?.cosmeticUpgradeSaleBoost || 0;
-    if (cosmeticSaleBoost > 0) {
-      salePrice = Math.round(salePrice * (1 + cosmeticSaleBoost / 100));
-    }
+    const salePrice = Math.round(baseSalePrice * marketVariance * flipViability.saleMult);
     const saleMultiplier = salePrice / purchasePrice;
     
     // Net proceeds = sale price minus mortgage payoff (this is what player receives in cash)
     const netProceeds = salePrice - mortgagePayoff;
-    
-    // Calculate all-in cost for true profit calculation
-    const finishCostMult = (proFormaInputs?.finishLevel === 'luxury') ? 1.4 : 1.0;
-    const actualRehabSpend = Math.round(rehabBudget * finishCostMult) * (1 + contingencyPct / 100);
     const closingCosts = Math.round(purchasePrice * 0.025);
     const loanFees = proFormaOutputs?.loanOriginationFees || Math.round((proFormaOutputs?.loanAmount || 0) * 0.02);
     const sellingCostsPct = proFormaInputs?.sellingCostsPct || 5;
@@ -2559,13 +2451,14 @@ export class DBStorage implements IStorage {
       throw new Error('Property not found');
     }
     
-    // Calculate current property value with appreciation (deterministic)
-    const monthsHeld = weeksHeld;
-    const baseAppreciation = 0.02;
-    const timeAppreciation = Math.min(monthsHeld * 0.005, 0.10);
-    const locationBonus = property.locationType === 'urban' ? 0.015 : 0;
-    const totalAppreciation = 1 + baseAppreciation + timeAppreciation + locationBonus;
-    const currentPropertyValue = Math.round(property.price * totalAppreciation);
+    // Market-correlated appraisal (soft living economy — not free money in downturns)
+    const liveListing = applyMarketToListing(property, gameRun.marketCondition);
+    const totalAppreciation = calculateMarketAppreciation({
+      weeksHeld,
+      locationType: property.locationType,
+      marketCondition: gameRun.marketCondition,
+    });
+    const currentPropertyValue = Math.round(liveListing.price * totalAppreciation);
     
     const proFormaOutputs = deal.proFormaOutputs as any;
     const oldLoanBalance = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
@@ -2626,12 +2519,15 @@ export class DBStorage implements IStorage {
     const numPayments = 360; // 30-year fixed
     const newMonthlyPayment = newLoanBalance * (newMonthlyRate * Math.pow(1 + newMonthlyRate, numPayments)) / (Math.pow(1 + newMonthlyRate, numPayments) - 1);
     
-    // Update proFormaOutputs with new monthly debt service
+    // Update proFormaOutputs with new monthly debt service + cash-out tracking for achievements
+    const previousCashOut = proFormaOutputs?.totalCashOut || 0;
     const updatedProFormaOutputs = {
       ...proFormaOutputs,
       monthlyDebtService: newMonthlyPayment,
       debtServiceMonthly: newMonthlyPayment,
       loanAmount: newLoanBalance,
+      lastCashOut: cashOut,
+      totalCashOut: previousCashOut + cashOut,
     };
     
     // Update deal with new loan info and reset debt tracking

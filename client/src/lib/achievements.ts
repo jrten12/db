@@ -188,6 +188,11 @@ export interface AchievementCheckContext {
   completedFlips: number;
   weeksUsed: number;
   unlockedAchievements: string[];
+  investigations?: { propertyId: number; investigationType: string }[];
+  properties?: { id: number; rehabMin: number; conditionTag: string }[];
+  profitableDeals?: number;
+  goalDeals?: number;
+  weeksRemaining?: number;
 }
 
 export function checkAchievements(context: AchievementCheckContext): string[] {
@@ -208,13 +213,15 @@ export function checkAchievements(context: AchievementCheckContext): string[] {
   if (context.currentCash >= context.startingCash * 2) unlock('double_capital');
 
   const completedDeals = context.deals.filter(d => 
-    d.status === 'completed' || d.status === 'sold_rental'
+    d.status === 'completed' || d.status === 'sold_rental' || d.status === 'active_rental'
   );
   
   if (completedDeals.length >= 1) unlock('first_deal');
   
-  const rentals = context.deals.filter(d => d.strategy === 'rent' && 
-    (d.status === 'active_rental' || d.status === 'sold_rental'));
+  const rentals = context.deals.filter(d =>
+    (d.strategy === 'rent' || d.strategy === 'rental') &&
+    (d.status === 'active_rental' || d.status === 'sold_rental')
+  );
   if (rentals.length >= 1) unlock('first_rental');
   
   const profitableFlips = context.deals.filter(d => 
@@ -234,6 +241,56 @@ export function checkAchievements(context: AchievementCheckContext): string[] {
     if (outputs?.flipROI >= 100) unlock('roi_king');
     if (outputs?.flipROI >= 200) unlock('roi_legend');
   });
+
+  // BRRRR Boss — refinance and pull out 75%+ of invested capital
+  for (const deal of context.deals) {
+    if ((deal.refinanceCount ?? 0) > 0) {
+      const outputs = deal.proFormaOutputs as any;
+      const invested = outputs?.totalCashInvested || 0;
+      const cashOut = outputs?.totalCashOut || outputs?.lastCashOut || 0;
+      if (invested > 0 && cashOut / invested >= 0.75) {
+        unlock('brrrr_boss');
+      }
+    }
+  }
+
+  // Conservative Operator — complete 3 deals on properties needing no major repairs
+  if (context.properties?.length) {
+    const lightRehabDeals = completedDeals.filter(d => {
+      const prop = context.properties!.find(p => p.id === d.propertyId);
+      if (!prop) return false;
+      const tag = (prop.conditionTag || '').toLowerCase();
+      return prop.rehabMin <= 5000 || tag === 'excellent' || tag === 'good';
+    });
+    if (lightRehabDeals.length >= 3) unlock('conservative_operator');
+  }
+
+  // Gut Feeling — profitable deal with zero due diligence on that property
+  if (context.investigations) {
+    const diligenceByProperty = new Map<number, number>();
+    for (const inv of context.investigations) {
+      diligenceByProperty.set(inv.propertyId, (diligenceByProperty.get(inv.propertyId) || 0) + 1);
+    }
+    const gutDeal = context.deals.find(d => {
+      const profitable =
+        ((d.actualProfit || 0) > 0) ||
+        d.status === 'active_rental' ||
+        d.status === 'sold_rental';
+      if (!profitable) return false;
+      if (!(d.status === 'completed' || d.status === 'active_rental' || d.status === 'sold_rental')) {
+        return false;
+      }
+      return (diligenceByProperty.get(d.propertyId) || 0) === 0;
+    });
+    if (gutDeal) unlock('no_diligence');
+  }
+
+  // Speed Demon — win the game in under 26 months
+  const goal = context.goalDeals ?? 3;
+  const scored = context.profitableDeals ?? 0;
+  if (scored >= goal && context.weeksUsed < 26) {
+    unlock('speed_demon');
+  }
 
   return newAchievements;
 }

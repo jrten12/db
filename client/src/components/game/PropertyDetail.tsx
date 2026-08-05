@@ -615,7 +615,7 @@ export function PropertyDetail({
 
                 {/* Price Badge */}
                 <div className="absolute bottom-4 left-4">
-                  <span className="text-3xl font-bold text-white drop-shadow-lg">{formatCurrency(property.price)}</span>
+                  <span className="text-4xl md:text-5xl font-bold font-mono text-white drop-shadow-lg leading-none">{formatCurrency(property.price)}</span>
                 </div>
 
                 {/* Image Type Label */}

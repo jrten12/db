@@ -621,23 +621,23 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
         </div>
 
         {/* FORMULA VIEW TOGGLE */}
-        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur rounded-xl border border-blue-500/30 p-4">
-          <div className="flex items-center justify-between">
+        <div className="desk-panel rounded-lg border border-[rgba(180,140,70,0.28)] p-4">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <h3 className="text-white font-semibold text-sm">📊 Interactive Pro Forma</h3>
-              <p className="text-gray-400 text-xs mt-1">
-                Adjust inputs and watch the formulas calculate in real-time
+              <h3 className="text-[hsl(43_55%_72%)] font-display font-semibold text-sm">Interactive Pro Forma</h3>
+              <p className="text-[hsl(30_12%_58%)] text-xs mt-1">
+                Adjust inputs and watch the worksheet update in real time
               </p>
             </div>
             <button
               onClick={() => setShowFormulas(!showFormulas)}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all touch-target-sm ${
                 showFormulas
-                  ? 'bg-blue-500/20 border border-blue-500 text-blue-400'
-                  : 'bg-slate-800 border border-slate-700 text-gray-400 hover:border-slate-600'
+                  ? 'bg-[rgba(212,175,55,0.12)] border border-[rgba(212,175,55,0.4)] text-[hsl(43_60%_70%)]'
+                  : 'desk-panel border border-[rgba(180,140,70,0.25)] text-[hsl(30_12%_62%)] hover:border-[rgba(212,175,55,0.35)]'
               }`}
             >
-              {showFormulas ? '📐 Hide Formulas' : '📐 Show Formulas'}
+              {showFormulas ? 'Hide Formulas' : 'Show Formulas'}
             </button>
           </div>
         </div>
@@ -1056,8 +1056,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     const config = FINISH_LEVEL_CONFIG[level];
                     const isSelected = inputs.finishLevel === level;
                     const colorMap = level === 'builder'
-                      ? { active: 'bg-cyan-500/20 border-2 border-cyan-400 shadow-lg shadow-cyan-500/20', text: 'text-cyan-300' }
-                      : { active: 'bg-purple-500/20 border-2 border-purple-400 shadow-lg shadow-purple-500/20', text: 'text-purple-300' };
+                      ? { active: 'bg-emerald-500/15 border-2 border-emerald-500/50', text: 'text-emerald-300' }
+                      : { active: 'bg-[rgba(212,175,55,0.12)] border-2 border-[rgba(212,175,55,0.45)]', text: 'text-[hsl(43_60%_70%)]' };
                     const costLabel = config.costMultiplier === 1.0
                       ? 'Standard cost'
                       : `+${Math.round((config.costMultiplier - 1) * 100)}% cost, +${config.arvBoostPct}% value`;

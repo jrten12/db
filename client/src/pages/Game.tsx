@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { StatusBar } from '@/components/game/StatusBar';
 import { MarketBar, MarketChangeNotification } from '@/components/game/MarketIndicator';
 import type { MarketCondition } from '@shared/schema';
+import { applyMarketToListing, normalizeMarketCondition } from '@shared/marketEconomy';
 import { ProFormaPanel } from '@/components/game/ProFormaPanel';
 import { MetricsPanel } from '@/components/game/MetricsPanel';
 import { PropertySelector, type LocationFilter, type PropertyDealInfo } from '@/components/game/PropertySelector';
@@ -61,8 +62,7 @@ import {
   TIME_PENALTY_TENANT_PAYS_UTILITIES,
   PlayerFinancials,
   getSaleEstimateRange,
-  MARKET_DEFAULTS,
-  applyPriceDrift
+  MARKET_DEFAULTS
 } from '@/lib/gameData';
 import { getEffectiveRanges, getRevealedIssues, getRevealedRandomizedIssues } from '@/lib/propertyIssues';
 import { type Curveball, getTenantMessageForCurveball, curveballHasTenantMessage, getCurveballById } from '@/lib/curveballs';
@@ -176,6 +176,7 @@ export default function Game() {
   const [achievementsLoaded, setAchievementsLoaded] = useState(false);
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<HallOfFamePlayer | null>(null);
+  const [earnedPlayerTrophies, setEarnedPlayerTrophies] = useState<string[]>([]);
   const [showNameEntry, setShowNameEntry] = useState(true);
   
   // Sale confirmation dialog state
@@ -230,7 +231,27 @@ export default function Game() {
   } = useConstructionNotifications();
   
   // Trophy notifications
-  const { pendingTrophies, addTrophies, clearTrophies } = useTrophyNotifications();
+  const { pendingTrophies, addTrophies: enqueueTrophyNotifications, clearTrophies } = useTrophyNotifications();
+
+  const refreshPlayerTrophies = useCallback(async (playerId?: number) => {
+    const id = playerId ?? currentPlayer?.id;
+    if (!id) return;
+    try {
+      const trophies = await api.getPlayerTrophies(id);
+      setEarnedPlayerTrophies(trophies.map(t => t.trophyId));
+    } catch (err) {
+      console.error('Failed to load player trophies:', err);
+    }
+  }, [currentPlayer?.id]);
+
+  const addTrophies = useCallback((trophyIds: string[]) => {
+    enqueueTrophyNotifications(trophyIds);
+    setEarnedPlayerTrophies(prev => {
+      const next = new Set(prev);
+      trophyIds.forEach(id => next.add(id));
+      return Array.from(next);
+    });
+  }, [enqueueTrophyNotifications]);
 
   // Tutorial
   const { completeAction, startTutorial } = useTutorial();
@@ -268,6 +289,14 @@ export default function Game() {
             setGameRun(activeRun);
             setPlayerName(activeRun.playerName);
             setShowNameEntry(false);
+            try {
+              const player = await api.getOrCreatePlayer(activeRun.playerName);
+              setCurrentPlayer(player);
+              const trophies = await api.getPlayerTrophies(player.id);
+              setEarnedPlayerTrophies(trophies.map(t => t.trophyId));
+            } catch (trophyErr) {
+              console.error('Failed to load player trophies on resume:', trophyErr);
+            }
           }
         }
       } catch (err) {
@@ -286,6 +315,7 @@ export default function Game() {
       const player = await api.getOrCreatePlayer(name);
       setCurrentPlayer(player);
       setPlayerName(name);
+      await refreshPlayerTrophies(player.id);
       
       await api.updatePlayerStats(player.id, {
         totalGamesPlayed: player.totalGamesPlayed + 1,
@@ -320,7 +350,7 @@ export default function Game() {
       throw err;
     }
     setIsLoadingGame(false);
-  }, [queryClient]);
+  }, [queryClient, refreshPlayerTrophies]);
 
   const continueSavedGame = useCallback(async () => {
     const saved = loadGame();
@@ -333,6 +363,7 @@ export default function Game() {
     try {
       const player = await api.getOrCreatePlayer(saved.gameRun.playerName);
       setCurrentPlayer(player);
+      await refreshPlayerTrophies(player.id);
       
       const restoredRun = await api.createGameRun({
         playerName: saved.gameRun.playerName,
@@ -376,20 +407,20 @@ export default function Game() {
     } finally {
       setIsLoadingGame(false);
     }
-  }, [queryClient]);
+  }, [queryClient, refreshPlayerTrophies]);
 
-  const { data: rawProperties = [], isLoading: isLoadingProps } = useQuery({
+  const { data: catalogProperties = [], isLoading: isLoadingProps } = useQuery({
     queryKey: ['properties'],
     queryFn: api.getProperties,
     staleTime: 0,
     gcTime: 5 * 60 * 1000,
   });
 
+  // Soft-link listing ask/rent/ARV to current market weather (living economy)
   const properties = useMemo(() => {
-    const drift = gameRun?.priceDriftPct;
-    if (!drift) return rawProperties;
-    return rawProperties.map(p => applyPriceDrift(p, drift));
-  }, [rawProperties, gameRun?.priceDriftPct]);
+    const market = normalizeMarketCondition(gameRun?.marketCondition);
+    return catalogProperties.map((p) => applyMarketToListing(p, market));
+  }, [catalogProperties, gameRun?.marketCondition]);
 
   const updateGameMutation = useMutation({
     mutationFn: ({ id, updates }: { id: number; updates: Partial<GameRun> }) =>
@@ -512,6 +543,15 @@ export default function Game() {
       completedFlips,
       weeksUsed: 52 - (gameRun.weeksRemaining || 0),
       unlockedAchievements,
+      investigations,
+      properties: properties.map(p => ({
+        id: p.id,
+        rehabMin: p.rehabMin,
+        conditionTag: p.conditionTag,
+      })),
+      profitableDeals: gameRun.profitableDeals,
+      goalDeals: gameRun.goalDeals,
+      weeksRemaining: gameRun.weeksRemaining,
     };
     
     const newAchievements = checkAchievements(context);
@@ -530,7 +570,7 @@ export default function Game() {
       setUnlockedAchievements(prev => [...prev, ...newAchievements]);
       setAchievementQueue(prev => [...prev, ...newAchievements]);
     }
-  }, [deals, gameRun?.cash, gameRun?.id, unlockedAchievements, achievementsLoaded]);
+  }, [deals, gameRun?.cash, gameRun?.id, gameRun?.profitableDeals, gameRun?.goalDeals, gameRun?.weeksRemaining, unlockedAchievements, achievementsLoaded, investigations, properties]);
 
   // Load existing achievements when game starts
   useEffect(() => {
@@ -2237,6 +2277,7 @@ export default function Game() {
       
       {/* Main content with top padding to account for fixed header + safe area + market bar */}
       <div ref={mainContentRef} className={`min-h-screen min-h-[100dvh] ${currentScreen !== 'home' ? 'pt-36 md:pt-44' : ''} overflow-y-auto`}>
+
         <SaveIndicator />
 
         <main className="w-full px-4 lg:px-6 xl:px-8 py-6 md:py-8">
@@ -2258,7 +2299,8 @@ export default function Game() {
                 onBadges={() => setShowBadges(true)}
                 onTutorial={() => { startTutorial(); setCurrentScreen('market'); }}
                 onRestartGame={handleNewGame}
-                earnedTrophies={unlockedAchievements}
+                onSettings={() => { setPremiumTriggerReason('manual'); setShowPremiumModal(true); }}
+                earnedTrophies={earnedPlayerTrophies}
                 cash={gameRun.cash}
                 weeksRemaining={gameRun.weeksRemaining}
                 profitableDeals={gameRun.profitableDeals}

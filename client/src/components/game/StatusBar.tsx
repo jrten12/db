@@ -208,12 +208,12 @@ export function StatusBar({ cash, weeksRemaining, seasonsUnlocked = 1, currentSt
               >
                 {isAdvancingWeek ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     <span>Advancing...</span>
                   </>
                 ) : (
                   <>
-                    <Play className="w-4 h-4" />
+                    <Play className="w-5 h-5" fill="currentColor" />
                     <span>Skip Month</span>
                   </>
                 )}
@@ -222,10 +222,10 @@ export function StatusBar({ cash, weeksRemaining, seasonsUnlocked = 1, currentSt
 
             <button
               onClick={() => setMenuOpen(true)}
-              className="menu-button"
+              className="menu-button border-2 border-[rgba(180,140,70,0.35)] rounded-xl p-3.5"
               data-testid="button-menu-desktop"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </button>
           </div>
 
@@ -233,10 +233,10 @@ export function StatusBar({ cash, weeksRemaining, seasonsUnlocked = 1, currentSt
           <div className="md:hidden flex items-center gap-1.5">
             <button
               onClick={() => setMenuOpen(true)}
-              className="menu-button-mobile touch-target flex items-center justify-center tap-scale flex-shrink-0"
+              className="menu-button-mobile touch-target flex items-center justify-center tap-scale flex-shrink-0 w-12 h-12 rounded-xl border-2 border-[rgba(180,140,70,0.4)]"
               data-testid="button-menu-mobile"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </button>
             
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
@@ -305,6 +305,13 @@ export function StatusBar({ cash, weeksRemaining, seasonsUnlocked = 1, currentSt
                 alt="Dealbreak" 
                 className="w-24 h-24 rounded-2xl"
               />
+              <h2
+                className="font-display text-4xl mt-4 leading-none"
+                style={{ color: '#d4af37', textShadow: '0 3px 0 rgba(80,55,10,0.85)' }}
+              >
+                Dealbreak
+              </h2>
+              <p className="text-sm font-bold uppercase tracking-[0.16em] text-[hsl(35_15%_55%)] mt-2">Pause Menu</p>
             </div>
 
             <div className="space-y-2.5 w-full max-w-xs">

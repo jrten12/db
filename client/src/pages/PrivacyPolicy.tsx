@@ -2,16 +2,16 @@ import { Link } from "wouter";
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen" style={{ background: '#0c0c0e' }}>
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="mb-8">
-          <Link href="/" className="text-purple-400 hover:text-purple-300 transition-colors">
+          <Link href="/" className="text-[hsl(43_60%_62%)] hover:text-[hsl(43_72%_70%)] transition-colors">
             ← Back to Home
           </Link>
         </div>
 
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-8 shadow-xl border border-slate-700/50">
-          <h1 className="text-4xl font-bold text-white mb-6">Privacy Policy</h1>
+        <div className="desk-surface rounded-lg p-8 shadow-xl">
+          <h1 className="text-4xl font-display font-bold text-[hsl(43_60%_68%)] mb-6">Privacy Policy</h1>
           <p className="text-gray-400 mb-8">Last Updated: {new Date().toLocaleDateString()}</p>
 
           <div className="space-y-6 text-gray-300">

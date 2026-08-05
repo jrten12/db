@@ -77,16 +77,14 @@ async function calculateRefinanceOptions(deal: Deal, gameRun: GameRun, allDeals:
     }
   }
   
-  // Calculate current property value with appreciation
-  // Deterministic appreciation based on weeks held - no random variation
-  // This ensures consistent values when modal is reopened
-  const monthsHeld = weeksHeld;
-  const baseAppreciation = 0.02; // 2% base (market floor)
-  const timeAppreciation = Math.min(monthsHeld * 0.005, 0.10); // 0.5% per month, max 10%
-  // Use property location for a small deterministic variation (urban appreciates faster)
-  const locationBonus = property.locationType === 'urban' ? 0.015 : 0;
-  const totalAppreciation = 1 + baseAppreciation + timeAppreciation + locationBonus;
-  const currentMarketValue = Math.round(property.price * totalAppreciation);
+  // Market-correlated appraisal — consistent when modal reopens, tied to weather
+  const liveListing = gameMechanics.applyMarketToListing(property, gameRun.marketCondition);
+  const totalAppreciation = gameMechanics.calculateMarketAppreciation({
+    weeksHeld,
+    locationType: property.locationType,
+    marketCondition: gameRun.marketCondition,
+  });
+  const currentMarketValue = Math.round(liveListing.price * totalAppreciation);
   
   // Get current loan balance
   const proFormaOutputs = deal.proFormaOutputs as any;

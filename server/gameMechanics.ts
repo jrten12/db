@@ -693,7 +693,7 @@ export async function completeFlipDeal(
 
     // Calculate CONDITION PENALTY from ALL unfixed issues (both undiscovered AND known-but-skipped)
     const rawFixedIssueIds = proFormaInputs?.fixedIssueIds || [];
-    const fixedIssueIds = [...new Set(rawFixedIssueIds)].filter(id => allIssues.some(i => i.id === id));
+    const fixedIssueIds = Array.from(new Set<string>(rawFixedIssueIds)).filter(id => allIssues.some(i => i.id === id));
     const discoveredButSkipped = allIssues.filter(issue =>
       issue.discoveredBy.some(method => completedDiligence.includes(method)) &&
       !fixedIssueIds.includes(issue.id)
@@ -3134,7 +3134,7 @@ export async function activateRentalProperty(
   const rentalAllIssues = property
     ? getRandomizedPropertyIssues(gameRun.id, deal.propertyId, property.propertyType, property.conditionTag, property.waterSource || 'public')
     : [];
-  const validFixedIds = rentalFixedIds.filter(id => rentalAllIssues.some(i => i.id === id));
+  const validFixedIds = rentalFixedIds.filter((id: string) => rentalAllIssues.some(i => i.id === id));
   const rentalSkippedIssues = rentalAllIssues.filter(issue =>
     issue.discoveredBy.some(method => completedDiligence.includes(method)) &&
     !validFixedIds.includes(issue.id)

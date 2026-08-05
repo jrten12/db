@@ -377,7 +377,8 @@
   }
 
   .menu-row {
-    @apply w-full flex items-center justify-center gap-3 px-6 rounded-xl font-bold transition-all duration-150 ios-spring tap-scale;
+    @apply w-full flex items-center justify-center gap-3 px-6 rounded-xl font-bold transition-all duration-150;
+    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
     min-height: 56px;
     font-size: 1.125rem;
     letter-spacing: 0.02em;

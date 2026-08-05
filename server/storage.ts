@@ -1532,7 +1532,7 @@ export class DBStorage implements IStorage {
     }
 
     // Issue one UPDATE per unique characteristic set
-    for (const [key, ids] of groups) {
+    for (const [key, ids] of Array.from(groups.entries())) {
       const [bedrooms, bathrooms, waterSource, heatType] = key.split('|');
       await db
         .update(schema.properties)
@@ -2098,6 +2098,7 @@ export class DBStorage implements IStorage {
       .set({
         status: 'sold_rental',
         salePrice,
+        actualProfit: saleProfit,
         saleMultiplier,
         purchasePrice,
         weeklyIncome: 0,

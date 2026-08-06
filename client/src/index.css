@@ -213,8 +213,10 @@
     min-height: 100vh;
     min-height: 100dvh;
     height: auto;
-    overflow-x: hidden;
-    overflow-y: visible;
+    /* `clip` prevents body from becoming a scroll container (overflow-x: hidden
+       forces overflow-y to compute to `auto`, which hijacks touch scrolling on
+       iOS and leaves the page frozen). */
+    overflow-x: clip;
     -webkit-overflow-scrolling: touch;
     letter-spacing: -0.01em;
     text-rendering: optimizeLegibility;

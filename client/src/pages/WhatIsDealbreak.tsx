@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 export default function WhatIsDealbreak() {
   return (
     <div
-      className="min-h-screen min-h-[100dvh] overflow-x-hidden"
+      className="min-h-screen min-h-[100dvh] overflow-x-clip"
       style={{ background: '#131316' }}
       data-testid="what-is-dealbreak-page"
     >

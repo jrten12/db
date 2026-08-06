@@ -371,7 +371,7 @@ export default function Landing() {
 
   return (
     <div
-      className="min-h-screen min-h-[100dvh] overflow-x-hidden safe-area-x"
+      className="min-h-screen min-h-[100dvh] overflow-x-clip safe-area-x"
       style={{ background: '#1a1a1f' }}
       data-testid="landing-page"
     >

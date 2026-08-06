@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, Trophy, Star, Target, ChevronRight, Gauge, Award, DollarSign, Flame, AlertTriangle, Eye, Radio, FlaskConical } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, Trophy, Star, Target, ChevronRight, Gauge, Award, DollarSign, Flame, AlertTriangle, Eye, Radio } from 'lucide-react';
 const heroBgPattern = '/hero-bg-pattern.webp';
 import { useMusic } from '@/hooks/useMusicPlayer';
 
@@ -34,6 +34,21 @@ function AnimatedCounter({ target, prefix = '', suffix = '', duration = 2000 }: 
   }, [target, duration, hasAnimated]);
 
   return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
+}
+
+function DealbreakMark() {
+  return (
+    <span className="dealbreak-mark" aria-hidden="true">
+      <svg viewBox="0 0 40 40" role="img" focusable="false">
+        <path d="M8 8h24M10 8l2 24h16l2-24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+        <path d="M13 26h14" stroke="currentColor" strokeWidth="1.3" opacity=".55" />
+        <path d="M14 22h12l-2.2-5.3L20 19l-3.2-6-2.8 9Z" fill="currentColor" opacity=".9" />
+        <path d="M14 22h12M16 17l2 2 2-3 2.2 2.7 1.8-1.5" fill="none" stroke="#0b1014" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6 31h28" stroke="currentColor" strokeWidth="1.4" opacity=".5" />
+        <path d="M9 34h22" stroke="currentColor" strokeWidth="1" opacity=".3" />
+      </svg>
+    </span>
+  );
 }
 
 const GameShowcase = lazy(() => import('@/components/GameShowcase').then(m => ({ default: m.GameShowcase })));
@@ -372,9 +387,7 @@ export default function Landing() {
       >
         <div className="flex items-center justify-between px-5 lg:px-8 py-3 lg:py-4 pt-[max(0.75rem,env(safe-area-inset-top))] max-w-7xl mx-auto">
           <div className="flex items-center gap-2.5 lg:gap-3">
-            <span className="dealbreak-mark" aria-hidden="true">
-              <FlaskConical className="w-5 h-5 lg:w-[22px] lg:h-[22px]" strokeWidth={1.8} />
-            </span>
+            <DealbreakMark />
             <span
               className="font-bold text-lg lg:text-xl tracking-wide"
               style={{ color: '#d4af37' }}
@@ -441,7 +454,7 @@ export default function Landing() {
 
               <div className="relative z-10">
                 {/* Eyebrow tag — ultra-modern HUD chip */}
-                <div className="inline-flex items-center gap-2 mb-5 px-2.5 py-1 rounded-md"
+                <div className="inline-flex items-center gap-2 mb-5 px-2.5 py-1 rounded-md landing-now-playing"
                   style={{
                     background: 'rgba(212,175,55,0.08)',
                     border: '1px solid rgba(212,175,55,0.22)',
@@ -512,37 +525,38 @@ export default function Landing() {
                   </Link>
                 </div>
 
-                {/* In-game event log — vertical ticker of alerts */}
+                {/* In-game event stream — live simulation telemetry */}
                 <div
-                  className="max-w-[560px] overflow-hidden rounded-xl"
+                  className="max-w-[560px] overflow-hidden rounded-xl landing-event-feed"
                   style={{
                     background: 'rgba(0,0,0,0.35)',
                     border: '1px solid rgba(255,255,255,0.06)',
                   }}
                 >
-                  <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div className="flex items-center justify-between px-3 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                     <div className="flex items-center gap-2">
                       <Radio className="w-3 h-3 landing-data-flicker" style={{ color: '#4ade80' }} />
-                      <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: '#4ade80' }}>Event Log</span>
+                      <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: '#72c7e6' }}>Simulation feed</span>
                     </div>
-                    <span className="font-mono text-[10px] tabular-nums" style={{ color: 'rgba(225,220,205,0.35)' }}>Wk 12</span>
+                    <span className="landing-feed-live"><span /> LIVE / Wk 12</span>
                   </div>
-                  <div className="relative h-[112px] overflow-hidden">
+                  <div className="relative h-[132px] overflow-hidden">
                     <div className="landing-event-scroll absolute inset-x-0 top-0 space-y-0">
                       {[
-                        { Icon: AlertTriangle, color: '#f87171', label: 'Unit A overdue by 12 days', meta: 'Rent · -$875' },
-                        { Icon: Wrench, color: '#fbbf24', label: 'Water heater risk rising', meta: 'Repair · est $2,800' },
-                        { Icon: TrendingUp, color: '#4ade80', label: 'Cash flow +$284 this month', meta: 'Net · operating' },
-                        { Icon: Activity, color: '#f59e0b', label: 'Rates trending upward', meta: 'Market · +0.25%' },
-                        { Icon: Users, color: '#60a5fa', label: 'Decision: contact tenant or wait', meta: 'Pending' },
-                        { Icon: Clock, color: '#a78bfa', label: '49 months remaining in run', meta: 'Portfolio clock' },
-                        { Icon: AlertTriangle, color: '#f87171', label: 'Unit A overdue by 12 days', meta: 'Rent · -$875' },
-                        { Icon: Wrench, color: '#fbbf24', label: 'Water heater risk rising', meta: 'Repair · est $2,800' },
+                        { Icon: AlertTriangle, color: '#f87171', kind: 'RISK', label: 'Unit A overdue by 12 days', meta: '−$875' },
+                        { Icon: Wrench, color: '#fbbf24', kind: 'REPAIR', label: 'Water heater risk rising', meta: '$2,800' },
+                        { Icon: TrendingUp, color: '#4ade80', kind: 'CASH', label: 'Cash flow +$284 this month', meta: '+$284' },
+                        { Icon: Activity, color: '#f59e0b', kind: 'MARKET', label: 'Rates trending upward', meta: '+0.25%' },
+                        { Icon: Users, color: '#60a5fa', kind: 'CHOICE', label: 'Decision: contact tenant or wait', meta: 'PENDING' },
+                        { Icon: Clock, color: '#a78bfa', kind: 'CLOCK', label: '49 months remaining in run', meta: 'WEEK 12' },
+                        { Icon: AlertTriangle, color: '#f87171', kind: 'RISK', label: 'Unit A overdue by 12 days', meta: '−$875' },
+                        { Icon: Wrench, color: '#fbbf24', kind: 'REPAIR', label: 'Water heater risk rising', meta: '$2,800' },
                       ].map((evt, i) => (
                         <div key={i} className="flex items-center gap-2.5 px-3 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                          <evt.Icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.75} style={{ color: evt.color }} />
+                          <div className="landing-feed-icon"><evt.Icon className="w-3.5 h-3.5 flex-shrink-0" strokeWidth={1.75} style={{ color: evt.color }} /></div>
+                          <span className="landing-feed-kind" style={{ color: evt.color }}>{evt.kind}</span>
                           <span className="text-[11px] flex-1 truncate" style={{ color: 'rgba(225,220,205,0.85)' }}>{evt.label}</span>
-                          <span className="font-mono text-[10px] tabular-nums flex-shrink-0" style={{ color: 'rgba(225,220,205,0.45)' }}>{evt.meta}</span>
+                          <span className="font-mono text-[10px] tabular-nums flex-shrink-0" style={{ color: 'rgba(225,220,205,0.55)' }}>{evt.meta}</span>
                         </div>
                       ))}
                     </div>
@@ -569,7 +583,7 @@ export default function Landing() {
                 <div className="absolute inset-x-0 top-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.55), transparent)' }} />
 
                 {/* Panel header — modern app header */}
-                <div className="flex items-center justify-between px-5 py-4">
+                <div className="landing-preview-head flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.18), rgba(212,175,55,0.04))', border: '1px solid rgba(212,175,55,0.22)' }}>
                       <Building2 className="w-3.5 h-3.5" strokeWidth={1.75} style={{ color: '#d4af37' }} />
@@ -594,28 +608,28 @@ export default function Landing() {
                 </div>
 
                 {/* Progress timeline — slim, modern */}
-                <div className="px-5 pb-4">
+                <div className="landing-preview-progress px-5 pb-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(225,220,205,0.4)' }}>Month progress</span>
                     <span className="font-mono text-[11px] tabular-nums" style={{ color: 'rgba(225,220,205,0.55)' }}>3 / 52</span>
                   </div>
-                  <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                  <div className="landing-progress-track h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
                     <div className="h-full rounded-full" style={{ width: '5.8%', background: 'linear-gradient(90deg, #d4af37, #fbbf24)', boxShadow: '0 0 8px rgba(212,175,55,0.5)' }} />
                   </div>
                 </div>
 
                 {/* Financial grid — modern stat cards */}
-                <div className="px-5 pb-5">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="landing-preview-financials px-5 pb-5">
+                  <div className="landing-stat-grid grid grid-cols-2 gap-2">
+                    <div className="landing-stat-cell landing-stat-purchase p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
                       <div className="text-[9.5px] uppercase tracking-[0.12em] mb-1 font-bold" style={{ color: 'rgba(225,220,205,0.4)' }}>Purchase</div>
                       <div className="text-[17px] font-bold tabular-nums tracking-tight" style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)' }}>$293,000</div>
                     </div>
-                    <div className="p-3 rounded-xl" style={{ background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.12)' }}>
+                    <div className="landing-stat-cell landing-stat-cash p-3 rounded-xl" style={{ background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.12)' }}>
                       <div className="text-[9.5px] uppercase tracking-[0.12em] mb-1 font-bold" style={{ color: 'rgba(251,191,36,0.65)' }}>Cash Left</div>
                       <div className="text-[17px] font-bold tabular-nums tracking-tight" style={{ color: '#fbbf24', fontFamily: 'var(--font-sans)' }}>$41,200</div>
                     </div>
-                    <div className="p-3 rounded-xl" style={{ background: 'rgba(74,222,128,0.04)', border: '1px solid rgba(74,222,128,0.15)' }}>
+                    <div className="landing-stat-cell landing-stat-flow p-3 rounded-xl" style={{ background: 'rgba(74,222,128,0.04)', border: '1px solid rgba(74,222,128,0.15)' }}>
                       <div className="text-[9.5px] uppercase tracking-[0.12em] mb-1 font-bold flex items-center gap-1" style={{ color: 'rgba(74,222,128,0.65)' }}>
                         <TrendingUp className="w-2.5 h-2.5" strokeWidth={2} /> Cash Flow
                       </div>
@@ -623,7 +637,7 @@ export default function Landing() {
                         +$284<span className="text-[11px] ml-0.5" style={{ color: 'rgba(74,222,128,0.55)' }}>/mo</span>
                       </div>
                     </div>
-                    <div className="p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div className="landing-stat-cell landing-stat-coc p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
                       <div className="text-[9.5px] uppercase tracking-[0.12em] mb-1 font-bold" style={{ color: 'rgba(225,220,205,0.4)' }}>Cash-on-Cash</div>
                       <div className="text-[17px] font-bold tabular-nums tracking-tight" style={{ color: '#f5f0e0', fontFamily: 'var(--font-sans)' }}>
                         4.7<span className="text-[11px] ml-0.5" style={{ color: 'rgba(225,220,205,0.4)' }}>%</span>
@@ -633,13 +647,13 @@ export default function Landing() {
                 </div>
 
                 {/* Active issues — modern alert rows */}
-                <div className="px-5 pb-4 space-y-2">
+                <div className="landing-preview-issues px-5 pb-4 space-y-2">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(225,220,205,0.4)' }}>Active issues</span>
                     <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md" style={{ color: '#f87171', background: 'rgba(248,113,113,0.1)' }}>2</span>
                   </div>
                   <div
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/[0.02]"
+                    className="landing-issue-row landing-issue-danger flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/[0.02]"
                     style={{ background: 'rgba(248,113,113,0.04)', border: '1px solid rgba(248,113,113,0.12)' }}
                   >
                     <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#f87171', boxShadow: '0 0 8px rgba(248,113,113,0.6)' }} />
@@ -650,7 +664,7 @@ export default function Landing() {
                     <span className="font-mono text-[12px] font-bold tabular-nums" style={{ color: '#f87171' }}>−$875</span>
                   </div>
                   <div
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/[0.02]"
+                    className="landing-issue-row landing-issue-warning flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:bg-white/[0.02]"
                     style={{ background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.12)' }}
                   >
                     <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#f59e0b', boxShadow: '0 0 8px rgba(245,158,11,0.5)' }} />
@@ -663,12 +677,12 @@ export default function Landing() {
                 </div>
 
                 {/* Decision queue — pending player actions */}
-                <div className="px-5 pb-4">
+                <div className="landing-preview-queue px-5 pb-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(225,220,205,0.4)' }}>Decision queue</span>
                     <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md" style={{ color: '#d4af37', background: 'rgba(212,175,55,0.1)' }}>3</span>
                   </div>
-                  <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div className="landing-queue-list rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                     {[
                       { label: 'Choose tenant response', meta: 'Late rent · Unit A' },
                       { label: 'Approve repair timing', meta: 'Water heater' },
@@ -676,7 +690,7 @@ export default function Landing() {
                     ].map((d, i, arr) => (
                       <div
                         key={d.label}
-                        className="flex items-center gap-2.5 px-3 py-2 transition-colors hover:bg-white/[0.03]"
+                        className="landing-queue-row flex items-center gap-2.5 px-3 py-2 transition-colors hover:bg-white/[0.03]"
                         style={i < arr.length - 1 ? { borderBottom: '1px solid rgba(255,255,255,0.04)' } : undefined}
                       >
                         <div className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.18)' }}>
@@ -693,7 +707,7 @@ export default function Landing() {
                 </div>
 
                 {/* Footer status bar */}
-                <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)' }}>
+                <div className="landing-preview-footer px-5 py-3 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)' }}>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5">
                       <Clock className="w-3 h-3" strokeWidth={1.75} style={{ color: 'rgba(96,165,250,0.7)' }} />

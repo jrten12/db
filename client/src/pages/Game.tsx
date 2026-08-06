@@ -266,7 +266,7 @@ export default function Game() {
   // Scroll to top when switching to results screen
   useEffect(() => {
     if (currentScreen === 'results' && mainContentRef.current) {
-      mainContentRef.current.scrollTo({ top: 0, behavior: 'instant' });
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
   }, [currentScreen]);
 
@@ -2276,7 +2276,7 @@ export default function Game() {
       )}
       
       {/* Main content with top padding to account for fixed header + safe area + market bar */}
-      <div ref={mainContentRef} className={`min-h-screen min-h-[100dvh] ${currentScreen !== 'home' ? 'pt-36 md:pt-44' : ''} overflow-y-auto`}>
+      <div ref={mainContentRef} className={`min-h-screen min-h-[100dvh] ${currentScreen !== 'home' ? 'pt-36 md:pt-44' : ''}`}>
 
         <SaveIndicator />
 
@@ -2455,7 +2455,7 @@ export default function Game() {
                     <span className="text-white/55">Have <span className={`font-mono font-semibold ${(gameRun?.cash ?? 0) >= proFormaOutputs.totalCashInvested ? 'text-emerald-400' : 'text-red-400'}`}>${Math.round(gameRun?.cash ?? 0).toLocaleString()}</span></span>
                   </div>
                   <button
-                    onClick={handleCommitDeal}
+                    onClick={() => handleCommitDeal()}
                     disabled={isCommittingDeal || (gameRun?.cash ?? 0) < proFormaOutputs.totalCashInvested}
                     className={`w-full py-3.5 rounded-xl font-bold text-base transition-colors shadow-lg ${
                       isCommittingDeal

@@ -1859,6 +1859,40 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
           </div>
         </div>
       </div>
+
+      {/* WIZARD FOOTER — Back / Next navigation */}
+      <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3 flex items-center justify-between gap-3 sticky bottom-2 z-10" data-testid="wizard-footer">
+        <button
+          type="button"
+          onClick={goBack}
+          disabled={currentStep === 1}
+          className={`px-5 py-3 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 ${
+            currentStep === 1
+              ? 'bg-slate-800/40 border border-slate-700/60 text-gray-600 cursor-not-allowed'
+              : 'bg-slate-800 border border-slate-600 text-gray-200 hover:border-cyan-400/50 hover:text-cyan-200'
+          }`}
+          data-testid="button-wizard-back"
+        >
+          ← Back
+        </button>
+        <div className="text-xs text-gray-400 font-medium hidden sm:block">
+          Step {currentStep} of 5 — {STEP_LABELS[currentStep - 1]}
+        </div>
+        {currentStep < 5 ? (
+          <button
+            type="button"
+            onClick={goNext}
+            className="px-6 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 text-white shadow-lg shadow-cyan-500/30 flex items-center gap-2"
+            data-testid="button-wizard-next"
+          >
+            Next: {STEP_LABELS[currentStep]} →
+          </button>
+        ) : (
+          <div className="text-xs text-emerald-400 font-semibold text-right">
+            Review above, then commit when ready
+          </div>
+        )}
+      </div>
     </div>
   );
 }

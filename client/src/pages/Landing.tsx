@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, Trophy, Star, Target, ChevronRight, Gauge, Award, DollarSign, Flame, AlertTriangle, Eye, Radio } from 'lucide-react';
-const heroBgPattern = '/hero-bg-pattern.webp';
 import { useMusic } from '@/hooks/useMusicPlayer';
 
 function AnimatedCounter({ target, prefix = '', suffix = '', duration = 2000 }: { target: number; prefix?: string; suffix?: string; duration?: number }) {
@@ -410,29 +409,27 @@ export default function Landing() {
       {/* === HERO SECTION === */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <img
-            src={heroBgPattern}
-            alt=""
-            role="presentation"
-            className="w-full h-full object-cover"
-            style={{ opacity: 0.4 }}
-            fetchPriority="high"
-            width={1408}
-            height={768}
-          />
           <div className="landing-architecture" aria-hidden="true">
-            <svg viewBox="0 0 1600 760" preserveAspectRatio="xMidYMid slice" focusable="false">
-              <g className="landing-architecture-lines" fill="none" stroke="currentColor" strokeWidth="1">
-                <path d="M0 590h1600M0 650h1600M0 704h1600" />
-                <path d="M80 590V430h110l42-58 46 58h112v160M210 430v160M80 486h310M80 534h310" />
-                <path d="M470 590V324h190l74-82 78 82h176v266M470 410h518M470 484h518M585 324v266M805 324v266" />
-                <path d="M1080 590V390h76v-88h94v88h72v-138h112v138h86v200M1080 458h360M1080 520h360M1190 390v200M1334 440v150" />
-                <path d="M0 732h1600M40 744h230M360 744h410M940 744h280M1370 744h190" strokeDasharray="3 10" />
+            <svg viewBox="0 0 1600 760" preserveAspectRatio="none" focusable="false">
+              <defs>
+                <linearGradient id="skylineFade" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#102b3a" stopOpacity=".16" />
+                  <stop offset="1" stopColor="#071116" stopOpacity=".92" />
+                </linearGradient>
+              </defs>
+              <rect width="1600" height="760" fill="url(#skylineFade)" />
+              <g className="landing-architecture-lines" fill="none" stroke="currentColor" strokeWidth="1.4">
+                <path d="M0 606h1600M0 668h1600M0 720h1600" />
+                <path d="M0 606V474h72l34-38 34 38h72v132M178 606V402h108l38-43 40 43h100v204M464 606V326h170l74-78 74 78h208v280M990 606V416h76v-92h90v92h68v-145h126v145h76v190M1452 606V390h86l31-36 31 36v216" />
+                <path d="M0 755h1600M48 742h240M390 742h380M920 742h280M1370 742h180" strokeDasharray="3 10" />
               </g>
-              <g className="landing-architecture-plan" fill="none" stroke="currentColor" strokeWidth="1">
-                <path d="M112 126h260v146H112zM112 198h112v74M224 126v72h148M296 198v74" />
-                <path d="M1220 90h250v154h-250zM1220 166h88v78M1308 90v76h162M1388 166v78" />
-                <circle cx="112" cy="126" r="8" /><circle cx="1470" cy="90" r="8" />
+              <g className="landing-architecture-windows" fill="currentColor">
+                <path d="M30 510h12v26H30zM58 510h12v26H58zM214 442h14v22h-14zM246 442h14v22h-14zM500 370h16v27h-16zM540 370h16v27h-16zM600 370h16v27h-16zM730 296h14v28h-14zM770 296h14v28h-14zM814 370h16v27h-16zM1030 455h13v23h-13zM1110 455h13v23h-13zM1220 332h15v26h-15zM1260 332h15v26h-15zM1500 442h13v24h-13z" />
+              </g>
+              <g className="landing-architecture-plan" fill="none" stroke="currentColor" strokeWidth="1.2">
+                <path d="M110 112h230v132H110zM110 178h100v66M210 112v66h130M275 178v66" />
+                <path d="M1260 102h228v138h-228zM1260 170h82v70M1342 102v68h146M1416 170v70" />
+                <circle cx="110" cy="112" r="8" /><circle cx="1488" cy="102" r="8" />
               </g>
             </svg>
           </div>

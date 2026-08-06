@@ -1777,10 +1777,7 @@ input[type="range"]::-moz-range-track {
 }
 [data-testid="landing-page"] > nav + section {
   background:
-    linear-gradient(rgba(114,199,230,.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(114,199,230,.035) 1px, transparent 1px),
-    radial-gradient(ellipse 80% 70% at 76% 24%, rgba(30,85,109,.18), transparent 65%);
-  background-size: 56px 56px, 56px 56px, auto;
+    linear-gradient(180deg, #081117 0%, #0b1b25 54%, #102d3a 100%);
 }
 [data-testid="landing-page"] > nav + section > div:first-child {
   isolation: isolate;
@@ -1791,30 +1788,36 @@ input[type="range"]::-moz-range-track {
   z-index: 1;
   pointer-events: none;
   overflow: hidden;
-  color: rgba(114,199,230,.24);
-  opacity: .42;
+  color: rgba(116,196,224,.72);
+  opacity: .78;
   mix-blend-mode: screen;
 }
 .landing-architecture svg {
   display: block;
   width: 100%;
   height: 100%;
-  min-width: 920px;
-  transform: scale(1.04);
+  min-width: 0;
+  transform: scale(1.01);
 }
 .landing-architecture-lines {
-  opacity: .36;
+  opacity: .48;
+}
+.landing-architecture-windows {
+  opacity: .42;
+  color: #d5d786;
 }
 .landing-architecture-plan {
-  opacity: .28;
+  opacity: .42;
   color: rgba(215,223,117,.7);
 }
 [data-testid="landing-page"] > nav + section > div:first-child > div:last-child {
   z-index: 2;
 }
-[data-testid="landing-page"] > nav + section > div:first-child img { opacity: .06 !important; mix-blend-mode: screen; filter: grayscale(1) contrast(1.2); }
 [data-testid="landing-page"] > nav + section > div:first-child > div {
-  background: linear-gradient(180deg, rgba(11,16,20,.34), rgba(11,16,20,.74) 62%, #0b1014 100%) !important;
+  background: linear-gradient(180deg, rgba(7,14,19,.3), rgba(7,14,19,.5) 58%, rgba(7,14,19,.78) 100%) !important;
+}
+[data-testid="landing-page"] > nav + section > div:first-child > .landing-architecture + div {
+  background: linear-gradient(180deg, rgba(7,14,19,.12), rgba(7,14,19,.38) 58%, #0b1014 100%) !important;
 }
 [data-testid="landing-page"] [data-testid="hero-dashboard-panel"] {
   background: #111a20 !important;
@@ -1980,6 +1983,10 @@ input[type="range"]::-moz-range-track {
   [data-testid="landing-page"] section:first-of-type { min-height: auto; }
   [data-testid="landing-page"] h1 { font-size: clamp(2.55rem, 12vw, 4rem) !important; }
   .dealbreak-mark { width: 32px; height: 32px; }
+  .landing-architecture { opacity: .72; }
+  .landing-architecture svg { height: 100%; }
+  .landing-architecture-lines { opacity: .62; }
+  .landing-architecture-plan { opacity: .28; }
   [data-testid="landing-page"] [data-testid="hero-dashboard-panel"] { margin-inline: -1px; }
   [data-testid="landing-page"] .landing-feed-kind { display: none; }
   [data-testid="landing-page"] .landing-event-feed .text-\[11px\] { font-size: 10px; }

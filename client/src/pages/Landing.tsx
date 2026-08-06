@@ -496,7 +496,7 @@ export default function Landing() {
                   >
                     duplex
                   </span>.<br />
-                  <span style={{ color: '#fca5a5', fontWeight: 600 }}>One tenant is already late.</span>
+                  <span style={{ color: '#7dd3fc', fontWeight: 600 }}>One tenant is already late.</span>
                 </h1>
 
                 {/* Hook — what the game actually is, no duration framing */}

@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, Trophy, Star, Target, ChevronRight, Gauge, Award, DollarSign, Flame, AlertTriangle, Eye, Radio } from 'lucide-react';
-import dbLogoImage from '@assets/dealbreak_brand_icon.png';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, Trophy, Star, Target, ChevronRight, Gauge, Award, DollarSign, Flame, AlertTriangle, Eye, Radio, FlaskConical } from 'lucide-react';
 const heroBgPattern = '/hero-bg-pattern.webp';
 import { useMusic } from '@/hooks/useMusicPlayer';
 
@@ -373,11 +372,9 @@ export default function Landing() {
       >
         <div className="flex items-center justify-between px-5 lg:px-8 py-3 lg:py-4 pt-[max(0.75rem,env(safe-area-inset-top))] max-w-7xl mx-auto">
           <div className="flex items-center gap-2.5 lg:gap-3">
-            <img
-              src={dbLogoImage}
-              alt="Dealbreak"
-              className="w-8 h-8 lg:w-9 lg:h-9 rounded-lg"
-            />
+            <span className="dealbreak-mark" aria-hidden="true">
+              <FlaskConical className="w-5 h-5 lg:w-[22px] lg:h-[22px]" strokeWidth={1.8} />
+            </span>
             <span
               className="font-bold text-lg lg:text-xl tracking-wide"
               style={{ color: '#d4af37' }}
@@ -397,27 +394,6 @@ export default function Landing() {
           </div>
         </div>
       </nav>
-      {/* === TESTING PHASE BANNER (TEMPORARY) === */}
-      <div
-        className="relative overflow-hidden"
-        style={{
-          background: 'linear-gradient(90deg, rgba(212,175,55,0.06) 0%, rgba(19,19,22,0.98) 50%, rgba(16,185,129,0.06) 100%)',
-          borderBottom: '1px solid rgba(212,175,55,0.1)',
-        }}
-        data-testid="banner-testing-phase"
-      >
-        <div className="max-w-4xl mx-auto px-5 py-2 flex items-center justify-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#d4af37' }} />
-            <span className="text-[11px] sm:text-xs font-semibold tracking-wide" style={{ color: 'rgba(212,175,55,0.85)' }}>
-              Final Testing Phase
-            </span>
-          </div>
-          <span className="text-[10px] sm:text-[11px]" style={{ color: 'rgba(225,220,205,0.58)' }}>
-            We're actively refining mechanics, squashing bugs, and polishing every detail. Thanks for your patience as we get this right.
-          </span>
-        </div>
-      </div>
       {/* === HERO SECTION === */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">

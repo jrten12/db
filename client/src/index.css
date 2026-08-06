@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -115,11 +116,11 @@
   --color-wood: hsl(var(--wood));
   --color-wood-dark: hsl(var(--wood-dark));
 
-  --font-display: 'DM Serif Display', Georgia, serif;
-  --font-serif: 'DM Serif Display', Georgia, serif;
-  --font-premium: 'Cormorant Garamond', 'DM Serif Display', Georgia, serif;
-  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
-  --font-mono: 'Space Mono', monospace;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-serif: 'Space Grotesk', system-ui, sans-serif;
+  --font-premium: 'Space Grotesk', system-ui, sans-serif;
+  --font-sans: 'Manrope', system-ui, sans-serif;
+  --font-mono: 'DM Mono', monospace;
 }
 
 :root {
@@ -166,9 +167,9 @@
   --wood: 25 35% 25%;
   --wood-dark: 25 40% 15%;
 
-  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
-  --font-serif: 'DM Serif Display', Georgia, serif;
-  --font-mono: 'Space Mono', monospace;
+  --font-sans: 'Manrope', system-ui, sans-serif;
+  --font-serif: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'DM Mono', monospace;
   --radius: .625rem;
   --shadow-2xs: 0 1px 2px rgba(0,0,0,.15);
   --shadow-xs: 0 1px 3px rgba(0,0,0,.18);
@@ -1630,4 +1631,113 @@ input[type="range"]::-moz-range-track {
 .perf-stats-card:hover {
   transform: translateY(-2px);
   border-color: rgba(255,255,255,0.1);
+}
+
+/* Dealbreak landing: a dark underwriting lab, not a fantasy dashboard. */
+[data-testid="landing-page"] {
+  --landing-ink: #e8edf2;
+  --landing-muted: rgba(201, 211, 220, .66);
+  --landing-line: rgba(164, 184, 198, .16);
+  --landing-cyan: #72c7e6;
+  --landing-acid: #d7df75;
+  background:
+    radial-gradient(ellipse 70% 48% at 12% 0%, rgba(36, 91, 111, .24), transparent 68%),
+    radial-gradient(ellipse 55% 35% at 92% 18%, rgba(104, 111, 55, .13), transparent 70%),
+    #0b1014 !important;
+  color: var(--landing-ink);
+  font-family: 'Manrope', system-ui, sans-serif;
+}
+[data-testid="landing-page"] nav {
+  background: rgba(11, 16, 20, .78) !important;
+  border-bottom: 1px solid var(--landing-line) !important;
+  backdrop-filter: blur(22px) saturate(1.25) !important;
+}
+[data-testid="landing-page"] nav > div {
+  min-height: 64px;
+}
+.dealbreak-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: #0b1014;
+  background: var(--landing-acid);
+  border-radius: 9px 9px 11px 11px;
+  box-shadow: 0 0 0 1px rgba(215,223,117,.3), 0 8px 28px rgba(215,223,117,.12);
+  transition: transform .2s ease, background-color .2s ease;
+}
+.dealbreak-mark:hover { transform: rotate(-5deg) translateY(-1px); background: #e4eb93; }
+[data-testid="landing-page"] nav span:not(.dealbreak-mark) {
+  font-family: 'Space Grotesk', system-ui, sans-serif !important;
+  letter-spacing: -.035em !important;
+  color: var(--landing-ink) !important;
+}
+[data-testid="landing-page"] section:first-of-type {
+  min-height: min(760px, calc(100dvh - 65px));
+}
+[data-testid="landing-page"] h1 {
+  font-family: 'Space Grotesk', system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: -.065em !important;
+  font-size: clamp(2.75rem, 6vw, 5.7rem) !important;
+  line-height: .96 !important;
+  max-width: 760px;
+}
+[data-testid="landing-page"] h1 span[style*="7dd3fc"] {
+  color: var(--landing-cyan) !important;
+  text-shadow: 0 0 32px rgba(114,199,230,.12);
+}
+[data-testid="landing-page"] h1 span[style*="linear-gradient"] {
+  background: none !important;
+  color: var(--landing-acid) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+[data-testid="landing-page"] [data-testid="button-play-simulator"] {
+  background: var(--landing-acid) !important;
+  border-radius: 5px !important;
+  box-shadow: 0 10px 30px rgba(215,223,117,.14), inset 0 1px 0 rgba(255,255,255,.45) !important;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  letter-spacing: -.02em;
+}
+[data-testid="landing-page"] [data-testid="button-play-simulator"]:hover {
+  background: #e4eb93 !important;
+  transform: translateY(-2px);
+}
+[data-testid="landing-page"] [data-testid="button-how-it-works"] {
+  border-radius: 5px !important;
+  border-color: var(--landing-line) !important;
+  color: var(--landing-ink) !important;
+}
+[data-testid="landing-page"] [data-testid="button-how-it-works"]:hover {
+  border-color: rgba(114,199,230,.55) !important;
+  background: rgba(114,199,230,.07) !important;
+}
+[data-testid="landing-page"] .perf-stats-card,
+[data-testid="landing-page"] [data-testid="hero-dashboard-panel"] {
+  border-color: var(--landing-line) !important;
+  border-radius: 5px !important;
+  box-shadow: 0 26px 70px rgba(0,0,0,.34) !important;
+}
+[data-testid="landing-page"] .perf-stats-card {
+  background: rgba(19, 29, 35, .72) !important;
+}
+[data-testid="landing-page"] h2 {
+  font-family: 'Space Grotesk', system-ui, sans-serif !important;
+  letter-spacing: -.055em !important;
+}
+[data-testid="landing-page"] .landing-gold-shimmer {
+  color: var(--landing-acid) !important;
+}
+[data-testid="landing-page"] .font-mono {
+  font-family: 'DM Mono', monospace !important;
+}
+[data-testid="landing-page"] .rounded-xl,
+[data-testid="landing-page"] .rounded-2xl {
+  border-radius: 5px;
+}
+@media (max-width: 767px) {
+  [data-testid="landing-page"] section:first-of-type { min-height: auto; }
+  [data-testid="landing-page"] h1 { font-size: clamp(2.55rem, 12vw, 4rem) !important; }
+  .dealbreak-mark { width: 32px; height: 32px; }
 }

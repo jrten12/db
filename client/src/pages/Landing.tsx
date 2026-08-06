@@ -420,6 +420,22 @@ export default function Landing() {
             width={1408}
             height={768}
           />
+          <div className="landing-architecture" aria-hidden="true">
+            <svg viewBox="0 0 1600 760" preserveAspectRatio="xMidYMid slice" focusable="false">
+              <g className="landing-architecture-lines" fill="none" stroke="currentColor" strokeWidth="1">
+                <path d="M0 590h1600M0 650h1600M0 704h1600" />
+                <path d="M80 590V430h110l42-58 46 58h112v160M210 430v160M80 486h310M80 534h310" />
+                <path d="M470 590V324h190l74-82 78 82h176v266M470 410h518M470 484h518M585 324v266M805 324v266" />
+                <path d="M1080 590V390h76v-88h94v88h72v-138h112v138h86v200M1080 458h360M1080 520h360M1190 390v200M1334 440v150" />
+                <path d="M0 732h1600M40 744h230M360 744h410M940 744h280M1370 744h190" strokeDasharray="3 10" />
+              </g>
+              <g className="landing-architecture-plan" fill="none" stroke="currentColor" strokeWidth="1">
+                <path d="M112 126h260v146H112zM112 198h112v74M224 126v72h148M296 198v74" />
+                <path d="M1220 90h250v154h-250zM1220 166h88v78M1308 90v76h162M1388 166v78" />
+                <circle cx="112" cy="126" r="8" /><circle cx="1470" cy="90" r="8" />
+              </g>
+            </svg>
+          </div>
           <div
             className="absolute inset-0"
             style={{

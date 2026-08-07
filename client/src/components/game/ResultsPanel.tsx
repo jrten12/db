@@ -1,9 +1,7 @@
 import { useEffect } from 'react';
 import { ProFormaOutputs, formatCurrency } from '@/lib/gameData';
-import { TrendingDown, TrendingUp, AlertTriangle, HelpCircle, Lightbulb, X, Check } from 'lucide-react';
+import { TrendingDown, TrendingUp, AlertTriangle, HelpCircle, Lightbulb, X, Check, FileText, Coins, Landmark } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import mortgageIcon from '@assets/generated_images/mortgage_document_game_icon.webp';
-import coinsIcon from '@assets/generated_images/gold_coins_stack_icon.webp';
 
 interface ResultsPanelProps {
   strategy: 'rent' | 'flip';
@@ -178,13 +176,22 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
   };
 
   return (
-    <div className="bg-gradient-to-b from-slate-800/95 to-slate-900/95 backdrop-blur-md rounded-2xl border-2 border-amber-700/50 shadow-2xl overflow-hidden" data-testid="results-panel">
+    <div className="bg-gradient-to-b from-slate-800/95 to-slate-900/95 backdrop-blur-md rounded-2xl border border-amber-500/25 shadow-2xl overflow-hidden" data-testid="results-panel">
       {/* Header */}
-      <div className="text-center py-6 border-b border-amber-700/30">
-        <h1 className="text-4xl font-bold text-white tracking-wide" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
+      <div className="relative text-center py-6 px-4 border-b border-amber-500/20 overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-70"
+          style={{
+            background:
+              'radial-gradient(ellipse at 50% -20%, rgba(251,191,36,0.18), transparent 55%), linear-gradient(180deg, rgba(15,23,42,0.2), transparent)',
+          }}
+          aria-hidden
+        />
+        <p className="relative text-[10px] uppercase tracking-[0.22em] text-amber-200/55 font-semibold mb-2">Deal readout</p>
+        <h1 className="relative text-3xl md:text-4xl font-bold text-white tracking-[0.08em] font-display">
           RESULTS
         </h1>
-        <p className="text-amber-400 mt-2 font-medium">
+        <p className="relative text-amber-300/90 mt-2 font-medium text-sm">
           {strategy === 'rent' ? 'Rental Strategy Analysis' : 'Flip Strategy Analysis'}
         </p>
       </div>
@@ -336,20 +343,38 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
               )}
             </div>
 
-            {/* Decorative Elements */}
-            <div className="mt-6 flex items-end justify-between opacity-60">
-              <img 
-                src={mortgageIcon} 
-                alt="" 
-                className="w-20 h-20 object-contain"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-              />
-              <img 
-                src={coinsIcon} 
-                alt="" 
-                className="w-16 h-16 object-contain"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-              />
+            {/* Metric ornaments — replaces clip-art icons */}
+            <div className="results-ornament">
+              <div className="results-ornament-card">
+                <div className="flex items-center gap-2 text-amber-200/90">
+                  <Landmark className="w-4 h-4" />
+                  <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-amber-200/70">Basis</span>
+                </div>
+                <p className="mt-2 text-sm font-mono font-semibold text-white tabular-nums">
+                  {formatCurrency(outputs.totalCashInvested)}
+                </p>
+                <p className="text-[11px] text-white/40 mt-0.5">Cash in deal</p>
+                <FileText className="results-ornament-mark w-14 h-14 text-amber-200" aria-hidden />
+              </div>
+              <div className="results-ornament-card cash">
+                <div className="flex items-center gap-2 text-emerald-200/90">
+                  <Coins className="w-4 h-4" />
+                  <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-emerald-200/70">
+                    {strategy === 'rent' ? 'Yield' : 'Return'}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm font-mono font-semibold text-white tabular-nums">
+                  {strategy === 'rent'
+                    ? `${outputs.cashOnCash.toFixed(1)}% CoC`
+                    : showFlipUnknown
+                      ? '—'
+                      : `${flipROI.toFixed(1)}% ROI`}
+                </p>
+                <p className="text-[11px] text-white/40 mt-0.5">
+                  {strategy === 'rent' ? 'Cash-on-cash' : 'Projected ROI'}
+                </p>
+                <Coins className="results-ornament-mark w-14 h-14 text-emerald-300" aria-hidden />
+              </div>
             </div>
           </div>
         </div>
@@ -386,7 +411,7 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                   )
                 )}
               </div>
-              <h3 className={`text-xl font-bold ${
+              <h3 className={`text-xl font-bold flex items-center gap-2 flex-wrap ${
                 strategy === 'rent'
                   ? (isPositiveCashFlow && isGoodCashOnCash ? 'text-emerald-400' : 'text-red-400')
                   : showFlipUnknown ? 'text-amber-400' : (isPositiveProfit && isGoodROI ? 'text-emerald-400' : 'text-red-400')
@@ -402,9 +427,8 @@ export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, h
                           : 'drop-shadow(0 0 12px rgba(239,68,68,0.5))')
               }}>
                 {strategy === 'rent'
-                  ? (isPositiveCashFlow && isGoodCashOnCash ? '🏆 Projection Meets Investment Criteria' : '⚠️ Projection Below Target')
-                  : showFlipUnknown ? '⚠️ Cannot Evaluate - No Appraisal' : (isPositiveProfit && isGoodROI ? '🏆 Projection Meets Investment Criteria' : '⚠️ Projection Below Target')
-                }
+                  ? (isPositiveCashFlow && isGoodCashOnCash ? 'Projection Meets Investment Criteria' : 'Projection Below Target')
+                  : showFlipUnknown ? 'Cannot Evaluate — No Appraisal' : (isPositiveProfit && isGoodROI ? 'Projection Meets Investment Criteria' : 'Projection Below Target')}
               </h3>
             </div>
             

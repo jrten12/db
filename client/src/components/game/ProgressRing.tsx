@@ -6,6 +6,10 @@ interface ProgressRingProps {
   size?: number;
   strokeWidth?: number;
   className?: string;
+  /** Hide center label — useful when parent shows the count separately */
+  hideLabel?: boolean;
+  /** Smaller center typography for mobile HUD chips */
+  compact?: boolean;
 }
 
 export function ProgressRing({
@@ -13,15 +17,19 @@ export function ProgressRing({
   total,
   size = 56,
   strokeWidth = 4,
-  className = ''
+  className = '',
+  hideLabel = false,
+  compact = false,
 }: ProgressRingProps) {
   const [isComplete, setIsComplete] = useState(false);
   const prevCurrent = useRef(current);
 
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const progress = Math.min(current / total, 1);
-  const strokeDashoffset = circumference - (progress * circumference);
+  const safeTotal = Math.max(total, 1);
+  const progress = Math.min(current / safeTotal, 1);
+  const strokeDashoffset = circumference - progress * circumference;
+  const done = current >= total && total > 0;
 
   useEffect(() => {
     if (current > prevCurrent.current && current === total) {
@@ -35,11 +43,13 @@ export function ProgressRing({
   return (
     <div className={`relative inline-flex items-center justify-center ${className}`}>
       <svg
-        className={`progress-ring ${isComplete ? 'progress-ring-complete' : ''}`}
+        className={`progress-ring ${isComplete ? 'progress-ring-complete' : ''} ${done ? 'progress-ring-done' : ''}`}
         width={size}
         height={size}
+        aria-hidden={hideLabel}
+        role={hideLabel ? undefined : 'img'}
+        aria-label={hideLabel ? undefined : `${current} of ${total} deals`}
       >
-        {/* Background circle */}
         <circle
           className="progress-ring-bg"
           strokeWidth={strokeWidth}
@@ -48,7 +58,6 @@ export function ProgressRing({
           cx={size / 2}
           cy={size / 2}
         />
-        {/* Progress circle */}
         <circle
           className="progress-ring-fill"
           strokeWidth={strokeWidth}
@@ -62,12 +71,14 @@ export function ProgressRing({
           }}
         />
       </svg>
-      {/* Center content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-lg font-bold text-white">
-          {current}<span className="text-gray-400 text-sm">/{total}</span>
-        </span>
-      </div>
+      {!hideLabel ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className={`font-bold text-white tabular-nums leading-none ${compact ? 'text-[11px]' : 'text-lg'}`}>
+            {current}
+            <span className={`text-white/35 ${compact ? 'text-[9px]' : 'text-sm'}`}>/{total}</span>
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }

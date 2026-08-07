@@ -219,7 +219,15 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
 
         {isUnlocked && (
           <div className={`mt-4 pt-3 border-t border-slate-600 text-center font-bold text-sm rounded-lg p-3 ${meetsThresholds ? 'text-emerald-400 bg-emerald-500/20 border border-emerald-500/30' : 'text-amber-400 bg-amber-500/20 border border-amber-500/30'}`}>
-            {meetsThresholds ? '✓ Meets Investment Criteria' : '⚠ Below Target'}
+            {meetsThresholds ? (
+              <span className="inline-flex items-center gap-1.5 text-emerald-400">
+                <TrendingUp className="w-3.5 h-3.5" /> Meets Investment Criteria
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-amber-400">
+                <AlertTriangle className="w-3.5 h-3.5" /> Below Target
+              </span>
+            )}
           </div>
         )}
       </div>

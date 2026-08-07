@@ -21,7 +21,6 @@ import {
   getRandomStartingMarket,
   progressMarketCondition,
   shouldMarketChange as shouldMarketChangeBase,
-  getWeeklyRentGrowthRate,
   getMarketVacancyAdjustment,
   applyMarketToListing,
   normalizeMarketCondition,
@@ -928,6 +927,56 @@ export async function processRentalIncome(
   let monthlyOperatingExpenses = proFormaOutputs?.monthlyOperatingExpenses || 0;
   let monthlyDebtService = proFormaOutputs?.monthlyDebtService || proFormaOutputs?.debtServiceMonthly || 0;
   let realityAdjustmentMonthly = proFormaOutputs?.realityAdjustmentMonthly || 0;
+
+  // Prefer the locked lease rent when a tenant is in place (prevents mid-lease drift from legacy weekly growth)
+  try {
+    const tenant = await storage.getTenantByDeal(deal.id);
+    const leaseRent = tenant?.leaseRentAmount;
+    if (leaseRent && leaseRent > 0) {
+      const justRenegotiated = proFormaOutputs?.lastLeaseRenewalWeek === gameRun.currentWeek + 1;
+      const isVacancyMonth = curveball?.rentMultiplier === 0;
+      if (!justRenegotiated && !isVacancyMonth && leaseRent !== monthlyGrossRent) {
+        const vacRate = proFormaOutputs?.effectiveVacancyRate ??
+          (monthlyGrossRent > 0 && monthlyVacancyLoss > 0
+            ? (monthlyVacancyLoss / monthlyGrossRent) * 100
+            : (proFormaInputs?.vacancyRate || 5));
+        monthlyGrossRent = leaseRent;
+        monthlyVacancyLoss = leaseRent * (vacRate / 100);
+        // Recalculate opex shares that scale with rent so the ledger stays consistent
+        const taxesAnnual = proFormaInputs?.taxesAnnual || 0;
+        const insuranceAnnual = proFormaInputs?.insuranceAnnual || 0;
+        const maintenancePct = proFormaInputs?.maintenancePct || 5;
+        const capexPct = proFormaInputs?.capExPct || proFormaInputs?.capexPct || 8;
+        const hasPropertyMgmt = proFormaInputs?.propertyManagement || false;
+        const propertyManagementPct = proFormaInputs?.propertyManagementPct || 10;
+        const landlordPaysUtilities = proFormaInputs?.utilities || false;
+        const utilitiesMonthly = proFormaInputs?.utilitiesMonthly || 150;
+        monthlyOperatingExpenses =
+          taxesAnnual / 12 +
+          insuranceAnnual / 12 +
+          leaseRent * (maintenancePct / 100) +
+          leaseRent * (capexPct / 100) +
+          (hasPropertyMgmt ? leaseRent * (propertyManagementPct / 100) : 0) +
+          (landlordPaysUtilities ? utilitiesMonthly : 0);
+
+        const debtService = monthlyDebtService;
+        const newCashFlow = leaseRent - monthlyVacancyLoss - monthlyOperatingExpenses - debtService;
+        // Persist snap-back so UI / future ticks stop showing drifted mid-lease rent
+        await storage.updateDeal(deal.id, {
+          weeklyIncome: calculateWeeklyIncome(newCashFlow),
+          proFormaOutputs: {
+            ...proFormaOutputs,
+            monthlyGrossRent: leaseRent,
+            monthlyVacancyLoss,
+            monthlyOperatingExpenses,
+            cashFlowMonthly: newCashFlow,
+          },
+        });
+      }
+    }
+  } catch {
+    // Non-critical — fall back to deal pro forma rent
+  }
   
   // Handle legacy rentals: if stored fields are missing, derive from stored inputs
   // First try proFormaInputs.expectedRent, then fall back to cashFlowMonthly-based reconstruction
@@ -1157,14 +1206,20 @@ export async function processRentalIncome(
   // No separate line needed - the rent line already shows actual market rent
   // This is cleaner and less confusing for players
   
-  // Curveball cash impact (if any)
+  // Maintenance / repair / assessment cash impact (complaints with $0 cost are skipped)
   if (cashImpact !== 0) {
+    const isRepairLike = curveball?.tenantIssue === true ||
+      ['appliance', 'hvac', 'plumbing', 'electrical', 'structural', 'landscaping', 'septic', 'well', 'pest', 'hoa'].includes(curveball?.category);
+    const impactLabel = cashImpact < 0 && isRepairLike
+      ? `Repair: ${curveball?.name || 'Maintenance'}`
+      : (curveball?.name || 'Curveball');
+
     if (cashImpact > 0) {
       ledgerEntries.push({
         direction: 'credit',
         category: 'income',
         amount: cashImpact,
-        description: `${curveball?.name || 'Curveball'} - ${propertyName}`,
+        description: `${impactLabel} - ${propertyName}`,
         propertyId: deal.propertyId,
         dealId: deal.id,
         gameWeek: gameRun.currentWeek,
@@ -1174,7 +1229,7 @@ export async function processRentalIncome(
         direction: 'debit',
         category: 'expense',
         amount: Math.abs(cashImpact),
-        description: `${curveball?.name || 'Curveball'} - ${propertyName}`,
+        description: `${impactLabel} - ${propertyName}`,
         propertyId: deal.propertyId,
         dealId: deal.id,
         gameWeek: gameRun.currentWeek,
@@ -1247,7 +1302,9 @@ export async function processRentalIncome(
   const playerProjectedOpEx = proFormaOutputs?.monthlyOperatingExpenses || monthlyOperatingExpenses;
   const playerProjectedDebt = proFormaOutputs?.monthlyDebtService || proFormaOutputs?.debtServiceMonthly || monthlyDebtService;
   const playerProjectedExpenses = playerProjectedVacancy + playerProjectedOpEx + playerProjectedDebt;
-  const actualMonthlyExpenses = scaledVacancyLoss + fixedOperatingExpenses + fixedDebtService;
+  // Include one-off maintenance/repair hits so expense variance reflects real ledger costs
+  const repairExpenseThisMonth = cashImpact < 0 ? Math.abs(cashImpact) : 0;
+  const actualMonthlyExpenses = scaledVacancyLoss + fixedOperatingExpenses + fixedDebtService + repairExpenseThisMonth;
   const projectedCashFlow = playerProjectedRent - playerProjectedExpenses;
   const actualCashFlow = scaledGrossRent - actualMonthlyExpenses;
   const rentDelta = scaledGrossRent - playerProjectedRent;
@@ -1281,6 +1338,9 @@ export async function processRentalIncome(
       reasons.push('Actual rent is exceeding your pro forma — nice conservative underwriting!');
     }
     if (expenseDelta > 0) {
+      if (repairExpenseThisMonth > 0) {
+        reasons.push(`Surprise repair (${curveball?.name || 'maintenance'}) added $${repairExpenseThisMonth.toLocaleString()} this month.`);
+      }
       if (Math.abs(scaledVacancyLoss - playerProjectedVacancy) > playerProjectedVacancy * 0.1) {
         reasons.push('Vacancy is higher than you projected.');
       }
@@ -1461,11 +1521,16 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
               if (unfixedCount >= 3) conditionPct = -(1 + Math.random() * 2);
               else if (unfixedCount >= 1) conditionPct = -(0.5 + Math.random() * 1);
               
-              // Cosmetic upgrade bonus
-              const cosmeticPct = outputs.cosmeticUpgradeApplied ? (0.5 + Math.random() * 1) : 0;
+              // Cosmetic upgrade bonus (includes deferred mid-lease renovations)
+              const pendingCosmeticBoost = outputs.pendingCosmeticRentBoostPct || 0;
+              const cosmeticPct = (outputs.cosmeticUpgradeApplied || pendingCosmeticBoost > 0)
+                ? (0.5 + Math.random() * 1 + pendingCosmeticBoost)
+                : 0;
               
               let totalChangePct = marketRandom + conditionPct + cosmeticPct;
-              totalChangePct = Math.max(-6, Math.min(6, totalChangePct));
+              // Allow deferred cosmetic boost above the normal ±6% new-lease band
+              const moveInCap = 6 + Math.min(pendingCosmeticBoost, 9);
+              totalChangePct = Math.max(-6, Math.min(moveInCap, totalChangePct));
               
               const activationRent = outputs.activationMonthlyRent || currentRent;
               let newRent = Math.round(currentRent * (1 + totalChangePct / 100));
@@ -1515,6 +1580,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
                 preRenewalRent: currentRent,
                 lastLeaseRenewalWeek: gameRun.currentWeek + 1,
                 lastRenewalWasNewTenant: true,
+                pendingCosmeticRentBoostPct: 0,
               };
               
               await storage.updateDeal(deal.id, {
@@ -1623,6 +1689,10 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           await storage.updateTenant(currentTenant.id, {
             satisfaction: newSatisfaction,
             weeksUnhappy: newWeeksUnhappy,
+            // Backfill lease rent lock for older saves that never stored it
+            ...((!currentTenant.leaseRentAmount && (deal.proFormaOutputs as any)?.monthlyGrossRent)
+              ? { leaseRentAmount: (deal.proFormaOutputs as any).monthlyGrossRent }
+              : {}),
           });
 
           currentTenant.satisfaction = newSatisfaction;
@@ -2145,11 +2215,9 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
     });
   }
 
-  // Market rent adjustments now happen at lease renewal (every 6 months), not mid-lease
-  // Store the current market condition for lease renewal calculations but don't change rent mid-lease
-
-  // Gentle rent growth on owned active rentals (locked leases still feel alive over the year)
-  await applyWeeklyRentGrowth(gameRunId, deals, currentMarket, newWeek);
+  // Market rent adjustments happen only at lease renewal / new-tenant move-in — never mid-lease.
+  // (Weekly owned-rent drift was removed because it mutated locked lease rent every tick and
+  // could overwrite same-tick move-in / renewal amounts via a stale deals snapshot.)
 
   // Check for passive income milestones
   // Note: weeklyIncome field is a legacy name — it stores monthly net cash flow (see calculateWeeklyIncome)
@@ -2224,75 +2292,6 @@ function getLatePaymentMessages(ethic: string, firstName: string, amount: number
 }
 
 /**
- * Apply small weekly market-scaled rent drift to active rentals.
- * Skips rehabs (no tenant / lease frozen) and caps cumulative growth.
- */
-async function applyWeeklyRentGrowth(
-  gameRunId: number,
-  deals: Deal[],
-  market: MarketCondition,
-  gameWeek: number
-): Promise<void> {
-  const growthRate = getWeeklyRentGrowthRate(market);
-  if (Math.abs(growthRate) < 0.00005) return;
-
-  for (const deal of deals) {
-    if (deal.status !== 'active_rental' || deal.rentalRehabActive) continue;
-
-    const proFormaOutputs = (deal.proFormaOutputs as any) || {};
-    const currentRent = proFormaOutputs.monthlyGrossRent;
-    if (!currentRent || currentRent <= 0) continue;
-
-    // Cap cumulative market rent drift at ±10% from activation rent
-    const baselineRent = proFormaOutputs.activationMonthlyRent || currentRent;
-    const maxRent = Math.round(baselineRent * 1.1);
-    const minRent = Math.round(baselineRent * 0.92);
-    const grownRent = Math.round(currentRent * (1 + growthRate));
-    const newMonthlyRent = Math.min(maxRent, Math.max(minRent, grownRent));
-    if (newMonthlyRent === currentRent) continue;
-
-    const effectiveVacancyRate = proFormaOutputs.effectiveVacancyRate ?? 7;
-    const newMonthlyVacancyLoss = newMonthlyRent * (effectiveVacancyRate / 100);
-    const proFormaInputs = (deal.proFormaInputs as any) || {};
-    const taxesAnnual = proFormaInputs.taxesAnnual || 0;
-    const insuranceAnnual = proFormaInputs.insuranceAnnual || 0;
-    const maintenancePct = proFormaInputs.maintenancePct || 5;
-    const capexPct = proFormaInputs.capexPct || proFormaInputs.capExPct || 5;
-    const hasPropertyMgmt = proFormaInputs.propertyManagement || false;
-    const propertyManagementPct = proFormaInputs.propertyManagementPct || 10;
-    const landlordPaysUtilities = proFormaInputs.utilities || false;
-    const utilitiesMonthly = proFormaInputs.utilitiesMonthly || 150;
-    const monthlyDebtService =
-      proFormaOutputs.monthlyDebtService || proFormaOutputs.debtServiceMonthly || 0;
-
-    const newMonthlyOperatingExpenses =
-      taxesAnnual / 12 +
-      insuranceAnnual / 12 +
-      newMonthlyRent * (maintenancePct / 100) +
-      newMonthlyRent * (capexPct / 100) +
-      (hasPropertyMgmt ? newMonthlyRent * (propertyManagementPct / 100) : 0) +
-      (landlordPaysUtilities ? utilitiesMonthly : 0);
-
-    const newNetMonthlyCashFlow =
-      newMonthlyRent - newMonthlyVacancyLoss - newMonthlyOperatingExpenses - monthlyDebtService;
-    const newWeeklyIncome = calculateWeeklyIncome(newNetMonthlyCashFlow);
-
-    await storage.updateDeal(deal.id, {
-      weeklyIncome: Math.max(0, newWeeklyIncome),
-      proFormaOutputs: {
-        ...proFormaOutputs,
-        activationMonthlyRent: baselineRent,
-        monthlyGrossRent: newMonthlyRent,
-        monthlyVacancyLoss: newMonthlyVacancyLoss,
-        monthlyOperatingExpenses: newMonthlyOperatingExpenses,
-        lastRentGrowthWeek: gameWeek,
-        marketRentGrowthApplied: true,
-      },
-    });
-  }
-}
-
-/**
  * Calculate weekly rental income from monthly cash flow
  * (Monthly cash flow / 4.33 weeks per month)
  */
@@ -2334,8 +2333,11 @@ async function processLeaseRenewal(
   const activationRent = outputs.activationMonthlyRent || currentRent;
   const tenantName = (tenant.name || 'Tenant').split(' ')[0];
 
+  // Apply any cosmetic upgrade rent boost deferred from mid-lease renovations
+  const pendingCosmeticBoost = outputs.pendingCosmeticRentBoostPct || 0;
+
   // === RENEWAL RENT CALCULATION ===
-  // Base: start from current rent (not activation rent)
+  // Base: start from current lease rent (locked since last move-in / renewal)
   let rentChangePct = 0;
 
   // 1. Market condition adjustment (the biggest factor)
@@ -2366,13 +2368,14 @@ async function processLeaseRenewal(
     rentChangePct -= 0.5 + Math.random() * 1;
   }
 
-  // 4. Cosmetic upgrade bonus — renovated properties command more
-  if (outputs.cosmeticUpgradeApplied) {
-    rentChangePct += 0.5 + Math.random() * 1;
+  // 4. Cosmetic upgrade bonus — renovated properties command more (includes deferred mid-lease work)
+  if (outputs.cosmeticUpgradeApplied || pendingCosmeticBoost > 0) {
+    rentChangePct += 0.5 + Math.random() * 1 + pendingCosmeticBoost;
   }
 
-  // Cap the change to reasonable bounds (-8% to +8% per renewal)
-  rentChangePct = Math.max(-8, Math.min(8, rentChangePct));
+  // Cap the change to reasonable bounds (-8% to +8% per renewal), but allow deferred cosmetic boost above the cap
+  const renewalCap = 8 + Math.min(pendingCosmeticBoost, 7);
+  rentChangePct = Math.max(-8, Math.min(renewalCap, rentChangePct));
 
   // Apply hard floor/ceiling relative to activation rent
   let newRent = Math.round(currentRent * (1 + rentChangePct / 100));
@@ -2406,7 +2409,7 @@ async function processLeaseRenewal(
   const netDiff = newNetRent - oldNetRent;
   const netDiffAbs = Math.abs(netDiff);
 
-  // Update deal with new rent
+  // Update deal with new rent — clear deferred cosmetic boost once applied
   const updatedOutputs = {
     ...outputs,
     monthlyGrossRent: newRent,
@@ -2418,6 +2421,7 @@ async function processLeaseRenewal(
     lastMarketRentAdjustment: market,
     preRenewalRent: currentRent,
     lastRenewalWasNewTenant: false,
+    pendingCosmeticRentBoostPct: 0,
   };
 
   await storage.updateDeal(deal.id, {
@@ -2806,40 +2810,61 @@ export async function applyCosmeticUpgrade(
       rentBoostPct = Math.round(baseBoost * conditionBoostMult * investmentMult * resonance * 10) / 10;
       rentBoostPct = Math.max(1, Math.min(15, rentBoostPct));
 
-      const currentRent = outputs.monthlyGrossRent || 0;
-      const newRent = Math.round(currentRent * (1 + rentBoostPct / 100));
+      const existingTenant = await storage.getTenantByDeal(deal.id);
+      const hasActiveLease = !!existingTenant && !deal.rentalRehabActive;
 
-      const inputs = deal.proFormaInputs as any;
-      const vacancyRate = inputs?.vacancyRate || 5;
-      const tenantUtilityPenalty = inputs?.utilities ? 0 : 1.92;
-      const effectiveVacancyRate = vacancyRate + tenantUtilityPenalty;
-      const effectiveRent = newRent * (1 - effectiveVacancyRate / 100);
-      const monthlyTaxes = (inputs?.taxesAnnual || 0) / 12;
-      const monthlyInsurance = (inputs?.insuranceAnnual || 0) / 12;
-      const maintenanceCost = newRent * ((inputs?.maintenancePct || 5) / 100);
-      const capExCost = newRent * ((inputs?.capExPct || 8) / 100);
-      const utilitiesCost = inputs?.utilities ? (inputs?.utilitiesMonthly || 150) : 0;
-      const mgmtCost = inputs?.propertyManagement ? newRent * ((inputs?.propertyManagementPct || 10) / 100) : 0;
-      const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
-      const debtService = outputs.monthlyDebtService || 0;
-      const newCashFlow = effectiveRent - monthlyOpEx - debtService;
+      if (hasActiveLease) {
+        // Lease rent stays fixed mid-tenancy. Queue the boost for the next renewal / new tenant.
+        const priorPending = outputs.pendingCosmeticRentBoostPct || 0;
+        const updatedOutputs = {
+          ...outputs,
+          cosmeticUpgradeApplied: true,
+          cosmeticUpgradeCost: cost,
+          cosmeticUpgradeRentBoost: rentBoostPct,
+          pendingCosmeticRentBoostPct: Math.min(15, priorPending + rentBoostPct),
+        };
+        await storage.updateDeal(deal.id, {
+          proFormaOutputs: updatedOutputs,
+        });
+        message = `${desc.work}. +${rentBoostPct}% rent boost queued for next lease renewal / new tenant (current lease stays locked).`;
+      } else {
+        // Vacant / between tenants — apply immediately so the next lease starts at the new market rent
+        const currentRent = outputs.monthlyGrossRent || 0;
+        const newRent = Math.round(currentRent * (1 + rentBoostPct / 100));
+        const inputs = deal.proFormaInputs as any;
+        const vacancyRate = inputs?.vacancyRate || 5;
+        const tenantUtilityPenalty = inputs?.utilities ? 0 : 1.92;
+        const effectiveVacancyRate = vacancyRate + tenantUtilityPenalty;
+        const effectiveRent = newRent * (1 - effectiveVacancyRate / 100);
+        const monthlyTaxes = (inputs?.taxesAnnual || 0) / 12;
+        const monthlyInsurance = (inputs?.insuranceAnnual || 0) / 12;
+        const maintenanceCost = newRent * ((inputs?.maintenancePct || 5) / 100);
+        const capExCost = newRent * ((inputs?.capExPct || 8) / 100);
+        const utilitiesCost = inputs?.utilities ? (inputs?.utilitiesMonthly || 150) : 0;
+        const mgmtCost = inputs?.propertyManagement ? newRent * ((inputs?.propertyManagementPct || 10) / 100) : 0;
+        const monthlyOpEx = monthlyTaxes + monthlyInsurance + maintenanceCost + capExCost + utilitiesCost + mgmtCost;
+        const debtService = outputs.monthlyDebtService || 0;
+        const newCashFlow = effectiveRent - monthlyOpEx - debtService;
 
-      const updatedOutputs = {
-        ...outputs,
-        monthlyGrossRent: newRent,
-        activationMonthlyRent: newRent,
-        monthlyVacancyLoss: newRent * (effectiveVacancyRate / 100),
-        monthlyOperatingExpenses: monthlyOpEx,
-        cashFlowMonthly: newCashFlow,
-        cosmeticUpgradeApplied: true,
-        cosmeticUpgradeCost: cost,
-        cosmeticUpgradeRentBoost: rentBoostPct,
-      };
-      await storage.updateDeal(deal.id, {
-        weeklyIncome: calculateWeeklyIncome(newCashFlow),
-        proFormaOutputs: updatedOutputs,
-      });
-      message = `${desc.work}. Rent increased ${rentBoostPct}% → $${newRent.toLocaleString()}/mo.`;
+        const updatedOutputs = {
+          ...outputs,
+          monthlyGrossRent: newRent,
+          // Keep activation baseline so lease floor/ceiling stay stable; do not rebase activation
+          activationMonthlyRent: outputs.activationMonthlyRent || currentRent,
+          monthlyVacancyLoss: newRent * (effectiveVacancyRate / 100),
+          monthlyOperatingExpenses: monthlyOpEx,
+          cashFlowMonthly: newCashFlow,
+          cosmeticUpgradeApplied: true,
+          cosmeticUpgradeCost: cost,
+          cosmeticUpgradeRentBoost: rentBoostPct,
+          pendingCosmeticRentBoostPct: 0,
+        };
+        await storage.updateDeal(deal.id, {
+          weeklyIncome: calculateWeeklyIncome(newCashFlow),
+          proFormaOutputs: updatedOutputs,
+        });
+        message = `${desc.work}. Rent increased ${rentBoostPct}% → $${newRent.toLocaleString()}/mo.`;
+      }
     } else {
       const desc = flipRenovationDescriptions[Math.floor(Math.random() * flipRenovationDescriptions.length)];
       const resonance = getResonanceFactor(desc.category, locationType, propertyType, market);

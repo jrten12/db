@@ -7,6 +7,8 @@ import type { MarketCondition } from "@shared/schema";
 import { getMarketMultipliers, calculateMarketAppreciation, applyMarketToListing, normalizeMarketCondition } from "./gameMechanics";
 import { getViabilityModifiers } from "@shared/viabilityProfile";
 import { calculateDealXp } from "@shared/streakTiers";
+import { ATLANTA_PROPERTIES } from "./atlantaProperties";
+import { METROS, normalizeMetroId, type MetroId } from "@shared/metros";
 
 // Compute the streak/XP/season-stats delta for a single deal close.
 // Pure function so it stays unit-testable and easy to reason about.
@@ -102,6 +104,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.1,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
   },
   {
     name: "Riverside Ranch",
@@ -121,6 +124,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.12,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
   },
   {
     name: "Maplewood Colonial",
@@ -140,6 +144,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.15,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
   },
   {
     name: "Downtown Loft",
@@ -159,6 +164,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.25,
     viabilityProfile: "rent-mirage",
     isActive: true,
+    metroId: 'philadelphia',
   },
   {
     name: "Elmwood Bungalow",
@@ -178,6 +184,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.08,
     viabilityProfile: "rehab-sinkhole",
     isActive: true,
+    metroId: 'philadelphia',
   },
   {
     name: "Hillside Retreat",
@@ -197,6 +204,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.18,
     viabilityProfile: "time-bomb",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "suburban",
     propertyType: "house",
   },
@@ -218,6 +226,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.22,
     viabilityProfile: "leverage-trap",
     isActive: true,
+    metroId: 'philadelphia',
   },
   {
     name: "South Street Twin",
@@ -238,6 +247,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.16,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
   },
   {
     name: "Fishtown Row House",
@@ -257,6 +267,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.20,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
   },
   {
     name: "Port Richmond Duplex",
@@ -277,6 +288,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.18,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
   },
   {
     name: "Kensington Row",
@@ -296,6 +308,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.14,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
   },
   {
     name: "Northern Liberties Loft",
@@ -315,6 +328,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.28,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
   },
   {
     name: "Hudson Valley Farmhouse",
@@ -334,6 +348,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.10,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "suburban",
     propertyType: "house",
   },
@@ -355,6 +370,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.35,
     viabilityProfile: "leverage-trap",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "condo",
   },
@@ -376,6 +392,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.12,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "suburban",
     propertyType: "house",
   },
@@ -397,6 +414,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.08,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "suburban",
     propertyType: "house",
   },
@@ -418,6 +436,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.18,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "townhouse",
   },
@@ -439,6 +458,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.10,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "house",
   },
@@ -460,6 +480,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.07,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "suburban",
     propertyType: "house",
   },
@@ -481,6 +502,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.32,
     viabilityProfile: "leverage-trap",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "condo",
   },
@@ -502,6 +524,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.20,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "townhouse",
   },
@@ -523,6 +546,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.28,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "house",
   },
@@ -544,6 +568,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.09,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "house",
   },
@@ -565,6 +590,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.30,
     viabilityProfile: "leverage-trap",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "suburban",
     propertyType: "house",
   },
@@ -586,6 +612,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.22,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "townhouse",
   },
@@ -607,6 +634,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.30,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "condo",
   },
@@ -628,6 +656,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.19,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "townhouse",
   },
@@ -649,6 +678,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.25,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "house",
   },
@@ -670,6 +700,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.17,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "townhouse",
   },
@@ -691,6 +722,7 @@ const ALL_PROPERTIES: InsertProperty[] = [
     offMarketRate: 0.28,
     viabilityProfile: "viable",
     isActive: true,
+    metroId: 'philadelphia',
     locationType: "urban",
     propertyType: "condo",
   },
@@ -712,6 +744,7 @@ export interface IStorage {
 
   // Property methods
   getAllProperties(): Promise<Property[]>;
+  getPropertiesByMetro(metroId: string): Promise<Property[]>;
   getProperty(id: number): Promise<Property | undefined>;
   createProperty(property: InsertProperty): Promise<Property>;
   seedProperties(): Promise<void>;
@@ -719,6 +752,9 @@ export interface IStorage {
   addNewUrbanProperties(): Promise<void>;
   addNewLuxuryProperties(): Promise<void>;
   backfillPropertyCharacteristics(): Promise<void>;
+  ensureMetroColumns(): Promise<void>;
+  seedAtlantaProperties(): Promise<void>;
+  backfillPropertyMetroIds(): Promise<void>;
 
   // Deal methods
   createDeal(deal: InsertDeal): Promise<Deal>;
@@ -890,6 +926,14 @@ export class DBStorage implements IStorage {
       .select()
       .from(schema.properties)
       .where(eq(schema.properties.isActive, true));
+  }
+
+  async getPropertiesByMetro(metroId: string): Promise<Property[]> {
+    const metro = normalizeMetroId(metroId);
+    return await db
+      .select()
+      .from(schema.properties)
+      .where(and(eq(schema.properties.isActive, true), eq(schema.properties.metroId, metro)));
   }
 
   async getProperty(id: number): Promise<Property | undefined> {
@@ -1449,10 +1493,8 @@ export class DBStorage implements IStorage {
 
   async updatePropertyLocationTypes(): Promise<void> {
     const urbanNeighborhoods = [
-      "Downtown", "Northern Liberties", "Fishtown", "South Street", 
-      "Kensington", "Port Richmond", "Old City", "Center City",
-      "Rittenhouse Square", "Society Hill", "Queen Village", 
-      "Graduate Hospital", "Fairmount"
+      ...METROS.philadelphia.urbanNeighborhoods,
+      ...METROS.atlanta.urbanNeighborhoods,
     ];
     
     const allProperties = await db.select().from(schema.properties);
@@ -1471,6 +1513,43 @@ export class DBStorage implements IStorage {
         console.log(`Updated ${prop.name} to ${correctLocationType}`);
       }
     }
+  }
+
+  /** Ensure metro_id columns exist on older databases before seeding Atlanta. */
+  async ensureMetroColumns(): Promise<void> {
+    await db.execute(sql`
+      ALTER TABLE properties
+      ADD COLUMN IF NOT EXISTS metro_id text NOT NULL DEFAULT 'philadelphia'
+    `);
+    await db.execute(sql`
+      ALTER TABLE game_runs
+      ADD COLUMN IF NOT EXISTS metro_id text NOT NULL DEFAULT 'philadelphia'
+    `);
+  }
+
+  /** Tag pre-metro Philly listings and insert Atlanta catalog if missing. */
+  async backfillPropertyMetroIds(): Promise<void> {
+    await db.execute(sql`
+      UPDATE properties
+      SET metro_id = 'philadelphia'
+      WHERE metro_id IS NULL OR metro_id = ''
+    `);
+  }
+
+  async seedAtlantaProperties(): Promise<void> {
+    const existing = await db
+      .select({ id: schema.properties.id })
+      .from(schema.properties)
+      .where(eq(schema.properties.metroId, 'atlanta'))
+      .limit(1);
+
+    if (existing.length > 0) {
+      console.log('Atlanta metro properties already seeded');
+      return;
+    }
+
+    await db.insert(schema.properties).values(ATLANTA_PROPERTIES);
+    console.log(`Seeded ${ATLANTA_PROPERTIES.length} Atlanta metro properties`);
   }
 
   async backfillPropertyCharacteristics(): Promise<void> {

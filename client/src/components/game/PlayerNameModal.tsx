@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Save, PlayCircle, RefreshCcw, Loader2, TrendingUp, DollarSign, Building2, Briefcase, ArrowRight } from 'lucide-react';
+import { Trophy, Save, PlayCircle, RefreshCcw, Loader2, TrendingUp, DollarSign, Building2, Briefcase, ArrowRight, MapPin } from 'lucide-react';
 import type { GameRun } from '@shared/schema';
+import { METRO_LIST, type MetroId } from '@shared/metros';
 import logo from '@assets/dealbreak_brand_icon.png';
 
 let keyAudioPool: HTMLAudioElement[] = [];
@@ -42,7 +43,7 @@ const HEADLINES = [
 
 interface PlayerNameModalProps {
   isOpen: boolean;
-  onSubmit: (playerName: string) => void;
+  onSubmit: (playerName: string, metroId: MetroId) => void;
   onViewHallOfFame: () => void;
   savedGameInfo?: {
     playerName: string;
@@ -52,7 +53,7 @@ interface PlayerNameModalProps {
   } | null;
   onContinueSavedGame?: () => void;
   onResumeGame?: (gameRun: GameRun) => void;
-  onNewGameReplace?: (playerName: string, existingGameId: number) => void;
+  onNewGameReplace?: (playerName: string, existingGameId: number, metroId?: MetroId) => void;
   checkExistingGame?: (playerName: string) => Promise<GameRun | null>;
 }
 
@@ -67,6 +68,7 @@ export function PlayerNameModal({
   checkExistingGame 
 }: PlayerNameModalProps) {
   const [playerName, setPlayerName] = useState('');
+  const [selectedMetro, setSelectedMetro] = useState<MetroId>('philadelphia');
   const [error, setError] = useState('');
   const [isChecking, setIsChecking] = useState(false);
   const [existingGame, setExistingGame] = useState<GameRun | null>(null);
@@ -116,10 +118,10 @@ export function PlayerNameModal({
           setExistingGame(existing);
           setShowExistingGameOptions(true);
         } else {
-          onSubmit(trimmed);
+          onSubmit(trimmed, selectedMetro);
         }
       } else {
-        onSubmit(trimmed);
+        onSubmit(trimmed, selectedMetro);
       }
     } catch (err) {
       setError('Failed to check for existing game');
@@ -147,7 +149,7 @@ export function PlayerNameModal({
     setIsReplacing(true);
     setReplaceError('');
     try {
-      await onNewGameReplace(nameToUse, existingGame.id);
+      await onNewGameReplace(nameToUse, existingGame.id, selectedMetro);
     } catch (err) {
       console.error('Start Fresh failed:', err);
       setReplaceError(err instanceof Error ? err.message : 'Could not start a fresh game. Please try again.');
@@ -423,6 +425,39 @@ export function PlayerNameModal({
                   data-testid="input-player-name"
                 />
                 {error && <p className="mt-1 text-red-400 text-xs">{error}</p>}
+
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-medium mb-2 flex items-center gap-1.5">
+                    <MapPin className="w-3 h-3" /> Choose metro
+                  </p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {METRO_LIST.map((metro) => {
+                      const selected = selectedMetro === metro.id;
+                      return (
+                        <button
+                          key={metro.id}
+                          type="button"
+                          onClick={() => setSelectedMetro(metro.id)}
+                          className="text-left rounded-xl px-3 py-2.5 transition-all"
+                          style={{
+                            background: selected ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.02)',
+                            border: selected ? '1.5px solid rgba(251,191,36,0.45)' : '1.5px solid rgba(255,255,255,0.06)',
+                          }}
+                          data-testid={`metro-option-${metro.id}`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`text-sm font-semibold ${selected ? 'text-amber-300' : 'text-white/80'}`}>
+                              {metro.name}
+                            </span>
+                            <span className="text-[10px] uppercase tracking-wider text-white/35">{metro.region}</span>
+                          </div>
+                          <p className="text-xs text-white/45 mt-0.5">{metro.tagline}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <button
                   type="submit"
                   disabled={isChecking || !playerName.trim()}
@@ -479,6 +514,38 @@ export function PlayerNameModal({
                   {error && (
                     <p className="mt-1.5 text-red-400 text-xs">{error}</p>
                   )}
+                </div>
+
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-medium mb-2 flex items-center gap-1.5">
+                    <MapPin className="w-3 h-3" /> Choose metro market
+                  </p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {METRO_LIST.map((metro) => {
+                      const selected = selectedMetro === metro.id;
+                      return (
+                        <button
+                          key={metro.id}
+                          type="button"
+                          onClick={() => setSelectedMetro(metro.id)}
+                          className="text-left rounded-xl px-3 py-2.5 transition-all"
+                          style={{
+                            background: selected ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.02)',
+                            border: selected ? '1.5px solid rgba(16,185,129,0.45)' : '1.5px solid rgba(255,255,255,0.06)',
+                          }}
+                          data-testid={`metro-option-${metro.id}`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`text-sm font-semibold ${selected ? 'text-emerald-300' : 'text-white/80'}`}>
+                              {metro.name}
+                            </span>
+                            <span className="text-[10px] uppercase tracking-wider text-white/35">{metro.region}</span>
+                          </div>
+                          <p className="text-xs text-white/45 mt-0.5">{metro.tagline}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <button

@@ -58,6 +58,8 @@ export const gameRuns = pgTable("game_runs", {
     profitableThisSeason: 0,
     xpEarnedThisSeason: 0,
   }),
+  /** Which city board this run plays — philadelphia | atlanta */
+  metroId: text("metro_id").notNull().default("philadelphia"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -90,6 +92,8 @@ export const properties = pgTable("properties", {
   bathrooms: real("bathrooms").notNull().default(1.5), // 1, 1.5, 2, 2.5, etc.
   waterSource: text("water_source").notNull().default("public"), // public (city water/sewer) or well (well/septic)
   heatType: text("heat_type").notNull().default("gas"), // gas, electric, oil, heat_pump
+  /** City board this listing belongs to — philadelphia | atlanta */
+  metroId: text("metro_id").notNull().default("philadelphia"),
 });
 
 export const propertyInvestigations = pgTable("property_investigations", {

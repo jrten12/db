@@ -308,7 +308,7 @@ export default function Game() {
     checkActiveGame();
   }, []);
 
-  const startNewGame = useCallback(async (name: string) => {
+  const startNewGame = useCallback(async (name: string, metroId: string = 'philadelphia') => {
     setIsLoadingGame(true);
     setGameError(null);
     try {
@@ -329,13 +329,14 @@ export default function Game() {
         profitableDeals: 0,
         goalDeals: 2,
         status: 'active',
+        metroId,
       });
       
       if (!newRun) {
         throw new Error('Failed to create game run');
       }
       
-      // Invalidate properties cache to ensure fresh data on new game
+      // Invalidate properties cache so the selected metro board loads
       queryClient.invalidateQueries({ queryKey: ['properties'] });
       
       sessionStorage.setItem('currentGameRunId', String(newRun.id));
@@ -410,10 +411,11 @@ export default function Game() {
   }, [queryClient, refreshPlayerTrophies]);
 
   const { data: catalogProperties = [], isLoading: isLoadingProps } = useQuery({
-    queryKey: ['properties'],
-    queryFn: api.getProperties,
+    queryKey: ['properties', gameRun?.metroId ?? 'philadelphia'],
+    queryFn: () => api.getProperties(gameRun?.metroId ?? 'philadelphia'),
     staleTime: 0,
     gcTime: 5 * 60 * 1000,
+    enabled: !!gameRun,
   });
 
   // Soft-link listing ask/rent/ARV to current market weather (living economy)
@@ -2109,6 +2111,7 @@ export default function Game() {
         profitableDeals: 0,
         goalDeals: 2,
         status: 'active',
+        metroId: gameRun?.metroId ?? 'philadelphia',
       });
       
       // Reset all local state first
@@ -2127,8 +2130,7 @@ export default function Game() {
       // Now set the new game run - this will trigger fresh queries with the new ID
       setGameRun(newRun);
       
-      // Don't invalidate properties - they're global and don't change between games
-      // Just invalidate queries that are game-specific (they'll use the new gameRun.id)
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
       queryClient.invalidateQueries({ queryKey: ['deals'] });
       queryClient.invalidateQueries({ queryKey: ['investigations'] });
       queryClient.invalidateQueries({ queryKey: ['ledger'] });
@@ -2139,7 +2141,7 @@ export default function Game() {
       toast.error('Failed to start new game');
       handleBankruptReturnHome();
     }
-  }, [playerName, gameRun?.id, queryClient, handleBankruptReturnHome]);
+  }, [playerName, gameRun?.id, gameRun?.metroId, queryClient, handleBankruptReturnHome]);
 
   if (isLoadingGame && !gameRun) {
     return (
@@ -2177,11 +2179,11 @@ export default function Game() {
               setShowNameEntry(false);
               sessionStorage.setItem('currentGameRunId', String(existingRun.id));
             }}
-            onNewGameReplace={async (name: string, existingGameId: number) => {
+            onNewGameReplace={async (name: string, existingGameId: number, metroId?: string) => {
               await api.deleteGameRun(existingGameId);
               sessionStorage.removeItem('currentGameRunId');
               setGameRun(null);
-              await startNewGame(name);
+              await startNewGame(name, metroId ?? 'philadelphia');
             }}
           />
           <HallOfFameModal
@@ -2326,6 +2328,7 @@ export default function Game() {
                   onSelect={handlePropertyClick}
                   locationFilter={locationFilter}
                   onLocationFilterChange={setLocationFilter}
+                  metroId={gameRun?.metroId}
                   propertiesWithInvestigations={new Set(investigations.map(inv => inv.propertyId))}
                   propertyDeals={deals.map(d => {
                     const SEASONING_WEEKS = 8;

@@ -111,7 +111,7 @@ function StatCallout({ value, label }: { value: string; label: string }) {
 // without the AI-style floating-particle clutter. Pure CSS marquee, GPU-friendly.
 function DealTapeTicker() {
   // Only uses neighborhoods that actually appear in the in-game property pool
-  // (Philadelphia + outlying PA markets — see server/storage.ts seed data).
+  // (Philadelphia Mid-Atlantic + Atlanta Sun Belt — see shared/metros.ts).
   const items: { place: string; amount: number; label: string; tone: 'win' | 'loss' | 'flat' }[] = [
     { place: 'Riverside Duplex', amount: 18420, label: 'Flip', tone: 'win' },
     { place: 'Fishtown Rowhome', amount: -3200, label: 'Sold short', tone: 'loss' },

@@ -217,6 +217,36 @@ const propertyImages: Record<string, string> = {
   'Delaware Waterfront Modern': lakefrontEstate,
   'Rittenhouse Historic Mansion': craftsmanEstate,
   'Wissahickon Architect Estate': rusticRanchEstate,
+
+  // ——— Atlanta Metro (reuse style-matched exteriors; condition interiors overlay below) ———
+  'Cabbagetown Shotgun': elmwoodFront,
+  'Grant Park Bungalow': craftsmanEstate,
+  'Inman Park Victorian': chestnutHillVictorian,
+  'Old Fourth Ward Loft': downtownLoftBuilding,
+  'Midtown High-Rise Condo': skylinePenthouse,
+  'Edgewood Duplex': fairmountDuplex,
+  'West End Craftsman': elmwoodFront,
+  'Virginia-Highland Cottage': oakwoodFront,
+  'East Atlanta Bungalow': hillsideFront,
+  'Downtown Atlanta Studio': graduateHospitalStudio,
+  'Buckhead Tower Condo': rittenhouseCondo,
+  'Grant Park Townhome': queenVillageTownhouse,
+  'Cabbagetown Mill Duplex': portRichmondDuplex,
+  'Inman Park Carriage House': historicDistrict,
+  'Decatur Craftsman': craftsmanEstate,
+  'Marietta Ranch': riversideFront,
+  'Roswell Colonial': colonialFederal,
+  'Sandy Springs Condo': rittenhouseCondo,
+  'East Point Fixer': elmwoodFront,
+  'College Park Duplex': southStreetTwin,
+  'Tucker Split-Level': hillsideFront,
+  'Alpharetta Townhome': queenVillageTownhouse,
+  'Smyrna Ranch': riversideFront,
+  'Stone Mountain Cottage': oakwoodFront,
+  'Dunwoody Contemporary': westsideFront,
+  'Chamblee Mid-Century': riversideFront,
+  'Brookhaven Townhouse': queenVillageTownhouse,
+  'Lawrenceville Colonial': maplewoodFront,
 };
 
 export const issueImages: Record<string, string> = {
@@ -459,6 +489,156 @@ const propertySpecificInteriors: Record<string, Array<{ type: string; label: str
     { type: 'bathroom', label: 'Bathroom', url: hudsonValleyFarmhouseBathroom },
     { type: 'living', label: 'Living Room', url: hudsonValleyFarmhouseLiving },
   ],
+
+  // Atlanta — interiors borrowed from style twins; condition overlay swaps repair photos
+  'Cabbagetown Shotgun': [
+    { type: 'kitchen', label: 'Kitchen', url: elmwoodBungalowKitchenMain },
+    { type: 'bathroom', label: 'Bathroom', url: elmwoodBungalowBathroom },
+    { type: 'living', label: 'Living Room', url: elmwoodBungalowLiving },
+    { type: 'basement', label: 'Basement', url: interiorBasementExtreme },
+  ],
+  'Grant Park Bungalow': [
+    { type: 'kitchen', label: 'Kitchen', url: hillsideRetreatKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: hillsideRetreatBathroom },
+    { type: 'living', label: 'Living Room', url: hillsideRetreatLiving },
+    { type: 'basement', label: 'Basement', url: riversideFoundation },
+  ],
+  'Inman Park Victorian': [
+    { type: 'kitchen', label: 'Kitchen', url: chestnutHillVictorianKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: chestnutHillVictorianBathroom },
+    { type: 'living', label: 'Living Room', url: chestnutHillVictorianLiving },
+    { type: 'basement', label: 'Basement', url: chestnutHillVictorianBasement },
+  ],
+  'Old Fourth Ward Loft': [
+    { type: 'kitchen', label: 'Kitchen', url: oldCityLoftKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: oldCityLoftBathroom },
+    { type: 'living', label: 'Living Room', url: oldCityLoftLiving },
+  ],
+  'Midtown High-Rise Condo': [
+    { type: 'kitchen', label: 'Kitchen', url: skylinePenthouseKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: skylinePenthouseBathroom },
+    { type: 'living', label: 'Living Room', url: skylinePenthouseLiving },
+  ],
+  'Edgewood Duplex': [
+    { type: 'kitchen', label: 'Kitchen', url: fairmountRowhomeKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: fairmountRowhomeBathroom },
+    { type: 'living', label: 'Living Room', url: fairmountRowhomeLivingMain },
+    { type: 'basement', label: 'Basement', url: fairmountDualSystems },
+  ],
+  'West End Craftsman': [
+    { type: 'kitchen', label: 'Kitchen', url: elmwoodBungalowKitchenMain },
+    { type: 'bathroom', label: 'Bathroom', url: elmwoodBungalowBathroom },
+    { type: 'living', label: 'Living Room', url: elmwoodBungalowLiving },
+    { type: 'basement', label: 'Basement', url: interiorBasementExtreme },
+  ],
+  'Virginia-Highland Cottage': [
+    { type: 'kitchen', label: 'Kitchen', url: oakwoodCottageKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: oakwoodCottageBathroom },
+    { type: 'living', label: 'Living Room', url: oakwoodCottageLiving },
+  ],
+  'East Atlanta Bungalow': [
+    { type: 'kitchen', label: 'Kitchen', url: hillsideRetreatKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: hillsideRetreatBathroom },
+    { type: 'living', label: 'Living Room', url: hillsideRetreatLiving },
+  ],
+  'Downtown Atlanta Studio': [
+    { type: 'kitchen', label: 'Kitchen', url: graduateHospitalBrownstoneKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: graduateHospitalBrownstoneBathroom },
+    { type: 'living', label: 'Living Room', url: graduateHospitalBrownstoneLiving },
+  ],
+  'Buckhead Tower Condo': [
+    { type: 'kitchen', label: 'Kitchen', url: rittenhouseSquareKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: rittenhouseSquareBathroom },
+    { type: 'living', label: 'Living Room', url: rittenhouseSquareLiving },
+  ],
+  'Grant Park Townhome': [
+    { type: 'kitchen', label: 'Kitchen', url: queenVillageKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: queenVillageBathroom },
+    { type: 'living', label: 'Living Room', url: queenVillageLiving },
+  ],
+  'Cabbagetown Mill Duplex': [
+    { type: 'kitchen', label: 'Kitchen', url: portRichmondDuplexKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: portRichmondDuplexBathroom },
+    { type: 'living', label: 'Living Room', url: portRichmondDuplexLivingMain },
+  ],
+  'Inman Park Carriage House': [
+    { type: 'kitchen', label: 'Kitchen', url: chestnutHillVictorianKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: chestnutHillVictorianBathroom },
+    { type: 'living', label: 'Living Room', url: chestnutHillVictorianLiving },
+  ],
+  'Decatur Craftsman': [
+    { type: 'kitchen', label: 'Kitchen', url: westsideManorKitchenUnique },
+    { type: 'bathroom', label: 'Bathroom', url: westsideManorBathroom },
+    { type: 'living', label: 'Living Room', url: westsideManorLiving },
+  ],
+  'Marietta Ranch': [
+    { type: 'kitchen', label: 'Kitchen', url: riversideRanchKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: riversideRanchBathroom },
+    { type: 'living', label: 'Living Room', url: riversideRanchLiving },
+  ],
+  'Roswell Colonial': [
+    { type: 'kitchen', label: 'Kitchen', url: maplewoodColonialKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: maplewoodColonialBathroom },
+    { type: 'living', label: 'Living Room', url: maplewoodColonialLiving },
+  ],
+  'Sandy Springs Condo': [
+    { type: 'kitchen', label: 'Kitchen', url: rittenhouseSquareKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: rittenhouseSquareBathroom },
+    { type: 'living', label: 'Living Room', url: rittenhouseSquareLiving },
+  ],
+  'East Point Fixer': [
+    { type: 'kitchen', label: 'Kitchen', url: elmwoodBungalowKitchenMain },
+    { type: 'bathroom', label: 'Bathroom', url: elmwoodBungalowBathroom },
+    { type: 'living', label: 'Living Room', url: elmwoodBungalowLiving },
+    { type: 'basement', label: 'Basement', url: interiorBasementExtreme },
+  ],
+  'College Park Duplex': [
+    { type: 'kitchen', label: 'Kitchen', url: southStreetTwinKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: southStreetTwinBathroom },
+    { type: 'living', label: 'Living Room', url: southStreetTwinLiving },
+    { type: 'basement', label: 'Basement', url: southStreetTwinBasement },
+  ],
+  'Tucker Split-Level': [
+    { type: 'kitchen', label: 'Kitchen', url: hillsideRetreatKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: hillsideRetreatBathroom },
+    { type: 'living', label: 'Living Room', url: hillsideRetreatLiving },
+  ],
+  'Alpharetta Townhome': [
+    { type: 'kitchen', label: 'Kitchen', url: queenVillageKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: queenVillageBathroom },
+    { type: 'living', label: 'Living Room', url: queenVillageLiving },
+  ],
+  'Smyrna Ranch': [
+    { type: 'kitchen', label: 'Kitchen', url: riversideRanchKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: riversideRanchBathroom },
+    { type: 'living', label: 'Living Room', url: riversideRanchLiving },
+  ],
+  'Stone Mountain Cottage': [
+    { type: 'kitchen', label: 'Kitchen', url: oakwoodCottageKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: oakwoodCottageBathroom },
+    { type: 'living', label: 'Living Room', url: oakwoodCottageLiving },
+    { type: 'basement', label: 'Basement', url: hillsideSeptic },
+  ],
+  'Dunwoody Contemporary': [
+    { type: 'kitchen', label: 'Kitchen', url: westsideManorKitchenUnique },
+    { type: 'bathroom', label: 'Bathroom', url: westsideManorBathroom },
+    { type: 'living', label: 'Living Room', url: westsideManorLiving },
+  ],
+  'Chamblee Mid-Century': [
+    { type: 'kitchen', label: 'Kitchen', url: riversideRanchKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: riversideRanchBathroom },
+    { type: 'living', label: 'Living Room', url: riversideRanchLiving },
+  ],
+  'Brookhaven Townhouse': [
+    { type: 'kitchen', label: 'Kitchen', url: queenVillageKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: queenVillageBathroom },
+    { type: 'living', label: 'Living Room', url: queenVillageLiving },
+  ],
+  'Lawrenceville Colonial': [
+    { type: 'kitchen', label: 'Kitchen', url: maplewoodColonialKitchen },
+    { type: 'bathroom', label: 'Bathroom', url: maplewoodColonialBathroom },
+    { type: 'living', label: 'Living Room', url: maplewoodColonialLiving },
+  ],
 };
 
 const conditionTiers: Record<string, number> = {
@@ -500,11 +680,39 @@ export const getPropertyInteriorImages = (propertyName: string): Array<{ type: s
 
 export const getConditionAdjustedInteriors = (
   propertyName: string,
-  _conditionTag: string,
+  conditionTag: string,
   _price: number
 ): Array<{ type: string; label: string; url: string }> => {
   const specificInteriors = propertySpecificInteriors[propertyName];
-  if (!specificInteriors) return [];
+  if (!specificInteriors || specificInteriors.length === 0) return [];
+
+  const tier = conditionTiers[conditionTag] ?? 3;
+
+  // Fixer / needs-work: show heavy repair interiors so quality matches the listing
+  if (tier <= 1) {
+    return specificInteriors.map((room) => ({
+      ...room,
+      url: fixerUpperInteriors[room.type] || room.url,
+      label: room.type === 'basement'
+        ? 'Basement — needs work'
+        : `${room.label} — needs repair`,
+    }));
+  }
+
+  // Fair / dated: cosmetic update interiors
+  if (tier === 2) {
+    return specificInteriors.map((room) => {
+      // Keep property-specific basement / systems photos when available
+      if (room.type === 'basement') return room;
+      return {
+        ...room,
+        url: datedInteriors[room.type] || room.url,
+        label: `${room.label} — dated`,
+      };
+    });
+  }
+
+  // Good / Excellent / turnkey: keep property-specific interiors
   return specificInteriors;
 };
 

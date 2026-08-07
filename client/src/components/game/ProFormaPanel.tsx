@@ -4,7 +4,7 @@ import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isP
 type FinishLevelKey = keyof typeof FINISH_LEVEL_CONFIG;
 const FINISH_LEVELS = Object.keys(FINISH_LEVEL_CONFIG) as FinishLevelKey[];
 import { getEffectiveRanges, EffectiveRanges, getRevealedIssues, getRevealedRandomizedIssues, type PropertyIssue } from '@/lib/propertyIssues';
-import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Edit3, Wallet, ArrowDown } from 'lucide-react';
+import { Building2, Landmark, TrendingUp, Clock, AlertTriangle, DollarSign, Percent, Home, Zap, ChevronDown, ChevronUp, HelpCircle, Lock, X, CheckCircle, Wallet, ArrowDown, Lightbulb } from 'lucide-react';
 import { ItemizedRepairsPanel } from './ItemizedRepairsPanel';
 import { RenovationsPanel } from './RenovationsPanel';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -576,9 +576,12 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   }, [stepStorageKey, currentStep, onStepChange]);
 
   const STEP_LABELS = ['Strategy', 'Income & Operating', 'Scope of Work', 'Financing', 'Review & Commit'];
+  const STEP_SHORT = ['Strategy', 'Income', 'Scope', 'Finance', 'Review'];
   const goNext = () => setCurrentStep((s) => Math.min(5, s + 1));
   const goBack = () => setCurrentStep((s) => Math.max(1, s - 1));
   const showOnStep = (n: number) => (currentStep === n ? '' : 'hidden');
+  const touchPct = Math.round((touchedCount / Math.max(requiredFields.length, 1)) * 100);
+  const wizardRailPct = ((Math.max(currentStep, 1) - 1) / 4) * 100;
 
   return (
     <div className="space-y-4" data-testid="pro-forma-panel">
@@ -589,35 +592,56 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             ? 'bg-emerald-500/10 border-emerald-500/50'
             : 'bg-slate-900/90 border-slate-700'
         }`}>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-3 gap-3">
+            <div className="flex items-center gap-2 min-w-0">
               {isFullyComplete ? (
-                <CheckCircle className="w-5 h-5 text-emerald-400" />
+                <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
               ) : (
-                <AlertTriangle className="w-5 h-5 text-amber-400" />
+                <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
               )}
-              <span className={`font-semibold text-sm ${isFullyComplete ? 'text-emerald-400' : 'text-white'}`}>
+              <span className={`font-semibold text-sm truncate ${isFullyComplete ? 'text-emerald-400' : 'text-white'}`}>
                 {isFullyComplete ? 'Pro Forma Complete!' : 'Interact with All Fields'}
               </span>
             </div>
-            <span className={`text-sm font-mono ${isFullyComplete ? 'text-emerald-400' : 'text-gray-400'}`}>
-              {touchedCount}/{requiredFields.length} touched
-            </span>
+            <div className="flex items-baseline gap-1.5 flex-shrink-0">
+              <span className={`text-lg font-mono font-bold tabular-nums leading-none ${isFullyComplete ? 'text-emerald-400' : 'text-cyan-300'}`}>
+                {touchPct}%
+              </span>
+              <span className={`text-[10px] font-mono ${isFullyComplete ? 'text-emerald-400/70' : 'text-white/35'}`}>
+                {touchedCount}/{requiredFields.length}
+              </span>
+            </div>
           </div>
 
-          {/* Progress bar */}
-          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div
+            className="engage-progress"
+            role="progressbar"
+            aria-valuenow={touchPct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label="Pro forma field completion"
+          >
             <div
-              className={`h-full transition-all duration-500 ${isFullyComplete ? 'bg-emerald-500' : 'bg-blue-500'}`}
-              style={{ width: `${Math.round((touchedCount / requiredFields.length) * 100)}%` }}
+              className={`engage-progress-fill ${isFullyComplete ? 'is-complete' : ''}`}
+              style={{ width: `${touchPct}%` }}
             />
+            <div className="engage-progress-ticks" aria-hidden>
+              {Array.from({ length: Math.min(requiredFields.length, 12) }).map((_, i) => (
+                <span key={i} className="engage-progress-tick" />
+              ))}
+            </div>
           </div>
 
-          {!allRequiredFieldsTouched && (
-            <p className="text-amber-400 text-xs mt-2">
-              ⚠️ You must interact with each field/slider, even if values are pre-filled. Untouched: {untouchedRequiredFields.slice(0, 3).join(', ')}{untouchedRequiredFields.length > 3 ? ` +${untouchedRequiredFields.length - 3} more` : ''}
+          {!allRequiredFieldsTouched ? (
+            <p className="text-amber-400 text-xs mt-2.5 flex items-start gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+              <span>
+                Interact with each field/slider, even if values are pre-filled. Untouched:{' '}
+                {untouchedRequiredFields.slice(0, 3).join(', ')}
+                {untouchedRequiredFields.length > 3 ? ` +${untouchedRequiredFields.length - 3} more` : ''}
+              </span>
             </p>
-          )}
+          ) : null}
         </div>
 
         {/* FORMULA VIEW TOGGLE */}
@@ -644,41 +668,53 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
         {/* WIZARD STEPPER */}
         <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3" data-testid="proforma-stepper">
-          <ol className="flex items-stretch gap-1 overflow-x-auto">
+          <div className="wizard-rail">
+            <div className="wizard-rail-track" aria-hidden>
+              <div className="wizard-rail-fill" style={{ width: `${wizardRailPct}%` }} />
+            </div>
             {STEP_LABELS.map((label, idx) => {
               const step = idx + 1;
               const isActive = currentStep === step;
               const isDone = currentStep > step;
               const isVisited = currentStep >= step;
               return (
-                <li key={label} className="flex-1 min-w-[88px]">
-                  <button
-                    type="button"
-                    onClick={() => { if (isVisited) setCurrentStep(step); }}
-                    disabled={!isVisited}
-                    className={`w-full flex flex-col items-center gap-1 px-2 py-2 rounded-lg border transition-all ${
-                      isActive
-                        ? 'bg-cyan-500/15 border-cyan-400/60 text-cyan-200'
-                        : isDone
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/15 cursor-pointer'
-                        : 'bg-slate-800/40 border-slate-700/60 text-gray-500 cursor-not-allowed'
-                    }`}
-                    data-testid={`stepper-step-${step}`}
-                    aria-current={isActive ? 'step' : undefined}
-                  >
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
-                      isActive ? 'bg-cyan-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-gray-400'
-                    }`}>
-                      {isDone ? <CheckCircle className="w-3.5 h-3.5" /> : step}
-                    </div>
-                    <span className="text-[10px] sm:text-[11px] font-medium leading-tight text-center hidden sm:block">{label}</span>
-                  </button>
-                </li>
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => { if (isVisited) setCurrentStep(step); }}
+                  disabled={!isVisited}
+                  className={`relative z-[1] w-full flex flex-col items-center gap-1.5 px-1 py-2 rounded-lg border transition-all ${
+                    isActive
+                      ? 'bg-cyan-500/15 border-cyan-400/60 text-cyan-200'
+                      : isDone
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/15 cursor-pointer'
+                      : 'bg-slate-800/40 border-slate-700/60 text-gray-500 cursor-not-allowed'
+                  }`}
+                  data-testid={`stepper-step-${step}`}
+                  aria-current={isActive ? 'step' : undefined}
+                >
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold ${
+                    isActive
+                      ? 'bg-cyan-500 text-white wizard-step-pulse'
+                      : isDone
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-slate-700 text-gray-400'
+                  }`}>
+                    {isDone ? <CheckCircle className="w-3.5 h-3.5" /> : step}
+                  </div>
+                  <span className="text-[10px] sm:text-[11px] font-medium leading-tight text-center">
+                    <span className="sm:hidden">{STEP_SHORT[idx]}</span>
+                    <span className="hidden sm:inline">{label}</span>
+                  </span>
+                </button>
               );
             })}
-          </ol>
-          <div className="mt-2 text-center text-xs text-cyan-300/80 sm:hidden font-medium">
-            Step {currentStep} of 5 — {STEP_LABELS[currentStep - 1]}
+          </div>
+          <div className="mt-2.5 h-1 rounded-full bg-slate-800 overflow-hidden sm:hidden" aria-hidden>
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 transition-all duration-500"
+              style={{ width: `${(currentStep / 5) * 100}%` }}
+            />
           </div>
         </div>
 
@@ -776,7 +812,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   )}
                 </ul>
                 {riskyAssumptions.length > 0 && (
-                  <p className="text-emerald-400 text-xs mt-2">💡 Conservative assumptions protect you from surprises</p>
+                  <p className="text-emerald-400 text-xs mt-2 flex items-center gap-1.5">
+                    <Lightbulb className="w-3.5 h-3.5 flex-shrink-0" />
+                    Conservative assumptions protect you from surprises
+                  </p>
                 )}
               </div>
             </div>
@@ -787,8 +826,15 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
         <div className={`${currentStep >= 2 && currentStep <= 4 ? '' : 'hidden'} bg-gradient-to-br from-cyan-500/10 via-blue-500/10 to-sky-500/10 backdrop-blur rounded-2xl border-2 border-cyan-500/30 overflow-hidden shadow-2xl shadow-cyan-500/10`}>
           <div className="p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/40">
-                <Edit3 className="w-6 h-6 text-white" />
+              <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-cyan-400/30 bg-slate-950/70 shadow-lg shadow-cyan-500/25 flex items-center justify-center">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(34,211,238,0.35),transparent_55%)]" />
+                <div className="absolute inset-x-2 top-2 bottom-2 rounded-md border border-cyan-300/20 bg-gradient-to-b from-cyan-400/10 to-transparent" />
+                <div className="relative flex flex-col gap-0.5 w-5">
+                  <span className="h-0.5 rounded-full bg-cyan-200/90 w-full" />
+                  <span className="h-0.5 rounded-full bg-cyan-200/60 w-4" />
+                  <span className="h-0.5 rounded-full bg-emerald-300/80 w-3" />
+                  <span className="h-0.5 rounded-full bg-cyan-200/50 w-full" />
+                </div>
               </div>
               <div>
                 <h3 className="text-cyan-100 text-xl font-bold tracking-wide drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]">Your Pro Forma</h3>

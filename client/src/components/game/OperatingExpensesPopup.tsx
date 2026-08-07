@@ -86,6 +86,8 @@ export function OperatingExpensesPopup({
   
   const taxesAnnual = inputs?.taxesAnnual || 0;
   const insuranceAnnual = inputs?.insuranceAnnual || 0;
+  const maintenancePct = inputs?.maintenancePct || 5;
+  const capexPct = inputs?.capExPct || inputs?.capexPct || 5;
   const hasPropertyMgmt = inputs?.propertyManagement || false;
   const propertyMgmtPct = inputs?.propertyManagementPct || 10;
   const landlordPaysUtilities = inputs?.utilities || false;
@@ -93,11 +95,14 @@ export function OperatingExpensesPopup({
   
   const monthlyTaxes = taxesAnnual / 12;
   const monthlyInsurance = insuranceAnnual / 12;
+  const monthlyMaintenance = monthlyRent * (maintenancePct / 100);
+  const monthlyCapex = monthlyRent * (capexPct / 100);
   const monthlyMgmt = hasPropertyMgmt ? monthlyRent * (propertyMgmtPct / 100) : 0;
   const monthlyUtilities = landlordPaysUtilities ? utilitiesMonthly : 0;
   
-  // Total operating expenses (simplified display - excludes maintenance/capEx reserves for clarity)
-  const totalMonthlyOpex = monthlyTaxes + monthlyInsurance + monthlyMgmt + monthlyUtilities;
+  // Match the ledger "Operating costs" line (taxes, insurance, maintenance, capex, mgmt, utilities)
+  const totalMonthlyOpex = monthlyTaxes + monthlyInsurance + monthlyMaintenance +
+    monthlyCapex + monthlyMgmt + monthlyUtilities;
   
   const expenseItems: ExpenseLineItem[] = [
     {
@@ -113,6 +118,18 @@ export function OperatingExpensesPopup({
       monthlyAmount: monthlyInsurance,
       annualAmount: insuranceAnnual,
       note: 'Landlord policy',
+    },
+    {
+      label: 'Maintenance Reserve',
+      icon: <Wrench className="w-4 h-4" />,
+      monthlyAmount: monthlyMaintenance,
+      note: `${maintenancePct}% of rent — routine repairs budgeted in OpEx`,
+    },
+    {
+      label: 'Capital Expenditures',
+      icon: <Home className="w-4 h-4" />,
+      monthlyAmount: monthlyCapex,
+      note: `${capexPct}% of rent — roof, HVAC, major systems reserve`,
     },
   ];
   
@@ -241,6 +258,9 @@ export function OperatingExpensesPopup({
                       </div>
                     </div>
                   </div>
+                  <p className="text-xs text-slate-400 mt-2">
+                    Matches the ledger &quot;Operating costs&quot; line. Surprise repairs (HVAC, appliances, etc.) post as separate ledger expenses when they happen — complaints without a real repair cost do not.
+                  </p>
                 </div>
                 
                 {/* Dynamic Pro Tip based on rehab/diligence status */}

@@ -3,7 +3,7 @@
  *
  * Builds on the existing 5-state market weather system with:
  * - Soft listing drifts (ask / rent / ARV) tied to current conditions
- * - Gentle weekly rent growth for owned rentals
+ * - Market-scaled rent changes at lease renewal / new-tenant move-in (not mid-lease)
  * - Vacancy as a demand signal
  * - Market-correlated refinance appreciation
  * - Slightly tighter exit bands + steadier transitions (dynamic, not chaotic)
@@ -127,8 +127,9 @@ export function getMarketVacancyAdjustment(condition: MarketCondition): number {
 }
 
 /**
- * Annualized rent growth scaled by market (~2.8% at neutral).
- * Applied once per game week to owned active rentals.
+ * Annualized market rent growth rate scaled by conditions (~2.8% at neutral).
+ * Used as a reference for listing drift / design docs — leased owned rent is
+ * locked mid-lease and only renegotiated at renewal or new-tenant move-in.
  */
 export function getWeeklyRentGrowthRate(condition: MarketCondition): number {
   const bias = getMarketBias(condition);

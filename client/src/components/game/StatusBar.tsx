@@ -273,11 +273,18 @@ export function StatusBar({ cash, weeksRemaining, seasonsUnlocked = 1, currentSt
                 </div>
               )}
               
-              <div className="stat-card-mobile-compact touch-target-sm flex-1 min-w-0" data-testid="status-goal-mobile">
-                <span className="mobile-goal-value-compact whitespace-nowrap">
-                  <span className="text-[hsl(152,44%,50%)]">{profitableDeals}</span>
-                  <span className="text-white/20">/{goalDeals}</span>
-                </span>
+              <div
+                className="stat-card-mobile-compact touch-target-sm flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5"
+                data-testid="status-goal-mobile"
+              >
+                <ProgressRing
+                  current={profitableDeals}
+                  total={goalDeals}
+                  size={34}
+                  strokeWidth={3}
+                  compact
+                  className="mobile-goal-ring"
+                />
                 <div className="stat-label-mobile-compact">Deals</div>
               </div>
             </div>

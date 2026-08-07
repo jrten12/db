@@ -4,6 +4,7 @@ import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wren
 import type { Property } from '@shared/schema';
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { METROS, normalizeMetroId } from '@shared/metros';
 // Property type icon mapping
 const PROPERTY_TYPE_CONFIG: Record<string, { icon: typeof Home; className: string; label: string }> = {
   house: { icon: Home, className: 'property-type-house', label: 'House' },
@@ -51,12 +52,14 @@ interface PropertySelectorProps {
   onSellProperty?: (dealId: number, strategy: 'rent' | 'flip') => void;
   onRefinanceProperty?: (dealId: number) => void;
   onContractorWalkthrough?: (dealId: number) => void;
+  metroId?: string | null;
 }
 
 
-export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), propertyDeals = [], onSellProperty, onRefinanceProperty, onContractorWalkthrough }: PropertySelectorProps) {
+export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), propertyDeals = [], onSellProperty, onRefinanceProperty, onContractorWalkthrough, metroId }: PropertySelectorProps) {
   const urbanCount = properties.filter(p => p.locationType === 'urban').length;
   const suburbanCount = properties.filter(p => p.locationType === 'suburban').length;
+  const metro = METROS[normalizeMetroId(metroId)];
   
   const filteredProperties = properties
     .filter(p => {
@@ -72,6 +75,10 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
           <h2 className="font-display text-xl md:text-2xl font-bold text-white/90 tracking-wide">
             Property Market
           </h2>
+          <p className="text-xs text-white/40 mt-1 flex items-center gap-1.5" data-testid="metro-label">
+            <MapPin className="w-3 h-3" />
+            {metro.name} · {metro.region}
+          </p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/6">
           <Eye className="w-3.5 h-3.5 text-white/30" />

@@ -191,6 +191,9 @@ export async function registerRoutes(
   // queries against the existing DB rows remain valid while these finish.
   (async () => {
     try {
+      await storage.ensureMetroColumns();
+      await storage.backfillPropertyMetroIds();
+      await storage.seedAtlantaProperties();
       await storage.addNewUrbanProperties();
       await storage.addNewLuxuryProperties();
       await storage.updatePropertyLocationTypes();
@@ -202,20 +205,34 @@ export async function registerRoutes(
     }
   })();
 
-  // Get all properties
+  // Get all properties (optional ?metro=philadelphia|atlanta filter)
   app.get("/api/properties", async (req, res) => {
     try {
       // Prevent browser caching to ensure fresh property list
       res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       res.set('Pragma', 'no-cache');
       res.set('Expires', '0');
-      
-      const properties = await storage.getAllProperties();
-      console.log(`Returning ${properties.length} properties`);
+
+      const metroParam = typeof req.query.metro === 'string' ? req.query.metro : undefined;
+      const properties = metroParam
+        ? await storage.getPropertiesByMetro(metroParam)
+        : await storage.getAllProperties();
+      console.log(`Returning ${properties.length} properties${metroParam ? ` (metro=${metroParam})` : ''}`);
       res.json(properties);
     } catch (error) {
       console.error("Error fetching properties:", error);
       res.status(500).json({ error: "Failed to fetch properties" });
+    }
+  });
+
+  // List available metros for game start
+  app.get("/api/metros", async (_req, res) => {
+    try {
+      const { METRO_LIST } = await import("@shared/metros");
+      res.json(METRO_LIST);
+    } catch (error) {
+      console.error("Error fetching metros:", error);
+      res.status(500).json({ error: "Failed to fetch metros" });
     }
   });
 
@@ -235,10 +252,17 @@ export async function registerRoutes(
   app.post("/api/game-runs", async (req, res) => {
     try {
       const validated = insertGameRunSchema.parse(req.body);
-      // BAL-003: Randomize starting market condition instead of always "good"
+      const { normalizeMetroId, METROS } = await import("@shared/metros");
+      const metroId = normalizeMetroId(validated.metroId);
+      // BAL-003: Randomize starting market — Atlanta (Sun Belt) biases slightly toward growth
+      let marketCondition = gameMechanics.getRandomStartingMarket();
+      if (metroId === 'atlanta' && Math.random() < 0.45) {
+        marketCondition = METROS.atlanta.defaultMarketCondition;
+      }
       const gameRun = await storage.createGameRun({
         ...validated,
-        marketCondition: gameMechanics.getRandomStartingMarket(),
+        metroId,
+        marketCondition,
       });
       res.json(gameRun);
     } catch (error) {

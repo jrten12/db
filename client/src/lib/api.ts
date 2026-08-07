@@ -32,9 +32,23 @@ export interface RefinanceOptions {
 
 export const api = {
   // Properties
-  async getProperties(): Promise<Property[]> {
-    const res = await fetch(`${API_BASE}/properties`);
+  async getProperties(metroId?: string): Promise<Property[]> {
+    const qs = metroId ? `?metro=${encodeURIComponent(metroId)}` : '';
+    const res = await fetch(`${API_BASE}/properties${qs}`);
     if (!res.ok) throw new Error('Failed to fetch properties');
+    return res.json();
+  },
+
+  async getMetros(): Promise<Array<{
+    id: string;
+    name: string;
+    shortName: string;
+    region: string;
+    tagline: string;
+    teachingAngle: string;
+  }>> {
+    const res = await fetch(`${API_BASE}/metros`);
+    if (!res.ok) throw new Error('Failed to fetch metros');
     return res.json();
   },
 

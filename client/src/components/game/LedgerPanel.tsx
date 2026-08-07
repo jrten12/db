@@ -81,7 +81,7 @@ function getExpenseIcon(description: string): LucideIcon {
   if (desc.includes('inspection') || desc.includes('appraisal') || desc.includes('title search') || desc.includes('market study')) return ClipboardList;
   
   // Generic repair/expense
-  if (desc.includes('repair') || desc.includes('replace') || desc.includes('fix')) return Wrench;
+  if (desc.includes('repair') || desc.includes('replace') || desc.includes('fix') || desc.startsWith('repair:')) return Wrench;
   
   // Default
   return DollarSign;

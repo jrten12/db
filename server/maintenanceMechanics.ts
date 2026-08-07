@@ -88,6 +88,12 @@ export interface EnhancedMaintenanceEvent {
   baseProbability: number;  // Base weekly probability (percentage)
   costMin: number;
   costMax: number;
+  /**
+   * When false, event can still surface as a tenant message / satisfaction hit
+   * but does NOT post a ledger expense (noise complaints, package theft notices, etc.).
+   * Defaults to true when omitted.
+   */
+  billable?: boolean;
   tenantIssue: boolean;
   description: string;
   emoji: string;
@@ -694,8 +700,9 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     name: 'Noise Complaint',
     category: 'hoa',
     baseProbability: 0.3,
-    costMin: 100,
-    costMax: 300,
+    costMin: 0,
+    costMax: 0,
+    billable: false,
     tenantIssue: true,
     description: 'Received a noise complaint from neighbors.',
     emoji: '🔊',
@@ -712,8 +719,9 @@ export const ENHANCED_MAINTENANCE_EVENTS: EnhancedMaintenanceEvent[] = [
     name: 'Package Security Issue',
     category: 'hoa',
     baseProbability: 0.4,
-    costMin: 100,
-    costMax: 250,
+    costMin: 0,
+    costMax: 0,
+    billable: false,
     tenantIssue: true,
     description: 'Tenant\'s package was stolen from the building entrance.',
     emoji: '📦',
@@ -1018,33 +1026,46 @@ export function rollForEnhancedMaintenance(
     applicableEvents = applicableEvents.filter(event => !excludeIds.includes(event.id));
   }
 
+  // Shuffle so early catalog entries don't dominate which repair fires
+  for (let i = applicableEvents.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [applicableEvents[i], applicableEvents[j]] = [applicableEvents[j], applicableEvents[i]];
+  }
+
   // Roll for each event independently
   for (const event of applicableEvents) {
     const roll = Math.random() * 100;
     if (roll < event.adjustedProbability) {
-      // Event triggered! Apply cost escalation for unfixed issues
-      const range = event.costMax - event.costMin;
-      const baseCost = Math.floor(event.costMin + Math.random() * range);
-      const escalatedCost = Math.round(baseCost * escalation.costMult);
-      const cashImpact = -escalatedCost;
+      const isBillable = event.billable !== false && (event.costMax > 0 || event.costMin > 0);
+      let cashImpact = 0;
+
+      if (isBillable) {
+        // Event triggered! Apply cost escalation for unfixed issues
+        const range = event.costMax - event.costMin;
+        const baseCost = Math.floor(event.costMin + Math.random() * range);
+        const escalatedCost = Math.round(baseCost * escalation.costMult);
+        cashImpact = -Math.max(1, escalatedCost);
+      }
 
       // Add escalation note to description if costs were increased
-      const escalationNote = escalation.costMult > 1.1
+      const escalationNote = isBillable && escalation.costMult > 1.1
         ? ` (worsened by deferred maintenance)`
         : '';
 
       return {
         id: event.id,
         name: event.name,
-        type: 'negative',
+        type: isBillable ? 'negative' : 'neutral',
         trigger: 'rental_monthly',
         probability: event.adjustedProbability,
+        category: event.category,
         tenantIssue: event.tenantIssue,
+        billable: isBillable,
         cashImpact,
         description: event.description + escalationNote,
         emoji: event.emoji,
-        color: 'red',
-        escalated: escalation.costMult > 1.1,
+        color: isBillable ? 'red' : 'yellow',
+        escalated: isBillable && escalation.costMult > 1.1,
       };
     }
   }

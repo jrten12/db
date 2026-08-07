@@ -212,7 +212,7 @@ export default function Methodology() {
               </p>
               <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
                 <li>Ask prices, rents, and ARV soft-drift with current conditions (~±1–2% per state)</li>
-                <li>Owned rentals see gentle weekly rent growth scaled by the market (~2–4%/yr)</li>
+                <li>Owned rental leases stay locked mid-term; market moves feed the next renewal or new-tenant negotiation</li>
                 <li>Softer markets raise vacancy; stronger markets tighten it</li>
                 <li>Refinance appraisals and flip/rental exits share the same market weather</li>
                 <li>Crash odds from excellent/good are uncommon, not routine</li>

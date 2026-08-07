@@ -4,6 +4,7 @@ import { TrendingDown, TrendingUp, AlertTriangle, HelpCircle, Lightbulb, X, Chec
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import mortgageIcon from '@assets/generated_images/mortgage_document_game_icon.webp';
 import coinsIcon from '@assets/generated_images/gold_coins_stack_icon.webp';
+import { scrollToTop } from '@/lib/scrollToTop';
 
 interface ResultsPanelProps {
   strategy: 'rent' | 'flip';
@@ -24,9 +25,7 @@ interface ExplanationItem {
 export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, holdWeeks = 0, hasAppraisal = true, onContinue }: ResultsPanelProps) {
   // Scroll to top and play sound when results panel mounts
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    scrollToTop();
     
     // Play results alert sound
     const audio = new Audio('/sounds/results-alert.wav');

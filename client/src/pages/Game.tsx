@@ -21,6 +21,7 @@ import { TenantIssuePopup, type TenantIssueEvent } from '@/components/game/Tenan
 import { TenantTextPopup } from '@/components/game/TenantTextPopup';
 import { AnimatedBackground } from '@/components/game/AnimatedBackground';
 import { generateTenantName, getRandomPersonalityType, getSpeechPatterns, getRandomMessage, getRandomPaymentEthic } from '@/lib/tenantGenerator';
+import { scrollToTop } from '@/lib/scrollToTop';
 import type { Tenant } from '@shared/schema';
 import { PremiumModal } from '@/components/game/PremiumModal';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -263,11 +264,10 @@ export default function Game() {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mainContentRef = useRef<HTMLDivElement | null>(null);
 
-  // Scroll to top when switching to results screen
+  // Scroll to top on every screen change so mobile users don't land mid-page
+  // (e.g. market → proforma, wizard → results) after scrolling the previous screen.
   useEffect(() => {
-    if (currentScreen === 'results' && mainContentRef.current) {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
+    scrollToTop();
   }, [currentScreen]);
 
   useEffect(() => {

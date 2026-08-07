@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { ProFormaOutputs, formatCurrency } from '@/lib/gameData';
 import { TrendingDown, TrendingUp, AlertTriangle, HelpCircle, Lightbulb, X, Check, FileText, Coins, Landmark } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { scrollToTop } from '@/lib/scrollToTop';
 
 interface ResultsPanelProps {
   strategy: 'rent' | 'flip';
@@ -22,9 +23,7 @@ interface ExplanationItem {
 export function ResultsPanel({ strategy, outputs, flipProfit = 0, flipROI = 0, holdWeeks = 0, hasAppraisal = true, onContinue }: ResultsPanelProps) {
   // Scroll to top and play sound when results panel mounts
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    scrollToTop();
     
     // Play results alert sound
     const audio = new Audio('/sounds/results-alert.wav');

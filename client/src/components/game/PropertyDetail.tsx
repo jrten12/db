@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle, ChevronLeft, ChevronRight, TrendingUp, Ruler, BedDouble, Bath, Building2, Thermometer, Droplets, MapPin, Maximize } from 'lucide-react';
 import { formatCurrency, MARKET_DEFAULTS, getPropertyBasedDefaults } from '@/lib/gameData';
 import { getPropertyImage, getConditionAdjustedInteriors, getIssueImage } from '@/lib/propertyImages';
@@ -6,6 +6,7 @@ import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getRandomizedP
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { playProformaChime, playDealCommitChunk } from '@/hooks/useClickSound';
 import type { Property } from '@shared/schema';
+import { scrollElementToTop, scrollToTop } from '@/lib/scrollToTop';
 
 const FINANCIAL_COLORS = {
   rent: {
@@ -407,6 +408,14 @@ export function PropertyDetail({
   const [pendingDiligence, setPendingDiligence] = useState<DiligenceOption | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imageLoadErrors, setImageLoadErrors] = useState<Set<string>>(new Set());
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+
+  // Start at the top of the detail sheet (nested scroller + window) when opening a property.
+  useEffect(() => {
+    scrollToTop();
+    scrollElementToTop(contentScrollRef.current);
+    requestAnimationFrame(() => scrollElementToTop(contentScrollRef.current));
+  }, [property.id]);
 
   // Use randomized issues if we have a gameRunId, otherwise fall back to static issues
   const allIssues = gameRunId 
@@ -588,6 +597,7 @@ export function PropertyDetail({
       
       {/* Scrollable content */}
       <div 
+        ref={contentScrollRef}
         className="w-full max-w-6xl flex-1 overflow-y-auto md:rounded-b-2xl overscroll-contain touch-pan-y bg-[hsl(220,14%,8%)]" 
         style={{
           WebkitOverflowScrolling: 'touch',

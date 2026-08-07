@@ -12,6 +12,7 @@ import { AssumptionInput, PercentAssumption } from './AssumptionInput';
 import { FormulaCanvas, MiniFormula } from './FormulaCanvas';
 import { ProFormaEditor } from './ProFormaEditor';
 import type { Property } from '@shared/schema';
+import { scrollToTop } from '@/lib/scrollToTop';
 
 const triggerHaptic = () => {
   if ('vibrate' in navigator) {
@@ -574,6 +575,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     }
     onStepChange?.(currentStep);
   }, [stepStorageKey, currentStep, onStepChange]);
+
+  // On mobile, Next/Back leave the viewport at the sticky footer — jump to top of the new step.
+  useEffect(() => {
+    scrollToTop();
+  }, [currentStep]);
 
   const STEP_LABELS = ['Strategy', 'Income & Operating', 'Scope of Work', 'Financing', 'Review & Commit'];
   const STEP_SHORT = ['Strategy', 'Income', 'Scope', 'Finance', 'Review'];

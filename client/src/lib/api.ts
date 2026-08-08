@@ -38,6 +38,19 @@ export const api = {
     return res.json();
   },
 
+  async searchProperties(query: string): Promise<{ results: { id: number; reason: string }[]; summary: string }> {
+    const res = await fetch(`${API_BASE}/properties/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Search failed' }));
+      throw new Error(err.error || 'Search failed');
+    }
+    return res.json();
+  },
+
   // Game Runs
   async createGameRun(data: InsertGameRun): Promise<GameRun> {
     const res = await fetch(`${API_BASE}/game-runs`, {

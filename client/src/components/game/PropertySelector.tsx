@@ -1,10 +1,11 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home, DollarSign, Landmark, Castle, Building, Warehouse, HardHat } from 'lucide-react';
+import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home, DollarSign, Landmark, Castle, Building, Warehouse, HardHat, Search, X, Sparkles, Loader2 } from 'lucide-react';
 import type { Property } from '@shared/schema';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { AdBanner } from '@/components/game/AdBanner';
+import { api } from '@/lib/api';
 
 // Property type icon mapping
 const PROPERTY_TYPE_CONFIG: Record<string, { icon: typeof Home; className: string; label: string }> = {
@@ -57,13 +58,69 @@ interface PropertySelectorProps {
 export function PropertySelector({ properties, selectedId, onSelect, locationFilter, onLocationFilterChange, propertiesWithInvestigations = new Set(), propertyDeals = [], onSellProperty, onRefinanceProperty, onContractorWalkthrough }: PropertySelectorProps) {
   const urbanCount = properties.filter(p => p.locationType === 'urban').length;
   const suburbanCount = properties.filter(p => p.locationType === 'suburban').length;
-  
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<{ id: number; reason: string }[] | null>(null);
+  const [searchSummary, setSearchSummary] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearch = useCallback(async (query: string) => {
+    setSearchQuery(query);
+    setSearchError('');
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (!query.trim()) {
+      setSearchResults(null);
+      setSearchSummary('');
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const data = await api.searchProperties(query.trim());
+        setSearchResults(data.results);
+        setSearchSummary(data.summary);
+      } catch (err: any) {
+        setSearchError(err.message || 'Search failed');
+        setSearchResults(null);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 600);
+  }, []);
+
+  const clearSearch = useCallback(() => {
+    setSearchQuery('');
+    setSearchResults(null);
+    setSearchSummary('');
+    setSearchError('');
+    searchInputRef.current?.focus();
+  }, []);
+
+  const searchResultIds = searchResults ? new Set(searchResults.map(r => r.id)) : null;
+  const searchReasonMap = searchResults
+    ? new Map(searchResults.map(r => [r.id, r.reason]))
+    : null;
+
   const filteredProperties = properties
     .filter(p => {
-      if (locationFilter === 'all') return true;
-      return p.locationType === locationFilter;
+      if (locationFilter !== 'all' && p.locationType !== locationFilter) return false;
+      if (searchResultIds && !searchResultIds.has(p.id)) return false;
+      return true;
     })
-    .sort((a, b) => a.price - b.price);
+    .sort((a, b) => {
+      if (searchResults) {
+        const aIdx = searchResults.findIndex(r => r.id === a.id);
+        const bIdx = searchResults.findIndex(r => r.id === b.id);
+        return aIdx - bIdx;
+      }
+      return a.price - b.price;
+    });
 
   return (
     <div className="space-y-6" data-testid="property-list">
@@ -76,8 +133,55 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur rounded-full border border-white/10">
           <Eye className="w-4 h-4 text-gray-400" />
-          <span className="text-sm text-gray-300">{filteredProperties.length} to investigate</span>
+          <span className="text-sm text-gray-300">
+            {searchResults ? `${filteredProperties.length} match${filteredProperties.length !== 1 ? 'es' : ''}` : `${filteredProperties.length} to investigate`}
+          </span>
         </div>
+      </div>
+
+      {/* AI-Powered Search Bar */}
+      <div className="relative">
+        <div className="flex items-center gap-2 px-4 py-3 bg-white/5 backdrop-blur rounded-xl border border-white/10 focus-within:border-gold/40 focus-within:bg-white/[0.07] transition-all">
+          {isSearching ? (
+            <Loader2 className="w-4 h-4 text-gold animate-spin flex-shrink-0" />
+          ) : (
+            <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          )}
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            placeholder='Search properties — try "cheap fixers" or "high rent potential"'
+            className="flex-1 bg-transparent text-white text-sm placeholder-gray-500 outline-none"
+            data-testid="property-search-input"
+          />
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="p-1 rounded-full hover:bg-white/10 transition-colors flex-shrink-0"
+              data-testid="property-search-clear"
+            >
+              <X className="w-3.5 h-3.5 text-gray-400" />
+            </button>
+          )}
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 border border-white/10 flex-shrink-0">
+            <Sparkles className="w-3 h-3 text-gold" />
+            <span className="text-[10px] text-gray-400 font-medium">GPT</span>
+          </div>
+        </div>
+        {searchSummary && searchResults && (
+          <div className="mt-2 flex items-center gap-2 px-3 py-2 bg-gold/5 rounded-lg border border-gold/10">
+            <Sparkles className="w-3.5 h-3.5 text-gold flex-shrink-0" />
+            <span className="text-xs text-gold/80">{searchSummary}</span>
+            <span className="text-xs text-gray-500 flex-shrink-0">({searchResults.length} found)</span>
+          </div>
+        )}
+        {searchError && (
+          <div className="mt-2 px-3 py-2 bg-red-500/10 rounded-lg border border-red-500/20">
+            <span className="text-xs text-red-400">{searchError}</span>
+          </div>
+        )}
       </div>
 
       {/* Location Filter Tabs - iOS style with proper touch targets */}
@@ -363,6 +467,14 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                     <span>Financials Unknown</span>
                   </div>
                 </div>
+
+                {/* AI Search Match Reason */}
+                {searchReasonMap?.has(property.id) && (
+                  <div className="mt-2 flex items-start gap-1.5 px-2.5 py-1.5 bg-gold/5 rounded-lg border border-gold/10">
+                    <Sparkles className="w-3 h-3 text-gold flex-shrink-0 mt-0.5" />
+                    <span className="text-[11px] leading-snug text-gold/70">{searchReasonMap.get(property.id)}</span>
+                  </div>
+                )}
 
                 {/* Hover Indicator */}
                 <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-gold via-amber-400 to-gold transition-opacity duration-300 ${

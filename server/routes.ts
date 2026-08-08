@@ -215,6 +215,83 @@ export async function registerRoutes(
     }
   });
 
+  // GPT-powered property search
+  app.post("/api/properties/search", gameActionLimiter, async (req, res) => {
+    try {
+      const { query } = req.body;
+      if (!query || typeof query !== 'string' || query.trim().length === 0) {
+        return res.status(400).json({ error: "Search query is required" });
+      }
+
+      const apiKey = process.env.OPENAI_API_KEY || process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+      if (!apiKey) {
+        return res.status(503).json({ error: "Search service not configured" });
+      }
+
+      const properties = await storage.getAllProperties();
+
+      const propertySummaries = properties.map(p => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        sizeSqft: p.sizeSqft,
+        neighborhood: p.neighborhood,
+        locationType: p.locationType,
+        propertyType: p.propertyType,
+        bedrooms: p.bedrooms,
+        bathrooms: p.bathrooms,
+        conditionTag: p.conditionTag,
+        rentMin: p.rentMin,
+        rentMax: p.rentMax,
+        arvMin: p.arvMin,
+        arvMax: p.arvMax,
+        rehabMin: p.rehabMin,
+        rehabMax: p.rehabMax,
+      }));
+
+      const openai = new OpenAI({
+        apiKey,
+        ...(process.env.AI_INTEGRATIONS_OPENAI_BASE_URL && { baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL }),
+      });
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        temperature: 0.3,
+        max_tokens: 1024,
+        messages: [
+          {
+            role: "system",
+            content: `You are a property search assistant for a real estate investment game called Dealbreak. Players scout properties to flip or rent. Given a list of properties and a search query, return the matching property IDs ranked by relevance, plus a short explanation of why they match.
+
+Respond with valid JSON only, no markdown. Format:
+{"results":[{"id":<number>,"reason":"<short reason>"}],"summary":"<one-line search summary>"}
+
+If nothing matches, return {"results":[],"summary":"No properties match that search."}.
+Match broadly on: name, neighborhood, price range, property type, size, bedrooms/bathrooms, condition, location type, rent potential, flip potential (ARV vs price), rehab cost. Understand natural language like "cheap fixers", "big suburban houses", "high rent potential", "under 300k", "good for flipping", "urban condos", etc.`
+          },
+          {
+            role: "user",
+            content: `Properties:\n${JSON.stringify(propertySummaries)}\n\nSearch: "${query.trim()}"`
+          }
+        ],
+      });
+
+      const content = completion.choices[0]?.message?.content;
+      if (!content) {
+        return res.json({ results: [], summary: "Search returned no results." });
+      }
+
+      const parsed = JSON.parse(content);
+      res.json(parsed);
+    } catch (error: any) {
+      console.error("Error in property search:", error);
+      if (error?.status === 401 || error?.code === 'invalid_api_key') {
+        return res.status(503).json({ error: "Search service API key is invalid" });
+      }
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
+
   // Admin: Manually refresh property prices (for debugging)
   // BUG-003: Gated behind admin auth + ENABLE_ADMIN_TOOLS flag
   app.post("/api/admin/refresh-prices", requireAdminToolsEnabled, requireAdmin, async (req, res) => {

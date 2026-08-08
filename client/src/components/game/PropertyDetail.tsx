@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Check, Home, Wrench, Clock, DollarSign, Zap, Lock, AlertTriangle, Shield, Search, FileText, HardHat, HelpCircle, ChevronLeft, ChevronRight, TrendingUp, Ruler, BedDouble, Bath, Building2, Thermometer, Droplets, MapPin, Maximize } from 'lucide-react';
 import { formatCurrency, MARKET_DEFAULTS, getPropertyBasedDefaults } from '@/lib/gameData';
-import { getPropertyImage, getConditionAdjustedInteriors, getIssueImage } from '@/lib/propertyImages';
+import { getPropertyImage, getConditionAdjustedInteriors, getIssueImage, type VisualDealState } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getRandomizedPropertyIssues, getRevealedRandomizedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { playProformaChime, playDealCommitChunk } from '@/hooks/useClickSound';
@@ -385,6 +385,8 @@ interface PropertyDetailProps {
   touchedFields?: Set<any>;
   onFieldTouch?: (field: any) => void;
   gameRunId?: number;
+  /** Owned deal state — drives renovated vs listing interior galleries only */
+  visualDeal?: VisualDealState | null;
 }
 
 export function PropertyDetail({
@@ -402,6 +404,7 @@ export function PropertyDetail({
   touchedFields,
   onFieldTouch,
   gameRunId,
+  visualDeal = null,
 }: PropertyDetailProps) {
   const [strategy, setStrategy] = useState<'rent' | 'flip'>('rent');
   const [contractor, setContractor] = useState<'cheap' | 'fast'>('cheap');
@@ -427,7 +430,12 @@ export function PropertyDetail({
   const hasUnrevealedIssues = allIssues.length > revealedIssues.length;
 
   const propertyImage = getPropertyImage(property.name);
-  const interiorImages = getConditionAdjustedInteriors(property.name, property.conditionTag, property.price);
+  const interiorImages = getConditionAdjustedInteriors(
+    property.name,
+    property.conditionTag,
+    property.price,
+    { listingConditionTag: property.conditionTag, deal: visualDeal }
+  );
 
   const revealedIssueGalleryImages = revealedIssues
     .map(issue => {
@@ -499,6 +507,7 @@ export function PropertyDetail({
 
   const getNeighborhoodTraits = (neighborhood: string) => {
     const traits: Record<string, string> = {
+      // Philadelphia
       'Oakwood': 'Suburban, Good Schools',
       'Riverside': 'Waterfront, Growing Area',
       'Maplewood': 'Suburban, Good Schools',
@@ -517,6 +526,36 @@ export function PropertyDetail({
       'Fairmount': 'Urban, Family-Friendly',
       'Society Hill': 'Urban, Prestigious',
       'Old City': 'Urban, Historic',
+      'Chestnut Hill': 'Northwest, Prestigious',
+      'Center City': 'Urban, Core Demand',
+      'Bryn Mawr': 'Main Line, Premium Schools',
+      'Penns Landing': 'Waterfront, Tourist Edge',
+      // Atlanta
+      'Cabbagetown': 'Mill Village, Historic',
+      'Grant Park': 'Intown, Oak Canopy',
+      'Inman Park': 'Victorian, BeltLine',
+      'Old Fourth Ward': 'Urban, High Growth',
+      'Midtown': 'Skyline, High Demand',
+      'Edgewood': 'Eastside, Emerging',
+      'West End': 'Historic, Craftsman',
+      'Virginia-Highland': 'Walkable, Intown Charm',
+      'East Atlanta': 'Village, Eclectic',
+      'Downtown Atlanta': 'Urban Core, Compact',
+      'Buckhead': 'Luxury, Northside',
+      'Decatur': 'Square, Walkable Suburb',
+      'Marietta': 'Suburb, Established',
+      'Roswell': 'North Fulton, Historic',
+      'Sandy Springs': 'Perimeter, Condo Corridor',
+      'East Point': 'Southside, Value',
+      'College Park': 'Airport Corridor',
+      'Tucker': 'Northeast, Split-Levels',
+      'Alpharetta': 'North Fulton, HOA',
+      'Smyrna': 'West Metro, Ranch Stock',
+      'Stone Mountain': 'East Metro, Cottage',
+      'Dunwoody': 'Northside, Contemporary',
+      'Chamblee': 'Northeast, Mid-Century',
+      'Brookhaven': 'Intown Suburb, Townhomes',
+      'Lawrenceville': 'Gwinnett, Family Suburban',
     };
     return traits[neighborhood] || 'Residential';
   };

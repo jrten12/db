@@ -2517,6 +2517,19 @@ export default function Game() {
             touchedFields={touchedFields}
             onFieldTouch={handleFieldTouch}
             gameRunId={gameRun?.id}
+            visualDeal={(() => {
+              const owned = deals.find(d =>
+                d.propertyId === selectedProperty.id &&
+                d.status !== 'completed' &&
+                d.status !== 'sold_rental'
+              );
+              if (!owned) return null;
+              return {
+                status: owned.status,
+                rentalRehabActive: owned.rentalRehabActive ?? false,
+                completedRepairIds: (owned.completedRepairIds as string[] | null) || [],
+              };
+            })()}
           />
         )}
 

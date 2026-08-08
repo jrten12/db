@@ -4,6 +4,8 @@ import type { InsertProperty } from '@shared/schema';
  * Atlanta Metro property catalog — Sun Belt growth board.
  * Same engine fields as Philly: conditionTag drives issue count/severity,
  * propertyType drives issue pools, locationType drives urban/suburban events.
+ * Gallery art lives in client/public/images/properties/atl_* (exteriors + style interiors);
+ * do not change prices/rehab ranges here when updating photos.
  */
 export const ATLANTA_PROPERTIES: InsertProperty[] = [
   // ——— INTTOWN URBAN ———

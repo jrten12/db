@@ -4,7 +4,7 @@ import { formatCurrency, MARKET_DEFAULTS, getPropertyBasedDefaults } from '@/lib
 import { getPropertyImage, getConditionAdjustedInteriors, getIssueImage, type VisualDealState } from '@/lib/propertyImages';
 import { DILIGENCE_OPTIONS, getPropertyIssues, getRevealedIssues, getRandomizedPropertyIssues, getRevealedRandomizedIssues, getTotalIssuesCostRange, getTotalTimelineImpact, getEffectiveRanges, type DiligenceOption, type PropertyIssue } from '@/lib/propertyIssues';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { playProformaChime, playDealCommitChunk } from '@/hooks/useClickSound';
+import { playProformaChime, playPurchaseConfirmSound } from '@/hooks/useClickSound';
 import type { Property } from '@shared/schema';
 import { scrollElementToTop, scrollToTop } from '@/lib/scrollToTop';
 
@@ -92,6 +92,31 @@ const DILIGENCE_COLOR_MAP: Record<string, { primary: keyof typeof FINANCIAL_COLO
   inspection: { primary: 'issues' },
   title_search: { primary: 'title' },
 };
+
+const DILIGENCE_UNLOCK_LABEL: Record<string, string> = {
+  market_study: 'Unlocks Rent Range',
+  appraisal: 'Unlocks ARV Range',
+  contractor_walkthrough: 'Unlocks Rehab + Timeline',
+  inspection: 'Uncovers Hidden Issues',
+  title_search: 'Clears Title Risk',
+};
+
+function DiligenceGlyph({ id, className }: { id: string; className?: string }) {
+  switch (id) {
+    case 'market_study':
+      return <TrendingUp className={className} />;
+    case 'appraisal':
+      return <DollarSign className={className} />;
+    case 'contractor_walkthrough':
+      return <HardHat className={className} />;
+    case 'inspection':
+      return <Search className={className} />;
+    case 'title_search':
+      return <FileText className={className} />;
+    default:
+      return <Search className={className} />;
+  }
+}
 
 const FINANCIAL_TERM_TOOLTIPS: Record<string, { title: string; definition: string; whyItMatters: string; unknownAction?: string }> = {
   rent: {
@@ -485,7 +510,7 @@ export function PropertyDetail({
 
   const handleConfirmDiligence = () => {
     if (pendingDiligence && onDiligencePurchase) {
-      playDealCommitChunk();
+      playPurchaseConfirmSound();
       onDiligencePurchase(property.id, pendingDiligence.id, pendingDiligence.cost, pendingDiligence.timeWeeks);
     }
     setPendingDiligence(null);
@@ -850,145 +875,140 @@ export function PropertyDetail({
                 </div>
 
               {/* Unknown Financials Section */}
-              <div className="bg-white/[0.02] rounded-xl p-4 border border-white/6">
-                <h4 className="text-gray-300 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2">
+              <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/[0.07] via-[hsl(220,14%,9%)] to-cyan-500/[0.05] p-4">
+                <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-amber-400/10 blur-2xl" aria-hidden />
+                <h4 className="relative text-amber-100/90 text-xs font-semibold uppercase tracking-[0.14em] mb-3 flex items-center gap-2">
                   <FinancialEstimatesHelp />
-                  Financial Estimates
+                  Deal Intel
                 </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <UnknownValueBadge type="rent" isKnown={effectiveRanges.rent.known}>
-                    <div className={`rounded-lg p-3 border ${effectiveRanges.rent.known ? `${FINANCIAL_COLORS.rent.bg} ${FINANCIAL_COLORS.rent.border}` : 'bg-gray-500/10 border-gray-500/30'}`}>
-                      <div className={`text-base font-bold font-mono ${effectiveRanges.rent.known ? FINANCIAL_COLORS.rent.text : 'text-gray-400'}`}>
-                        {effectiveRanges.rent.known ? formatUnknownCurrency(effectiveRanges.rent) : '???'}<span className="text-xs font-normal">/mo</span>
-                      </div>
-                      <div className="text-gray-400 text-xs flex items-center gap-1">
-                        Rent {!effectiveRanges.rent.known && <Lock className="w-3 h-3" />}
-                        <FinancialTermInfo type="rent" isKnown={effectiveRanges.rent.known} />
-                      </div>
-                    </div>
-                  </UnknownValueBadge>
-                  <UnknownValueBadge type="arv" isKnown={effectiveRanges.arv.known}>
-                    <div className={`rounded-lg p-3 border ${effectiveRanges.arv.known ? `${FINANCIAL_COLORS.arv.bg} ${FINANCIAL_COLORS.arv.border}` : 'bg-gray-500/10 border-gray-500/30'}`}>
-                      <div className={`text-base font-bold font-mono ${effectiveRanges.arv.known ? FINANCIAL_COLORS.arv.text : 'text-gray-400'}`}>
-                        {effectiveRanges.arv.known ? formatUnknownCurrency(effectiveRanges.arv) : '???'}
-                      </div>
-                      <div className="text-gray-400 text-xs flex items-center gap-1">
-                        ARV {!effectiveRanges.arv.known && <Lock className="w-3 h-3" />}
-                        <FinancialTermInfo type="arv" isKnown={effectiveRanges.arv.known} />
-                      </div>
-                    </div>
-                  </UnknownValueBadge>
-                  <UnknownValueBadge type="rehab" isKnown={effectiveRanges.rehab.known}>
-                    <div className={`rounded-lg p-3 border ${effectiveRanges.rehab.known ? `${FINANCIAL_COLORS.rehab.bg} ${FINANCIAL_COLORS.rehab.border}` : 'bg-gray-500/10 border-gray-500/30'}`}>
-                      <div className={`text-base font-bold font-mono ${effectiveRanges.rehab.known ? FINANCIAL_COLORS.rehab.text : 'text-gray-400'}`}>
-                        {effectiveRanges.rehab.known ? formatUnknownCurrency(effectiveRanges.rehab) : '???'}
-                      </div>
-                      <div className="text-gray-400 text-xs flex items-center gap-1">
-                        Rehab Cost {!effectiveRanges.rehab.known && <Lock className="w-3 h-3" />}
-                        <FinancialTermInfo type="rehab" isKnown={effectiveRanges.rehab.known} />
-                      </div>
-                    </div>
-                  </UnknownValueBadge>
-                  <UnknownValueBadge type="timeline" isKnown={effectiveRanges.timeline.known}>
-                    <div className={`rounded-lg p-3 border ${effectiveRanges.timeline.known ? `${FINANCIAL_COLORS.timeline.bg} ${FINANCIAL_COLORS.timeline.border}` : 'bg-gray-500/10 border-gray-500/30'}`}>
-                      <div className={`text-base font-bold font-mono ${effectiveRanges.timeline.known ? FINANCIAL_COLORS.timeline.text : 'text-gray-400'}`}>
-                        {effectiveRanges.timeline.known ? `${effectiveRanges.timeline.min}-${effectiveRanges.timeline.max} wks` : '???'}
-                      </div>
-                      <div className="text-gray-400 text-xs flex items-center gap-1">
-                        Timeline {!effectiveRanges.timeline.known && <Lock className="w-3 h-3" />}
-                        <FinancialTermInfo type="timeline" isKnown={effectiveRanges.timeline.known} />
-                      </div>
-                    </div>
-                  </UnknownValueBadge>
+                <div className="relative grid grid-cols-2 gap-2.5">
+                  {([
+                    { key: 'rent' as const, label: 'Rent', known: effectiveRanges.rent.known, value: effectiveRanges.rent.known ? `${formatUnknownCurrency(effectiveRanges.rent)}/mo` : '???' },
+                    { key: 'arv' as const, label: 'ARV', known: effectiveRanges.arv.known, value: effectiveRanges.arv.known ? formatUnknownCurrency(effectiveRanges.arv) : '???' },
+                    { key: 'rehab' as const, label: 'Rehab Cost', known: effectiveRanges.rehab.known, value: effectiveRanges.rehab.known ? formatUnknownCurrency(effectiveRanges.rehab) : '???' },
+                    { key: 'timeline' as const, label: 'Timeline', known: effectiveRanges.timeline.known, value: effectiveRanges.timeline.known ? `${effectiveRanges.timeline.min}-${effectiveRanges.timeline.max} mo` : '???' },
+                  ]).map((card) => {
+                    const colors = FINANCIAL_COLORS[card.key];
+                    return (
+                      <UnknownValueBadge key={card.key} type={card.key} isKnown={card.known}>
+                        <div
+                          className={`relative overflow-hidden rounded-xl border p-3 transition-all ${
+                            card.known
+                              ? `${colors.bg} ${colors.border} shadow-[0_0_18px_rgba(0,0,0,0.25)]`
+                              : 'border-dashed border-white/15 bg-black/30'
+                          }`}
+                        >
+                          {!card.known ? (
+                            <div className="absolute right-2 top-2 rounded-full bg-white/5 p-1 border border-white/10">
+                              <Lock className="w-3 h-3 text-white/35" />
+                            </div>
+                          ) : null}
+                          <div className={`text-lg font-bold font-mono tracking-tight ${card.known ? colors.text : 'text-white/35'}`}>
+                            {card.value}
+                          </div>
+                          <div className="mt-1 text-[11px] uppercase tracking-wider flex items-center gap-1 text-white/45">
+                            <span className={card.known ? colors.text : ''}>{card.label}</span>
+                            <FinancialTermInfo type={card.key} isKnown={card.known} />
+                          </div>
+                          {!card.known ? (
+                            <div className="mt-2 text-[10px] text-amber-200/55 font-medium">Investigate to unlock</div>
+                          ) : (
+                            <div className="mt-2 text-[10px] text-emerald-300/70 font-medium">Intel secured</div>
+                          )}
+                        </div>
+                      </UnknownValueBadge>
+                    );
+                  })}
                 </div>
-                {(!effectiveRanges.rent.known || !effectiveRanges.arv.known || !effectiveRanges.rehab.known) && (
-                  <p className="mt-3 text-xs text-amber-400/80 italic">
-                    Complete due diligence to narrow these estimates before building your pro forma.
+                {(!effectiveRanges.rent.known || !effectiveRanges.arv.known || !effectiveRanges.rehab.known) ? (
+                  <p className="relative mt-3 text-xs text-amber-200/70">
+                    Run diligence below to crack these ranges before you underwrite.
                   </p>
-                )}
+                ) : null}
               </div>
               </div>
             </div>
 
             {/* SECTION 2: Due Diligence - FULL WIDTH */}
-              <div className="bg-white/[0.02] rounded-xl p-4 border border-white/6" data-testid="due-diligence-section">
-                <h3 className="text-white/50 text-[10px] font-semibold uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-md bg-white/8 flex items-center justify-center">
-                    <Search className="w-3.5 h-3.5 text-white/40" />
+              <div className="rounded-2xl border border-cyan-500/15 bg-gradient-to-b from-cyan-500/[0.06] to-transparent p-4" data-testid="due-diligence-section">
+                <h3 className="text-cyan-100/80 text-[10px] font-semibold uppercase tracking-[0.16em] mb-1 flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-cyan-400/15 border border-cyan-300/25 flex items-center justify-center">
+                    <Search className="w-3.5 h-3.5 text-cyan-300" />
                   </div>
                   Due Diligence
                 </h3>
-                <div className="space-y-3">
+                <p className="text-xs text-white/40 mb-4 pl-9">Spend cash & months to unlock real numbers — guessing is how deals die.</p>
+                <div className="space-y-2.5">
                   {DILIGENCE_OPTIONS.map((option) => {
                     const isCompleted = completedDiligence.includes(option.id);
                     const canAfford = cash >= option.cost;
                     const isDisabled = isCompleted || !canAfford;
                     const colorMapping = DILIGENCE_COLOR_MAP[option.id];
-                    const primaryColor = FINANCIAL_COLORS[colorMapping.primary];
-                    
-                    const getGradientClasses = () => {
-                      if (isCompleted) {
-                        return 'bg-white/[0.06] border-white/10';
-                      }
-                      if (!canAfford) {
-                        return 'bg-white/[0.02] border-white/4 opacity-40 cursor-not-allowed';
-                      }
-                      return 'bg-white/[0.03] border-white/6 hover:bg-white/[0.06] hover:border-white/10';
-                    };
-                    
-                    const getIconColor = () => {
-                      if (isCompleted) return 'text-white/60';
-                      if (!canAfford) return 'text-white/20';
-                      return 'text-white/40';
-                    };
-                    
+                    const accent = FINANCIAL_COLORS[colorMapping.primary];
+                    const unlockLabel = DILIGENCE_UNLOCK_LABEL[option.id];
+
                     return (
                       <button
                         key={option.id}
                         onClick={() => handleDiligenceClick(option)}
                         disabled={isDisabled}
-                        className={`w-full text-left p-4 rounded-xl transition-colors duration-150 border-2 ${getGradientClasses()}`}
+                        className={`group w-full text-left rounded-xl border transition-all duration-150 ${
+                          isCompleted
+                            ? 'border-emerald-400/25 bg-emerald-500/[0.08]'
+                            : !canAfford
+                            ? 'border-white/5 bg-white/[0.02] opacity-45 cursor-not-allowed'
+                            : `${accent.border} ${accent.bg} hover:brightness-110 active:scale-[0.99]`
+                        }`}
                         data-testid={`button-diligence-${option.id}`}
                         data-no-click-sound
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                              isCompleted ? 'bg-white/10' : 'bg-white/[0.05]'
-                            }`}>
-                              {option.id === 'market_study' && <TrendingUp className={`w-5 h-5 ${getIconColor()}`} />}
-                              {option.id === 'appraisal' && <DollarSign className={`w-5 h-5 ${getIconColor()}`} />}
-                              {option.id === 'contractor_walkthrough' && <HardHat className={`w-5 h-5 ${getIconColor()}`} />}
-                              {option.id === 'inspection' && <Search className={`w-5 h-5 ${getIconColor()}`} />}
-                              {option.id === 'title_search' && <FileText className={`w-5 h-5 ${getIconColor()}`} />}
+                        <div className="flex items-stretch gap-3 p-3.5">
+                          <div className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center border ${
+                            isCompleted
+                              ? 'bg-emerald-400/15 border-emerald-300/30'
+                              : `${accent.bg} ${accent.border}`
+                          }`}>
+                            {isCompleted ? (
+                              <Check className="w-5 h-5 text-emerald-300" />
+                            ) : (
+                              <DiligenceGlyph id={option.id} className={`w-5 h-5 ${accent.text}`} />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className={`font-semibold text-sm ${isCompleted ? 'text-emerald-100' : 'text-white'}`}>
+                                {option.name}
+                              </span>
+                              <DiligenceEducationTooltip diligenceId={option.id} />
                             </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className={`font-medium text-sm ${isCompleted ? 'text-white/60' : 'text-white'}`}>{option.name}</span>
-                                <DiligenceEducationTooltip diligenceId={option.id} />
-                              </div>
-                              <p className="text-sm text-gray-400 mt-0.5">{option.reveals}</p>
+                            <p className="text-xs text-white/45 mt-0.5 leading-snug">{option.reveals}</p>
+                            <div className={`mt-2 inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider ${
+                              isCompleted ? 'text-emerald-300/80' : accent.text
+                            }`}>
+                              <Shield className="w-3 h-3" />
+                              {isCompleted ? 'Intel secured' : unlockLabel}
                             </div>
                           </div>
-                          {isCompleted ? (
-                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/8 rounded-full">
-                              <Check className="w-3.5 h-3.5 text-white/50" />
-                              <span className="text-[10px] text-white/40 font-medium uppercase tracking-wide">Done</span>
-                            </div>
-                          ) : (
-                            <div className="text-right flex-shrink-0">
-                              {option.cost === 0 ? (
-                                <div className="text-sm text-emerald-400 font-semibold">
-                                  Cost: {option.timeWeeks} month
-                                  <div className="text-emerald-500/80">(Free — do it yourself!)</div>
-                                </div>
-                              ) : (
-                                <div className="text-sm text-gray-300">
-                                  <span className="font-semibold text-white">Cost: {option.timeWeeks} month{option.timeWeeks > 1 ? 's' : ''} & {formatCurrency(option.cost)}</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
+                          <div className="flex-shrink-0 flex flex-col items-end justify-center gap-1.5">
+                            {isCompleted ? (
+                              <span className="px-2.5 py-1 rounded-lg bg-emerald-400/15 border border-emerald-300/25 text-[10px] font-bold uppercase tracking-wide text-emerald-200">
+                                Done
+                              </span>
+                            ) : (
+                              <>
+                                <span className={`px-2 py-1 rounded-lg text-[11px] font-mono font-bold border ${
+                                  option.cost === 0
+                                    ? 'bg-emerald-500/15 border-emerald-400/30 text-emerald-300'
+                                    : 'bg-rose-500/10 border-rose-400/25 text-rose-300'
+                                }`}>
+                                  {option.cost === 0 ? 'FREE' : `-${formatCurrency(option.cost)}`}
+                                </span>
+                                <span className="px-2 py-1 rounded-lg text-[11px] font-mono font-semibold border bg-amber-500/10 border-amber-400/25 text-amber-300">
+                                  -{option.timeWeeks} mo
+                                </span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </button>
                     );
@@ -997,45 +1017,38 @@ export function PropertyDetail({
               </div>
 
               {/* Financial Estimates Summary Panel */}
-              <div className="bg-white/[0.02] rounded-xl p-4 border border-white/6" data-testid="financial-estimates-panel">
-                <h3 className="text-gray-200 text-sm font-bold uppercase tracking-wider mb-1 flex items-center gap-2">
+              <div className="rounded-2xl border border-emerald-500/15 bg-gradient-to-b from-emerald-500/[0.06] to-transparent p-4" data-testid="financial-estimates-panel">
+                <h3 className="text-emerald-100/85 text-sm font-bold uppercase tracking-[0.12em] mb-1 flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-emerald-400" />
-                  Financial Estimates
+                  Research Scoreboard
                 </h3>
-                <p className="text-xs text-gray-500 mb-3">These fill in as you complete your research above</p>
+                <p className="text-xs text-white/40 mb-3">Fills in as you clear diligence above</p>
                 <div className="space-y-2">
-                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.rent.known ? `${FINANCIAL_COLORS.rent.bg} ${FINANCIAL_COLORS.rent.border}` : 'bg-white/[0.03] border-white/6'}`}>
-                    <span className={`text-xs font-semibold ${effectiveRanges.rent.known ? FINANCIAL_COLORS.rent.text : 'text-gray-400'}`}>Rent</span>
-                    {effectiveRanges.rent.known ? (
-                      <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.rent.text}`}>{formatCurrency(effectiveRanges.rent.min)} - {formatCurrency(effectiveRanges.rent.max)}/mo</span>
-                    ) : (
-                      <span className="text-xs text-gray-500 italic">Not yet investigated</span>
-                    )}
-                  </div>
-                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.arv.known ? `${FINANCIAL_COLORS.arv.bg} ${FINANCIAL_COLORS.arv.border}` : 'bg-white/[0.03] border-white/6'}`}>
-                    <span className={`text-xs font-semibold ${effectiveRanges.arv.known ? FINANCIAL_COLORS.arv.text : 'text-gray-400'}`}>After Repair Value</span>
-                    {effectiveRanges.arv.known ? (
-                      <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.arv.text}`}>{formatCurrency(effectiveRanges.arv.min)} - {formatCurrency(effectiveRanges.arv.max)}</span>
-                    ) : (
-                      <span className="text-xs text-gray-500 italic">Not yet investigated</span>
-                    )}
-                  </div>
-                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.rehab.known ? `${FINANCIAL_COLORS.rehab.bg} ${FINANCIAL_COLORS.rehab.border}` : 'bg-white/[0.03] border-white/6'}`}>
-                    <span className={`text-xs font-semibold ${effectiveRanges.rehab.known ? FINANCIAL_COLORS.rehab.text : 'text-gray-400'}`}>Rehab Costs</span>
-                    {effectiveRanges.rehab.known ? (
-                      <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.rehab.text}`}>{formatCurrency(effectiveRanges.rehab.min)} - {formatCurrency(effectiveRanges.rehab.max)}</span>
-                    ) : (
-                      <span className="text-xs text-gray-500 italic">Not yet investigated</span>
-                    )}
-                  </div>
-                  <div className={`flex items-center justify-between rounded-lg p-2.5 border ${effectiveRanges.timeline.known ? `${FINANCIAL_COLORS.timeline.bg} ${FINANCIAL_COLORS.timeline.border}` : 'bg-white/[0.03] border-white/6'}`}>
-                    <span className={`text-xs font-semibold ${effectiveRanges.timeline.known ? FINANCIAL_COLORS.timeline.text : 'text-gray-400'}`}>Timeline</span>
-                    {effectiveRanges.timeline.known ? (
-                      <span className={`text-sm font-mono font-bold ${FINANCIAL_COLORS.timeline.text}`}>{effectiveRanges.timeline.min} - {effectiveRanges.timeline.max} months</span>
-                    ) : (
-                      <span className="text-xs text-gray-500 italic">Not yet investigated</span>
-                    )}
-                  </div>
+                  {([
+                    { key: 'rent' as const, label: 'Rent', known: effectiveRanges.rent.known, value: `${formatCurrency(effectiveRanges.rent.min)} - ${formatCurrency(effectiveRanges.rent.max)}/mo` },
+                    { key: 'arv' as const, label: 'After Repair Value', known: effectiveRanges.arv.known, value: `${formatCurrency(effectiveRanges.arv.min)} - ${formatCurrency(effectiveRanges.arv.max)}` },
+                    { key: 'rehab' as const, label: 'Rehab Costs', known: effectiveRanges.rehab.known, value: `${formatCurrency(effectiveRanges.rehab.min)} - ${formatCurrency(effectiveRanges.rehab.max)}` },
+                    { key: 'timeline' as const, label: 'Timeline', known: effectiveRanges.timeline.known, value: `${effectiveRanges.timeline.min} - ${effectiveRanges.timeline.max} months` },
+                  ]).map((row) => {
+                    const colors = FINANCIAL_COLORS[row.key];
+                    return (
+                      <div
+                        key={row.key}
+                        className={`flex items-center justify-between rounded-xl px-3 py-2.5 border ${
+                          row.known ? `${colors.bg} ${colors.border}` : 'border-dashed border-white/12 bg-black/20'
+                        }`}
+                      >
+                        <span className={`text-xs font-semibold ${row.known ? colors.text : 'text-white/40'}`}>{row.label}</span>
+                        {row.known ? (
+                          <span className={`text-sm font-mono font-bold ${colors.text}`}>{row.value}</span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs text-white/35 italic">
+                            <Lock className="w-3 h-3" /> Locked
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -1252,50 +1265,86 @@ export function PropertyDetail({
 
       {/* Confirmation Dialog for Due Diligence Purchase */}
       <AlertDialog open={!!pendingDiligence} onOpenChange={(open) => !open && handleCancelDiligence()}>
-        <AlertDialogContent className="bg-[hsl(220,14%,10%)] border-white/8 max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white text-lg">
-              Confirm Investigation
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-400">
-              Review the cost and time for this investigation before confirming.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          {pendingDiligence && (
-            <div className="space-y-4 mt-2">
-              <div className="bg-white/[0.04] rounded-lg p-4 border border-white/6">
-                <div className="font-semibold text-gray-200 mb-2">{pendingDiligence.name}</div>
-                <p className="text-sm text-gray-400 mb-3">{pendingDiligence.reveals}</p>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-400">Cost:</span>
-                  <span className="text-red-400 font-mono font-bold">-{formatCurrency(pendingDiligence.cost)}</span>
+        <AlertDialogContent className="max-w-md overflow-hidden border border-amber-400/25 bg-[hsl(220,18%,8%)] p-0 sm:rounded-2xl">
+          {pendingDiligence ? (() => {
+            const accent = FINANCIAL_COLORS[DILIGENCE_COLOR_MAP[pendingDiligence.id].primary];
+            const unlockLabel = DILIGENCE_UNLOCK_LABEL[pendingDiligence.id];
+            const isFree = pendingDiligence.cost === 0;
+            return (
+              <>
+                <div className={`relative px-5 pt-6 pb-4 border-b border-white/8 bg-gradient-to-br ${accent.bg} from-transparent`}>
+                  <div className="pointer-events-none absolute inset-0 opacity-40" style={{
+                    background: 'radial-gradient(ellipse at 20% 0%, rgba(251,191,36,0.18), transparent 55%)',
+                  }} aria-hidden />
+                  <AlertDialogHeader className="relative space-y-3 text-center sm:text-center">
+                    <div className={`mx-auto w-16 h-16 rounded-2xl border ${accent.border} ${accent.bg} flex items-center justify-center shadow-[0_0_28px_rgba(251,191,36,0.18)] diligence-confirm-pulse`}>
+                      <DiligenceGlyph id={pendingDiligence.id} className={`w-8 h-8 ${accent.text}`} />
+                    </div>
+                    <AlertDialogTitle className="text-white text-xl font-display tracking-wide">
+                      Launch Investigation
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-white/55 text-sm">
+                      Spend resources now — unlock real intel on this deal.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
                 </div>
-                <div className="flex items-center justify-between text-sm mt-1">
-                  <span className="text-gray-400">Time:</span>
-                  <span className="text-amber-400 font-mono">
-                    -{pendingDiligence.timeWeeks} month{pendingDiligence.timeWeeks !== 1 ? 's' : ''}
-                  </span>
+
+                <div className="px-5 py-4 space-y-4">
+                  <div className={`rounded-xl border ${accent.border} ${accent.bg} p-4`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-xl border ${accent.border} bg-black/25 flex items-center justify-center flex-shrink-0`}>
+                        <DiligenceGlyph id={pendingDiligence.id} className={`w-5 h-5 ${accent.text}`} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-white text-base leading-tight">{pendingDiligence.name}</div>
+                        <p className="text-sm text-white/50 mt-1 leading-snug">{pendingDiligence.reveals}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <div className="rounded-xl border border-rose-400/25 bg-rose-500/10 px-3 py-2.5">
+                        <div className="text-[10px] uppercase tracking-wider text-rose-200/70 font-semibold">Cash</div>
+                        <div className={`text-lg font-mono font-bold ${isFree ? 'text-emerald-300' : 'text-rose-300'}`}>
+                          {isFree ? 'FREE' : `-${formatCurrency(pendingDiligence.cost)}`}
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-amber-400/25 bg-amber-500/10 px-3 py-2.5">
+                        <div className="text-[10px] uppercase tracking-wider text-amber-200/70 font-semibold">Time</div>
+                        <div className="text-lg font-mono font-bold text-amber-300">
+                          -{pendingDiligence.timeWeeks} mo
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={`mt-3 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold ${accent.bg} ${accent.text} border ${accent.border}`}>
+                      <Shield className="w-3.5 h-3.5" />
+                      {unlockLabel}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-amber-200/70 text-center">
+                    Deducted immediately from cash and season clock.
+                  </p>
                 </div>
-              </div>
-              <p className="text-sm text-amber-400/80 italic">
-                This will be deducted from your cash and time immediately.
-              </p>
-            </div>
-          )}
-          <AlertDialogFooter className="gap-3">
-            <AlertDialogCancel 
-              onClick={handleCancelDiligence}
-              className="bg-white/8 hover:bg-white/12 text-white/60 border-white/6"
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleConfirmDiligence}
-              className="bg-[hsl(152,44%,42%)] hover:bg-[hsl(152,44%,48%)] text-white"
-            >
-              Confirm Purchase
-            </AlertDialogAction>
-          </AlertDialogFooter>
+
+                <AlertDialogFooter className="gap-2 px-5 pb-5 flex-col sm:flex-col sm:space-x-0">
+                  <AlertDialogAction
+                    onClick={handleConfirmDiligence}
+                    className="w-full h-12 rounded-xl text-base font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-[0_8px_24px_rgba(16,185,129,0.35)] border-0"
+                    data-testid="button-confirm-diligence"
+                  >
+                    {isFree ? 'Start Free Study' : 'Run Investigation'}
+                  </AlertDialogAction>
+                  <AlertDialogCancel
+                    onClick={handleCancelDiligence}
+                    className="w-full h-11 rounded-xl mt-0 bg-white/[0.04] hover:bg-white/[0.08] text-white/55 border-white/10"
+                  >
+                    Not now
+                  </AlertDialogCancel>
+                </AlertDialogFooter>
+              </>
+            );
+          })() : null}
         </AlertDialogContent>
       </AlertDialog>
     </div>

@@ -1611,9 +1611,19 @@ input[type="range"]::-moz-range-track {
 
 @media (prefers-reduced-motion: reduce) {
   .engage-progress-fill::after,
-  .wizard-step-pulse {
+  .wizard-step-pulse,
+  .diligence-confirm-pulse {
     animation: none;
   }
+}
+
+.diligence-confirm-pulse {
+  animation: diligence-confirm-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes diligence-confirm-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.25); }
+  50% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
 }
 
 /* ===== MODERNIZATION: 3D Card Tilt ===== */

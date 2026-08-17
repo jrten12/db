@@ -1239,16 +1239,21 @@ export function PropertyDetail({
               </button>
               
               <button 
+                onClick={() => {
+                  if (!isProFormaComplete) return;
+                  playProformaChime();
+                  onOpenProForma(strategy, contractor);
+                }}
                 disabled={!isProFormaComplete}
                 className={`w-full px-6 py-3 rounded-lg font-medium text-sm transition-colors duration-150 flex items-center justify-center gap-2 ${
                   isProFormaComplete
-                    ? 'bg-white/8 hover:bg-white/12 text-white/70 border border-white/10'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white shadow-lg shadow-emerald-500/25'
                     : 'bg-white/[0.02] text-white/20 border border-white/4 cursor-not-allowed'
                 }`}
                 data-testid="button-make-offer"
               >
                 {!isProFormaComplete && <Lock className="w-4 h-4" />}
-                {isProFormaComplete ? 'Make Offer' : 'Complete Pro Forma to Make Offer'}
+                {isProFormaComplete ? 'Make Offer — Review & Commit' : 'Complete Pro Forma to Make Offer'}
               </button>
 
               <button 

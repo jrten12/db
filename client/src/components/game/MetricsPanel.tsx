@@ -72,7 +72,7 @@ export function MetricsPanel({ outputs, isUnlocked, onCommitDeal, strategy = 're
   return (
     <div className="space-y-4" data-testid="metrics-panel">
       {/* Investment Decision Section - Enhanced for iPhone/Desktop */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 border-2 border-slate-600 shadow-xl" data-testid="card-strategy-outcome">
+      <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-emerald-950/40 rounded-2xl p-5 border-2 border-emerald-500/20 shadow-xl shadow-emerald-500/5" data-testid="card-strategy-outcome">
         <h3 className="font-display text-white text-xl font-bold mb-3 text-center tracking-tight">
           Ready to Invest?
         </h3>

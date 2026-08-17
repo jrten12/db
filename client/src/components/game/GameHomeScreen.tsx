@@ -1,4 +1,4 @@
-import { Play, Trophy, Award, BookOpen, Wallet, Clock, Target, RotateCcw, GraduationCap, Lightbulb, Building } from 'lucide-react';
+import { Play, Trophy, Award, BookOpen, Wallet, Clock, Target, RotateCcw, GraduationCap, Lightbulb, Building, Download, Share } from 'lucide-react';
 import { TrophyShelf } from './TrophyShelf';
 import { TOTAL_VISIBLE_ACHIEVEMENTS } from './BadgesModal';
 import { ACHIEVEMENT_DEFINITIONS } from '@/lib/achievements';
@@ -6,6 +6,7 @@ import logo from '@assets/dealbreak_brand_icon.png';
 import { formatCurrency } from '@/lib/gameData';
 import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
+import { useAppInstall } from '@/hooks/useAppInstall';
 
 interface GameHomeScreenProps {
   playerName: string;
@@ -15,6 +16,7 @@ interface GameHomeScreenProps {
   onBadges: () => void;
   onTutorial: () => void;
   onRestartGame?: () => void;
+  onSettings?: () => void;
   earnedTrophies?: string[];
   cash?: number;
   weeksRemaining?: number;
@@ -30,6 +32,7 @@ export function GameHomeScreen({
   onBadges,
   onTutorial,
   onRestartGame,
+  onSettings,
   earnedTrophies = [],
   cash,
   weeksRemaining,
@@ -39,6 +42,7 @@ export function GameHomeScreen({
   const totalTrophies = TOTAL_VISIBLE_ACHIEVEMENTS;
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { canInstall, isIos, hasNativePrompt, promptInstall } = useAppInstall();
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 50);
@@ -134,6 +138,41 @@ export function GameHomeScreen({
             <Play className="w-6 h-6" />
             {hasActiveGame ? 'CONTINUE GAME' : 'START NEW GAME'}
           </button>
+
+          {canInstall ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (hasNativePrompt) {
+                  promptInstall();
+                  return;
+                }
+                if (isIos) {
+                  // Banner already explains Share → Add to Home Screen
+                  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                }
+              }}
+              className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ios-spring tap-scale touch-target"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(16,185,129,0.1))',
+                border: '1px solid rgba(16,185,129,0.35)',
+                color: '#a7f3d0',
+              }}
+              data-testid="button-install-home"
+            >
+              {isIos && !hasNativePrompt ? (
+                <>
+                  <Share className="w-4 h-4" />
+                  Add to Home Screen
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" />
+                  Install Dealbreak
+                </>
+              )}
+            </button>
+          ) : null}
 
           {!hasActiveGame && (
             <button

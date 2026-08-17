@@ -28,6 +28,15 @@ export function serveStatic(app: Express) {
       if (longCacheExts.test(filePath)) {
         res.setHeader("Cache-Control", "public, max-age=604800");
       }
+      if (filePath.endsWith("manifest.webmanifest")) {
+        res.setHeader("Content-Type", "application/manifest+json");
+        res.setHeader("Cache-Control", "public, max-age=3600");
+      }
+      if (filePath.endsWith("sw.js")) {
+        res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Service-Worker-Allowed", "/");
+      }
     },
   }));
 

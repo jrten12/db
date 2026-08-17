@@ -1634,6 +1634,11 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
                 };
               }
               
+              newTenantMoveInEvent.propertyName = propertyName;
+              newTenantMoveInEvent.propertyId = deal.propertyId;
+              newTenantMoveInEvent.dealId = deal.id;
+              newTenantMoveInEvent.tenantName = currentTenant.name || 'New Tenant';
+              newTenantMoveInEvent.rentAmount = newRent;
               curveballs.push(newTenantMoveInEvent);
               
               // Create a ledger entry for the tenant move-in (informational, $0 impact)
@@ -1723,6 +1728,10 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           } else if (atRenewalPoint && property) {
             const leaseRenewalResult = await processLeaseRenewal(deal, property, currentTenant, gameMarket, gameRun.currentWeek + 1, unfixedIssueIds);
             if (leaseRenewalResult) {
+              leaseRenewalResult.event.propertyName = property?.name ?? `Property #${deal.propertyId}`;
+              leaseRenewalResult.event.propertyId = deal.propertyId;
+              leaseRenewalResult.event.dealId = deal.id;
+              leaseRenewalResult.event.tenantName = currentTenant.name || 'Tenant';
               curveballs.push(leaseRenewalResult.event);
               // Re-fetch deal so processRentalIncome uses the updated rent from lease renewal
               const refreshedDeal = await storage.getDeal(deal.id);
@@ -1866,6 +1875,14 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         rentalPayments.push(result);
 
         if (curveball) {
+          // Tag with property/tenant context so the client can group lease
+          // changes by unit in the lease-change popup.
+          curveball.propertyName = curveball.propertyName ?? property?.name ?? `Property #${deal.propertyId}`;
+          curveball.propertyId = curveball.propertyId ?? deal.propertyId;
+          curveball.dealId = curveball.dealId ?? deal.id;
+          if (currentTenant?.name && curveball.tenantName === undefined) {
+            curveball.tenantName = currentTenant.name;
+          }
           curveballs.push(curveball);
           
           const updatedRecentIds = updateRecentCurveballIds(recentCurveballIds, curveball.id);

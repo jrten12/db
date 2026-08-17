@@ -47,6 +47,7 @@ import { DealCongratulations } from '@/components/game/DealCongratulations';
 import { RentalRealityReveal } from '@/components/game/RentalRealityReveal';
 import { PropertySoldAnimation } from '@/components/game/PropertySoldAnimation';
 import { PassiveIncomeMilestone } from '@/components/game/PassiveIncomeMilestone';
+import { LeaseChangeModal, type LeaseChangeEvent } from '@/components/game/LeaseChangeModal';
 import { DealShareCard } from '@/components/game/DealShareCard';
 import { useTutorial } from '@/contexts/TutorialContext';
 import { GameHomeScreen } from '@/components/game/GameHomeScreen';
@@ -194,6 +195,7 @@ export default function Game() {
   
   // Passive income milestone queue (played one at a time, after other notifications settle)
   const [milestoneQueue, setMilestoneQueue] = useState<number[]>([]);
+  const [leaseChangeEvents, setLeaseChangeEvents] = useState<LeaseChangeEvent[]>([]);
   const [activeMilestone, setActiveMilestone] = useState<number | null>(null);
 
   // Refinance modal state
@@ -1428,24 +1430,36 @@ export default function Game() {
         }
 
         const moveIns = result.curveballs.filter((c: any) => c.id === 'tenant_move_in');
-        for (const moveIn of moveIns) {
-          if (moveIn.type === 'positive') {
-            toast.success(`${moveIn.emoji} ${moveIn.description}`, { duration: 6000 });
-          } else if (moveIn.type === 'negative') {
-            toast.warning(`${moveIn.emoji} ${moveIn.description}`, { duration: 6000 });
-          } else {
-            toast(`${moveIn.emoji} ${moveIn.description}`, { duration: 5000 });
-          }
-        }
 
-        // Tenant move-OUT events (departure, life change, non-renewal) — keep player informed
+        // Tenant move-OUT events (departure, life change, non-renewal)
         const departures = result.curveballs.filter((c: any) =>
           c.id === 'tenant_departure_conditions' ||
           c.id === 'tenant_departure_life' ||
-          c.id === 'tenant_nonrenewal'
+          c.id === 'tenant_nonrenewal' ||
+          c.id === 'early_lease_break'
         );
-        for (const dep of departures) {
-          toast.warning(`${dep.emoji} ${dep.name}: ${dep.description}`, { duration: 7000 });
+
+        // Show move-ins and move-outs in a dedicated popup, grouped by unit
+        const leaseChanges: LeaseChangeEvent[] = [
+          ...departures.map((d: any) => ({
+            id: d.id,
+            kind: 'move_out' as const,
+            propertyName: d.propertyName || 'Your Property',
+            tenantName: d.tenantName,
+            description: d.description,
+            emoji: d.emoji,
+          })),
+          ...moveIns.map((m: any) => ({
+            id: m.id,
+            kind: 'move_in' as const,
+            propertyName: m.propertyName || 'Your Property',
+            tenantName: m.tenantName,
+            description: m.description,
+            emoji: m.emoji,
+          })),
+        ];
+        if (leaseChanges.length > 0) {
+          setLeaseChangeEvents(leaseChanges);
         }
         // If anyone moved out, force tenant cache refresh so names/personalities sync everywhere
         if (departures.length > 0 || moveIns.length > 0) {
@@ -2902,6 +2916,13 @@ export default function Game() {
 
         {/* Construction Notifications */}
         <ConstructionNotification events={constructionEvents} onDismiss={dismissConstructionEvent} />
+
+        {/* Tenant Move-In/Move-Out Popup */}
+        <LeaseChangeModal
+          open={leaseChangeEvents.length > 0}
+          events={leaseChangeEvents}
+          onClose={() => setLeaseChangeEvents([])}
+        />
 
         {/* Passive Income Milestone Celebration */}
         {activeMilestone !== null && (

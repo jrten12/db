@@ -1546,7 +1546,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
       {/* STEP 5: REVIEW — Pro Forma Flow waterfall */}
       <div className={showOnStep(5)} data-testid="step-5-review">
-        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-4">
+        <div className="proforma-step-panel p-4">
           <div className="mb-4">
             <h3 className="text-white font-semibold text-base flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-emerald-400" />

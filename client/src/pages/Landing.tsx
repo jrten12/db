@@ -10,7 +10,14 @@ function LandingInstallButton() {
   return (
     <button
       type="button"
-      onClick={() => { if (hasNativePrompt) promptInstall(); }}
+      onClick={() => {
+        if (hasNativePrompt) {
+          promptInstall();
+          return;
+        }
+        // iOS: open Share sheet instructions via the floating banner already on-screen
+        document.querySelector('[data-testid="install-app-banner"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }}
       className="w-full sm:w-auto py-3.5 lg:py-4 px-5 lg:px-6 font-semibold text-[15px] lg:text-base tracking-tight transition-all duration-200 flex items-center justify-center gap-2 min-h-[52px]"
       style={{
         background: 'rgba(16,185,129,0.12)',

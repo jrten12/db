@@ -2036,10 +2036,34 @@ export class DBStorage implements IStorage {
   }
 
   // Deal methods
+  // Integer columns on deals — fractional values (e.g. loanAmount 133927.5 from
+  // client pro forma math) cause Postgres "invalid input syntax for type integer"
+  // and abort the write AFTER cash was already deducted. Round them defensively.
+  private static readonly DEAL_INTEGER_FIELDS = [
+    'actualProfit', 'weeksSpent', 'weeksUntilCompletion', 'weeklyIncome',
+    'lastIncomePaymentWeek', 'firstIncomePaymentWeek', 'purchasePrice', 'salePrice',
+    'originalLoanAmount', 'loanTermMonths', 'purchaseWeek', 'refinanceCount',
+    'currentLoanBalance', 'lastRefinanceWeek', 'totalPrincipalPaid', 'totalInterestPaid',
+    'rentalRehabWeeksRemaining', 'rentalRehabBaseWeeks', 'rentalRehabCostBase',
+    'rentalRehabCostActual', 'rentalRehabVariancePct', 'rentalRehabStartWeek',
+    'tenantBreakFee',
+  ] as const;
+
+  private sanitizeDealIntegers<T extends Record<string, any>>(data: T): T {
+    const out: Record<string, any> = { ...data };
+    for (const field of DBStorage.DEAL_INTEGER_FIELDS) {
+      const v = out[field];
+      if (typeof v === 'number' && Number.isFinite(v) && !Number.isInteger(v)) {
+        out[field] = Math.round(v);
+      }
+    }
+    return out as T;
+  }
+
   async createDeal(deal: InsertDeal): Promise<Deal> {
     const [newDeal] = await db
       .insert(schema.deals)
-      .values(deal)
+      .values(this.sanitizeDealIntegers(deal))
       .returning();
     return newDeal;
   }
@@ -2083,7 +2107,7 @@ export class DBStorage implements IStorage {
   async updateDeal(id: number, updates: Partial<InsertDeal>): Promise<Deal | undefined> {
     const [deal] = await db
       .update(schema.deals)
-      .set(updates)
+      .set(this.sanitizeDealIntegers(updates))
       .where(eq(schema.deals.id, id))
       .returning();
     return deal;
@@ -2134,7 +2158,7 @@ export class DBStorage implements IStorage {
     // Get the CURRENT mortgage balance from the deal
     const proFormaOutputs = deal.proFormaOutputs as any;
     const proFormaInputs = deal.proFormaInputs as any;
-    const mortgagePayoff = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
+    const mortgagePayoff = Math.round(deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0);
     
     // Rental sale: soft listing drift + market exit band + hold appreciation
     const marketCondition = normalizeMarketCondition(gameRun.marketCondition);
@@ -2174,7 +2198,7 @@ export class DBStorage implements IStorage {
     
     const [updatedDeal] = await db
       .update(schema.deals)
-      .set({
+      .set(this.sanitizeDealIntegers({
         status: 'sold_rental',
         salePrice,
         actualProfit: saleProfit,
@@ -2184,7 +2208,7 @@ export class DBStorage implements IStorage {
         rentalRehabActive: false,
         rentalRehabWeeksRemaining: 0,
         completedAt: new Date(),
-      })
+      }))
       .where(eq(schema.deals.id, dealId))
       .returning();
     
@@ -2307,7 +2331,7 @@ export class DBStorage implements IStorage {
     const proFormaInputs = deal.proFormaInputs as any;
     
     // Get the CURRENT mortgage balance from the deal
-    const mortgagePayoff = deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0;
+    const mortgagePayoff = Math.round(deal.currentLoanBalance ?? proFormaOutputs?.loanAmount ?? 0);
     
     // Calculate sale price using shared flip pricing function (same as completeFlipDeal)
     const rehabBudget = proFormaInputs?.rehabBudget || 0;
@@ -2360,14 +2384,14 @@ export class DBStorage implements IStorage {
     
     const [updatedDeal] = await db
       .update(schema.deals)
-      .set({
+      .set(this.sanitizeDealIntegers({
         status: 'completed',
         salePrice,
         saleMultiplier,
         purchasePrice,
         actualProfit: saleProfit,
         completedAt: new Date(),
-      })
+      }))
       .where(eq(schema.deals.id, dealId))
       .returning();
     
@@ -2588,7 +2612,7 @@ export class DBStorage implements IStorage {
     }
     
     const refinanceFees = Math.round(newLoanBalance * REFINANCE_FEE_PCT);
-    cashOut = newLoanBalance - oldLoanBalance - refinanceFees;
+    cashOut = Math.round(newLoanBalance - oldLoanBalance - refinanceFees);
     
     if (cashOut <= 0) {
       throw new Error('Not enough equity to refinance - no cash out available');
@@ -2614,7 +2638,7 @@ export class DBStorage implements IStorage {
     // When refinancing, the old loan is paid off and a new one starts
     const [updatedDeal] = await db
       .update(schema.deals)
-      .set({
+      .set(this.sanitizeDealIntegers({
         currentLoanBalance: newLoanBalance,
         originalLoanAmount: newLoanBalance, // Reset to new loan amount for debt panel
         loanInterestRate: Math.round(newInterestRate * 1000000) / 1000000,
@@ -2624,7 +2648,7 @@ export class DBStorage implements IStorage {
         refinanceCount: (deal.refinanceCount ?? 0) + 1,
         lastRefinanceWeek: currentWeek,
         proFormaOutputs: updatedProFormaOutputs, // Update stored monthly payment
-      })
+      }))
       .where(eq(schema.deals.id, dealId))
       .returning();
     
@@ -2824,7 +2848,7 @@ export class DBStorage implements IStorage {
       for (const deal of savedDeals) {
         const [restored] = await tx
           .insert(schema.deals)
-          .values({ ...deal, gameRunId })
+          .values(this.sanitizeDealIntegers({ ...deal, gameRunId }))
           .returning();
         restoredDeals.push(restored);
       }

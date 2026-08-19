@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ProFormaInputs, ProFormaOutputs, formatCurrency, calculateProForma, isProFormaInputsComplete, getMissingFields, requiredRentFields, requiredFlipFields, LTV_MIN, LTV_MAX, getInterestRateFromLTV, getInterestRateWithPlayerState, getInterestRateBreakdown, getLoanFeesFromLTV, getDownPaymentFromLTV, PROPERTY_MANAGEMENT_FEE_PCT, PlayerFinancials, FINISH_LEVEL_CONFIG, UNKNOWN_REHAB_BUDGET_MULTIPLIER } from '@/lib/gameData';
 
 type FinishLevelKey = keyof typeof FINISH_LEVEL_CONFIG;
@@ -590,27 +591,27 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const wizardRailPct = ((Math.max(currentStep, 1) - 1) / 4) * 100;
 
   return (
-    <div className="space-y-4" data-testid="pro-forma-panel">
-      <div className="space-y-4">
+    <div className="space-y-4 proforma-ambient" data-testid="pro-forma-panel">
+      <div className="space-y-4 relative z-[1]">
         {/* COMPLETION PROGRESS BANNER */}
-        <div className={`backdrop-blur rounded-xl border p-4 transition-all ${
+        <div className={`completion-banner-live backdrop-blur rounded-xl border p-4 transition-all ${
           isFullyComplete
-            ? 'bg-emerald-500/10 border-emerald-500/50'
+            ? 'is-ready bg-emerald-500/10 border-emerald-500/50'
             : 'bg-slate-900/90 border-slate-700'
         }`}>
           <div className="flex items-center justify-between mb-3 gap-3">
             <div className="flex items-center gap-2 min-w-0">
               {isFullyComplete ? (
-                <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 animate-[strategy-pop_0.45s_ease]" />
               ) : (
                 <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
               )}
               <span className={`font-semibold text-sm truncate ${isFullyComplete ? 'text-emerald-400' : 'text-white'}`}>
-                {isFullyComplete ? 'Pro Forma Complete!' : 'Interact with All Fields'}
+                {isFullyComplete ? 'Pro Forma Complete — numbers are live' : 'Shape the deal — touch every field'}
               </span>
             </div>
             <div className="flex items-baseline gap-1.5 flex-shrink-0">
-              <span className={`text-lg font-mono font-bold tabular-nums leading-none ${isFullyComplete ? 'text-emerald-400' : 'text-cyan-300'}`}>
+              <span className={`text-lg font-mono font-bold tabular-nums leading-none transition-colors duration-300 ${isFullyComplete ? 'text-emerald-400' : 'text-cyan-300'}`}>
                 {touchPct}%
               </span>
               <span className={`text-[10px] font-mono ${isFullyComplete ? 'text-emerald-400/70' : 'text-white/35'}`}>
@@ -673,7 +674,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
         </div>
 
         {/* WIZARD STEPPER */}
-        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3" data-testid="proforma-stepper">
+        <div className="proforma-step-panel p-3" data-testid="proforma-stepper">
           <div className="wizard-rail">
             <div className="wizard-rail-track" aria-hidden>
               <div className="wizard-rail-fill" style={{ width: `${wizardRailPct}%` }} />
@@ -687,11 +688,11 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                 <button
                   key={label}
                   type="button"
-                  onClick={() => { if (isVisited) setCurrentStep(step); }}
+                  onClick={() => { if (isVisited) { triggerHaptic(); setCurrentStep(step); } }}
                   disabled={!isVisited}
                   className={`relative z-[1] w-full flex flex-col items-center gap-1.5 px-1 py-2 rounded-lg border transition-all ${
                     isActive
-                      ? 'bg-cyan-500/15 border-cyan-400/60 text-cyan-200'
+                      ? 'bg-cyan-500/15 border-cyan-400/60 text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.15)]'
                       : isDone
                       ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/15 cursor-pointer'
                       : 'bg-slate-800/40 border-slate-700/60 text-gray-500 cursor-not-allowed'
@@ -716,26 +717,40 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               );
             })}
           </div>
-          <div className="mt-2.5 h-1 rounded-full bg-slate-800 overflow-hidden sm:hidden" aria-hidden>
+          <div className="mt-2.5 h-1.5 rounded-full bg-slate-800/80 overflow-hidden" aria-hidden>
             <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 transition-all duration-500"
+              className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 transition-all duration-500 shadow-[0_0_12px_rgba(34,211,238,0.45)]"
               style={{ width: `${(currentStep / 5) * 100}%` }}
             />
           </div>
         </div>
 
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={`step-label-${currentStep}`}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.22 }}
+            className="text-center text-xs font-medium tracking-wide text-cyan-300/80"
+            data-testid="proforma-step-label"
+          >
+            {STEP_LABELS[currentStep - 1]}
+          </motion.p>
+        </AnimatePresence>
+
         {/* STRATEGY SELECTOR */}
-        <div className={`bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-4 ${showOnStep(1)}`} data-testid="strategy-tabs">
+        <div className={`proforma-step-panel p-4 ${showOnStep(1)}`} data-testid="strategy-tabs">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-white font-semibold">{property.name}</h2>
-            <span className="text-gray-400 text-sm">{formatCurrency(property.price)}</span>
+            <span className="text-cyan-300/80 text-sm font-mono">{formatCurrency(property.price)}</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
-              onClick={() => handleChange('strategy', 'rent')}
+              onClick={() => { triggerHaptic(); handleChange('strategy', 'rent'); }}
               className={`p-3 rounded-xl border transition-all flex items-center gap-2 ${
                 inputs.strategy === 'rent'
-                  ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                  ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 strategy-pick-active shadow-[0_0_24px_rgba(16,185,129,0.2)]'
                   : 'bg-slate-800/50 border-slate-700 text-gray-400 hover:border-slate-600'
               }`}
               data-testid="button-strategy-rent"
@@ -747,10 +762,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
               </div>
             </button>
             <button
-              onClick={() => handleChange('strategy', 'flip')}
+              onClick={() => { triggerHaptic(); handleChange('strategy', 'flip'); }}
               className={`p-3 rounded-xl border transition-all flex items-center gap-2 ${
                 inputs.strategy === 'flip'
-                  ? 'bg-amber-500/20 border-amber-500 text-amber-400'
+                  ? 'bg-amber-500/20 border-amber-500 text-amber-400 strategy-pick-active shadow-[0_0_24px_rgba(251,191,36,0.2)]'
                   : 'bg-slate-800/50 border-slate-700 text-gray-400 hover:border-slate-600'
               }`}
               data-testid="button-strategy-flip"
@@ -1531,7 +1546,7 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
       {/* STEP 5: REVIEW — Pro Forma Flow waterfall */}
       <div className={showOnStep(5)} data-testid="step-5-review">
-        <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-4">
+        <div className="proforma-step-panel p-4">
           <div className="mb-4">
             <h3 className="text-white font-semibold text-base flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-emerald-400" />
@@ -1913,10 +1928,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
       </div>
 
       {/* WIZARD FOOTER — Back / Next navigation */}
-      <div className="bg-slate-900/90 backdrop-blur rounded-xl border border-slate-700 p-3 flex items-center justify-between gap-3 sticky bottom-2 z-10" data-testid="wizard-footer">
+      <div className="wizard-footer-app backdrop-blur rounded-xl p-3 flex items-center justify-between gap-3 z-10" data-testid="wizard-footer">
         <button
           type="button"
-          onClick={goBack}
+          onClick={() => { triggerHaptic(); goBack(); }}
           disabled={currentStep === 1}
           className={`px-5 py-3 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 ${
             currentStep === 1
@@ -1927,14 +1942,14 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
         >
           ← Back
         </button>
-        <div className="text-xs text-gray-400 font-medium hidden sm:block">
+        <div className="text-xs text-cyan-300/70 font-medium hidden sm:block tabular-nums">
           Step {currentStep} of 5 — {STEP_LABELS[currentStep - 1]}
         </div>
         {currentStep < 5 ? (
           <button
             type="button"
-            onClick={goNext}
-            className="px-6 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 text-white shadow-lg shadow-cyan-500/30 flex items-center gap-2"
+            onClick={() => { triggerHaptic(); goNext(); }}
+            className="px-6 py-3 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-white shadow-lg shadow-cyan-500/30 flex items-center gap-2"
             data-testid="button-wizard-next"
           >
             Next: {STEP_LABELS[currentStep]} →

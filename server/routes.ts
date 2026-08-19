@@ -551,10 +551,16 @@ export async function registerRoutes(
   });
 
   // Advance game by one week (rate limited - game action)
+  // In-flight lock prevents double-tap from double-paying rent / double-decrementing weeks.
+  const advanceWeekInFlight = new Set<number>();
   app.post("/api/game-runs/:id/advance-week", gameActionLimiter, async (req, res) => {
+    const gameRunId = parseInt(req.params.id);
+    if (advanceWeekInFlight.has(gameRunId)) {
+      res.status(409).json({ error: "Month advance already in progress." });
+      return;
+    }
+    advanceWeekInFlight.add(gameRunId);
     try {
-      const gameRunId = parseInt(req.params.id);
-
       // Season gate: block advancing past the current allocation of weeks.
       // Player must watch a sponsor message to unlock the next 52-week season.
       const currentRun = await storage.getGameRun(gameRunId);
@@ -585,6 +591,8 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Error advancing game week:", error);
       res.status(500).json({ error: error.message || "Failed to advance game week" });
+    } finally {
+      advanceWeekInFlight.delete(gameRunId);
     }
   });
 

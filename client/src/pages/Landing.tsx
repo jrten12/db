@@ -1,7 +1,37 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, Trophy, Star, Target, ChevronRight, Gauge, Award, DollarSign, Flame, AlertTriangle, Eye, Radio } from 'lucide-react';
+import { ArrowRight, Volume2, VolumeX, FileText, BarChart3, Zap, Shield, Building2, TrendingUp, Users, Wrench, LineChart, Dice6, Scale, EyeOff, Skull, Clock, Crosshair, Layers, SlidersHorizontal, Activity, Microscope, GitBranch, Trophy, Star, Target, ChevronRight, Gauge, Award, DollarSign, Flame, AlertTriangle, Eye, Radio, Download } from 'lucide-react';
 import { useMusic } from '@/hooks/useMusicPlayer';
+import { useAppInstall } from '@/hooks/useAppInstall';
+
+function LandingInstallButton() {
+  const { canInstall, isIos, hasNativePrompt, promptInstall } = useAppInstall();
+  if (!canInstall) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (hasNativePrompt) {
+          promptInstall();
+          return;
+        }
+        // iOS: open Share sheet instructions via the floating banner already on-screen
+        document.querySelector('[data-testid="install-app-banner"]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }}
+      className="w-full sm:w-auto py-3.5 lg:py-4 px-5 lg:px-6 font-semibold text-[15px] lg:text-base tracking-tight transition-all duration-200 flex items-center justify-center gap-2 min-h-[52px]"
+      style={{
+        background: 'rgba(16,185,129,0.12)',
+        color: '#6ee7b7',
+        borderRadius: '10px',
+        border: '1px solid rgba(16,185,129,0.35)',
+      }}
+      data-testid="button-install-landing"
+    >
+      <Download className="w-4 h-4" />
+      {isIos && !hasNativePrompt ? 'Add to Home Screen' : 'Install Dealbreak'}
+    </button>
+  );
+}
 
 function AnimatedCounter({ target, prefix = '', suffix = '', duration = 2000 }: { target: number; prefix?: string; suffix?: string; duration?: number }) {
   const [count, setCount] = useState(0);
@@ -507,7 +537,7 @@ export default function Landing() {
                 </p>
 
                 {/* CTAs */}
-                <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-start gap-3">
+                <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-start gap-3 flex-wrap">
                   <Link href="/game" className="w-full sm:w-auto">
                     <button
                       className="group relative w-full sm:w-auto min-w-[210px] py-3.5 lg:py-4 px-6 lg:px-7 font-semibold text-[15px] lg:text-base tracking-tight transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 min-h-[52px] sm:min-h-0"
@@ -523,6 +553,7 @@ export default function Landing() {
                       <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
                     </button>
                   </Link>
+                  <LandingInstallButton />
                   <Link href="/methodology" className="w-full sm:w-auto">
                     <button
                       className="w-full sm:w-auto py-3.5 lg:py-4 px-5 lg:px-6 font-semibold text-[15px] lg:text-base tracking-tight transition-all duration-200 hover:bg-white/5 flex items-center justify-center gap-2"

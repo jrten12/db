@@ -72,6 +72,7 @@ import { saveGame, loadGame, getSaveInfo, clearSave } from '@/lib/saveGame';
 import type { GameRun, Property, LedgerEntry, Deal, HallOfFamePlayer } from '@shared/schema';
 import woodTexture from '@assets/generated_images/dark_mahogany_wood_texture.webp';
 import Footer from '@/components/Footer';
+import { GameBottomNav } from '@/components/game/GameBottomNav';
 import { Loader2, Play } from 'lucide-react';
 import { playAdvanceWeekSound, playRentDayChime } from '@/hooks/useClickSound';
 import { toast } from 'sonner';
@@ -945,6 +946,7 @@ export default function Game() {
 
   const [isCommittingDeal, setIsCommittingDeal] = useState(false);
   const [isAdvancingWeek, setIsAdvancingWeek] = useState(false);
+  const isAdvancingWeekRef = useRef(false);
   
   // Tenant text message state
   const [tenantTextPopup, setTenantTextPopup] = useState<{
@@ -1323,6 +1325,9 @@ export default function Game() {
 
   const handleAdvanceWeek = useCallback(async () => {
     if (!gameRun) return;
+    // Prevent double-tap / concurrent advances corrupting cash & ledger
+    if (isAdvancingWeekRef.current) return;
+    isAdvancingWeekRef.current = true;
 
     setIsAdvancingWeek(true);
     try {
@@ -1662,6 +1667,7 @@ export default function Game() {
         } catch {}
       }
     } finally {
+      isAdvancingWeekRef.current = false;
       setIsAdvancingWeek(false);
     }
   }, [gameRun, queryClient, addRentalPayment, addFlipProceeds, properties, deals]);
@@ -2239,7 +2245,9 @@ export default function Game() {
 
   return (
     <div
-      className="bg-[hsl(220,14%,6%)] min-h-screen min-h-[100dvh]"
+      className={`bg-[hsl(220,14%,6%)] min-h-screen min-h-[100dvh] ${
+        currentScreen === 'home' || currentScreen === 'market' ? 'has-bottom-nav' : ''
+      }`}
       data-testid="game-screen"
       data-game-area
     >
@@ -2302,7 +2310,7 @@ export default function Game() {
                 onTutorial={() => { startTutorial(); setCurrentScreen('market'); }}
                 onRestartGame={handleNewGame}
                 onSettings={() => { setPremiumTriggerReason('manual'); setShowPremiumModal(true); }}
-                earnedTrophies={earnedPlayerTrophies}
+                earnedTrophies={unlockedAchievements}
                 cash={gameRun.cash}
                 weeksRemaining={gameRun.weeksRemaining}
                 profitableDeals={gameRun.profitableDeals}
@@ -2535,7 +2543,7 @@ export default function Game() {
 
 
         {currentScreen === 'market' && gameRun && (
-          <div className="md:hidden fixed bottom-6 right-4 z-40" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)' }}>
+          <div className="hidden md:block fixed bottom-6 right-4 z-40">
             <button
               onClick={() => { playAdvanceWeekSound(); handleAdvanceWeek(); }}
               disabled={isAdvancingWeek}
@@ -2553,8 +2561,21 @@ export default function Game() {
           </div>
         )}
 
-        {/* Copyright Footer */}
-        <Footer />
+        {(currentScreen === 'home' || currentScreen === 'market') && (
+          <GameBottomNav
+            active={currentScreen === 'home' ? 'home' : 'market'}
+            onHome={() => setCurrentScreen('home')}
+            onMarket={() => setCurrentScreen('market')}
+            showAdvance={currentScreen === 'market'}
+            onAdvanceWeek={() => { playAdvanceWeekSound(); handleAdvanceWeek(); }}
+            isAdvancingWeek={isAdvancingWeek}
+          />
+        )}
+
+        {/* Copyright Footer — hidden on mobile via CSS; kept for desktop web */}
+        <div className="hidden md:block">
+          <Footer />
+        </div>
 
         {/* Money Animation - triggered on purchases */}
         <MoneyAnimation 

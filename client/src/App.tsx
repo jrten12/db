@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { TutorialProvider } from "@/contexts/TutorialContext";
 import { useGlobalClickSound } from "@/hooks/useClickSound";
 import { MusicProvider, useMusic } from "@/hooks/useMusicPlayer";
+import { InstallAppBanner } from "@/components/InstallAppBanner";
 import Landing from "@/pages/Landing";
 
 const Game = lazy(() => import("@/pages/Game"));
@@ -47,10 +48,25 @@ function Router() {
 function AppContent() {
   const { triggerInteraction } = useMusic();
 
+  useEffect(() => {
+    const syncStandalone = () => {
+      const standalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+      document.documentElement.classList.toggle('is-standalone', standalone);
+      document.body.classList.toggle('is-standalone', standalone);
+    };
+    syncStandalone();
+    const mq = window.matchMedia('(display-mode: standalone)');
+    mq.addEventListener?.('change', syncStandalone);
+    return () => mq.removeEventListener?.('change', syncStandalone);
+  }, []);
+
   return (
     <TutorialProvider>
-      <div onClick={() => triggerInteraction()}>
+      <div className="app-root" onClick={() => triggerInteraction()}>
         <Toaster />
+        <InstallAppBanner />
         <Router />
       </div>
     </TutorialProvider>

@@ -474,7 +474,7 @@ export const api = {
     return res.json();
   },
 
-  async createTenant(dealId: number, data: { name: string; personalityType: string; speechPatterns: string[] }): Promise<Tenant> {
+  async createTenant(dealId: number, data: { name: string; personalityType: string; speechPatterns: string[]; paymentEthic?: string }): Promise<Tenant> {
     const res = await fetch(`${API_BASE}/deals/${dealId}/tenant`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

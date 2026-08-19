@@ -319,6 +319,7 @@ export function calculateWeeklyPrincipalPayment(
 }
 
 import { rollForEnhancedMaintenance, updateRecentCurveballIds, ENHANCED_MAINTENANCE_EVENTS, getUnfixedIssues, getProgressiveEscalationMultiplier } from './maintenanceMechanics';
+import { createTenantForDeal } from './tenantFactory';
 
 /**
  * Title Issue Types that can occur when skipping title search
@@ -1105,13 +1106,20 @@ export async function processRentalIncome(
       gameWeek: gameRun.currentWeek,
     });
     
-    // Handle tenant departures - delete tenant so a new one is auto-created next month
+    // Handle tenant departures - delete tenant so a replacement is created next month
     if (curveball.id === 'early_lease_break' || 
         curveball.id === 'tenant_departure_conditions' || 
-        curveball.id === 'tenant_departure_life') {
+        curveball.id === 'tenant_departure_life' ||
+        curveball.id === 'tenant_nonrenewal') {
       const oldTenant = await storage.getTenantByDeal(deal.id);
       if (oldTenant) {
         await db.delete(schema.tenants).where(eq(schema.tenants.id, oldTenant.id));
+        await storage.updateDeal(deal.id, {
+          proFormaOutputs: {
+            ...proFormaOutputs,
+            awaitingReplacementTenantSinceWeek: gameRun.currentWeek + 1,
+          },
+        });
       }
     }
   }
@@ -1491,18 +1499,30 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
         // Use a mutable reference so lease renewal can refresh data before income processing
         let currentDeal = deal;
 
-        const currentTenant = allTenants.find((t: any) => t.dealId === deal.id);
+        let currentTenant = allTenants.find((t: any) => t.dealId === deal.id);
         let tenantLeavingEvent: any = null;
         let newTenantMoveInEvent: any = null;
 
-        // === NEW TENANT MOVE-IN DETECTION ===
-        // If tenant's leaseStartWeek matches current week, they just moved in after a vacancy
-        // Adjust rent to current market rate (new lease negotiation) and create a move-in event
-        if (currentTenant && property && monthsActive > 1) {
+        // Create replacement tenant server-side (keeps ledger + tenant UI in lockstep)
+        const dealOutputs = deal.proFormaOutputs as Record<string, unknown> | null;
+        const awaitingReplacement = (dealOutputs?.awaitingReplacementTenantSinceWeek as number) || 0;
+        if (!currentTenant && property && awaitingReplacement > 0) {
+          const replacement = await createTenantForDeal(deal, gameRun, property, 'replacement');
+          if (replacement) {
+            currentTenant = replacement;
+            allTenants.push(replacement);
+          }
+        }
+
+        // === REPLACEMENT TENANT MOVE-IN ===
+        // Only after a vacancy — initial tenants keep activation rent (no renegotiation)
+        if (currentTenant && property) {
           const tenantLeaseStart = currentTenant.leaseStartWeek ?? 0;
-          const isNewMoveIn = tenantLeaseStart >= gameRun.currentWeek && tenantLeaseStart > firstPaymentWeek;
+          const isReplacementMoveIn =
+            awaitingReplacement > 0 &&
+            tenantLeaseStart >= gameRun.currentWeek;
           
-          if (isNewMoveIn) {
+          if (isReplacementMoveIn) {
             const outputs = deal.proFormaOutputs as any;
             const inputs = deal.proFormaInputs as any;
             const currentRent = outputs?.monthlyGrossRent || 0;
@@ -1581,6 +1601,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
                 lastLeaseRenewalWeek: gameRun.currentWeek + 1,
                 lastRenewalWasNewTenant: true,
                 pendingCosmeticRentBoostPct: 0,
+                awaitingReplacementTenantSinceWeek: null,
               };
               
               await storage.updateDeal(deal.id, {
@@ -1726,7 +1747,15 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
               tenantIssue: true,
             };
           } else if (atRenewalPoint && property) {
-            const leaseRenewalResult = await processLeaseRenewal(deal, property, currentTenant, gameMarket, gameRun.currentWeek + 1, unfixedIssueIds);
+            const leaseRenewalResult = await processLeaseRenewal(
+              deal,
+              property,
+              currentTenant,
+              gameMarket,
+              gameRun.currentWeek + 1,
+              unfixedIssueIds,
+              { gameRunId, balanceAfter: runningCash, gameWeek: gameRun.currentWeek }
+            );
             if (leaseRenewalResult) {
               leaseRenewalResult.event.propertyName = property?.name ?? `Property #${deal.propertyId}`;
               leaseRenewalResult.event.propertyId = deal.propertyId;
@@ -1899,6 +1928,13 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           if (isDeparture && currentTenant) {
             try {
               await storage.deleteTenant(currentTenant.id);
+              const outputs = deal.proFormaOutputs as Record<string, unknown> | null;
+              await storage.updateDeal(deal.id, {
+                proFormaOutputs: {
+                  ...(outputs || {}),
+                  awaitingReplacementTenantSinceWeek: gameRun.currentWeek + 1,
+                },
+              });
             } catch (err) {
               console.error('Failed to delete departing tenant:', err);
             }
@@ -1999,12 +2035,21 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
             },
           });
 
+          if (property) {
+            await createTenantForDeal(
+              { ...deal, proFormaOutputs: { ...proFormaOutputs, postRehabCompleted: true } } as Deal,
+              gameRun,
+              property,
+              'initial'
+            );
+          }
+
           await storage.createLedgerEntry({
             gameRunId,
             direction: 'credit',
             category: 'income',
             amount: 0,
-            balanceAfter: gameRun.cash,
+            balanceAfter: runningCash,
             description: `Pre-tenant rehab complete — ${property?.name || 'Property'} ready for tenants (rent: $${(proFormaOutputs.monthlyGrossRent || 0).toLocaleString()}/mo)`,
             propertyId: deal.propertyId,
             dealId: deal.id,
@@ -2129,8 +2174,19 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
             completedUpgradeIds: newCompletedUpgrades,
             pendingUpgradeIds: [],
             pendingUpgradeCost: 0,
+            preRenewalRent: baseMonthlyRent,
+            lastLeaseRenewalWeek: gameRun.currentWeek + 1,
+            lastRenewalWasNewTenant: false,
           },
         });
+
+        const rehabTenant = await storage.getTenantByDeal(deal.id);
+        if (rehabTenant) {
+          await storage.updateTenant(rehabTenant.id, {
+            leaseRentAmount: newMonthlyRent,
+            leaseStartWeek: gameRun.currentWeek + 1,
+          });
+        }
 
         // Calculate NET rent values (what the player actually sees in the income line)
         const oldVacancyLoss = baseMonthlyRent * (effectiveVacancyRate / 100);
@@ -2151,7 +2207,7 @@ export async function advanceGameWeek(gameRunId: number): Promise<WeekProgressio
           direction: 'credit',
           category: 'income',
           amount: 0,
-          balanceAfter: gameRun.cash,
+          balanceAfter: runningCash,
           description: `Rental rehab complete - ${property?.name || 'Property'}${partialNote}${rentChangeNote}`,
           propertyId: deal.propertyId,
           dealId: deal.id,
@@ -2340,7 +2396,8 @@ async function processLeaseRenewal(
   tenant: any,
   market: MarketCondition,
   currentWeek: number,
-  unfixedIssueIds: string[]
+  unfixedIssueIds: string[],
+  ledgerContext?: { gameRunId: number; balanceAfter: number; gameWeek: number }
 ): Promise<{ event: any } | null> {
   const outputs = deal.proFormaOutputs as any;
   const inputs = deal.proFormaInputs as any;
@@ -2485,6 +2542,24 @@ async function processLeaseRenewal(
     color = 'blue';
   }
 
+  if (ledgerContext) {
+    const propName = property.name || `Property #${deal.propertyId}`;
+    const renewalDesc = rentDiff !== 0
+      ? `${tenantName} lease renewed at $${newRent.toLocaleString()}/mo (rent ${netDiff >= 0 ? '+' : '-'}$${netDiffAbs.toLocaleString()}/mo net) - ${propName}`
+      : `${tenantName} lease renewed at $${newRent.toLocaleString()}/mo (no change) - ${propName}`;
+
+    await storage.createLedgerEntry({
+      gameRunId: ledgerContext.gameRunId,
+      direction: 'credit',
+      category: 'income',
+      amount: 0,
+      description: renewalDesc,
+      propertyId: deal.propertyId,
+      dealId: deal.id,
+      gameWeek: ledgerContext.gameWeek,
+      balanceAfter: ledgerContext.balanceAfter,
+    });
+  }
 
   return {
     event: {
@@ -3448,6 +3523,15 @@ export async function activateRentalProperty(
     console.error('Error awarding trophies:', err);
   }
 
+  // Initial tenant on server — keeps lease rent locked from day one (no client lag)
+  if (!hasPreTenantRehab && property) {
+    try {
+      await createTenantForDeal(updatedDeal!, gameRun, property, 'initial');
+    } catch (err) {
+      console.error('Error creating initial tenant:', err);
+    }
+  }
+
   // Collect all surprise issues for reporting
   const allSurpriseIssues = undiscoveredIssues.map(i => i.name);
   if (titleIssueName) {
@@ -3862,8 +3946,12 @@ export async function initiateRentalRehab(
     return { success: false, error: 'No repairs or upgrades selected' };
   }
 
-  // Calculate tenant break fee (1 month of current rent)
-  const monthlyRent = deal.weeklyIncome || 0;
+  // Calculate tenant break fee (1 month gross rent — not net cash flow)
+  const proFormaOutputsForFee = deal.proFormaOutputs as Record<string, unknown> | null;
+  const tenantForFee = await storage.getTenantByDeal(deal.id);
+  const monthlyRent = (tenantForFee?.leaseRentAmount as number | undefined)
+    || (proFormaOutputsForFee?.monthlyGrossRent as number)
+    || 0;
   const breakFee = Math.round(monthlyRent);
 
   // Calculate base rehab cost and timeline from SELECTED items (repairs + upgrades)

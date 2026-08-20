@@ -1377,7 +1377,7 @@ export async function registerRoutes(
   app.post("/api/deals/:dealId/tenant", gameActionLimiter, async (req, res) => {
     try {
       const dealId = parseInt(req.params.dealId);
-      const { name, personalityType, speechPatterns } = req.body;
+      const { name, personalityType, speechPatterns, paymentEthic } = req.body;
 
       // Check if tenant already exists for this deal
       const existingTenant = await storage.getTenantByDeal(dealId);
@@ -1401,6 +1401,7 @@ export async function registerRoutes(
         name,
         personalityType,
         speechPatterns,
+        paymentEthic: paymentEthic || 'good',
         lastContactWeek: null,
         satisfaction: Math.max(40, initialSatisfaction),
         weeksUnhappy: 0,

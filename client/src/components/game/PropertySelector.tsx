@@ -1,6 +1,7 @@
 import { formatCurrency } from '@/lib/gameData';
 import { getPropertyImage } from '@/lib/propertyImages';
-import { MapPin, HelpCircle, Eye, AlertTriangle, Lock, Building2, TreePine, Wrench, Home, DollarSign, Landmark, Castle, Building, Warehouse, HardHat } from 'lucide-react';
+import { getPropertyUncertainty, uncertaintyBadgeLabel } from '@/lib/propertyUncertainty';
+import { MapPin, Eye, Lock, Building2, TreePine, Wrench, Home, DollarSign, Landmark, Castle, Building, Warehouse, HardHat } from 'lucide-react';
 import type { Property } from '@shared/schema';
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -72,10 +73,13 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
     <div className="space-y-6" data-testid="property-list">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="font-display text-xl md:text-2xl font-bold text-white/90 tracking-wide">
-            Property Market
+          <h2 className="font-display text-xl md:text-2xl font-semibold text-[hsl(var(--workstation-paper))] tracking-tight">
+            Which deal will you bet your assumptions on?
           </h2>
-          <p className="text-xs text-white/40 mt-1 flex items-center gap-1.5" data-testid="metro-label">
+          <p className="text-sm text-[hsl(var(--workstation-muted))] mt-1 max-w-xl">
+            Most listings look plausible before diligence. Click to investigate — numbers stay hidden until you earn them.
+          </p>
+          <p className="text-xs text-[hsl(var(--workstation-muted)/0.7)] mt-2 flex items-center gap-1.5" data-testid="metro-label">
             <MapPin className="w-3 h-3" />
             {metro.name} · {metro.region}
           </p>
@@ -188,6 +192,7 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
           const propertyType = getPropertyType(property.name);
           const typeConfig = PROPERTY_TYPE_CONFIG[propertyType] || PROPERTY_TYPE_CONFIG.house;
           const TypeIcon = typeConfig.icon;
+          const uncertainty = getPropertyUncertainty(property);
 
           return (
             <div
@@ -359,18 +364,22 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
                 </div>
                 
                 <div className="mt-2.5 flex flex-wrap gap-1">
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-white/40 bg-white/[0.04]">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-[hsl(var(--workstation-muted))] bg-white/[0.04] border border-[hsl(var(--workstation-rule))]">
                     <TypeIcon className="w-2.5 h-2.5" />
                     {typeConfig.label}
                   </span>
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-white/40 bg-white/[0.04]">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-[hsl(var(--workstation-muted))] bg-white/[0.04] border border-[hsl(var(--workstation-rule))]">
                     {property.locationType === 'urban' ? <Building2 className="w-2.5 h-2.5" /> : <TreePine className="w-2.5 h-2.5" />}
                     {property.locationType === 'urban' ? 'Urban' : 'Suburban'}
                   </span>
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium text-white/25 bg-white/[0.02]">
-                    <Lock className="w-2.5 h-2.5" />
-                    Unknown
-                  </span>
+                  {(['rentVariability', 'conditionClarity', 'timelineRisk'] as const).map((key) => (
+                    <span
+                      key={key}
+                      className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium text-[hsl(var(--workstation-muted)/0.85)] bg-white/[0.02] border border-[hsl(var(--workstation-rule)/0.8)]"
+                    >
+                      {uncertaintyBadgeLabel(key, uncertainty[key])}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -378,8 +387,8 @@ export function PropertySelector({ properties, selectedId, onSelect, locationFil
         })}
       </div>
 
-      <div className="text-center py-4">
-        <p className="text-white/20 text-xs">
+      <div className="text-center py-4 border-t border-[hsl(var(--workstation-rule))] mt-2">
+        <p className="text-[hsl(var(--workstation-muted))] text-xs">
           Before you build a pro forma, all deals look plausible.
         </p>
       </div>

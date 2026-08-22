@@ -522,7 +522,10 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
   const diligenceRiskLevel = Object.values(missingDiligence).filter(Boolean).length;
   const completedDiligenceCount = completedDiligence.length;
   
-  const canShowViability = completedDiligenceCount >= 2 || skippedDiligence;
+  const canShowViability =
+    inputs.strategy === 'rent'
+      ? hasMarketStudy && hasContractorWalkthrough
+      : hasAppraisal && hasContractorWalkthrough;
   const canShowReturns = inputs.strategy === 'rent' ? hasMarketStudy : hasAppraisal;
   const canShowFragility = completedDiligenceCount >= 1;
   
@@ -582,8 +585,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
     scrollToTop();
   }, [currentStep]);
 
-  const STEP_LABELS = ['Strategy', 'Income & Operating', 'Scope of Work', 'Financing', 'Review & Commit'];
-  const STEP_SHORT = ['Strategy', 'Income', 'Scope', 'Finance', 'Review'];
+  const STEP_LABELS = ['Deal foundation', 'Capital stack', 'Operations', 'Timeline & risk', 'Review & commit'];
+  const STEP_SHORT = ['Basis', 'Capital', 'Ops', 'Time', 'Review'];
   const goNext = () => setCurrentStep((s) => Math.min(5, s + 1));
   const goBack = () => setCurrentStep((s) => Math.max(1, s - 1));
   const showOnStep = (n: number) => (currentStep === n ? '' : 'hidden');
@@ -741,6 +744,13 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
 
         {/* STRATEGY SELECTOR */}
         <div className={`proforma-step-panel p-4 ${showOnStep(1)}`} data-testid="strategy-tabs">
+          <div className="mb-4 border border-[hsl(var(--workstation-rule))] p-4 bg-[hsl(var(--workstation-surface)/0.5)]">
+            <p className="text-[10px] uppercase tracking-wider text-[hsl(var(--workstation-muted))] mb-2">All-in basis (live)</p>
+            <p className="font-mono text-2xl font-semibold text-[hsl(var(--workstation-paper))]">{formatCurrency(allInBasis)}</p>
+            <p className="text-xs text-[hsl(var(--workstation-muted))] mt-1">
+              Purchase {formatCurrency(property.price)} + closing {formatCurrency(closingCosts)} + rehab & contingency
+            </p>
+          </div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-white font-semibold">{property.name}</h2>
             <span className="text-cyan-300/80 text-sm font-mono">{formatCurrency(property.price)}</span>
@@ -917,25 +927,21 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                         )}
                       </>
                     ) : (
-                      <>
-                        <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400 text-lg font-bold">$</span>
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            autoComplete="off"
-                            placeholder="???"
-                            value={inputs.expectedRent === null ? '' : inputs.expectedRent}
-                            onChange={(e) => onInputsChange({ ...inputs, expectedRent: e.target.value === '' ? null : (parseFloat(e.target.value.replace(/,/g, '')) || 0) })}
-                            onFocus={() => onFieldTouch?.('expectedRent')}
-                            className="w-full bg-slate-900/80 border-2 border-amber-500/40 rounded-xl pl-10 pr-4 py-4 text-cyan-100 text-xl font-mono font-bold focus:border-amber-400 focus:outline-none placeholder:text-amber-600/50"
-                            data-testid="input-expected-rent"
-                          />
-                        </div>
-                        <span className="text-amber-400/80 text-xs mt-2 block flex items-center gap-1">
-                          <Lock className="w-3 h-3" /> Complete Market Study to see comparable rents
-                        </span>
-                      </>
+                      <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+                        <p className="text-amber-200/90 text-sm font-medium mb-1">Market rent locked</p>
+                        <p className="text-xs text-[hsl(var(--workstation-muted))]">
+                          Complete a Market Rent Study on the property screen before entering rent assumptions.
+                        </p>
+                        {onReturnToProperty && (
+                          <button
+                            type="button"
+                            onClick={onReturnToProperty}
+                            className="mt-3 text-xs font-medium text-[hsl(var(--workstation-brass))] underline"
+                          >
+                            ← Return to diligence
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                   
@@ -1302,16 +1308,14 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
             {/* FLIP: Estimated Sale Price (ARV) */}
             {inputs.strategy === 'flip' && (
               <div className={`${showOnStep(2)} mt-4 pt-4 border-t border-amber-500/20`}>
-                <p className="text-amber-400/70 text-xs uppercase tracking-wider mb-3">Estimated Sale Price</p>
+                <p className="text-amber-400/70 text-xs uppercase tracking-wider mb-3">Estimated sale price</p>
+                {hasAppraisal ? (
                 <div className="bg-gradient-to-r from-amber-900/30 to-orange-900/20 rounded-xl p-4 border border-amber-500/30">
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-amber-300 text-sm font-medium flex items-center gap-2">
                       <DollarSign className="w-4 h-4" />
                       After Repair Value (ARV)
                     </label>
-                    {!hasAppraisal && (
-                      <span className="text-amber-400/60 text-[10px] bg-amber-500/20 px-2 py-0.5 rounded-full">Speculative</span>
-                    )}
                   </div>
                   
                   <div className="flex items-center justify-between mb-2">
@@ -1322,8 +1326,8 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   
                   <input
                     type="range"
-                    min={hasAppraisal ? property.arvMin : Math.round(property.arvMin * 0.85)}
-                    max={hasAppraisal ? property.arvMax : Math.round(property.arvMax * 1.15)}
+                    min={property.arvMin}
+                    max={property.arvMax}
                     step={1000}
                     value={inputs.arvEstimate !== null ? inputs.arvEstimate : arvMid}
                     onChange={(e) => { triggerHaptic(); onInputsChange({ ...inputs, arvEstimate: parseInt(e.target.value) }); }}
@@ -1331,19 +1335,28 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                     data-testid="slider-arv-estimate"
                   />
                   <div className="flex justify-between text-xs text-amber-400/60 mt-1">
-                    <span>${(hasAppraisal ? property.arvMin : Math.round(property.arvMin * 0.85)).toLocaleString()}</span>
-                    <span className="text-amber-300">{hasAppraisal ? 'Based on comps' : 'Wide range - get appraisal!'}</span>
-                    <span>${(hasAppraisal ? property.arvMax : Math.round(property.arvMax * 1.15)).toLocaleString()}</span>
+                    <span>${property.arvMin.toLocaleString()}</span>
+                    <span className="text-amber-300">Based on comps</span>
+                    <span>${property.arvMax.toLocaleString()}</span>
                   </div>
-                  
-                  {!hasAppraisal && (
-                    <div className="mt-3 bg-amber-500/10 rounded-lg p-2 border border-amber-500/20">
-                      <p className="text-amber-300/70 text-[10px] leading-relaxed">
-                        Without a comp analysis, your ARV is a guess. Over-estimating the sale price is the #1 mistake new flippers make.
-                      </p>
-                    </div>
-                  )}
                 </div>
+                ) : (
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+                    <p className="text-amber-200/90 text-sm font-medium mb-1">ARV locked</p>
+                    <p className="text-xs text-[hsl(var(--workstation-muted))]">
+                      Complete a Comp Analysis (ARV) on the property screen before setting sale price assumptions.
+                    </p>
+                    {onReturnToProperty && (
+                      <button
+                        type="button"
+                        onClick={onReturnToProperty}
+                        className="mt-3 text-xs font-medium text-[hsl(var(--workstation-brass))] underline"
+                      >
+                        ← Return to diligence
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1899,27 +1912,18 @@ export function ProFormaPanel({ property, inputs, onInputsChange, onCalculate, c
                   {onReturnToProperty && (
                     <button
                       onClick={onReturnToProperty}
-                      className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold text-sm transition-all shadow-lg shadow-emerald-500/20"
+                      className="w-full px-4 py-3 rounded-lg bg-[hsl(var(--workstation-brass))] text-[hsl(var(--workstation-ink))] font-semibold text-sm transition-all"
                       data-testid="button-return-to-property"
                     >
-                      ← Return to Due Diligence (Recommended)
-                    </button>
-                  )}
-                  
-                  {onProceedWithoutDiligence && (
-                    <button
-                      onClick={onProceedWithoutDiligence}
-                      className="w-full px-5 py-3 rounded-xl bg-gradient-to-r from-amber-600/80 to-orange-600/80 hover:from-amber-500 hover:to-orange-500 text-white font-semibold text-sm transition-all border-2 border-amber-400/50 shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
-                      data-testid="button-proceed-without-diligence"
-                    >
-                      <AlertTriangle className="w-4 h-4" />
-                      Proceed Without Full Diligence
+                      ← Return to due diligence
                     </button>
                   )}
                 </div>
                 
-                <p className="text-gray-500 text-xs mt-3 italic">
-                  Skipping due diligence may lead to surprise costs and hidden issues when the deal closes.
+                <p className="text-gray-500 text-xs mt-3">
+                  {inputs.strategy === 'rent'
+                    ? 'Requires Market Rent Study and Contractor Walkthrough before you can commit.'
+                    : 'Requires Appraisal and Contractor Walkthrough before you can commit.'}
                 </p>
               </div>
             )}

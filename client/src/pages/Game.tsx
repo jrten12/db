@@ -41,12 +41,10 @@ import { TutorialPrompt } from '@/components/game/TutorialPrompt';
 import { DebtPanel, DebtPanelTrigger } from '@/components/game/DebtPanel';
 import { RefinanceModal } from '@/components/game/RefinanceModal';
 import { ContractorWalkthroughModal } from '@/components/game/ContractorWalkthroughModal';
-import { GoldTreasureModal } from '@/components/game/GoldTreasureModal';
 import { OperatingExpensesPopup } from '@/components/game/OperatingExpensesPopup';
 import { DealCongratulations } from '@/components/game/DealCongratulations';
 import { RentalRealityReveal } from '@/components/game/RentalRealityReveal';
 import { PropertySoldAnimation } from '@/components/game/PropertySoldAnimation';
-import { PassiveIncomeMilestone } from '@/components/game/PassiveIncomeMilestone';
 import { LeaseChangeModal, type LeaseChangeEvent } from '@/components/game/LeaseChangeModal';
 import { DealShareCard } from '@/components/game/DealShareCard';
 import { useTutorial } from '@/contexts/TutorialContext';
@@ -1482,9 +1480,7 @@ export default function Game() {
         toast(`📊 Market shifted to ${label}.${rentNote}`, { duration: 4000 });
       }
 
-      if (result.passiveIncomeMilestones && result.passiveIncomeMilestones.length > 0) {
-        setMilestoneQueue(prev => [...prev, ...result.passiveIncomeMilestones]);
-      }
+      // Passive income milestone celebrations disabled — keep progression in ledger only.
 
       const updatedGameRun = await api.getGameRun(gameRun.id);
       setGameRun(updatedGameRun);
@@ -1639,30 +1635,9 @@ export default function Game() {
       }
 
       toast.success(`Month ${result.newWeek} complete!`);
-
-      const STATS_REMINDER_MONTHS = [10, 20, 30, 40];
-      if (STATS_REMINDER_MONTHS.includes(result.newWeek)) {
-        setTimeout(() => {
-          let message = '';
-          if (result.newWeek === 10) {
-            message = "10 months in — check your Performance Stats to see your investor profile. Open the menu to view.";
-          } else if (result.newWeek === 20) {
-            message = "20 months in. How's your strategy shaping up? Tap the menu to review your Performance Stats.";
-          } else if (result.newWeek === 30) {
-            message = "Past the halfway mark. Your scorecard is tracking your progress — review it in the menu.";
-          } else if (result.newWeek === 40) {
-            message = "12 months left. Time to review your benchmarks and make final moves. Check Performance Stats.";
-          }
-          if (message) {
-            toast(message, { duration: 5000 });
-          }
-        }, 2000);
-      }
     } catch (error: any) {
       // Season gate — server says player has used all 52 weeks of the current season.
-      // Open the SeasonEndModal which lets the player watch a sponsor video to unlock more.
       if (error?.code === 'season_ended') {
-        // Capture the recap snapshot before opening — server resets these on unlock.
         setSeasonEndSnapshot({
           seasonStats: error.seasonStats ?? {
             bestDealProfit: 0, bestDealLabel: '', totalCashFlow: 0,
@@ -2011,14 +1986,12 @@ export default function Game() {
   }, [deals]);
   
   useEffect(() => {
-    if (!gameRun || isBankrupt) return;
-    
-    // Check for low cash (below $1,000) - but not if player just started a renovation
-    if (gameRun.cash < 1000 && gameRun.weeksRemaining > 0 && !hasShownLowCashPopup && !showPremiumModal && !hasActiveRehab) {
-      setPremiumTriggerReason('low_cash');
-      setShowPremiumModal(true);
-      setHasShownLowCashPopup(true);
-    }
+    // Premium upsell auto-popup disabled — keeps training sim credible.
+    void gameRun;
+    void isBankrupt;
+    void hasShownLowCashPopup;
+    void showPremiumModal;
+    void hasActiveRehab;
   }, [gameRun?.weeksRemaining, gameRun?.cash, isBankrupt, hasShownLowCashPopup, showPremiumModal, hasActiveRehab]);
 
   // Handle Stripe checkout return
@@ -2319,8 +2292,6 @@ export default function Game() {
                 playerName={playerName || 'Player'}
                 hasActiveGame={deals.length > 0 || (gameRun?.weeksRemaining ?? 52) < 52}
                 onPlayGame={() => setCurrentScreen('market')}
-                onHallOfFame={() => setShowHallOfFame(true)}
-                onBadges={() => setShowBadges(true)}
                 onTutorial={() => { startTutorial(); setCurrentScreen('market'); }}
                 onRestartGame={handleNewGame}
                 onSettings={() => { setPremiumTriggerReason('manual'); setShowPremiumModal(true); }}
@@ -2924,13 +2895,7 @@ export default function Game() {
           onClose={() => setLeaseChangeEvents([])}
         />
 
-        {/* Passive Income Milestone Celebration */}
-        {activeMilestone !== null && (
-          <PassiveIncomeMilestone
-            threshold={activeMilestone}
-            onDismiss={() => setActiveMilestone(null)}
-          />
-        )}
+        {/* Passive income milestone celebrations disabled */}
 
         {/* Trophy Unlock Notifications - paused when sold animation is showing */}
         <TrophyNotificationManager 
@@ -2993,8 +2958,8 @@ export default function Game() {
             property={walkthroughDeal.property}
             gameRun={gameRun}
             onComplete={handleWalkthroughComplete}
-            onTreasureFound={(amount, propertyName) => {
-              setTreasureData({ amount, propertyName, context: 'walkthrough' });
+            onTreasureFound={() => {
+              /* Gold treasure disabled */
             }}
             onStartRepairs={(dealId, propertyName, weeks, cost, varianceInfo, strategy) => {
               addConstructionStart(propertyName, strategy || 'rent', weeks, cost, varianceInfo);
@@ -3007,14 +2972,7 @@ export default function Game() {
           />
         )}
         
-        {/* Gold Treasure Modal (extremely rare 1/300 discovery) */}
-        <GoldTreasureModal
-          isOpen={!!treasureData}
-          onClose={() => setTreasureData(null)}
-          amount={treasureData?.amount || 0}
-          propertyName={treasureData?.propertyName || ''}
-          discoveryContext={treasureData?.context || 'walkthrough'}
-        />
+        {/* Gold treasure modal disabled */}
         
         {/* Operating Expenses Popup */}
         {opexPopupData && (
